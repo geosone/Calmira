@@ -1,0 +1,453 @@
+[Bin]
+Caption=Recycle Bin
+Left=150
+Top=42
+Width=352
+Height=229
+MinLeft=23
+MinTop=77
+DeleteToBin=1
+Action=0
+Capacity=8
+Icons=1
+SectionCount=4
+Section0=105
+Section1=144
+Section2=60
+Section3=-24
+
+[Calmira]
+CanEditSettings=1
+MaxHistorySize=24
+Calmira32=0
+DateLastRun=9/26/04
+
+[Colors]
+Window frames=clBtnFace
+Icon background=clWindow
+Icon selection=clHighlight
+Shortcut arrows=clBlack
+Alias arrows=clBlack
+Percent bar=clHighlight
+Percent back=clSilver
+Taskbar=clBtnFace
+Startmenu=clBtnFace
+Start highlight=clHighlight
+Checklist=clWhite
+
+[Colour descriptions]
+0=3D window frames
+1=Background of unselected icons
+2=Background of selected icons
+3=Shortcut arrows
+4=Alias arrows
+5=Progress bar body
+6=Progress bar background
+7=Taskbar frame (excluding buttons)
+8=Start menu background
+9=Start menu highlight bar
+10=Checklist background
+
+[Computer]
+Caption=My Computer
+Left=39
+Top=19
+Width=321
+Height=238
+MinLeft=23
+MinTop=2
+
+[Confirmation]
+DelShort=1
+CopyStart=1
+MoveStart=1
+DelStart=1
+CopyFile=0
+MoveFile=0
+DelFile=0
+Replace=1
+Protect=1
+CopyFolder=0
+MoveFolder=0
+DelFolder=0
+NewAlias=0
+
+[Desktop]
+WinDesktop=control.exe main.cpl Desktop
+DeskGridX=75
+DeskGridY=75
+NumShorts=2
+
+[Display]
+FontName=MS Sans Serif
+FontSize=8
+FontColor=clBlack
+BrowseGridX=85
+BrowseGridY=65
+LineHeight=16
+
+[Explorer]
+Left=-2
+Top=0
+Width=808
+Height=454
+MinLeft=-1
+MinTop=-1
+TreeWidth=168
+LastFolder=c:\
+
+[File system]
+DefaultDisplay=0
+DefaultSort=1
+IconStrings=exe ico scr icl w16
+DefaultFilter=*.*
+FileHints=1
+HintDelay=800
+UseDescriptions=1
+DescCaptions=0
+Simul4DOS=0
+FileSysChange=1
+DescriptionWidth=-1
+DescriptionFile=descript.ion
+FilePaneCols=5
+NameColWidth=102
+SizeColWidth=66
+DateColWidth=122
+AttrColWidth=52
+ListKBDecimals=0
+TypeColWidth=176
+ListMBDecimals=2
+EnableLFN=1
+
+[File Types]
+exe=Program
+com=MS-DOS program
+bat=MS-DOS batch file
+dll=Dynamic link library
+pif=Program information file
+
+[File Viewers]
+Notepad=notepad.exe
+Write=write.exe
+
+[Find Dialog]
+Left=306
+Top=226
+Width=412
+Height=316
+MinLeft=-1
+MinTop=-1
+SectionCount=4
+Section0=96
+Section1=130
+Section2=65
+Section3=109
+
+[GotoFolder]
+Count=1
+S0=C:
+
+[History lists]
+Run Program dialog's command lines=RunProgram
+Go To Folder dialog's folder list=GotoFolder
+Open File With dialog's commands=OpenFileWith
+Icon browser's file list=IconSources
+Filter dialog's wildcards=Browser Filters
+Find dialog's file specifications=Search for
+Find dialog's start directories=Start from
+Find dialog's text searches=Find text
+
+[Icons]
+_doc=c:\windows\system\win32s\shell32.dll(1)
+pif=progman.exe(9)
+_mydocs=C:\MINI98\SYSTEM\MYDOCS.DLL(0)
+_emptbin=C:\WINDOWS\Shell32XP.icl(101)
+_fullbin=C:\WINDOWS\Shell32XP.icl(102)
+
+[Internet]
+URLPrefixes=http:// ftp:// gopher:// news: file: mailto:
+Browser=
+
+[Layouts]
+0..3=3*1
+4..6=3*2
+7..9=3*3
+10..12=4*3
+13..16=4*4
+17..20=5*4
+21..25=5*5
+26..30=6*5
+
+[Preferences]
+ShowDailyTips=0
+AutoSize=1
+SingleStatus=0
+SaveWindows=0
+ShortArrows=1
+ShowDeskMenu=1
+StickyShorts=0
+OneClickShorts=0
+BrowseSame=1
+RightClose=1
+RunAutoClose=1
+DesktopParent=1
+RButtonUpClose=0
+WindowOpen=0
+ShowSplash=0
+RestoreSys=0
+SysWinQuit=0
+MsgDialogSounds=1
+TrackThumb=1
+GlobalHotKeys=1
+ShowBrowseBtns=1
+NotifyNoIcons=1
+ShortWinCaptions=1
+ShowHidSys=1
+ProgDrop=1
+FindVersion=1
+FindDlgIcons=1
+AliasArrows=1
+DefDragCopy=1
+MiniIcons=1
+UpcaseFirstChar=0
+NoRegExtensions=0
+HintDesc=0
+HintBytes=1
+HintDate=1
+HintTime=1
+HintAttrib=1
+DefaultColumns=31
+CompIconStart=0
+ExploreLastFolder=0
+DarkIconStretch=1
+PicBtnGlyphs=0
+Win95Keyboard=1
+ShowShutDownBMP=1
+ShowBrowserToolbar=1
+HQIconStretch=1
+ShowBrowserStatusbar=1
+FlatToolbarButtons=1
+DrawShadedIcons=1
+HQMiniIcons=1
+HintType=0
+
+[Programs]
+%calmira%\explorer.exe=Calmira Explorer
+%windir%\control.exe=Control Panel
+%windir%\winfile.exe=File Manager
+%windir%\progman.exe=Program Manager
+%windir%\printman.exe=Print Manager
+%windir%\winsetup.exe=Windows Setup
+
+[Scripts]
+DosScriptFilename=%temp%\calmira.run
+WinScriptExtension=.run
+EnableDosScripts=1
+EnableWinScripts=1
+
+[Sounds]
+WindowOpen=<none>
+WindowClose=<none>
+WindowMinimize=<none>
+WindowRestore=<none>
+WindowMaximize=<none>
+NotifyCompletion=<None>
+BinDropFiles=<None>
+BinEmpty=<none>
+BinRestore=<None>
+MenuClick=<None>
+
+[Start Button]
+FontName=MS Sans Serif
+FontSize=8
+FontColor=clBlack
+FontStyle=Bold
+Caption=Start
+Width=56
+Left=3
+
+[Start Menu]
+FontName=MS Sans Serif
+FontSize=8
+FontColor=clMenuText
+StartMenu3D=1
+BoldSelect=0
+ShellStartup=1
+StartMouseUp=1
+StartKeyGrab=1
+BackgroundBuild=0
+LargeRootMenu=1
+ColouredBar=1
+ShellDDE=0
+LargeItemHeight=32
+
+[Start Menu Properties]
+Left=144
+Top=39
+Width=352
+Height=402
+MinLeft=-1
+MinTop=-1
+
+[Task Manager]
+Left=148
+Top=43
+Width=344
+Height=394
+MinLeft=-1
+MinTop=-1
+
+[Taskbar]
+AdjustClock=control.exe main.cpl Date/Time
+StayVisible=1
+ShrinkMax=1
+Clock24=1
+PopupRes=1
+PopupDate=1
+Animate=0
+ButtonHints=1
+ArrangeMin=1
+HideMinApps=1
+IconWindowTask=1
+ExplorerTask=1
+FullFolderPath=1
+DocNameFirst=0
+DocNameLower=0
+Refresh=1
+Disable=0
+TopTaskbar=0
+RowCount=1
+ShowRealSysMenu=1
+FullAnimate=0
+UpSpeed=4
+DownSpeed=2
+AnimatePixels=1
+AnimateSlowDown=0
+
+[Utilities]
+Inspect=%windir%\notepad.exe
+Default=%windir%\notepad.exe
+Undelete=
+Disk=
+
+[Search for]
+Count=5
+S0=*.bmp
+S1=*.ini
+S2=*.g*
+S3=*.p*
+S4=*.gr*
+
+[Start from]
+Count=2
+S0=e:\comple~1\delphi\delphi16\install\
+S1=c:\windows\
+
+[Find text]
+Count=3
+S0=scrnsave.scr
+S1=blank
+S2=screen
+
+[Applet Tray]
+Character Map=c:\windows\charmap.exe
+DosBar=C:\WinProgs\DosBar\DosBar.exe
+CD Player=C:\WinProgs\Abcd\a-b-cd16.exe
+Fix1MB=C:\WinProgs\Fix1MB\Fix1MB.exe
+Microsoft Office=C:\WINPROGS\MSOFFICE\msoffice.exe
+Norton AntiVirus Auto-Protect=C:\winprogs\nav40\navtsrw.exe
+
+[Exclude]
+Count=2
+S0=calmira.exe
+S1=clock.exe
+
+[RunProgram]
+Count=24
+S0=sysedit
+S1=notepad
+S2=qv
+S3=qv "c:\alexandre\minhas imagens\fotos\minhas\small__lele 026.bmp"
+S4=qv c:\alexandre\minhas imagens\fotos\minhas\small__lele 026.bmp
+S5=%windir%\system\sysedit.exe
+S6=%windir%\system\sysedit
+S7=%windir%\sysedit
+S8=regedt16
+S9=setup
+S10=regedit
+S11=progman
+S12=control
+S13=d:\ie501\setup.exe /f:16
+S14=pifedit
+S15=pifeditor
+S16=winver
+S17=c:\winprogs\wintools\scrsaver\bezier.scr
+S18=winipcfg
+S19=winsetup
+S20=d:\autorun\autorun.exe
+S21=autorun\autorun.exe
+S22=calendar
+S23=command
+
+[Browser Filters]
+Count=1
+S0=*.*
+
+[OpenFileWith]
+Count=7
+S0=notepad.exe
+S1=write.exe
+S2=%1 /S
+S3=notepad.w16
+S4=wordpad.exe %1
+S5=write.w16
+S6=C:\Windows\write.exe
+
+[MyDocuments]
+Target=C:\ALEXAN~1
+Caption=My Documents
+Params=
+WorkingFolder=
+ShowMode=0
+UseDocFolder=1
+Left=27
+Top=157
+
+[IconSources]
+Count=9
+S0=c:\downlo~1\win3\calmira\cal33src\src\calmira.exe
+S1=c:\winprogs\msoffice\msoffice.icl
+S2=progman.exe
+S3=c:\winprogs\calmira\w95icons.dll
+S4=c:\winprogs\winword\winword.exe
+S5=regedt16.exe
+S6=mspaint.exe
+S7=c:\windows\system\winhlp32.exe
+S8=c:\windows\system\win32s\shell32.dll
+
+[Shortcut0]
+Kind=2
+Target=%windir%\dosprmpt.pif
+Caption=MS-DOS Prompt
+IconFile=C:\MINI98\PROGMAN.EXE
+IconIndex=9
+Params=
+WorkingFolder=
+ShowMode=0
+UseDocFolder=0
+Left=23
+Top=227
+
+[Shortcut1]
+Kind=2
+Target=C:\AUTOEXEC.LOG
+Caption=teste
+IconFile=
+IconIndex=0
+Params=
+WorkingFolder=
+ShowMode=0
+UseDocFolder=0
+Left=23
+Top=302
+

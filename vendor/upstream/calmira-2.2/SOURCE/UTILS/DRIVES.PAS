@@ -1,0 +1,413 @@
+{*********************************************************}
+{                                                         }
+{    Calmira System Library 2.2                           }
+{    by Li-Hsin Huang,                                    }
+{    released into the public domain July 1998            }
+{                                                         }
+{*********************************************************}
+
+unit Drives;
+
+{ Disk drive functions }
+
+interface
+
+uses FileCtrl; { defines TDriveType }
+
+const
+  DriveDesc : array[TDriveType] of string[15] =
+    ('Unknown drive', 'No drive', 'Floppy drive', 'Hard drive', 'Network drive',
+     'CD-ROM drive', 'RAM disk');
+
+type
+  TDriveRange = 'A'..'Z';
+  TDriveFlag = (dfValid, dfFloppy, dfFixed, dfNetwork, dfCDROM, dfRAM,
+                dfRemoveable, dfWriteable);
+  TDriveFlags = set of TDriveFlag;
+  TVolumeLabel = string[11];
+
+var
+  ValidDrives : set of TDriveRange;
+
+
+function DriveNumber(Drive : Char) : Integer;
+{ Maps drive characters to Integers used by Delphi. A = 1, B = 2, ... }
+
+function WinDriveNumber(Drive: Char): Integer;
+{ Maps drive characters to Integers used by Windows. A = 0, B = 1, ... }
+
+function FindDriveType(Drive: Char): TDriveType;
+{ Detects the type of the specified drive }
+
+function GuessDriveType(Drive : Char) : TDriveType;
+{ Returns the type of the drive without needing disk access --
+  the information is obtained and stored during initialization }
+
+function GetDriveFlags(drive: Char) : TDriveFlags;
+{ Returns the flag set for the given drive }
+
+function IsRAMDrive(DriveNum: Integer): Boolean;
+{ Returns true if the drive is a RAM disk }
+
+function IsCDROM(DriveNum: Integer): Boolean;
+{ Returns true if the drive is a CD-ROM drive }
+
+function GetNetworkVolume(Drive: Char): string;
+{ Returns the network name of the drive if available, otherwise
+  just returns the volume label }
+
+function GetVolumeLabel(Drive: Char): TVolumeLabel;
+{ Returns the volume label of the disk }
+
+function GetExactVolumeLabel(Drive: Char): TVolumeLabel;
+
+procedure DetectDrives;
+{ Refreshes this unit's information about drives on the system.
+  Called automatically during initialization. }
+
+function SystemDrivesChanged : Boolean;
+
+function IsDriveString(const s: string): Boolean;
+
+procedure SetVolumeLabel(NewLabel: TVolumeLabel; Drive: Char);
+
+procedure DeleteVolumeLabel(Drive: Char);
+
+implementation
+
+uses SysUtils, WinProcs, WinTypes;
+
+var
+  DriveFlags  : array[TDriveRange] of TDriveFlags;
+  DriveTypes  : array[TDriveRange] of TDriveType;
+
+
+function DriveNumber(Drive : Char) : Integer;
+begin
+  { A = 1, B = 2 ... }
+  Result := Ord(UpCase(Drive)) - Ord('A') + 1;
+end;
+
+
+function WinDriveNumber(Drive: Char): Integer;
+begin
+  { A = 0, B = 1 ... }
+  Result := DriveNumber(Drive) - 1;
+end;
+
+
+function IsCDROM(DriveNum: Integer): Boolean; assembler;
+asm
+  MOV   AX, 1500h { look for MSCDEX }
+  XOR   BX, BX
+  INT   2Fh
+  OR    BX, BX
+  JZ    @Finish
+  MOV   AX, 150Bh { check for using CD driver }
+  MOV   CX, DriveNum
+  INT   2fh
+  OR    AX, AX
+  @Finish:
+end;
+
+
+function IsRAMDrive(DriveNum: Integer): Boolean; assembler;
+var
+  Temp: Boolean;
+asm
+  MOV   Temp, False
+  PUSH  DS
+  MOV   BX, SS
+  MOV   DS, BX
+  SUB   SP, 0200h
+  MOV   BX, SP
+  MOV   AX, DriveNum
+  MOV   CX, 1
+  XOR   DX, DX
+  INT   25h  { read boot sector }
+  ADD   SP, 2
+  JC    @@1
+  MOV   BX, SP
+  CMP   BYTE PTR SS:[BX+15h], 0F8h  { reverify fixed disk }
+  JNE   @@1
+  CMP   BYTE PTR SS:[BX+10h], 1     { check for single FAT }
+  JNE   @@1
+  MOV   Temp, True
+@@1:
+  ADD   SP, 0200h
+  POP   DS
+  MOV   AL, Temp
+end;
+
+
+function FindDriveType(Drive: Char): TDriveType;
+var
+  n : Integer;
+begin
+  n := WinDriveNumber(Drive);
+
+  case GetDriveType(n) of
+    0               : Result := dtNoDrive;
+    DRIVE_REMOVABLE : Result := dtFloppy;
+    DRIVE_FIXED     : if IsRAMDrive(n) then Result := dtRAM
+                      else Result := dtFixed;
+    DRIVE_REMOTE    : if IsCDROM(n) then Result := dtCDROM
+                      else Result := dtNetwork;
+  end;
+end;
+
+
+
+procedure DetectDrives;
+var
+  d: Char;
+begin
+  ValidDrives := [];
+  for d := 'A' to 'Z' do begin
+    DriveTypes[d] := FindDriveType(d);
+    case DriveTypes[d] of
+      dtUnknown : DriveFlags[d] := [dfValid, dfFixed, dfWriteable];
+      dtNoDrive : DriveFlags[d] := [];
+      dtFloppy  : DriveFlags[d] := [dfValid, dfFloppy, dfRemoveable, dfWriteable];
+      dtFixed   : DriveFlags[d] := [dfValid, dfFixed, dfWriteable];
+      dtNetwork : DriveFlags[d] := [dfValid, dfNetwork, dfWriteable];
+      dtCDROM   : DriveFlags[d] := [dfValid, dfCDROM, dfRemoveable];
+      dtRAM     : DriveFlags[d] := [dfValid, dfRAM, dfWriteable];
+    end;
+    if dfValid in DriveFlags[d] then Include(ValidDrives, d);
+  end;
+end;
+
+function SystemDrivesChanged : Boolean;
+var d: Char;
+begin
+  Result := False;
+  for d := 'A' to 'Z' do
+    if (DriveTypes[d] = dtNoDrive) xor (GetDriveType(WinDriveNumber(d)) = 0) then begin
+      Result := True;
+      Exit;
+    end;
+end;
+
+
+function GuessDriveType(Drive : Char) : TDriveType;
+begin
+  Drive := UpCase(Drive);
+  if Drive in ['A'..'Z'] then Result := DriveTypes[Drive]
+  else Result := dtNoDrive;
+end;
+
+
+function GetDriveFlags(Drive: Char) : TDriveFlags;
+begin
+  Drive := UpCase(Drive);
+  if Drive in ['A'..'Z'] then Result := DriveFlags[Drive]
+  else Result := [];
+end;
+
+function Capitalize(const s: string): string;
+begin
+  Result := Lowercase(s);
+  Result[1] := Upcase(Result[1]);
+end;
+
+function GetVolumeLabel(Drive: Char): TVolumeLabel;
+var
+  SR: TSearchRec;
+begin
+  Result := '';
+  if FindFirst(Drive + ':\*.*', faVolumeID, SR) = 0 then
+    Result := Capitalize(SR.Name);
+end;
+
+procedure PadVolumeLabel(var V : TVolumeLabel);
+var i: Integer;
+begin
+  for i := Length(V) + 1 to 11 do V[i] := ' ';
+  V[0] := Chr(11);
+end;
+
+function GetExactVolumeLabel(Drive: Char): TVolumeLabel;
+var
+  SR: TSearchRec;
+begin
+  Result := '';
+  if FindFirst(Drive + ':\*.*', faVolumeID, SR) = 0 then begin
+    Result := SR.Name;
+    PadVolumeLabel(Result);
+  end;
+end;
+
+
+
+
+function GetNetworkVolume(Drive: Char): string;
+const
+  LocalName: array[0..2] of Char = 'C:'#0;
+var
+  BufSize: Word;
+  Temp: array[0..128] of Char;
+begin
+  LocalName[0] := Drive;
+  BufSize := 127;
+  if WNetGetConnection(LocalName, Temp, @BufSize) = WN_SUCCESS then
+    Result := Capitalize(StrPas(Temp))
+  else
+    Result := GetVolumeLabel(Drive);
+end;
+
+
+function IsDriveString(const s: string): Boolean;
+begin
+  Result := (Length(s) = 3) and (UpCase(s[1]) in ['A'..'Z'])
+            and (s[2] = ':') and (s[3] = '\');
+end;
+
+
+type
+  EVolumeLabelError = class(Exception);
+  EInterruptError = class(Exception);
+  EDPMIError = class(EInterruptError);
+
+  PRealModeRegs = ^TRealModeRegs;
+  TRealModeRegs = record
+    case Integer of
+      0: (
+        EDI, ESI, EBP, EXX, EBX, EDX, ECX, EAX: Longint;
+        Flags, ES, DS, FS, GS, IP, CS, SP, SS: Word);
+      1: (
+        DI, DIH, SI, SIH, BP, BPH, XX, XXH: Word;
+        case Integer of
+          0: (
+            BX, BXH, DX, DXH, CX, CXH, AX, AXH: Word);
+          1: (
+            BL, BH, BLH, BHH, DL, DH, DLH, DHH,
+            CL, CH, CLH, CHH, AL, AH, ALH, AHH: Byte));
+  end;
+
+  PExtendedFCB = ^TExtendedFCB;
+  TExtendedFCB = Record
+    ExtendedFCBflag : Byte;
+    Reserved1       : array[1..5] of Byte;
+    Attr            : Byte;
+    DriveID         : Byte;
+    FileName        : array[1..8] of Char;
+    FileExt         : array[1..3] of Char;
+    CurrentBlockNum : Word;
+    RecordSize      : Word;
+    FileSize        : LongInt;
+    PackedDate      : Word;
+    PackedTime      : Word;
+    Reserved2       : array[1..8] of Byte;
+    CurrentRecNum   : Byte;
+    RandomRecNum    : LongInt;
+  end;
+
+procedure RealModeInt(Int: Byte; var Regs: TRealModeRegs);
+var
+  ErrorFlag: Boolean;
+begin
+  asm
+    MOV ErrorFlag, 0       { assume success }
+    MOV AX, 0300h          { function 300h }
+    MOV BL, Int            { real mode interrupt to execute }
+    MOV BH, 0              { required }
+    MOV CX, 0              { stack words to copy, assume zero }
+    LES DI, Regs           { es:di = Regs }
+    INT 31h                { DPMI int 31h }
+    JNC @@End              { carry flag set on error }
+  @@Error:
+    MOV ErrorFlag, 1       { return false on error }
+  @@End:
+  end;
+  if ErrorFlag then
+    raise EDPMIError.Create('Failed to execute DPMI interrupt');
+end;
+
+
+procedure DeleteVolumeLabel(Drive: Char);
+{ procedure deletes volume label from given drive }
+var
+  CurName: TVolumeLabel;
+  FCB: TExtendedFCB;
+  ErrorFlag: WordBool;
+  i : Integer;
+begin
+  ErrorFlag := False;
+  CurName := GetExactVolumeLabel(Drive);           { get current volume label }
+  PadVolumeLabel(CurName);
+
+  FillChar(FCB, SizeOf(FCB), 0);         { initialize FCB with zeros }
+  with FCB do begin
+    ExtendedFCBflag := $FF;              { always }
+    Attr := faVolumeID;                  { Volume ID attribute }
+    DriveID := DriveNumber(Drive);       { Drive number }
+    Move(CurName[1], FileName, 8);       { must enter volume label }
+    Move(CurName[9], FileExt, 3);
+  end;
+  asm
+    PUSH DS                              { preserve ds }
+    MOV AX, SS                           { put seg of FCB (ss) in ds }
+    MOV DS, AX
+    LEA DX, FCB                          { put offset of FCB in dx }
+    MOV AX, 1300h                        { function 13h }
+    CALL DOS3Call                        { invoke int 21h }
+    POP DS                               { restore ds }
+    CMP AL, 00h                          { check for success }
+    JE @@End
+  @@Error:                               { set flag on error }
+    MOV ErrorFlag, 1
+  @@End:
+  end;
+  if ErrorFlag then
+    raise EVolumeLabelError.Create('Unable to delete volume label');
+end;
+
+procedure SetVolumeLabel(NewLabel: TVolumeLabel; Drive: Char);
+var
+  Regs: TRealModeRegs;
+  FCB: PExtendedFCB;
+  Buf: Longint;
+  i : Integer;
+begin
+  if NewLabel = '' then begin
+    DeleteVolumeLabel(Drive);
+    Exit;
+  end;
+
+  PadVolumeLabel(NewLabel);
+
+  if GetExactVolumeLabel(Drive) <> '' then              { if has label... }
+    DeleteVolumeLabel(Drive);                   { delete label }
+
+  Buf := GlobalDOSAlloc(SizeOf(PExtendedFCB));  { allocate real buffer }
+  try
+    FCB := Ptr(LoWord(Buf), 0);
+    FillChar(FCB^, SizeOf(FCB), 0);               { init FCB with zeros }
+    with FCB^ do begin
+      ExtendedFCBflag := $FF;                     { required }
+      Attr := faVolumeID;                         { Volume ID attribute }
+      DriveID := DriveNumber(Drive);              { Drive number }
+      Move(NewLabel[1], FileName, 8);             { set new label }
+      Move(NewLabel[9], FileExt, 3);
+    end;
+    FillChar(Regs, SizeOf(Regs), 0);
+    with Regs do begin                            { SEGMENT of FCB }
+      DS := HiWord(Buf);                          { offset = zero }
+      DX := 0;
+      AX := $1600;                                { function 16h }
+    end;
+    RealModeInt($21, Regs);                 { create file }
+    if (Regs.al <> 0) then                        { check for success }
+      raise EVolumeLabelError.Create('Unable to create volume label');
+  finally
+    if GlobalDOSFree(LoWord(Buf)) <> 0 then
+      raise EInterruptError.Create('Failed to free real mode buffer');
+  end;
+end;
+
+
+
+initialization
+  DetectDrives;
+end.

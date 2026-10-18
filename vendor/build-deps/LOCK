@@ -1,0 +1,11 @@
+# Source snapshots committed to this repository.
+
+[jwasm]
+url = https://github.com/geosone/JWasm.git
+branch = 386max
+commit = e9462f17b86dbe04a27ecdd4e56329096ba9831e
+
+[jwlink]
+url = https://github.com/geosone/jwlink.git
+branch = 386max
+commit = c3f7e93777bdffa36ba8d9e2e538510481179002

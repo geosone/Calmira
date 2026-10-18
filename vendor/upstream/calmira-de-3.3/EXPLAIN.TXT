@@ -1,0 +1,5 @@
+Alle PAS Dateien aus /VCL/ sind in Delphi 1.0 unter OPTIONEN=>KOMPONENTE INSTALLIEREN=>HINZUFÜGEN 
+zu laden, ansonsten kommt es zum Fehler beim öffnen und verarbeiten des Projektes Calmira.
+Weiters sind einige Übersetzungen in .RES Binärdateien zu finden, welche außerhalb von 
+Delphi mit einem "Borland Resurce Workshop" zu bearbeiten sind. LOCALE.RC ist nicht von mir übersetzt,
+weil ich nicht weiß wie man diese in LOCALE.RES kompilliert und daher braucht ihr die auch nicht zu übersetzen.

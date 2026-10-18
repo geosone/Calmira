@@ -1,0 +1,216 @@
+#include "locale.pas"
+
+STRINGTABLE
+{
+  SCannotFindLicense, "Cannot find LICENSE.TXT.  You can obtain "
+    "a GNU General Public License by writing to the Free Software "
+    "Foundation Inc., 675 Mass Ave, Cambridge, MA 02139, USA.";
+
+  SCannotRunNotepad, "Unable to run Notepad.  Read LICENSE.TXT "
+    "with another text editor";
+  SWelcome, "Welcome";
+
+  SCannotMoveToBin, "Unable to move %s into bin";
+  SCannotRestoreItem, "Unable to restore %s";
+  SCannotRestoreFolderOverFile, "Cannot restore folder %s because there "
+   "is an existing file using that name";
+  SQueryReplaceFile, "Replace existing file %s?";
+  SDriveRefPrompt, "&Drive:";
+  SFolderRefPrompt, "F&older:";
+  SFileRefPrompt, "&File:";
+  SInternetRefPrompt, "&URL:";
+
+  SMenuCascadeBrowsers, "Cascade browsers";
+  SMenuArrangeIcons, "Arrange icons";
+  SMenuLineUpIcons, "Line up icons";
+  SMenuCloseBrowsers, "Close browsers";
+  SMenuClearDesktop, "Clear desktop";
+  SMenuProperties, "Properties...";
+  SMenuAbout, "About...";
+  SSelectFolder, "Select folder";
+  SAliasProperties, "Alias properties";
+  SShortcutProperties, "Shortcut properties";
+  SMenuShortcutProperties, "Properties...";
+  SMenuShortcutOpen, "Open";
+  SMenuShortcutRemove, "Remove";
+  SMenuShortcutMove, "Move";
+  SMenuBinEmpty, "Empty bin";
+
+  SCloseUnnamedDialog, "Please close Calmira's active dialog box first";
+  SCloseSpecificDialog, "Please close the \"%s\" dialog first";
+  SNotifyEndWindows, "This will end your Windows session.";
+  SQueryQuit, "Are you sure you want to close Calmira?";
+  SOpenFolder, "Open folder";
+  SFolderName, "Folder name";
+  SUnknownCommand, "Unknown command \"%s\"";
+  SCannotOpenFolder, "Unable to read the directory of %s";
+  SQueryReplaceAlias, "Replace existing alias?";
+  SCannotOpenTarget, "Unable to open %s";
+  SQueryDeleteShortcut, "Delete shortcut to \"%s\"?";
+
+  SFileAlreadyExists, "There is an existing file called %s";
+  SFolderAlreadyExists, "A folder called %s already exists";
+  SCannotChangeAttr, "Unable to change attributes of %s";
+  SInvalidFilename, "%s is not a valid filename";
+  SCannotRename, "Unable to rename %s to %s";
+  SChangeDescription, "Change description";
+  SDescribe, "Describe \"%s\"";
+  SCannotOpenFileWith, "Unable to open file %s with program %s";
+  SCannotPutFolderOnSelf, "Cannot copy or move a folder onto itself";
+  SCannotPutFolderInSelf, "Cannot copy or move a folder into one of "
+    "its sub-folders";
+  SCannotPutFolderOverFile, "Cannot copy or move folder %s because an "
+    "existing file has the destintation name";
+
+  SQueryAffectProtected, "%s is Read Only, Hidden or System.\n%s this file?";
+  SCannotCopyFileToSelf, "Cannot copy file %s to itself";
+  SCannotMoveFileToSelf, "Cannot move file %s to itself";
+  SCannotCreateFolder, "Unable to create folder %s";
+  SCannotReplaceFile, "Cannot replace %s";
+  SCannotMoveFile, "Cannot move %s";
+  SCannotCyclicCopy, "Cannot copy a folder into itself or one of its sub-folders";
+  SCannotCyclicMove, "Cannot move a folder into itself or one of its sub-folders";
+  SCannotDeleteFile, "Cannot delete %s";
+  SNoFilesFound, "No files found";
+  SCannotRunDefViewer, "Unable to run the default viewer.";
+  SFileNotAssociated, "This file is not associated with a program. "
+    "Associate it first, or specify a default file viewer to use.";
+  SCannotRunOrView, "Unable to run program or view the file %s.";
+  SConfirmNewFolder, "%s does not exist.  Create a new folder?";
+
+  SNetSuccess, "The connection/disconnection was successful";
+  SNetNotSupported, "This operation is not supported";
+  SOutOfMemory, "Out of memory";
+  SNetError, "An error has occured on the network";
+  SBadPointer, "Invalid pointer";
+  SBadNetworkResource, "Invalid network resource name";
+  SBadLocalName, "Invalid local device";
+  SInvalidPassword, "User unknown or invalid password";
+  SAccessDenied, "Access denied!";
+  SFilesWereOpen, "Files were open so the connection was not cancelled";
+  SAlreadyConnected, "This device is already remotely connected";
+  SNetOperationFailed, "The connection/disconnection failed";
+  SQueryCloseOpenFiles, "Do you want to close any open files or print jobs?";
+
+  SQueryCopyItems, "Copy %d item%s from %s to %s?";
+  SQueryMoveItems, "Move %d item%s from %s to %s?";
+  SQueryDeleteItems, "Delete %d item%s from %s?";
+  SCannotPutToSelf, "Cannot copy or move items onto themselves";
+  SCreateFolder, "Create folder";
+  SNewFolderName, "New folder name";
+  SRename, "Rename %s";
+  SNewFilename, "New filename";
+  SCreateAlias, "Create alias";
+  SAliasFilename, "Alias filename";
+  SPrintFile, "Print file";
+  SFilename, "Filename";
+  SDuplicateFile, "Duplicate %s";
+  SDirectoryOf, "Directory of ";
+
+  SCopy, "Copy";
+  SMove, "Move";
+  SDelete, "Delete";
+  SCopyFile, "Copy file";
+  SMoveFile, "Move file";
+  SCopyFolder, "Copy folder";
+  SMoveFolder, "Move folder";
+  SDeleteFile, "Delete file";
+  SDeleteFolder, "Delete folder";
+  SProgressCopy, "Copying...";
+  SProgressMove, "Moving...";
+  SProgressDelete, "Deleting";
+  SProgressBinning, "Moving to bin";
+  SProgressRestoring, "Restoring from bin";
+  SProgressEmptying, "Emptying bin";
+
+  SAddMenuItem, "Add menu item";
+  SInsertMenuItem, "Insert menu item";
+  SMenuItemProperties, "Menu item properties";
+  SQueryDeleteMenu, "Delete this menu?";
+  SCannotFindProgman, "Cannot find Program Manager";
+  SCaptionNeedsText, "The menu caption must contain some text";
+  SQuerySaveAdvanced, "Save advanced settings?";
+  SAddAdvanced, "Add an entry";
+  SIdentValue, "Ident=Value";
+  SModifyAdvanced, "Modify entry";
+  SAddExclusion, "Add taskbar exclusion";
+  SModifyExclusion, "Modify taskbar exclusion";
+  SModuleClass, "Module [classname]";
+  SAddApplet, "Add applet tray program";
+  SModifyApplet, "Modify applet tray program";
+  SAppletFormat, "<Popup hint>=<command line>";
+
+  SUnknown, "Unknown";
+  SFolderContents, "%s in %d file%s";
+  SSelectionContents, "%d file%s in %d folder%s";
+  STotalContents, "%d file%s, %d folder%s, %s total";
+  SVersion, "Version";
+  SAssociation, "Association";
+  SAssociateTypeWith, "Associate the file type .%s with:";
+  SNoRegCommand, "No command specified";
+  SSpecifyFiles, "Please specify the files to search for.";
+  SStopSearch, "Stop";
+  SStartSearch, "Search";
+  SNoMatchingFiles, "No matching files found";
+  SFindListboxFull, "The Find dialog's listbox is full.";
+
+  SProductName, "Product name";
+  SLegalCopyright, "Legal copyright";
+  SDescription, "Description";
+  SType, "Type";
+  SSubType, "Subtype";
+  SFileOS, "File OS";
+  SComments, "Comments";
+  SProductVersion, "Product version";
+  SFileVersion, "File version";
+  SCompany, "Company";
+  SLegalTrademarks, "Legal trademarks";
+  SInternalName, "Internal name";
+  SPrivateBuild, "Private build";
+  SSpecialBuild, "Special build";
+  SOriginalFilename, "Original filename";
+
+  SQueryTerminate, "Are you sure you want to terminate \"%s\"?"
+    " You will lose all unsaved work and may lose resources.";
+
+  SCreateNewUser, "Create new user";
+  SUserName, "User name";
+  SEnterPassword, "Enter password:";
+  SConfirmPassword, "Confirm password:";
+  SChangePassword, "Change password";
+  SEnterOldPassword, "Enter old password:";
+  SEnterNewPassword, "Enter new password:";
+  SConfirmNewPassword, "Confirm new password:";
+  SInvalidUserName, "A user name must consist of letters and numbers, "
+    "and be between 1 and 8 characters long";
+  SPasswordMismatch, "Your new passwords are different; please check them again.";
+  SEditEntryCaption, "Edit entry";
+  SInvalidOldPassword, "The old password you entered is not valid."
+
+  SMObjProperties, "&Properties";
+  SMObjDescribe, "Descri&be";
+  SMObjDelete, "&Delete";
+  SMObjCut, "Cut";
+  SMObjCopy, "Copy";
+  SMObjPaste, "Paste";
+  SMObjEditAlias, "Edit alia&s";
+  SMObjOpen, "&Open";
+  SMObjOpenWith, "Open &with";
+  SMObjInspect, "&Inspect";
+  SMObjRename, "Re&name";
+  SMObjDuplicate, "D&uplicate";
+
+  SMWinCreateFolder, "&Create folder...";
+  SMWinCreateAlias, "Create alias...";
+  SMWinRun, "&Run...";
+  SMWinFileSystem, "File system...";
+  SMWinSetFilter, "Set &filter...";
+  SMWinLargeIcons, "Large icons";
+  SMWinSmallIcons, "Small icons";
+  SMWinListView, "List view";
+  SMWinSortByType, "Sort by &Type";
+  SMWinSortByName, "Sort by &Name";
+  SMWinSortBySize, "Sort by &Size";
+  SMWinSortByDate, "Sort by &Date";
+}
+

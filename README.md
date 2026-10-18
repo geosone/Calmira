@@ -1,0 +1,52 @@
+# Calmira Unified
+
+This repository develops a curated Windows 3.1 shell from the strongest parts
+of the surviving Calmira source releases. Calmira Reborn 5.0, itself descended
+from Calmira LFN 3.32, is the working baseline. Historical trees remain
+unchanged under `vendor/upstream/`; downloaded archives and checksums are kept
+under `archives/original/`.
+
+The first priorities are reliable long-file-name handling, removable-media
+refresh and safe eject for the sibling `eusbaspi`/`ahciaspi` drivers, followed
+by a GeosOne DOS Installer package. Inno Setup is intentionally not used.
+
+## Layout
+
+- `SRC/`, `VCL/`, `BMP/`, `HELP/`, `VENDOR/`: integration baseline.
+- `vendor/upstream/`: extracted Calmira releases and Reborn history.
+- `vendor/reference/`: Microsoft WinFile and DOSLFN reference sources.
+- `vendor/build-deps/`: tracked GeosOne JWasm/JWlink source snapshots.
+- `archives/original/`: unmodified downloaded artifacts.
+- `docs/`: provenance, comparison results and integration design.
+- `src/portable/`: OS-independent Pascal code compiled by Free Pascal.
+- `install/`: GeosOne DOS Installer definition.
+
+## Useful commands
+
+```sh
+make compare
+make test
+make omf-toolchain
+make toolchain-smoke
+make lfn-probe
+make winfile16
+make package GDI=../gdi
+```
+
+`make compare` compares normalized source/text files against Reborn. `make test`
+compiles portable units with FPC. The complete GUI is still being migrated from
+Delphi 1 VCL to the FPC Win16 target; see `docs/TOOLCHAINS.md`. `make package`
+expects built binaries and uses `gdi/build/INSTALL.EXE`.
+
+`make lfn-probe` builds the DOS host-capability detector used to select a real
+71xx LFN provider, the `DESCRIPT.ION` virtual-LFN fallback, and the optional
+FAT32 WIN386 patch without conflating those separate capabilities.
+
+Initialize the WinFile reference fork after cloning with
+`git submodule update --init --recursive`. The submodule follows the
+`calmira-hotplug` branch of `geosone/winfile`; Calmira's Win16 implementation
+uses its notification flow as a reference, not its Win32 API calls directly.
+`make winfile16` builds the first native Windows 3.1 replacement milestone at
+`build/winfile16/WINFILE.EXE`; it currently provides drive discovery, a manual
+refresh command, and periodic hotplug detection.
+

@@ -1,0 +1,28 @@
+[submodule "vendor/reference/microsoft-winfile"]
+	path = vendor/reference/microsoft-winfile
+	url = https://github.com/geosone/winfile.git
+	branch = calmira-hotplug
+
+[submodule "vendor/reference/doslfn"]
+	path = vendor/reference/doslfn
+	url = https://github.com/geosone/doslfn.git
+
+[submodule "vendor/reference/freepascal"]
+	path = vendor/reference/freepascal
+	url = https://gitlab.com/freepascal.org/fpc/source.git
+
+[submodule "vendor/reference/jwasm"]
+	path = vendor/reference/jwasm
+	url = https://github.com/JWasm/JWasm.git
+
+[submodule "vendor/reference/jwlink"]
+	path = vendor/reference/jwlink
+	url = https://github.com/JWasm/JWlink.git
+
+[submodule "vendor/reference/open-watcom-v2"]
+	path = vendor/reference/open-watcom-v2
+	url = https://github.com/open-watcom/open-watcom-v2.git
+
+[submodule "vendor/upstream/calmira-reborn"]
+	path = vendor/upstream/calmira-reborn
+	url = https://gitlab.com/huntertur/calmira.git

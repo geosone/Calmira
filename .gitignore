@@ -1,0 +1,9 @@
+/build/
+*.o
+*.ppu
+*.rst
+*.bak
+*.swp
+*~
+__pycache__/
+*.pyc

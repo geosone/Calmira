@@ -1,0 +1,271 @@
+#include "locale.pas"
+
+STRINGTABLE
+{
+  SCannotFindLicense, "Impossible de trouver LICENSE.TXT. Vous pouvez obtenir "
+    "une Licence Publique Générale GNU en écrivant à la Free Software "
+    "Foundation Inc., 675 Mass Ave, Cambridge, MA 02139, USA.";
+  SCannotRunNotepad, "Impossible d'exécuter le bloc-notes.  Lisez LICENSE.TXT "
+    "avec un autre éditeur de texte.";
+  SWelcome, "Bienvenue";
+
+  SCannotMoveToBin, "Impossible de déplacer %s dans la corbeille.";
+  SCannotRestoreItem, "Impossible de restaurer %s.";
+  SCannotRestoreFolderOverFile, "Impossible de restaurer le dossier %s car il "
+    "existe un autre fichier utilisant ce nom.";
+  SQueryReplaceFile, "Remplacer le fichier existant %s ?";
+
+  SDriveRefPrompt, "&Lecteur :";
+  SFolderRefPrompt, "D&ossier :";
+  SFileRefPrompt, "&Fichier :";
+  SInternetRefPrompt, "&URL :";
+
+  SMenuCascadeBrowsers, "Superposer les fenêtres d'icônes";
+  SMenuArrangeIcons, "Ranger les icônes";
+  SMenuLineUpIcons, "Aligner les icônes";
+  SMenuCloseBrowsers, "Fermer les fenêtres d'icônes";
+  SMenuClearDesktop, "Débarrasser le bureau";
+  SMenuProperties, "Propriétés...";
+  SMenuAbout, "A propos...";
+  SSelectFolder, "Sélectionner un dossier";
+  SAliasProperties, "Propriétés de l'alias";
+  SShortcutProperties, "Propriétés du raccourci";
+  SMenuShortcutProperties, "Propriétés...";
+  SMenuShortcutOpen, "&Ouvrir";
+  SMenuShortcutRemove, "&Supprimer";
+  SMenuShortcutMove, "&Déplacer";
+  SMenuBinEmpty, "Vider la corbeille";
+
+  SCloseUnnamedDialog, "Veuillez fermer la boîte de dialogue Calmira active.";
+  SCloseSpecificDialog, "Veuillez fermer la boîte de dialogue \"%s\".";
+  SNotifyEndWindows, "Ceci terminera votre session Windows.";
+  SQueryQuit, "Voulez-vous vraîment fermer Calmira ?";
+  SOpenFolder, "Ouvrir dossier";
+  SFolderName, "Nom du dossier";
+  SUnknownCommand, "Commande inconnue : \"%s\".";
+  SCannotOpenFolder, "%s introuvable.\n"
+    "Le dossier a été supprimé ou le lecteur n'est pas prêt.";
+  SQueryReplaceAlias, "Remplacer l'alias existant ?";
+  SCannotOpenTarget, "%s introuvable.\n"
+    "Assurez-vous que le fichier ou dossier pointé par le raccourci existe.";
+  SQueryDeleteShortcut, "Supprimer le raccourci vers \"%s\" ?";
+
+  SFileAlreadyExists, "Il y a déjà un fichier nommé %s.";
+  SFolderAlreadyExists, "Il y a déjà un dossier nommé %s.";
+  SCannotChangeAttr, "Impossible de changer les attributs de %s.";
+  SInvalidFilename, "%s n'est pas un nom de fichier valide.";
+  SCannotRename, "Impossible de renommer %s en %s.";
+  SChangeDescription, "Changer la description";
+  SDescribe, "Décrire \"%s\" :";
+  SCannotOpenFileWith, "Impossible d'ouvrir le fichier %s avec le programme %s.";
+  SCannotPutFolderOnSelf, "Impossible de copier ou déplacer un dossier dans lui-même.";
+  SCannotPutFolderInSelf, "Impossible de copier ou déplacer un dossier dans un de "
+    "ses sous-dossiers";
+  SCannotPutFolderOverFile, "Impossible de copier ou déplacer le dossier %s car un "
+    "fichier existant a le même nom.";
+
+  SQueryAffectProtected, "%s est en lecture seule, caché ou système.\n%s ce fichier ?";
+  SCannotCopyFileToSelf, "Impossible de copier le fichier %s sur lui-même.";
+  SCannotMoveFileToSelf, "Impossible de déplacer le fichier %s sur lui-même.";
+  SCannotCreateFolder, "Impossible de créer le dossier %s.";
+  SCannotReplaceFile, "Impossible de remplacer %s.";
+  SCannotMoveFile, "Impossible de déplacer %s.";
+  SCannotCyclicCopy, "Impossible de copier un dossier dans lui-même ou l'un de "
+    "ses sous-dossiers.";
+  SCannotCyclicMove, "Impossible de déplacer un dossier dans lui-même ou l'un de "
+    "ses sous-dossiers.";
+  SCannotDeleteFile, "Impossible de supprimer %s.";
+  SNoFilesFound, "Aucun fichier trouvé.";
+  SCannotRunDefViewer, "Impossible d'exécuter le visualisateur par défaut."
+    "Spécifiez un visualisateur par défaut dans les Propriétés du système de fichiers.";
+  SFileNotAssociated, "Ce fichier n'est associé à aucun programme. "
+    "Associez-le, ou spécifiez un visualisateur par défaut.";
+  SCannotRunOrView, "Impossible d'exécuter le programme ou de visualiser le fichier %s.";
+  SConfirmNewFolder, "%s n'existe pas. Créer un nouveau dossier ?";
+
+  SNetSuccess, "La connection/déconnection a réussi.";
+  SNetNotSupported, "Cette opération n'est pas supportée.";
+  SOutOfMemory, "Mémoire saturée.";
+  SNetError, "Une erreur est survenue sur le réseau.";
+  SBadPointer, "Dispositif de pointage invalide.";
+  SBadNetworkResource, "Nom de ressource réseau invalide.";
+  SBadLocalName, "Unité locale non valide.";
+  SInvalidPassword, "Utilisateur inconnu ou mot de passe incorrect.";
+  SAccessDenied, "Accès refusé !";
+  SFilesWereOpen, "Des fichiers étant ouverts, la connexion n'a pas été annulée.";
+  SAlreadyConnected, "Cette unité est déjà connectée à distance.";
+  SNetOperationFailed, "La connection/déconnection a échoué.";
+  SQueryCloseOpenFiles, "Voulez-vous fermer les fichiers ou travaux d'impression ouverts ?";
+
+  SQueryBinItems, "Déplacer %d élément%s de %s vers la corbeille ?";
+  SQueryCopyItems, "Copier %d élément%s de %s vers %s ?";
+  SQueryMoveItems, "Déplacer %d élément%s de %s vers %s ?";
+  SQueryDeleteItems, "Supprimer %d élément%s de %s?";
+  SCannotPutToSelf, "Impossible de copier ou déplacer ces éléments sur eux-mêmes.";
+  SCreateFolder, "Créer un dossier";
+  SNewFolderName, "Nom du nouveau dossier :";
+  SRename, "Renommer %s";
+  SNewFilename, "Nouveau nom de fichier :";
+  SCreateAlias, "Créer un alias";
+  SAliasFilename, "Nom de l'alias :";
+  SPrintFile, "Imprimer le fichier";
+  SFilename, "Nom :";
+  SDuplicateFile, "Dupliquer %s";
+  SDirectoryOf, "Répertoire de ";
+
+  SCopy, "Copier";
+  SMove, "Déplacer";
+  SDelete, "Supprimer";
+  SCopyFile, "Copier le fichier";
+  SMoveFile, "Déplacer le fichier";
+  SCopyFolder, "Copier le dossier";
+  SMoveFolder, "Déplacer le dossier";
+  SDeleteFile, "Supprimer le fichier";
+  SDeleteFolder, "Supprimer le dossier";
+  SProgressCopy, "Copie...";
+  SProgressMove, "Déplacement...";
+  SProgressDelete, "Suppression";
+  SProgressBinning, "Transfert dans la corbeille";
+  SProgressRestoring, "Restauration depuis la corbeille";
+  SProgressEmptying, "Vide la corbeille";
+
+  SAddMenuItem, "Ajouter une commande";
+  SInsertMenuItem, "Insérer une commande";
+  SMenuItemProperties, "Propriétés de la commande";
+  SQueryDeleteMenu, "Supprimer ce sous-menu ?";
+  SCannotFindProgman, "Impossible de trouver le Gestionnaire de Programmes.";
+  SCaptionNeedsText, "Le libellé du menu doit contenir du texte.";
+  SQuerySaveAdvanced, "Enregistrer la configuration avancée ?";
+  SAddAdvanced, "Ajouter une entrée";
+  SIdentValue, "<Identifiant>=<Valeur>";
+  SModifyAdvanced, "Modifier une entrée";
+  SAddExclusion, "Ajouter une exclusion";
+  SModifyExclusion, "Modifier une exclusion";
+  SModuleClass, "Module [NomDeClasse]";
+  SAddApplet, "Ajouter un programme";
+  SModifyApplet, "Modifier un programme";
+  SAppletFormat, "<Bulle d'aide>=<Ligne de commande>";
+
+  SUnknown, "Inconnu";
+  SFolderContents, "%s dans %d fichier%s";
+  SSelectionContents, "%d fichier%s dans %d dossier%s";
+  STotalContents, "%d fichier%s, %d dossier%s, %s au total";
+  SVersion, "Version";
+  SAssociation, "Association";
+  SAssociateTypeWith, "Associer les fichiers de type .%s avec :";
+  SNoRegCommand, "Aucune commande spécifiée.";
+  SSpecifyFiles, "Veuillez spécifier les fichiers à  rechercher.";
+  SStopSearch, "Arrêter";
+  SStartSearch, "Rechercher";
+  SNoMatchingFiles, "Aucun fichier correspondant.";
+  SFindListboxFull, "La liste du dialogue Rechercher est saturée.";
+
+  SProductName, "Nom du produit";
+  SLegalCopyright, "Copyright";
+  SDescription, "Description";
+  SType, "Type";
+  SSubType, "Sous-type";
+  SFileOS, "OS";
+  SComments, "Commentaires";
+  SProductVersion, "Version du produit";
+  SFileVersion, "Version du fichier";
+  SCompany, "Entreprise";
+  SLegalTrademarks, "Marques déposées";
+  SInternalName, "Nom interne";
+  SPrivateBuild, "Fabrication privée";
+  SSpecialBuild, "Fabrication spéciale";
+  SOriginalFilename, "Nom du fichier original";
+  SWOWVersion, "Version WOW";
+
+  SQueryTerminate, "Voulez-vous vraîment terminer \"%s\" ? "
+    "Vous perdrez tout travail non enregistré et risquez de perdre des ressource "
+    "et de déstabiliser le système.";
+
+  SCreateNewUser, "Créer un nouvel utilisateur";
+  SUserName, "Nom d'utilisateur :";
+  SEnterPassword, "Mot de passe :";
+  SConfirmPassword, "Confirmation du mot de passe :";
+  SChangePassword, "Changer de mot de passe";
+  SEnterOldPassword, "Ancien mot de passe :";
+  SEnterNewPassword, "Nouveau mot de passe :";
+  SConfirmNewPassword, "Confirmation du nouveau :";
+  SInvalidUserName, "Le nom d'utilisateur est incorrect. Un nom d'utilisateur doit être composé "
+    "de lettres et de chiffres, et doit comporter entre 1 et 8 caractères.";
+  SPasswordMismatch, "Vos nouveaux mots de passe sont différents ; entrez-les à nouveau.";
+  SEditEntryCaption, "Editer une entrée";
+  SInvalidOldPassword, "L'ancien mot de passe que vous avez entré est incorrect."
+
+  SMObjOpen, "&Ouvrir";
+  SMObjOpenWith, "Ouvrir &avec";
+  SMObjInspect, "&Visualiser";
+  SMObjCut, "&Couper";
+  SMObjCopy, "Co&pier";
+  SMObjPaste, "C&oller";
+  SMObjDelete, "&Supprimer";
+  SMObjRename, "Re&nommer";
+  SMObjDescribe, "&Décrire";
+  SMObjEditAlias, "Editer l'alia&s";
+  SMObjDuplicate, "D&upliquer";
+  SMObjProperties, "&Propriétés";
+
+  SMWinLargeIcons, "&Grandes icônes";
+  SMWinSmallIcons, "&Petites icônes";
+  SMWinDetails, "D&étails";
+  SMWinSortByType, "Trier par &Type";
+  SMWinSortByName, "Trier par &Nom";
+  SMWinSortBySize, "Trier par Tai&lle";
+  SMWinSortByDate, "Trier par &Date";
+  SMWinFileSystem, "Système de fichiers...";
+  SMWinSetFilter, "&Filtre...";
+  SMWinCreateFolder, "&Créer un dossier...";
+  SMWinCreateAlias, "Créer un &alias...";
+
+  SCorruptEXE, "La mémoire du système est saturée, ou le fichier .exe est abîmé.";
+  SFileNotFound, "Impossible de trouver %s. Assurez-vous que le chemin est correct "
+    "et que le fichier existe.";
+  SSharingError, "Violation de partage ou erreur d'accès réseau.";
+  SDLLFailed, "Echec du chargement d'une DLL nécessaire à l'application.";
+  SAppOutOfMemory, "Il n'y a pas assez de mémoire pour démarrer l'application. "
+    "Fermez des fenêtres et réessayez.";
+  SIncorrectWinVer, "Cette application nécessite une version plus récente de Windows."
+    "Cette erreur peut aussi indiquer des DLLs OLE inadaptées.";
+  SInvalidEXE, "Ce fichier exécutable est invalide. Soit il ne s'agit pas d'une "
+    "application Windows, soit il y a une erreur dans le fichier .exe.";
+  SNonWindowsApp, "Ceci n'est pas une application Windows valide. Elle a été conçue "
+    "pour un système d'exploitation différent.";
+  SRealModeApp, "Le programme associé à ce fichier est introuvable, ou alors cette "
+    "application a été développée pour une version plus ancienne de Windows.";
+  SSecondInstance, "Le chargement d'une deuxième instance de ette application a échoué.";
+  SCompressedEXE, "Ceci est un fichier exécutable compressé. Ce fichier doit être "
+    "décompressé pour pouvoir être chargé.";
+  SCorruptDLL, "Une DLL nécessaire pour exécuter cette application est abîmée.";
+  SRequiresWin32, "Cette application 32 bits n'est pas supportée par Win32s.";
+
+  STHintParent, "Dossier parent";
+  STHintNewFolder, "Créer un dossier";
+  STHintConnect, "Connecter le lecteur réseau";
+  STHintDisConnect, "Déconnecter le lecteur réseau";
+  STHintCut, "Couper";
+  STHintCopy, "Copier";
+  STHintPaste, "Coller";
+  STHintDelete, "Supprimer";
+  STHintRename, "Renommer";
+  STHintProperties, "Propriétés";
+  STHintLargeIcons, "Grandes icônes";
+  STHintSmallIcons, "Petites icônes";
+  STHintDetails, "Détails";
+  STHintSortName, "Classer par nom";
+  STHintSortType, "Classer par type";
+  STHintSortSize, "Classer par taille";
+  STHintSortDate, "Classer par date";
+
+  SCFilename, "Nom";
+  SCSize, "Taille";
+  SCType, "Type";
+  SCModified, "Modifié le";
+  SCAttributes, "Attributs";
+  SCDescription, "Description";
+  SCFile, "Fichier ";
+  SCFolder, "Dossier";
+  SCAlias, "Alias";
+}

@@ -1,0 +1,1070 @@
+{**************************************************************************}
+{                                                                          }
+{    Calmira shell for Microsoft® Windows(TM) 3.1                          }
+{    Source Release 2.2                                                    }
+{    Copyright (C) 1997-1998 Li-Hsin Huang                                 }
+{                                                                          }
+{    This program is free software; you can redistribute it and/or modify  }
+{    it under the terms of the GNU General Public License as published by  }
+{    the Free Software Foundation; either version 2 of the License, or     }
+{    (at your option) any later version.                                   }
+{                                                                          }
+{    This program is distributed in the hope that it will be useful,       }
+{    but WITHOUT ANY WARRANTY; without even the implied warranty of        }
+{    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         }
+{    GNU General Public License for more details.                          }
+{                                                                          }
+{    You should have received a copy of the GNU General Public License     }
+{    along with this program; if not, write to the Free Software           }
+{    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.             }
+{                                                                          }
+{**************************************************************************}
+
+unit Start;
+
+{ Start Menu
+
+  TStartMenu is a popup menu that is owner-drawn, so that it has a 3D
+  effect and small icons.  The small icons are stored in one large bitmap
+  to conserve memory.  They are ordered in tree-traversal order, so when
+  the start menu next loads, all the small icons are in the right places.
+
+  TStartMenuItem is the class of menu item that is used for the start
+  menu.  It has a Data property which holds a string containing
+  encoded information about the item.  This data can be expanded with
+  the ExtractStartInfo function.
+}
+
+interface
+
+uses Classes, SysUtils, Menus, Outline, Messages, WinTypes, Graphics, Forms;
+
+type
+  TStartFlags = (sfTop, sfBottom, sfSeparator, sfLarge, sfNoRightEdge);
+
+  TStartMenuItem = class(TMenuItem)
+  private
+    FData : PString;
+    FHeight : Integer;
+    TextLeft : Integer;
+    function GetData: string;
+    procedure SetData(const Value: string);
+  public
+    Flags : set of TStartFlags;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Click; override;
+    procedure LoadGraphic; virtual; abstract;
+    function GetWidth : Integer; virtual; abstract;
+    procedure Paint(Canvas : TCanvas; Rect : TRect; state : Word);
+    procedure PaintIcon(Canvas : TCanvas; const Rect : TRect; state : Word); virtual; abstract;
+    property Data : string read GetData write SetData;
+    property Height : Integer read FHeight write FHeight;
+  end;
+
+
+  TLargeMenuItem = class(TStartMenuItem)
+  private
+    FIcon : TIcon;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure LoadGraphic; override;
+    function GetWidth : Integer; override;
+    procedure PaintIcon(Canvas : TCanvas; const Rect : TRect; state : Word); override;
+  end;
+
+  TSmallMenuItem = class(TStartMenuItem)
+  private
+    FImgOffset : Word;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure LoadGraphic; override;
+    function GetWidth : Integer; override;
+    procedure PaintIcon(Canvas : TCanvas; const Rect : TRect; state : Word); override;
+    property ImgOffset : Word read FImgOffset;
+  end;
+
+  TStartMenuItemClass = class of TStartMenuItem;
+
+  TStartMacroEvent = procedure (Sender : TObject;
+    const macro: string; params : string) of object;
+
+  TMenuItemKind = (miSubMenu, miLeafNode, miAll);
+
+  TStartMenu = class(TPopupMenu)
+  private
+    Canvas : TCanvas;
+    Window: HWND;
+    FOnStartMacro : TStartMacroEvent;
+    procedure WndProc(var Message: TMessage);
+    procedure SetOwnerDraw(menu : TMenuItem);
+    function GetHeight: Integer;
+    procedure HandleClick(Sender : TObject);
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Configure;
+    procedure Popup(X, Y: Integer; TrackLeft : Boolean);
+    procedure Clear;
+    function Find(const cap : string; Kind: TMenuItemKind): TMenuItem;
+    procedure Load;
+    procedure RunStartup;
+    procedure RebuildFromOutline(Outline : TOutline);
+    procedure AssignToOutline(Outline : TOutline);
+    procedure PopupMenuItem(h: HMenu; X, Y: Integer; TrackLeft : Boolean);
+    property OnStartMacro : TStartMacroEvent read FOnStartMacro write FOnStartMacro;
+    property Height : Integer read GetHeight;
+    property Helper : HWND read Window;
+  end;
+
+  TStartImages = class(TBitmap)
+  private
+    FNext : Integer;
+  public
+    function Add(bmp : TBitmap): Integer;
+    function AddFrom(imgs : TStartImages; i: Integer): Integer;
+    property Next: Integer read FNext write FNext;
+  end;
+
+  { TStartInfo is only slightly larger than a 255 char string, so
+    placing it on the stack is OK, provided that there is no recursion  }
+
+  TStartInfo = record
+    Command: TFilename;
+    Directory : TFilename;
+    ShowMode : Integer;
+    IconFile : TFilename;
+    IconIndex : Integer;
+  end;
+
+const
+  YieldDuringLoad : Boolean = False;
+
+
+function ExtractStartInfo(const s: string): TStartInfo;
+function PackStartInfo(const command, directory, iconfile: TFilename;
+  showmode, iconindex: Integer): string;
+
+var StartMenu : TStartMenu;
+
+implementation
+
+uses Strings, IniFiles, Desk, Files, Directry, Dialogs, FileMan, Environs,
+  Controls, MiscUtil, WinProcs, CompSys, Referenc, Settings, Resource,
+  Debug, Streamer, Hooks;
+
+{ TStartMenu and its items need to share some graphics objects, so they
+  are global rather than parameters }
+
+var
+  Images : TStartImages;
+
+  PrevImages : TStartImages; { 2.2 }
+  PrevIndexList : TStringList; { 2.2 }
+  CurrentIndexList : TStringList; { 2.2 }
+
+  TempIcon : TIcon;
+  SmallBmp : TBitmap;
+  UsingCache : Boolean;
+  Reloading  : Boolean;
+  FillMenu : Boolean;
+  SmallItemHeight : Integer;
+  MenuFontHeight : Integer;
+  Banner : TResBitmap;
+  BannerWidth : Integer;
+
+const
+  HighlightSilver : array[Boolean] of TColor = (clSilver, clNavy);
+
+
+function TStartImages.Add(bmp : TBitmap): Integer;
+begin
+  if FNext + 16 > Width then Width := Width + (64 * 16);
+  Result := FNext;
+  Canvas.Draw(FNext, 0, bmp);
+  Inc(FNext, 16);
+end;
+
+{ 2.2 }
+
+function TStartImages.AddFrom(imgs : TStartImages; i : Integer): Integer;
+begin
+  if FNext + 16 > Width then Width := Width + (64 * 16);
+  Result := FNext;
+  Canvas.CopyRect(Bounds(FNext, 0, 16, 16), imgs.Canvas, Bounds(i, 0, 16, 16));
+  {BitBlt(Canvas.Handle, FNext, 0, 16, 16, imgs.Canvas.Handle, i, 0, SRCCOPY);}
+  Inc(FNext, 16);
+end;
+
+
+{ 2.2 }
+
+procedure SaveIndexToFile(const filename : TFilename; s : TStrings);
+var
+  i : Integer;
+  stream : TStreamer;
+begin
+  stream := TStreamer.Create(filename, fmCreate);
+  try
+    stream.WriteInteger(s.Count);
+    for i := 0 to s.Count-1 do begin
+      stream.WriteString(s[i]);
+      stream.WriteInteger(Longint(s.Objects[i]));
+    end;
+  finally
+    stream.Free;
+  end;
+end;
+
+{ 2.2 }
+
+procedure LoadIndexFromFile(const filename: TFilename; s: TStrings);
+var
+  count, i: Integer;
+  stream : TStreamer;
+begin
+  if not FileExists(filename) then Exit;
+  stream := TStreamer.Create(filename, fmOpenRead);
+  try
+    count := stream.ReadInteger;
+    for i := 0 to Count-1 do
+      s.AddObject(stream.ReadString, TObject(Longint(stream.ReadInteger)));
+  finally
+    stream.Free;
+  end;
+end;
+
+
+{ TStartMenuItem }
+
+constructor TStartMenuItem.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FData := NullStr;
+end;
+
+destructor TStartMenuItem.Destroy;
+begin
+  DisposeStr(FData);
+  inherited Destroy;
+end;
+
+procedure TStartMenuItem.Click;
+begin
+  if not (sfSeparator in Flags) then inherited Click;
+end;
+
+function TStartMenuItem.GetData: string;
+begin
+  Result := FData^;
+end;
+
+procedure TStartMenuItem.SetData(const Value: string);
+begin
+  if FData^ <> Value then AssignStr(FData, Value);
+end;
+
+
+procedure TStartMenuItem.Paint(Canvas : TCanvas; Rect : TRect;
+  state : Word);
+const
+  GraySilver : array[Boolean] of TColor = (clSilver, clGray);
+  WhiteBlack : array[Boolean] of TColor = (clBlack, clWhite);
+var
+  y: Integer;
+  text : TFilename;
+begin
+  with Canvas, Rect do begin
+    { grab the DC that Windows provides }
+
+    if sfLarge in Flags then Inc(Rect.Left, BannerWidth);
+
+    if sfSeparator in Flags then
+      state := state and not ODS_SELECTED;
+
+    if ColouredBar then
+      Brush.Color := HighlightSilver[state and ODS_SELECTED > 0];
+
+    if FillMenu then FillRect(Rect);
+
+    if state and ODS_SELECTED > 0 then
+      { upper shadow for selected item }
+      Pen.Color := clGray
+    else if sfTop in Flags then begin
+      { top item -- draw over menu border with gray }
+      Pen.Color := clGray;
+      MoveTo(Left-1, Top-1);
+      LineTo(Right+1, Top-1);
+      Pen.Color := clWhite;
+    end
+    else
+      Pen.Color := clSilver;
+
+    { Draw top of menu item }
+    MoveTo(Left, Top);
+    LineTo(Right, Top);
+
+    { Prepare font for output, and prepare pen for drawing the
+      bottom of the menu item }
+
+    if state and ODS_SELECTED > 0 then begin
+      if BoldSelect then Font.Style := [fsBold];
+      Font.Color := WhiteBlack[ColouredBar or not BoldSelect];
+      Pen.Color := clWhite;
+    end
+    else begin
+      if BoldSelect then Font.Style := [];
+      Font.Color := clBlack;
+      Pen.Color := GraySilver[sfBottom in Flags];
+    end;
+
+    { draw bottom of item }
+    MoveTo(Left, Bottom-1);
+    LineTo(Right, Bottom-1);
+
+    if sfSeparator in Flags then begin
+      Pen.Color := clGray;
+      y := (Top + Bottom) div 2;
+      MoveTo(Left, y);
+      LineTo(Right, y);
+      Pen.Color := clWhite;
+      MoveTo(Left, y+1);
+      LineTo(Right, y+1);
+    end;
+
+    if not (sfLarge in Flags) then begin
+      { draw the left side highlight }
+      Pen.Color := clWhite;
+      MoveTo(Left, Top);
+      LineTo(Left, Bottom);
+    end;
+
+    if not (sfNoRightEdge in Flags) then begin
+      { draw the far right edge }
+      Pen.Color := clBlack;
+      MoveTo(Right+1, Top);
+      LineTo(Right+1, Bottom);
+    end;
+
+    Pen.Color := clGray;
+    { Draw the right side shadow }
+    MoveTo(Right, Top);
+    LineTo(Right, Bottom);
+
+    if not (sfLarge in Flags) then begin
+      { Draw the left side border }
+      MoveTo(Left-1, Top);
+      LineTo(Left-1, Bottom);
+    end
+    else
+      Dec(Rect.Left, BannerWidth);
+
+    if not (sfSeparator in Flags) then begin
+      text := Caption;
+      if text[1] = '*' then begin
+        Move(text[3], text[1], Length(text)-2);
+        Dec(text[0], 2);
+      end;
+      DrawText(Canvas.Handle, @text[1], Ord(text[0]),
+        Bounds(Left + TextLeft, Top + (Bottom - Top - MenuFontHeight) div 2, 1, 1),
+          DT_LEFT or DT_NOCLIP);
+    end;
+
+    PaintIcon(Canvas, Rect, State);
+  end;
+end;
+
+
+const
+  CommandTable : array[0..7] of string[17] =
+  ('$Folder', '$Find', '$Run', '$Explore', '$Shutdown',
+   '$LargeIconFolder', '$SmallIconFolder', '$ListFolder');
+
+const
+  CommandToIcon : array[0..7] of string[15] =
+  ('Folder', 'FindDialog', 'RunDialog', 'Explorer', 'ShutDownDialog',
+   'Folder', 'Folder', 'Folder');
+
+{ TLargeMenuItem }
+
+constructor TLargeMenuItem.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FIcon := TIcon.Create;
+  FHeight := 36;
+  TextLeft := 80;
+  Flags := [sfLarge];
+end;
+
+destructor TLargeMenuItem.Destroy;
+begin
+  FIcon.Free;
+  inherited Destroy;
+end;
+
+
+procedure TLargeMenuItem.LoadGraphic;
+var
+  Command, IconFile: TFilename;
+  i, IconIndex: Integer;
+begin
+  Command := '';
+  IconFile := '';
+  IconIndex := 0;
+  Unformat(Data, '%s;%S;%D;%s;%d', [@Command, 79, @IconFile, 79, @IconIndex]);
+
+  if (Command[1] = '$') and (IconFile = '') then begin
+    { Find an auxiliary image }
+    i := 0;
+    while i <= High(CommandTable) do
+      if CompareText(Command, CommandTable[i]) = 0 then begin
+        FIcon.Assign(Icons.Get(CommandToIcon[i]));
+        Exit;
+      end
+      else Inc(i);
+  end;
+
+
+  { Use a reference object to do the icon searching }
+  FileRef.Target := Lowercase(command);
+  FileRef.IconFile := IconFile;
+  FileRef.IconIndex := IconIndex;
+  FileRef.AssignIcon(FIcon);
+end;
+
+
+function TLargeMenuItem.GetWidth : Integer;
+begin
+  Result := Images.Canvas.TextWidth(Caption) + 70;
+end;
+
+procedure TLargeMenuItem.PaintIcon(Canvas : TCanvas; const Rect : TRect; state : Word);
+var
+  i, y, w, h, t: Integer;
+begin
+  if not (sfSeparator in Flags) then
+    Canvas.Draw(Rect.Left + 40, Rect.Top + 2, FIcon);
+
+  y := Banner.Height;
+  i := Parent.Count-1;
+
+  with Parent do begin
+    while (i >= 0) and (Items[i] <> self) do begin
+      Dec(y, TStartMenuItem(Items[i]).Height);
+      Dec(i);
+    end;
+  end;
+
+  t := Rect.Top;
+  h := Height;
+  w := BannerWidth;
+  if sfTop in Flags then with Canvas do begin
+    Inc(t);
+    Dec(h);
+    Pen.Color := clWhite;
+    MoveTo(Rect.Left, Rect.Top);
+    LineTo(Rect.Left + w, Rect.Top);
+    Pen.Color := clGray;
+    MoveTo(Rect.Left, Rect.Top-1);
+    LineTo(Rect.Left + w, Rect.Top-1);
+  end;
+
+  BitBlt(Canvas.Handle, Rect.Left, t, w, h,
+    Banner.Canvas.Handle, 0, Max(y - Height, 0), SRCCOPY);
+end;
+
+{ TSmallMenuItem }
+
+constructor TSmallMenuItem.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FHeight := SmallItemHeight;
+  TextLeft := 40;
+end;
+
+
+procedure TSmallMenuItem.LoadGraphic;
+var
+  Command, IconFile: TFilename;
+  src, dest : THandle;
+  i, j, IconIndex: Integer;
+  c: TColor;
+
+procedure RegisterInIndex; { 2.2 }
+begin
+  CurrentIndexList.AddObject(Format('%s;%s;%d', [command, IconFile, IconIndex]),
+    TObject(Longint(FImgOffset)));
+end;
+
+begin
+  Command := '';
+  IconFile := '';
+  IconIndex := 0;
+  Unformat(Data, '%s;%S;%D;%s;%d', [@Command, 79, @IconFile, 79, @IconIndex]);
+
+  if IconFile = '<none>' then begin
+    FImgOffset := 0;
+    Exit;
+  end;
+
+  i := Pos(' ', Command);
+  if i > 0 then Command[0] := Chr(i-1);
+
+  if (Count > 0) and (IconFile = '') then begin
+    { default group bitmap }
+    FImgOffset := 16;
+    Exit;
+  end;
+
+  if (Command > '') and (Command[1] = '$') and (IconFile = '') then begin
+    { Find an auxiliary image }
+    i := 0;
+    while i <= High(CommandTable) do
+      if CompareText(Command, CommandTable[i]) = 0 then System.Break else Inc(i);
+    if (i >= 5) and (i <= 7) then i:=0; { 2.11 corrected comparison }
+    FImgOffset := 32 + i * 16;
+    Exit;
+  end;
+
+  if UsingCache then begin
+    { When this function is called, Images.Next points to where the
+      small icon image should be placed }
+    FImgOffset := Images.Next;
+    Images.Next := Images.Next + 16;
+    RegisterInIndex; { 2.2 }
+    Exit;
+  end;
+
+
+  if Reloading then begin { 2.2 }
+    i := PrevIndexList.IndexOf(Format('%s;%s;%d', [command, IconFile, IconIndex]));
+    if i > -1 then begin
+      FImgOffset := Images.AddFrom(PrevImages, Longint(PrevIndexList.Objects[i]));
+      RegisterInIndex;
+      Exit;
+    end;
+  end;
+
+  if CompareText(ExtractFileExt(IconFile), '.bmp') = 0 then
+    SmallBmp.LoadFromFile(EnvironSubst(IconFile))
+  else begin
+    { Use a reference object to do the icon searching }
+    FileRef.Target := Lowercase(command);
+    FileRef.IconFile := IconFile;
+    FileRef.IconIndex := IconIndex;
+    FileRef.AssignIcon(TempIcon);
+    ShrinkIcon(TempIcon.Handle, SmallBmp);
+  end;
+
+  { Add the new 16 x 16 image to the list and remember where you put it }
+  FImgOffset := Images.Add(SmallBmp);
+  RegisterInIndex; { 2.2 }
+end;
+
+
+
+function TSmallMenuItem.GetWidth : Integer;
+begin
+  Result := Images.Canvas.TextWidth(Caption) + 40;
+end;
+
+
+procedure TSmallMenuItem.PaintIcon(Canvas : TCanvas; const Rect : TRect; state : Word);
+begin
+  if not (sfSeparator in Flags) then
+    if ColouredBar and (state and ODS_SELECTED > 0) then
+      Canvas.BrushCopy(Bounds(Rect.Left + 16, Rect.Top + 2, 16, 16),
+        Images, Bounds(ImgOffset, 0, 16, 16), clSilver)
+    else
+    BitBlt(Canvas.Handle, Rect.Left + 16, Rect.Top + 2, 16, 16,
+      Images.Canvas.Handle, ImgOffset, 0, SRCCOPY);
+end;
+
+{ TStartMenu }
+
+constructor TStartMenu.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  Window := AllocateHWnd(WndProc);
+  Canvas := TCanvas.Create;
+  Canvas.Brush.Color := clSilver;
+
+  { A convenient place to create global objects! }
+  Images := TStartImages.Create;
+  TempIcon := TIcon.Create;
+  SmallBmp := InitBitmap(TBitmap.Create, 16, 16, clSilver);
+  Banner := TResBitmap.AlternateLoad('BANNER', 'banner.bmp');
+  BannerWidth := Banner.Width;
+
+  CurrentIndexList := TStringList.Create; { 2.2 }
+
+  Configure;
+end;
+
+
+destructor TStartMenu.Destroy;
+begin
+  Canvas.Free;
+  Images.Free;
+  TempIcon.Free;
+  SmallBmp.Free;
+  Banner.Free;
+  DeallocateHWnd(Window);
+
+  { 2.2 }
+  PrevIndexList.Free;
+  PrevImages.Free;
+  CurrentIndexList.Free;
+
+  inherited Destroy;
+end;
+
+
+procedure TStartMenu.Configure;
+const
+  FontStyles : array[Boolean] of TFontStyles = ([], [fsBold]);
+begin
+  FillMenu := BoldSelect or ColouredBar or (ColorToRGB(clMenu) <> clSilver);
+  ini.ReadFont('Start menu', Canvas.Font);
+  HighlightSilver[True] := Colors[ccStartHighlight];
+
+  { When Windows sends WM_MEASUREITEM messages, the start menu has
+    no valid canvas to measure the text widths.  So it utilises
+    the canvas from a bitmap by setting its font and, later,
+    calling its TextWidth method }
+
+  with Images.Canvas.Font do begin
+    Assign(Canvas.Font);
+    Style := FontStyles[BoldSelect];
+    MenuFontHeight := Abs(Height);
+    SmallItemHeight := MenuFontHeight + 10;
+  end;
+
+  { When BoldSelect is on, menu items need to be wider to accomodate
+    the font.  So when BoldSelect changes, the start menu must be
+    "invalidated" so that Windows sends more WM_MEASUREITEM messages
+    to find the new widths }
+
+  if StartMenu3D then SetOwnerDraw(Items);
+
+  SetWin95KeyEnabled(Win95Keyboard); { 2.2 }
+end;
+
+
+procedure TStartMenu.Clear;
+begin
+  with Items do while Count > 0 do Items[0].Free;
+end;
+
+
+procedure TStartMenu.SetOwnerDraw(menu : TMenuItem);
+const
+  Breaks : array[Boolean] of Word = (0, MF_MENUBREAK);
+var
+  i, NumSections, NumItems, FinalBreak: Integer;
+  item : TMenuItem;
+  IsBreak : Boolean;
+  s : string[79];
+begin
+  { Recurses through the menu tree, setting each item to owner-draw.
+    With the 4th parameter of ModifyMenu, don't confuse the Handle
+    with the Command }
+
+  NumItems := menu.Count;
+  s := menu.Caption;
+
+  if (Length(s) >= 2) and (s[1] = '*') then begin
+    NumSections := Max(Ord(s[2]) - Ord('0'), 2);
+    FinalBreak := (NumItems div NumSections) * (NumSections-1);
+  end
+  else
+    NumSections := 1;
+
+  for i := 0 to NumItems-1 do begin
+    item := menu.Items[i];
+
+    IsBreak := (i > 0) and (NumSections > 1) and
+      (i mod (NumItems div NumSections) = 0);
+
+    if item.Count > 0 then begin
+      ModifyMenu(menu.Handle, i, MF_BYPOSITION or MF_OWNERDRAW or MF_POPUP or
+        Breaks[IsBreak], item.Handle, Pointer(item));
+      SetOwnerDraw(item);
+    end
+    else
+      ModifyMenu(menu.Handle, i, MF_BYPOSITION or MF_OWNERDRAW or
+        Breaks[IsBreak], item.Command, Pointer(item));
+
+    if IsBreak then begin
+      Include(TStartMenuItem(item).Flags, sfTop);
+      if i > 1 then Include(TStartMenuItem(menu.Items[i-1]).Flags, sfBottom);
+    end;
+
+    if (NumSections > 1) and (i < FinalBreak) then
+      Include(TStartMenuItem(item).Flags, sfNoRightEdge);
+  end;
+end;
+
+
+procedure TStartMenu.Load;
+var
+  startini: TIniFile;
+
+procedure AddToMenu(menu: TMenuItem; const section: string);
+const
+  LargeSmall : array[Boolean] of TStartMenuItemClass =
+    (TSmallMenuItem, TLargeMenuItem);
+var
+  names: TStringList;
+  s    : string;
+  item : TStartMenuItem;
+  i    : Integer;
+begin
+  { Reads an entire INI file section, turns each entry into
+    a menu item, and adds the items to the menu parameter }
+
+  names := TStringList.Create;
+  menu.Caption := ExtractFilename(section);
+
+  try
+    startini.ReadSection(section, names);
+
+    for i := 0 to names.Count-1 do begin
+      item := LargeSmall[LargeRootMenu and (menu = Items)].Create(self);
+
+      s := names[i];
+      item.Data := startini.ReadString(section, s, '');
+
+      if s[Length(s)] = '*' then begin
+        Dec(s[0]);
+        AddToMenu(item, Format('%s\%s', [section, s]));
+      end
+      else
+        item.OnClick := HandleClick;
+
+      item.Caption := s;
+      menu.Add(item);
+      if YieldDuringLoad then Application.ProcessMessages;
+    end;
+  finally
+    names.Free;
+  end;
+end;
+
+
+procedure AssignBitmaps(menu : TMenuItem);
+var
+  item: TStartMenuItem;
+  i : Integer;
+begin
+  { AssignBitmaps recursively travels the tree, calling PutBitmap
+    for each menu item.  It also calculates the menu item's flags
+    used when painting.  The Tag stores the item's height. }
+
+  for i := 0 to menu.Count-1 do begin
+    item := TStartMenuItem(menu.Items[i]);
+    with item do begin
+      if i = 0 then Include(Flags, sfTop);
+      if i = menu.Count-1 then Include(Flags, sfBottom);
+      if (Caption > '') and (Caption[1] = '-') then begin
+        Include(Flags, sfSeparator);
+        Height := SmallItemHeight div 2;
+      end;
+      LoadGraphic;
+    end;
+    if item.Count > 0 then AssignBitmaps(item);
+    if YieldDuringLoad then Application.ProcessMessages;
+  end;
+end;
+
+
+const
+  BusyCursors : array[Boolean] of TCursor = (crHourGlass, crBusyPointer);
+var
+  Defaults : TResBitmap;
+  CacheFile : TFilename;
+begin { TStartMenu.Load }
+  Clear;
+  startini := TIniFile.Create(StartFile);
+  Desktop.SetCursor(BusyCursors[YieldDuringLoad]);
+  AddToMenu(Items, 'Start');
+  CacheFile := FileWritePath + 'bmpcache.bmp';
+  try
+    if StartMenu3D then begin
+      with Banner do
+        if LargeRootMenu and Empty then Reload;
+
+      if FileExists(CacheFile) then begin
+        UsingCache := True;
+        Images.LoadFromFile(CacheFile);
+      end
+      else begin
+        { copy preset pictures into cache bitmap }
+        UsingCache := False;
+        InitBitmap(Images, 128 * 16, 16, clSilver);
+        Defaults := TResBitmap.AlternateLoad('STARTBMPS', 'startdef.bmp');
+        Images.Canvas.Draw(0, 0, Defaults);
+        Defaults.Free;
+      end;
+      Images.Next := 128; { skip over preset pictures }
+      AssignBitmaps(Items);
+      SetOwnerDraw(Items);
+      if not UsingCache then with Images do begin
+        { chop off any empty space at the end before saving file }
+        Width := Next;
+        SaveToFile(CacheFile);
+      end;
+
+      SaveIndexToFile(FileWritePath + 'imgindex.dat', CurrentIndexList);
+      CurrentIndexList.Clear;
+    end
+    else begin
+      DeleteFile(CacheFile);
+    end;
+
+    if not (StartMenu3D and LargeRootMenu) then begin
+      {Banner.Dormant removed in 2.11, does not work with subsequent LoadFromFile }
+      Banner.FreeImage;
+    end;
+
+  finally
+    startini.Free;
+    Desktop.ReleaseCursor;
+    {Console.PrintStrings(CurrentIndexList);}
+  end;
+end;
+
+
+function TStartMenu.GetHeight : Integer;
+var
+  i: Integer;
+begin
+  Result := 2;
+  if StartMenu3D then
+    for i := 0 to Items.Count-1 do Inc(Result, TStartMenuItem(Items[i]).Height)
+  else
+    Inc(Result, Items.Count * GetSystemMetrics(SM_CYMENU));
+end;
+
+
+procedure TStartMenu.RebuildFromOutline(Outline : TOutline);
+var
+  startini : TIniFile;
+  i : Integer;
+  section : string[127];
+begin
+  DeleteFile(StartFile);
+
+  PrevIndexList := TStringList.Create;
+  LoadIndexFromFile(FileWritePath + 'imgindex.dat', PrevIndexList);
+  PrevImages := Images;
+  Images := TStartImages.Create;
+  CurrentIndexList := TStringList.Create;
+  Reloading := True;
+
+  { This routine works on the outline from the Start Properties dialog.
+    It assumes that each outline node has a dynamic string pointed to by
+    the Data property }
+
+  startini := TIniFile.Create(StartFile);
+  try
+    with Outline do
+    for i := 1 to ItemCount do with Items[i] do begin
+      if Level = 1 then section := 'Start'
+      else section := 'Start\' + Parent.FullPath;
+
+      if HasItems then
+        startini.WriteString(section, Text + '*', PString(Data)^)
+      else
+        startini.WriteString(section, Text, PString(Data)^);
+    end;
+  finally
+    startini.Free;
+    Load;
+    Reloading := False;
+    PrevImages.Free;
+    PrevImages := nil;
+    PrevIndexList.Free;
+    PrevIndexList := nil;
+  end;
+end;
+
+
+procedure TStartMenu.AssignToOutline(Outline : TOutline);
+
+procedure Translate(menu: TMenuItem; dest : Longint);
+var
+  node : Longint;
+  p: PString;
+  i : Integer;
+  item : TStartMenuItem;
+begin
+  with menu do
+    for i := 0 to Count-1 do begin
+      New(p);
+      item := Items[i] as TStartMenuItem;
+      p^ := item.Data;
+      node := Outline.AddChildObject(dest, item.Caption, TObject(p));
+      if item.Count > 0 then Translate(item, node);
+    end;
+end;
+
+begin
+  Translate(Items, 0);
+end;
+
+
+
+procedure TStartMenu.HandleClick(Sender : TObject);
+const
+  ShowCmdsEx : array[TWindowState] of Word =
+    (SW_SHOWNORMAL, SW_SHOWMINNOACTIVE, SW_SHOWMAXIMIZED);
+var
+  filename, params: TFilename;
+begin
+  with ExtractStartInfo((Sender as TStartMenuItem).Data) do begin
+
+    filename := command;
+    params := '';
+    Unformat(command, '%s %s', [@filename, 79, @params, 79]);
+
+    if (filename[1] = '$') and Assigned(FOnStartMacro) then
+      FOnStartMacro(self, EnvironSubst(filename), EnvironSubst(params))
+    else begin
+      LastIconFile := iconfile;
+      LastIconIndex := iconindex;
+      LastInstance := DefaultExec(filename, params, directory,
+        ShowCmdsEx[TWindowState(Abs(showmode) mod 3)]);
+    end;
+  end;
+end;
+
+
+procedure TStartMenu.RunStartup;
+var
+  i: Integer;
+  item : TMenuItem;
+begin
+  item := Find(ini.ReadString('Start Menu', 'StartupGroup', 'Startup'), miSubMenu);
+  if item <> nil then with item do
+    for i := 0 to Count-1 do Items[i].Click;
+end;
+
+
+procedure TStartMenu.PopupMenuItem(h: HMenu; X, Y: Integer; TrackLeft : Boolean);
+const
+  Flags: array[TPopupAlignment] of Word = (TPM_LEFTALIGN, TPM_RIGHTALIGN,
+    TPM_CENTERALIGN);
+
+  Tracks : array[Boolean] of Word =
+    (TPM_RIGHTBUTTON, TPM_LEFTBUTTON);
+
+var
+  SaveFocus : HWnd;
+begin
+  if YieldDuringLoad then Exit;
+  SaveFocus := GetFocus;
+  SetFocus(Window);
+  TrackPopupMenu(h, Flags[Alignment] or Tracks[TrackLeft], X, Y,
+    0, Window, nil);
+  if IsWindow(SaveFocus) and IsWindowVisible(SaveFocus) then
+    WinProcs.SetFocus(SaveFocus);
+end;
+
+procedure TStartMenu.Popup(X, Y: Integer; TrackLeft : Boolean);
+begin
+  PopupMenuItem(Items.Handle, X, Y, TrackLeft);
+end;
+
+
+
+procedure TStartMenu.WndProc(var Message: TMessage);
+var
+  m: TMenuItem;
+  i: Integer;
+begin
+  try
+    case Message.Msg of
+      WM_DRAWITEM:
+        with TDRAWITEMSTRUCT(Pointer(Message.lParam)^) do begin
+          Canvas.Handle := hDC;
+          TStartMenuItem(itemData).Paint(Canvas, rcItem, itemState);
+          Canvas.Handle := 0;
+        end;
+
+      WM_MEASUREITEM:
+        with TMEASUREITEMSTRUCT(Pointer(Message.lParam)^) do begin
+          itemHeight := TStartMenuItem(itemData).Height;
+          itemWidth := TStartMenuItem(itemData).GetWidth;
+        end;
+
+      WM_COMMAND:
+          DispatchCommand(Message.wParam);
+
+      WM_MENUCHAR:
+        begin
+          if Items.Handle = HiWord(Message.lParam) then m := Items
+          else m := FindItem(HiWord(Message.lParam), fkHandle);
+          if m <> nil then
+            for i := 0 to m.Count-1 do
+              if IsAccel(Message.wParam, TStartMenuItem(m[i]).Caption) then begin
+                Message.Result := MakeLong(i, 2);
+                Exit;
+              end;
+          Message.Result := 0;
+          Exit;
+        end;
+    end;
+    with Message do Result := DefWindowProc(Window, Msg, wParam, lParam);
+  except
+    Application.HandleException(Self);
+  end;
+end;
+
+
+function ExtractStartInfo(const s: string): TStartInfo;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+
+  if Unformat(s, '%s;%s;%d;%s;%d',
+    [@Result.command, 79, @Result.directory, 79, @Result.showmode,
+     @Result.iconfile, 79, @Result.iconindex]) = 1
+    then Result.command := '';
+end;
+
+
+function PackStartInfo(const command, directory, iconfile: TFilename;
+ showmode, iconindex: Integer): string;
+begin
+  Result := Format('%s;%.79s;%d;%.79s;%d',
+    [command, directory, showmode, iconfile, iconindex]);
+end;
+
+
+function TStartMenu.Find(const cap : string; Kind: TMenuItemKind): TMenuItem;
+
+function FindCap(node : TMenuItem): TMenuItem;
+var
+  i: Integer;
+  item : TMenuItem;
+begin
+  Result := nil;
+  for i := 0 to node.Count-1 do begin
+    item := node.Items[i];
+    if ((Kind = miAll) or ((item.Count = 0) = (Kind = miLeafNode)))
+     and (CompareText(item.Caption, cap) = 0) then
+      Result := item
+    else if item.Count > 0 then
+      Result := FindCap(item);
+
+    if Result <> nil then Exit;
+  end;
+end;
+
+begin
+  Result := FindCap(items);
+end;
+
+end.
+

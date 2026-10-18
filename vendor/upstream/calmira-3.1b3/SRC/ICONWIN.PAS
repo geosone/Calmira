@@ -1,0 +1,2667 @@
+{**************************************************************************}
+{                                                                          }
+{    Calmira II shell for Microsoft® Windows(TM) 3.1                       }
+{    Online! Release 3.1                                                   }
+{    Copyright (C) 1998-2000 Calmira Online!                               }
+{    Copyright (C) 1997-1998 Li-Hsin Huang                                 }
+{                                                                          }
+{    This program is free software; you can redistribute it and/or modify  }
+{    it under the terms of the GNU General Public License as published by  }
+{    the Free Software Foundation; either version 2 of the License, or     }
+{    (at your option) any later version.                                   }
+{                                                                          }
+{    This program is distributed in the hope that it will be useful,       }
+{    but WITHOUT ANY WARRANTY; without even the implied warranty of        }
+{    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         }
+{    GNU General Public License for more details.                          }
+{                                                                          }
+{    You should have received a copy of the GNU General Public License     }
+{    along with this program; if not, write to the Free Software           }
+{    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.             }
+{                                                                          }
+{**************************************************************************}
+
+unit IconWin;
+
+{ Icon Windows unit.
+
+  This form can show in two different modes; as Explorer or as
+  a stand alone Icon Window.  The window's owner determines which
+  mode is used. When Explorer is the owner, the TreePanel will
+  recieve the Explorer's outline as it's child.
+
+  Fields
+
+    FDir - the form's TDirectory object that holds a list of files and folders.
+
+    SelSize - the size (in bytes) of all items selected
+
+    FDragCopy - True if the current drag-and-drop should copy files if
+      successful, False if the operation is a move.
+
+    FSelected - the focused TDirItem
+
+    FSelection - contains a list of selected TDirItems, but is only valid
+      immediately after CompileSelection is called.
+
+    FLocked - boolean that indicates if the form should not change its
+      size automatically, probably due to the tree view being attached.
+
+    DragJustEnded - flag that is set after OnDragEnd to stop deselections
+
+    Stretching - true if the user is using the lasso to make a selection }
+
+interface
+
+uses
+  SysUtils, WinTypes, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
+  Directry, Menus, MultiGrd, Dropclnt, DropServ, DragDrop, Settings,
+  Grids, Messages, Progress, Resource, CalForm, StylSped, DynaMenu, NetDlgs;
+
+type
+  TToolCommand = (tcAncestors, tcParent, tcCreateFolder,
+    tcConnect, tcDisconnect, tcCut, tcCopy, tcPaste,
+    tcDelete, tcProperties, tcLargeIcons, tcSmallIcons, tcList,
+    tcSortByName, tcSortByType, tcSortBySize, tcSortByDate);
+
+  TIconWindow = class(TCalForm)
+    TotalLabel: TLabel;
+    SelLabel: TLabel;
+    Grid: TMultiGrid;
+    DropServer: TDropServer;
+    DropClient: TDropClient;
+    Bevel: TBevel;
+    Header: THeader;
+    NetConnectDialog: TNetConnectDialog;
+    NetDisconnectDialog: TNetDisconnectDialog;
+    TreePanel: TPanel;
+    DragPanel: TPanel;
+    MainMenu1: TMainMenu;
+    File1: TMenuItem;
+    Edit1: TMenuItem;
+    View1: TMenuItem;
+    Tools1: TMenuItem;
+    Help1: TMenuItem;
+    Open1: TMenuItem;
+    OpenWith1: TMenuItem;
+    Inspect1: TMenuItem;
+    N1: TMenuItem;
+    New1: TMenuItem;
+    NewFolder1: TMenuItem;
+    NewAlias1: TMenuItem;
+    N8: TMenuItem;
+    Describe1: TMenuItem;
+    Delete1: TMenuItem;
+    Rename1: TMenuItem;
+    Properties1: TMenuItem;
+    N2: TMenuItem;
+    Close1: TMenuItem;
+    Cut1: TMenuItem;
+    Copy1: TMenuItem;
+    Paste1: TMenuItem;
+    N3: TMenuItem;
+    SelectAll1: TMenuItem;
+    Toolbar1: TMenuItem;
+    N4: TMenuItem;
+    LargeIcons1: TMenuItem;
+    SmallIcons1: TMenuItem;
+    ListView1: TMenuItem;
+    N5: TMenuItem;
+    ArrangeIcons1: TMenuItem;
+    ByName1: TMenuItem;
+    ByType1: TMenuItem;
+    BySize1: TMenuItem;
+    ByDate1: TMenuItem;
+    N6: TMenuItem;
+    Refresh1: TMenuItem;
+    Options1: TMenuItem;
+    Find1: TMenuItem;
+    N7: TMenuItem;
+    Connect1: TMenuItem;
+    Disconnect1: TMenuItem;
+    Contents1: TMenuItem;
+    About1: TMenuItem;
+    TopicSearch1: TMenuItem;
+    Tipoftheday1: TMenuItem;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure FormPaint(Sender: TObject);
+    procedure GridDragOver(Sender, Source: TObject; X, Y: Integer;
+     State: TDragState; var Accept: Boolean);
+    procedure GridDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure ObjectMenuPopup(Sender: TObject);
+    procedure OpenClick(Sender: TObject);
+    procedure DeleteClick(Sender: TObject);
+    procedure CreateFolderClick(Sender: TObject);
+    procedure GridMouseDown(Sender: TObject; Button: TMouseButton;
+     Shift: TShiftState; X, Y: Integer);
+    procedure FormDragOver(Sender, Source: TObject; X, Y: Integer;
+     State: TDragState; var Accept: Boolean);
+    procedure OpenWithClick(Sender: TObject);
+    procedure PropertiesClick(Sender: TObject);
+    procedure GridCellSelected(Sender: TObject; Index : Integer; IsSelected: Boolean);
+    procedure RenameClick(Sender: TObject);
+    procedure GridKeyPress(Sender: TObject; var Key: Char);
+    procedure FormDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure RunClick(Sender: TObject);
+    procedure SetFilterClick(Sender: TObject);
+    procedure SortByTypeClick(Sender: TObject);
+    procedure GridKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure FormShow(Sender: TObject);
+    procedure DuplicateClick(Sender: TObject);
+    procedure GridDrawCell(Sender: TObject; Index: Integer;
+      Rect: TRect; State: TGridDrawState);
+    procedure GridSelectCell(Sender: TObject; Index: Integer;
+      var CanSelect: Boolean);
+    procedure DropServerFileDrop(Sender: TObject; X, Y: Integer;
+      Target: Word);
+    procedure TotalLabelMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure GridMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure GridEndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure SelLabelMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure GridMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure DropClientDropFiles(Sender: TObject);
+    procedure DropServerDeskDrop(Sender: TObject; X, Y: Integer;
+      Target: Word);
+    procedure FormDblClick(Sender: TObject);
+    procedure GridSelect(Sender: TObject; Index: Integer);
+    procedure InspectClick(Sender: TObject);
+    procedure ViewListClick(Sender: TObject);
+    procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure AliasPropClick(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure DescribeClick(Sender: TObject);
+    procedure FileSystemClick(Sender: TObject);
+    procedure GridDblClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure NewAliasClick(Sender: TObject);
+    procedure TotalLabelClick(Sender: TObject);
+    procedure WinMenuPopup(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    { 3.1 }
+    procedure HeaderSized(Sender: TObject; ASection, AWidth: Integer);
+    procedure DragPanelMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure DragPanelMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure DragPanelMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure CloseClick(Sender: TObject);
+    procedure SelectAllClick(Sender: TObject);
+    procedure ToolbarClick(Sender: TObject);
+    procedure RefreshClick(Sender: TObject);
+    procedure FindClick(Sender: TObject);
+    procedure ConnectClick(Sender: TObject);
+    procedure DisconnectClick(Sender: TObject);
+    procedure ContentsClick(Sender: TObject);
+    procedure TopicSearchClick(Sender: TObject);
+    procedure TipofthedayClick(Sender: TObject);
+    procedure AboutClick(Sender: TObject);
+    { 3.1 Moved from Private }
+    procedure CutClick(Sender: TObject);
+    procedure CopyClick(Sender: TObject);
+    procedure PasteClick(Sender: TObject);
+  private
+    { Private declarations }
+    FDir: TDirectory;
+    Selsize: Longint;
+    FDragCopy: Boolean;
+    FSelected: TDirItem;
+    FSelection: TFileList;
+    FLocked: Boolean;
+    DragJustEnded: Boolean;
+    Stretching: Boolean;
+    Corner, Anchor: TPoint;
+    Narrow: Boolean;
+    ShowingSelection: Boolean;
+    ToolbarShowing: Boolean; { 2.2b }
+    ToolButtons: array[TToolCommand] of TStyleSpeed; { 2.2b }
+    SliderPanel : TPanel; { 3.1 }
+    Dragging : Boolean; { 3.1 }
+    procedure Arrange(Sender: TObject);
+    procedure InitFileOp(Op: TFileOperation);
+    procedure DoneFileOp;
+    function InitCopy(const dest: string): Boolean;
+    function InitMove(const dest: string): Boolean;
+    function InitDelete(const dest: string): Boolean;
+    procedure AutoResize;
+    procedure SizeHeader; { 3.1 }
+    procedure SaveColWidths; { 3.1 }
+    procedure ConstructPathMenu;
+    procedure SetDragCopy(copy: Boolean);
+    procedure GridDrawList(Sender: TObject; Index: Integer;
+      Rect: TRect; State: TGridDrawState);
+    procedure GridDrawSmall(Sender: TObject; Index: Integer;
+      Rect: TRect; State: TGridDrawState);
+    procedure WMSysCommand(var Msg: TWMSysCommand); message WM_SYSCOMMAND;
+    procedure WMNCRButtonDown(var Msg: TWMNCRButtonDown); message WM_NCRBUTTONDOWN;
+    procedure WMActivate(var Msg : TWMActivate); message WM_ACTIVATE;
+    procedure DrawLasso(r: TRect);
+    procedure SelectFileHandler(Sender: TObject;
+      const FileSpec: string; select: Boolean);
+    procedure SearchFileHandler(Sender: TObject; const s: string);
+    procedure InitTopLeft;
+    procedure AssignCaption;
+    procedure MarkItems(IsCopy: Boolean);
+    procedure PasteItems(IntoFolder: Boolean);
+    procedure ToolAncestorsClick(Sender: TObject);
+    procedure ToolParentClick(Sender: TObject);
+    procedure ToolLargeIconsClick(Sender: TObject);
+    procedure ToolSmallIconsClick(Sender: TObject);
+    procedure ToolListClick(Sender: TObject);
+    procedure ToolSortByTypeClick(Sender: TObject);
+    procedure ToolSortByNameClick(Sender: TObject);
+    procedure ToolSortBySizeClick(Sender: TObject);
+    procedure ToolSortByDateClick(Sender: TObject);
+    procedure ToolMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure AttachMenus;
+    { 2.2 }
+    procedure InitBlindFileOp(Op: TFileOperation; list: TFileList);
+    procedure DoneBlindFileOp;
+    function InitBlindCopy(const source: TFilename; list: TFileList): Boolean;
+    function InitBlindMove(const source: TFilename; list: TFileList): Boolean;
+    { 3.1 }
+    procedure SetTreeWidth;
+  protected
+    { Protected declarations }
+  public
+    { Public declarations }
+    DisplayMode: TDisplayMode; { 2.2b }
+    constructor Init(AOwner: TComponent;
+      const foldername, filter: TFilename);
+    procedure DropInFolder(const foldername: TFilename);
+    procedure DropInWindow(d: TDirectory);
+    procedure DropAsAliases(const foldername: TFilename);
+    procedure FolderRenamed(const previous, current: TFilename);
+    function FileAt(x, y: Integer; wholecell: Boolean): TDirItem;
+    function CompileSelection(recurse: Boolean): TFileList;
+    function CompileFilenames: TStringList;
+    procedure ChangeDir(const foldername: string);
+    function LoadDimensions: Boolean;
+    procedure SaveDimensions;
+    procedure Configure;
+    procedure SettingsChanged(Changes: TSettingChanges); override;
+    procedure RefreshWin;
+    procedure UpdateStatusbar(TotalChanged, SelChanged: Boolean);
+    procedure CopyToClipboard;
+    procedure GotoItem(const filename: string);
+    function CalcSize(cols, rows: Integer): TPoint; { 2.2b removed class}
+    class procedure CalcColWidths;
+    procedure ShowToolbar; { 2.2b }
+    procedure HideToolbar; { 2.2b }
+    procedure OpenParentFolder; { 2.2b }
+    procedure SelectFromClipboard;
+    property Dir: TDirectory read FDir;
+    property Selected: TDirItem read FSelected write FSelected;
+    property Selection: TFileList read FSelection;
+    property DragCopy: Boolean read FDragCopy write SetDragCopy;
+    property Locked: Boolean read FLocked write FLocked;
+  end;
+
+const
+  MacroDisplayMode : Integer = 0;
+
+  { 2.2b }
+  M_OBJ_PROPERTIES = 0;
+  M_OBJ_DESCRIBE   = 1;
+  M_OBJ_DELETE     = 2;
+  M_OBJ_EDITALIAS  = 3;
+  M_OBJ_OPEN       = 4;
+  M_OBJ_OPENWITH   = 5;
+  M_OBJ_INSPECT    = 6;
+  M_OBJ_RENAME     = 7;
+  M_OBJ_DUPLICATE  = 8;
+  M_OBJ_CUT        = 9;
+  M_OBJ_COPY       = 10;
+  M_OBJ_PASTE      = 11;
+
+  M_WIN_CREATEFOLDER = 0;
+  M_WIN_CREATEALIAS  = 1;
+  M_WIN_RUN          = 2;
+  M_WIN_FILESYSTEM   = 3;
+  M_WIN_SETFILTER    = 4;
+  M_WIN_LARGEICONS   = 5;
+  M_WIN_SMALLICONS   = 6;
+  M_WIN_LISTVIEW     = 7;
+  M_WIN_SORTBYNAME   = 8;
+  M_WIN_SORTBYTYPE   = 9;
+  M_WIN_SORTBYSIZE   = 10;
+  M_WIN_SORTBYDATE   = 11;
+  M_WIN_CUT          = 12;
+  M_WIN_COPY         = 13;
+  M_WIN_PASTE        = 14;
+
+var
+  Xspare, YSpare: Integer;
+  NameColWidth, SizeColWidth, DateColWidth,
+    TimeColWidth, AttrColWidth: Integer;
+  SampleDate, SampleTime: string[31];
+  SharedObjectMenu, SharedWinMenu: TDynamicMenu; { 2.2b }
+
+implementation
+
+{$R *.DFM}
+
+uses ShellAPI, FileProp, DiskProp, Drives, Graphics, Tree, Environs,
+  Fileman,WasteBin, FileCtrl, OpenFile, RunProg, Desk, FileFind, Filter,
+  CompSys, Strings, MiscUtil, Files, WinProcs, Alias, FSysProp, Select,
+  Clipbrd, Referenc, Locale, Embed, Iconic, Task, IncSrch, FourDOS,
+  Tips, About;
+
+const
+  LabelTop: Integer = 4;
+  LabelDiv: Integer = 153;
+
+  { 3.1 }
+  TOOLANCESTORS  = 0;
+  TOOLPARENT     = 1;
+  TOOLNEWFOLDER  = 2;
+  TOOLCONNECT    = 3;
+  TOOLDISCONNECT = 4;
+  TOOLCUT        = 5;
+  TOOLCOPY       = 6;
+  TOOLPASTE      = 7;
+  TOOLDELETE     = 8;
+  TOOLPROPERTIES = 9;
+  TOOLLARGEICONS = 10;
+  TOOLSMALLICONS = 11;
+  TOOLLIST       = 12;
+  TOOLSORTNAME   = 13;
+  TOOLSORTTYPE   = 14;
+  TOOLSORTSIZE   = 15;
+  TOOLSORTDATE   = 16;
+
+  ToolbarIndex: array[TToolCommand] of Integer =
+    (TOOLANCESTORS, TOOLPARENT, TOOLNEWFOLDER,
+     TOOLCONNECT, TOOLDISCONNECT,
+     TOOLCUT, TOOLCOPY, TOOLPASTE,
+     TOOLDELETE, TOOLPROPERTIES,
+     TOOLLARGEICONS, TOOLSMALLICONS, TOOLLIST,
+     TOOLSORTNAME, TOOLSORTTYPE, TOOLSORTSIZE, TOOLSORTDATE);
+
+var
+  PathMenu: TPopupMenu;
+  LastPath: TFilename;
+  FileClipboard: TStringList;
+  FileClipboardCopy: Boolean;
+
+{ 2.2b }
+procedure RequireMenus;
+begin
+  if SharedObjectMenu = nil then
+  begin
+    SharedObjectMenu := TDynamicMenu.Create(Application);
+    with SharedObjectMenu do
+    begin
+      AutoPopup := False;
+      AddItem(LoadStr(SMObjOpen), Shortcut(VK_RETURN, []),
+        False, True, M_OBJ_OPEN);
+      AddItem(LoadStr(SMObjOpenWith), Shortcut(VK_RETURN, [ssCtrl]),
+        False, True, M_OBJ_OPENWITH);
+      AddItem(LoadStr(SMObjInspect), Shortcut(VK_RETURN, [ssShift]),
+        False, True, M_OBJ_INSPECT);
+      AddLine;
+      AddItem(LoadStr(SMObjCut), 0, False, True, M_OBJ_CUT);
+      AddItem(LoadStr(SMObjCopy), 0, False, True, M_OBJ_COPY);
+      AddItem(LoadStr(SMObjPaste), 0, False, True, M_OBJ_PASTE);
+      AddLine;
+      AddItem(LoadStr(SMObjEditAlias), 0,
+        False, True, M_OBJ_EDITALIAS);
+      AddItem(LoadStr(SMObjDescribe), Shortcut(Ord('B'), [ssCtrl]),
+        False, True, M_OBJ_DESCRIBE);
+      AddItem(LoadStr(SMObjDelete), Shortcut(VK_DELETE, []),
+        False, True, M_OBJ_DELETE);
+      AddItem(LoadStr(SMObjRename), Shortcut(VK_F2, []),
+        False, True, M_OBJ_RENAME);
+      AddItem(LoadStr(SMObjDuplicate), Shortcut(Ord('D'), [ssCtrl]),
+        False, True, M_OBJ_DUPLICATE);
+      AddLine;
+      AddItem(LoadStr(SMObjProperties), Shortcut(VK_RETURN, [ssAlt]),
+        False, True, M_OBJ_PROPERTIES);
+    end;
+  end;
+  if SharedWinMenu = nil then
+  begin
+    SharedWinMenu := TDynamicMenu.Create(Application);
+    with SharedWinMenu do begin
+      AutoPopup := False;
+      AddItem(LoadStr(SMWinLargeIcons), 0, False, True, M_WIN_LARGEICONS);
+      AddItem(LoadStr(SMWinSmallIcons), 0, False, True, M_WIN_SMALLICONS);
+      AddItem(LoadStr(SMWinListView), 0, False, True, M_WIN_LISTVIEW);
+      AddLine;
+      AddItem(LoadStr(SMWinSortByName), 0, False, True, M_WIN_SORTBYNAME);
+      AddItem(LoadStr(SMWinSortByType), 0, False, True, M_WIN_SORTBYTYPE);
+      AddItem(LoadStr(SMWinSortBySize), 0, False, True, M_WIN_SORTBYSIZE);
+      AddItem(LoadStr(SMWinSortByDate), 0, False, True, M_WIN_SORTBYDATE);
+      AddLine;
+      AddItem(LoadStr(SMObjCut), 0, False, True, M_WIN_CUT);
+      AddItem(LoadStr(SMObjCopy), 0, False, True, M_WIN_COPY);
+      AddItem(LoadStr(SMObjPaste), 0, False, True, M_WIN_PASTE);
+      AddLine;
+      AddItem(LoadStr(SMWinFileSystem), 0, False, True, M_WIN_FILESYSTEM);
+      AddItem(LoadStr(SMWinSetFilter), 0, False, True, M_WIN_SETFILTER);
+      AddLine;
+      AddItem(LoadStr(SMWinCreateFolder), Shortcut(VK_INSERT, []),
+        False, True, M_WIN_CREATEFOLDER);
+      AddItem(LoadStr(SMWinCreateAlias), Shortcut(Ord('L'), [ssCtrl]),
+        False, True, M_WIN_CREATEALIAS);
+      AddItem(LoadStr(SMWinRun), Shortcut(Ord('R'), [ssCtrl]),
+        False, True, M_WIN_RUN);
+    end;
+  end;
+end;
+
+procedure TIconWindow.FormCreate(Sender: TObject);
+begin
+  Icon.Assign(FolderIcon);
+  DeleteMenu(GetSystemMenu(Handle, False), SC_SIZE, MF_BYCOMMAND);
+  FSelection := TFileList.Create;
+  SelLabel.Left := LabelDiv;
+  { 3.1 }
+  if Owner = Explorer then
+  begin
+    LoadPosition(ini, 'Explorer');
+    DragPanel.Left := ini.ReadInteger('Explorer', 'TreeWidth', 180);
+    SetTreeWidth;
+  end
+  else
+  begin
+    TreePanel.Hide;
+    DragPanel.Hide;
+    Bevel.Left := 3;
+    Bevel.Width := ClientWidth - Bevel.Left - 3;
+    Header.Left := 4;
+    Header.Width := ClientWidth - Header.Left - 4;
+    Grid.Left := 4;
+    Grid.Width := ClientWidth - Grid.Left - 4;
+  end;
+end;
+
+procedure TIconWindow.FormDestroy(Sender: TObject);
+begin
+  Desktop.RemoveWindow(self);
+  Dir.Free;
+  FSelection.Free;
+  if (WindowOpen = woSaved) and (Owner <> Explorer) then SaveDimensions;
+  { 3.1 }
+  SaveColWidths;
+end;
+
+function TIconWindow.LoadDimensions: Boolean;
+var
+  l, t, w, h: Integer;
+  s: string[31];
+begin
+  { Loads positions and size from INI file }
+  s := WindowPos.Values[Dir.Fullname];
+  if s = '' then Result := False
+  else
+  try
+    Result := Unformat(s, '%d,%d,%d,%d', [@l, @t, @w, @h]) = 4;
+    if Result then
+    begin
+      SetBounds(l, t, w, h);
+      Locked := True;
+    end;
+  except
+    on EConvertError do;
+  end;
+end;
+
+procedure TIconWindow.SaveDimensions;
+begin
+  WindowPos.Values[Dir.Fullname] :=
+    Format('%d,%d,%d,%d', [Left, Top, Width, Height]);
+end;
+
+procedure TIconWindow.Configure;
+begin
+  Dir.Columns := DefaultColumns; { 3.1 }
+  Color := Colors[ccWinFrame];
+  with Grid do
+  begin
+    Visible := False;
+    Color := Colors[ccIconBack];
+    SelColor := Colors[ccIconSel];
+    ThumbTrack := TrackThumb;
+    if DisplayMode = dmList then
+    begin
+      DefaultColWidth := Width;
+      DefaultRowHeight := LineHeight;
+      OnDrawCell := GridDrawList;
+    end
+    else if DisplayMode = dmSmallIcons then
+    begin
+      if Header.Visible then
+      begin
+        Header.Visible := False;
+        Top := Top - 17;
+        Height := Height + 17;
+      end;
+      DefaultColWidth := NameColWidth + 24;
+      DefaultRowHeight := LineHeight;
+      OnDrawCell := GridDrawSmall;
+    end
+    else
+    begin
+      if Header.Visible then
+      begin
+        Header.Visible := False;
+        Top := Top - 17;
+        Height := Height + 17;
+      end;
+      DefaultColWidth := BrowseGrid.X;
+      DefaultRowHeight := BrowseGrid.Y;
+    end;
+    Font.Assign(GlobalFont);
+    Canvas.Font.Assign(Font);
+    Visible := True;
+  end;
+  with CalcSize(2, 1) do
+  begin
+    MinimumWidth := X;
+    MinimumHeight := Y;
+  end;
+  { 3.1 - Moved from Init }
+  if ShowBrowserToolbar then ShowToolbar
+  else HideToolbar;
+end;
+
+class procedure TIconWindow.CalcColWidths;
+begin
+  with Computer.Canvas do
+  begin
+    NameColWidth := ini.ReadInteger('File System', 'NameColWidth',
+      TextWidth('Wwwwwwww.www') + ColumnPadding);
+    SizeColWidth := ini.ReadInteger('File System', 'SizeColWidth',
+      TextWidth('9999.99 MB') + ColumnPadding);
+    DateColWidth := ini.ReadInteger('File System', 'DateColWidth',
+      TextWidth(SampleDate) + ColumnPadding);
+    TimeColWidth := ini.ReadInteger('File System', 'TimeColWidth',
+      TextWidth(SampleTime) + ColumnPadding);
+    AttrColWidth := ini.ReadInteger('File System', 'AttrColWidth',
+      TextWidth('Attributes') + ColumnPadding);
+  end;
+end;
+
+constructor TIconWindow.Init(AOwner: TComponent;
+  const foldername, filter: TFilename);
+begin
+  inherited Create(AOwner);
+  { Icon windows always show a directory when opened, so a special
+    constructor is needed to ensure that a directory name is used. }
+  FDir := TDirectory.Create(Makepath(foldername));
+  FDir.Filter := filter;
+  FDir.Scan;
+  FDir.OnUpdate := Arrange;
+  AssignCaption;
+  Desktop.AddWindow(Self);
+  if MacroDisplayMode <> 0 then
+  begin
+    DisplayMode := TDisplayMode(MacroDisplayMode - 1);
+    MacroDisplayMode := 0;
+  end
+  else DisplayMode := DefaultDisplay;
+  Configure;
+  AttachMenus;
+  if Owner <> Explorer { 3.1 } then AutoResize;
+  SizeHeader; { 3.1 }
+  Arrange(Self);
+  InitTopLeft;
+end;
+
+procedure TIconWindow.InitTopLeft;
+var
+  NextPos: Integer;
+begin
+  if Owner = Explorer then Exit; { 3.1 }
+  if WindowOpen = woRandom then
+    SetBounds(Random(Screen.Width - Width - 2),
+      Random(Screen.Height - Height - 62),
+      Width, Height)
+  else if not ((WindowOpen = woSaved) and LoadDimensions) then
+  begin
+    if Screen.ActiveForm is TIconWindow then
+    begin
+      NextPos := GetSystemMetrics(SM_CYCAPTION) - 1;
+      Top := Screen.ActiveForm.Top + NextPos;
+      Left := Screen.ActiveForm.Left + NextPos;
+    end
+    else
+    begin
+      Top := (Screen.Height - Height) div 2;
+      Left := (Screen.Width - Width) div 2;
+    end;
+  end;
+end;
+
+procedure TIconWindow.ConstructPathMenu;
+var
+  s: TFilename;
+  m: TMenuItem;
+  i: Integer;
+begin
+  { Fills a popup menu with the list of ancestor directories. }
+  s := ExtractFileDir(Dir.Fullname);
+  if LastPath = s then Exit;
+  with PathMenu.Items do
+    while Count > 0 do Items[0].Free;
+  while Length(s) >= 3 do
+  begin
+    m := TMenuItem.Create(PathMenu);
+    m.Caption := s;
+    m.OnClick := Desktop.WindowSelect;
+    PathMenu.Items.Add(m);
+    if Length(s) = 3 then s := ''
+    else s := ExtractFileDir(s);
+  end;
+end;
+
+function TIconWindow.CalcSize(cols, rows: Integer): TPoint;
+begin
+  Result.x := cols * BrowseGrid.X + XSpare;
+  Result.y := rows * BrowseGrid.Y + YSpare;
+  if DisplayMode = dmList then Inc(Result.y, 17); { 3.1 }
+  if ToolbarShowing then Inc(Result.y, 28);
+end;
+
+function GridDimensions(N: Integer) : TPoint;
+var
+  i: Integer;
+begin
+  Result.X := 5;
+  Result.Y := 4;
+  if N >= Layouts[NumLayouts - 1].Upper then
+    Result := Layouts[NumLayouts - 1].Size;
+  for i := 0 to NumLayouts - 1 do
+    with Layouts[i] do
+      if (N >= Lower) and (N <= Upper) then
+      begin
+        Result := Size;
+        Exit;
+      end;
+end;
+
+procedure TIconWindow.AutoResize;
+var
+  size, cells: TPoint;
+  details: TFileDetails;
+begin
+  { Changes the size of the window depending on the number of icons
+    in the list }
+  if WindowState <> wsNormal then Exit;
+  cells := GridDimensions(Dir.Count);
+  size := CalcSize(cells.X, cells.Y);
+  if DisplayMode = dmList then
+  begin
+    details := Dir.Columns;
+    size.x := 22 + NameColWidth + XSpare;
+    if fdSize in details then Inc(size.x, SizeColWidth);
+    if fdDate in details then Inc(size.x, DateColWidth);
+    if fdTime in details then Inc(size.x, TimeColWidth);
+    if fdAttr in details then Inc(size.x, AttrColWidth);
+    if UseDescriptions and (fdDesc in details) then
+      if DescWidth > -1 then Inc(size.x, DescWidth)
+      else Inc(size.x, (15 * BrowseGrid.X) div 10);
+  end
+  else if DisplayMode = dmSmallIcons then
+    size.x := (24 + NameColWidth) * Max(2, cells.x - 2) + XSpare;
+  { The OnResize event is only triggered when the bounds change, but
+    as a convention, AutoResize needs to call Resize exactly once
+    to reset some of the controls }
+  if EqualRect(BoundsRect, Bounds(Left, Top, size.X, size.Y)) then Resize
+  else SetBounds(Left, Top, size.X, size.Y);
+end;
+
+procedure TIconWindow.SizeHeader; { 3.1 }
+var
+  details: TFileDetails;
+begin
+  details := Dir.Columns;
+  with Header do begin
+    Sections.Clear;
+    SectionWidth[Sections.Add('Filename')] := 18 + NameColWidth;
+    if fdSize in details then
+      SectionWidth[Sections.Add('Size')] := SizeColWidth;
+    if fdDate in details then
+      SectionWidth[Sections.Add('Date')] := DateColWidth;
+    if fdTime in details then
+      SectionWidth[Sections.Add('Time')] := TimeColWidth;
+    if fdAttr in details then
+      SectionWidth[Sections.Add('Attributes')] := AttrColWidth;
+    if UseDescriptions and (fdDesc in details) then
+      Sections.Add('Description')
+    else
+      Sections.Add(''); { 3.1b2 -- dummy column }
+  end;
+end;
+
+procedure TIconWindow.SaveColWidths; { 3.1 }
+begin
+  ini.WriteInteger('File System', 'NameColWidth', NameColWidth);
+  ini.WriteInteger('File System', 'SizeColWidth', SizeColWidth);
+  ini.WriteInteger('File System', 'DateColWidth', DateColWidth);
+  ini.WriteInteger('File System', 'TimeColWidth', TimeColWidth);
+  ini.WriteInteger('File System', 'AttrColWidth', AttrColWidth);
+end;
+
+procedure TIconWindow.Arrange(Sender: TObject);
+begin
+  { Called after a directory's contents have changed }
+  if not (csDestroying in ComponentState) then
+  begin
+    UpdateStatusbar(True, False);
+    Selsize := 0;
+    with Grid, Dir do
+    begin
+      Reset;          { clear the grid }
+      Limit := Count; { set the selection extent }
+      SizeGrid;       { adjust the rows and columns to fit }
+      { The focus might be out of bounds after files have been deleted }
+      if (Focus >= Count) and (Count > 0) then Focus := Count - 1;
+      GridSelect(self, Focus);
+    end;
+  end;
+end;
+
+procedure TIconWindow.FormResize(Sender: TObject);
+var
+  GridBottom: Integer;
+  NowNarrow: Boolean;
+  NewWidth: Integer;
+  tc: TToolCommand;
+begin
+  if WindowState <> wsMinimized then
+  begin
+    { 2.2b }
+    StretchShift([TreePanel, DragPanel], [stHeight]); { 3.1 }
+    StretchShift([Bevel, Header], [stWidth]); { 3.1 }
+    StretchShift([Grid], [stWidth, stHeight]);
+    StretchShift([TotalLabel, SelLabel], [stTop]);
+    NowNarrow := (LabelDiv * 2 > ClientWidth) or SingleStatus;
+    if (Narrow <> NowNarrow) and Visible { 3.1 fix } then
+    begin
+      Narrow := NowNarrow;
+      if Narrow then UpdateStatusbar(True, False)
+      else UpdateStatusbar(True, True);
+    end;
+    SelLabel.Visible := not Narrow;
+    case DisplayMode of
+      dmLargeIcons: NewWidth := BrowseGrid.X;
+      dmSmallIcons: NewWidth := NameColWidth + 24;
+      dmList      : NewWidth := Width - 2;
+    end;
+    { TCustomGrid doesn't compare the current column width with a new
+      setting, so DefaultColWidth should be assigned only when required }
+    with Grid do
+      if DefaultColWidth <> NewWidth then DefaultColWidth := NewWidth;
+    Grid.SizeGrid;
+    { 3.0 - Hide the Display / Sort buttons if window is too narrow }
+    if ToolbarShowing then
+    begin
+      if ClientWidth > ToolButtons[tcList].left + 28 then
+        for tc := TToolCommand(tcLargeIcons) to TToolCommand(tcList) do
+          ToolButtons[tc].Show
+      else
+        for tc := TToolCommand(tcLargeIcons) to TToolCommand(tcList) do
+          ToolButtons[tc].Hide;
+      if ClientWidth > ToolButtons[tcSortByDate].left + 28 then
+        for tc := TToolCommand(tcSortByName) to TToolCommand(tcSortByDate) do
+          ToolButtons[tc].Show
+      else
+        for tc := TToolCommand(tcSortByName) to TToolCommand(tcSortByDate) do
+          ToolButtons[tc].Hide;
+    end;
+    Invalidate;
+  end;
+end;
+
+procedure TIconWindow.FormPaint(Sender: TObject);
+var
+  r: TRect;
+  x, y: Integer;
+begin
+  Border3D(Canvas, ClientWidth - 1, ClientHeight - 1);
+  if Narrow then
+    r := Rect(4, ClientHeight - 19, ClientWidth - 3, ClientHeight - 3)
+  else
+  begin
+    r := Bounds(4, ClientHeight - 19, LabelDiv - 13, 16);
+    RecessBevel(Canvas, R);
+    r.Left := r.Right + 3;
+    r.Right := ClientWidth - 3;
+  end;
+  RecessBevel(Canvas, R);
+  { Draw the resize "grip" }
+  Canvas.Draw(ClientWidth - 17, ClientHeight - 17, Sizebox);
+end;
+
+function TIconWindow.FileAt(x, y: Integer; WholeCell: Boolean): TDirItem;
+var
+  rect: TRect;
+  i: Integer;
+begin
+  { Returns the item at the given mouse coordinates (grid coordinate system).
+    If WholeCell is true, the entire grid box tested for containment,
+    otherwise only the icon area (approximately) is tested }
+  i := Grid.MouseToCell(x, y);
+  rect := Grid.CellBounds(i);
+  if not ((DisplayMode = dmList) or (DisplayMode = dmSmallIcons)
+    or WholeCell) then
+    begin
+      InflateRect(rect, -16, -8);
+      OffsetRect(rect, 0, -8);
+    end;
+  if PtInRect(rect, Point(x, y)) and (i < Dir.Count) then
+    Result := TDirItem(Dir[i])
+  else Result := nil;
+end;
+
+procedure TIconWindow.GridDragOver(Sender, Source: TObject; X, Y: Integer;
+  State: TDragState; var Accept: Boolean);
+var
+  f: TDirItem;
+  DropInIcon: Boolean;
+  NewDrop: Integer;
+begin
+  { Scroll the grid if the cursor is floating over the vertical
+    scroll bar's buttons }
+  with Grid do
+    if (X > Width - 24) and (VisibleRowCount < RowCount) then
+    begin
+      if (Y < 32) and (TopRow > 0) then
+        TopRow := TopRow-1
+      else if (Y > Height-32) and (TopRow < RowCount-VisibleRowCount) then
+        TopRow := TopRow+1;
+    end;
+  if Source = Computer.Grid then Accept := False
+  else
+  begin
+    { This bit is tricky...when the cursor is over a suitable icon,
+      the focus box is turned on.  However, when it is not over a suitable
+      icon, Accept can still be True because the drop target becomes
+      the window.  That is, Accept and DropInIcon are independent }
+    f := FileAt(X, Y, False);
+    DropInIcon := (f <> nil) and f.AcceptsDrops;
+    NewDrop := Grid.MouseToCell(X, Y);
+    Accept := (Source <> Sender) or ((NewDrop <> Grid.Focus) and DropInIcon);
+    with Grid do
+      if not (Accept and DropInIcon) or (State = dsDragLeave) then
+        DropFocus := -1
+      else
+        DropFocus := NewDrop;
+  end;
+end;
+
+procedure TIconWindow.GridDragDrop(Sender, Source: TObject; X, Y: Integer);
+var
+  target: TDirItem;
+  w: TIconWindow;
+begin
+  Grid.DropFocus := -1;
+  target := FileAt(X, Y, False);
+  if (target <> nil) and target.AcceptsDrops then
+    target.DragDrop(Source)
+  else if Source is TMultiGrid then
+  begin
+    w := (TMultiGrid(Source).Owner as TIconWindow);
+    if GetAsyncKeyState(VK_SHIFT) < 0 then w.DropAsAliases(Dir.Fullname)
+    else w.DropInWindow(Dir)
+  end
+  else if Source = Bin.Listbox then
+    Bin.RestoreTo(Dir.Fullname)
+  else if Source = FindList then
+    ProcessFiles(FindForm.CompileSelection, Dir.Fullname);
+end;
+
+procedure TIconWindow.InitFileOp(Op: TFileOperation);
+begin
+  { Begings a file operation by initialising the progress display,
+    cursor and file manager }
+  Desktop.SetCursor(crBusyPointer);
+  CompileSelection(True);
+  NoToAll;
+  ProgressBox.Init(Op, Selection.FileCount);
+  if UseDescriptions and Simul4DOS then
+    Dir.Desc.LoadFromPath(Dir.Path);
+end;
+
+procedure TIconWindow.DoneFileOp;
+begin
+  ProgressBox.Hide;
+  Desktop.ReleaseCursor;
+  Desktop.RefreshNow;
+  PlaySound(Sounds.Values['NotifyCompletion']);
+  if Application.Active then SetFocus;
+  NoToAll;
+end;
+
+function TIconWindow.InitCopy(const dest: string): Boolean;
+begin
+  Result := not (ConfirmCopyStart and (MsgDialogResFmt(SQueryCopyItems,
+    [Grid.SelCount, OneItem[Grid.SelCount = 1], Dir.Fullname, dest],
+    mtConfirmation, [mbYes, mbNo], 0) <> mrYes));
+  if Result then InitFileOp(foCopy);
+end;
+
+function TIconWindow.InitMove(const dest: string): Boolean;
+begin
+  Result := not (ConfirmMoveStart and (MsgDialogResFmt(SQueryMoveItems,
+    [Grid.SelCount, OneItem[Grid.SelCount = 1], Dir.Fullname, dest],
+    mtConfirmation, [mbYes, mbNo], 0) <> mrYes));
+  if Result then InitFileOp(foMove);
+end;
+
+procedure TIconWindow.InitBlindFileOp(Op: TFileOperation; list: TFileList);
+begin
+  Desktop.SetCursor(crBusyPointer);
+  NoToAll;
+  ProgressBox.Init(Op, list.FileCount);
+end;
+
+procedure TIconWindow.DoneBlindFileOp;
+begin
+  ProgressBox.Hide;
+  Desktop.ReleaseCursor;
+  Desktop.RefreshNow;
+  PlaySound(Sounds.Values['NotifyCompletion']);
+  if Application.Active then SetFocus;
+  NoToAll;
+end;
+
+function TIconWindow.InitBlindCopy(const source: TFilename; list: TFileList): Boolean;
+begin
+  Result := not (ConfirmCopyStart and (MsgDialogResFmt(SQueryCopyItems,
+    [list.Count, OneItem[list.Count = 1], source, Dir.Fullname],
+    mtConfirmation, [mbYes, mbNo], 0) <> mrYes));
+  if Result then InitBlindFileOp(foCopy, list);
+end;
+
+function TIconWindow.InitBlindMove(const source: TFilename; list: TFileList): Boolean;
+begin
+  Result := not (ConfirmMoveStart and (MsgDialogResFmt(SQueryMoveItems,
+    [list.Count, OneItem[list.Count = 1], source, Dir.Fullname],
+    mtConfirmation, [mbYes, mbNo], 0) <> mrYes));
+  if Result then InitBlindFileOp(foMove, list);
+end;
+
+function TIconWindow.InitDelete(const dest: string): Boolean;
+begin
+  Result := not (ConfirmDelStart and (MsgDialogResFmt(SQueryDeleteItems,
+    [Grid.Selcount, OneItem[Grid.SelCount = 1], dest],
+    mtConfirmation, [mbYes, mbNo], 0) <> mrYes));
+  if Result then InitFileOp(foDelete);
+end;
+
+procedure TIconWindow.DropInFolder(const foldername: TFilename);
+var
+  i: Integer;
+  path: TFilename;
+begin
+  { Copies or moves selected items from this window into a
+    specified folder.  If the folder is being shown in an icon window,
+    DropInWindow should be used instead. }
+  path := MakePath(foldername);
+  if path = Dir.Path then
+  begin
+    ErrorMsgRes(SCannotPutToSelf);
+    Exit;
+  end;
+  case DragCopy of
+    True : if not InitCopy(foldername) then exit;
+    False: if not InitMove(foldername) then exit;
+  end;
+  try
+    if DragCopy then
+      for i := 0 to Selection.count - 1 do
+        TDirItem(Selection[i]).CopyToPath(path)
+    else
+      for i := 0 to Selection.Count - 1 do
+        TDirItem(Selection[i]).MoveToPath(path);
+  finally
+    if not DragCopy then Dir.Flush;
+    DoneFileOp;
+  end;
+end;
+
+procedure TIconWindow.DropInWindow(d: TDirectory);
+var
+  i: Integer;
+begin
+  { Copies or moves selected items from this window into another window,
+    represented by its directory object }
+  if d = Dir then
+  begin
+    ErrorMsgRes(SCannotPutToSelf);
+    exit;
+  end;
+  if UseDescriptions and Simul4DOS then
+    d.Desc.LoadFromPath(d.Path);
+  case DragCopy of
+    True : if not InitCopy(d.Fullname) then exit;
+    False: if not InitMove(d.Fullname) then exit;
+  end;
+  try
+    if DragCopy then
+       for i := 0 to Selection.count-1 do
+         TDirItem(Selection[i]).CopyToDirectory(d)
+    else
+       for i := 0 to Selection.count-1 do
+         TDirItem(Selection[i]).MoveToDirectory(d);
+  finally
+    if not DragCopy then Dir.Flush;
+    d.Flush;
+    DoneFileOp;
+  end;
+end;
+
+{ 2.2b }
+procedure TIconWindow.ObjectMenuPopup(Sender: TObject);
+var
+  valid: Boolean;
+  IsFile: Boolean;
+begin
+  { Hide inappropriate menu items, depending on the currently
+    "focused" object.  }
+  valid := Selected <> nil;
+  IsFile := Selected is TFileItem;
+  with Sender as TDynamicMenu do
+  begin
+    Element[M_OBJ_OPEN].Visible := valid;
+    Element[M_OBJ_OPENWITH].Visible := IsFile;
+    Element[M_OBJ_INSPECT].Visible := IsFile and (InspectProg > '');
+    Element[M_OBJ_DESCRIBE].Visible := UseDescriptions;
+    Element[M_OBJ_DUPLICATE].Visible := Selected is TFile;
+    Element[M_OBJ_EDITALIAS].Visible := Selected is TAlias;
+    Element[M_OBJ_RENAME].Visible := valid;
+    Element[M_OBJ_DELETE].Visible := valid;
+    Element[M_OBJ_PROPERTIES].Visible := valid;
+  end;
+end;
+
+procedure TIconWindow.OpenClick(Sender: TObject);
+begin
+  if Selected <> nil then
+    if (Owner = Explorer) and (Selected is TFolder) then
+      { 3.1 Tree followes attached Icon Window }
+      Explorer.Travel(Selected.Fullname)
+    else
+      Selected.Open;
+end;
+
+procedure TIconWindow.DeleteClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  if Grid.SelCount = 0 then Exit;
+  if DeleteToBin and not ((BinAction = baDelete) or (GetAsyncKeyState(VK_SHIFT) < 0)
+    or (dfRemoveable in GetDriveFlags(Dir.Path[1]))) then
+      Bin.FormDragDrop(Bin, Grid, 1, 1)
+  else if InitDelete(Dir.Fullname) then
+  try
+    for i := 0 to Selection.Count - 1 do TDirItem(Selection[i]).Delete;
+  finally
+    Dir.Flush;
+    DoneFileOp;
+  end;
+end;
+
+procedure TIconWindow.CreateFolderClick(Sender: TObject);
+var
+  s: TFilename;
+begin
+  s := '';
+  if InputQuery(LoadStr(SCreateFolder), LoadStr(SNewFolderName), s) then
+    Dir.CreateFolder(Lowercase(s));
+end;
+
+procedure TIconWindow.DrawLasso(r: TRect);
+begin
+  { Draw the "column of marching ants" selection box, like the
+    one used in Delphi's form editor.  PolyLine must be used for
+    this effect -- MoveTo and LineTo don't work }
+  with Grid.Canvas do
+  begin
+    Pen.Style := psDot;
+    Pen.Mode := pmXor;
+    PolyLine([Point(r.Left, r.Top), Point(r.Right, r.Top),
+      Point(r.Right, r.Bottom), Point(r.Left, r.Bottom),
+      Point(r.Left, r.Top)]);
+  end;
+end;
+
+procedure TIconWindow.GridMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  p: TPoint;
+  r: TRect;
+begin
+  if not (ssDouble in Shift) then
+  begin
+    if Button = mbLeft then
+    begin
+      if (FileAt(X, Y, False) <> nil) and (Grid.SelCount > 0) then
+      with Grid do
+      begin
+        { Start dragging when clicking over an icon }
+        DragCopy := DefDragCopy xor (ssAlt in Shift);
+        BeginDrag(False);
+      end
+      else with Grid do
+      begin
+        { Start lasso selection when clicking over empty space }
+        Stretching := True;
+        Update;
+        Anchor := Point(X, Y);
+        Corner := Anchor;
+        with ClientRect do
+        begin
+          r.TopLeft := ClientToScreen(TopLeft);
+          r.BottomRight := ClientToScreen(Bottomright);
+          ClipCursor(@r);
+        end;
+      end;
+    end
+    else if Grid.Dragging then
+      { Toggle move/copy when right clicking during file drag }
+      DragCopy := not DragCopy
+    else if not Stretching then with Grid do begin
+      { Display appropriate context menu }
+      GetCursorPos(p);
+      if FileAt(X, Y, False) = nil then
+        SharedWinMenu.Popup(p.x, p.y) { 2.2b }
+      else
+      begin
+        AllowMulti := False;
+        Select(MouseToCell(X, Y));
+        AllowMulti := True;
+        if SelCount > 0 then
+        begin
+          if ssAlt in Shift then SharedObjectMenu.Click(M_OBJ_PROPERTIES)
+          else if ssCtrl in Shift then SharedObjectMenu.Click(M_OBJ_OPENWITH)
+          else if ssShift in Shift then SharedObjectMenu.Click(M_OBJ_INSPECT)
+          else SharedObjectMenu.Popup(p.x, p.y);
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TIconWindow.FormDragOver(Sender, Source: TObject; X, Y: Integer;
+  State: TDragState; var Accept: Boolean);
+begin
+  Accept := (Source <> Grid) and (Source <> Computer.Grid);
+end;
+
+procedure TIconWindow.OpenWithClick(Sender: TObject);
+var
+  s: TFilename;
+begin
+  if not (Selected is TFileItem) then exit;
+  ShowHourGlass;
+  s := TOpenFileDlg.Execute;
+  if s > '' then OpenFileWith(Selected.Fullname, s);
+end;
+
+procedure TIconWindow.PropertiesClick(Sender: TObject);
+begin
+  if Grid.SelCount > 0 then
+  begin
+    ShowHourglass;
+    with TFilePropDlg.Create(Application) do
+    try
+      if Grid.Selcount = 1 then SetItem(Selected)
+      else SetItem(CompileSelection(True));
+      ShowModal;
+    finally
+      Free;
+    end;
+  end;
+end;
+
+procedure TIconWindow.GridCellSelected(Sender: TObject; Index : Integer;
+  IsSelected: Boolean);
+var
+  s: Longint;
+begin
+  { Called once for each selection or deselection in the grid.  If the
+    user selects 100 files in one go, this is called 100 times, so keep
+    the code short }
+  if Index < Dir.Count then
+  begin
+    s := TDirItem(Dir[Index]).Size;
+    if IsSelected then Inc(Selsize, s)
+    else Dec(Selsize, s);
+  end;
+end;
+
+procedure TIconWindow.RenameClick(Sender: TObject); { 3.0 }
+var
+  s: TFilename;
+  Rect: TRect;
+begin
+  if Selected <> nil then with Selected do
+  begin
+    s := Filename;
+    if InputQuery(FmtLoadStr(SRename, [Filename]), LoadStr(SNewFilename), s) then
+    begin
+      if UseDescriptions and Simul4DOS then
+        Dir.Desc.LoadFromPath(Dir.Path);
+      Filename := Lowercase(s);
+      Dir.Update;
+    end;
+  end;
+  (*
+  begin
+    s := Filename;
+    Rect := Grid.CellBounds(Grid.Focus);
+    with FloatingEdit do
+    begin
+      if DisplayMode = dmLargeIcons then
+      begin
+        Top := Grid.Top + Rect.Top + 34;
+        Left := Grid.Left + Rect.Left + 1;
+        Height := 27;
+        Width := 70;
+      end
+      else
+      begin
+        Top := Grid.Top + Rect.Top - 1;
+        Left := Grid.Left + Rect.Left + 20;
+        Height := 20;
+        Width := 82;
+      end;
+      Text := s;
+      Visible := true;
+      SetFocus;
+    end;
+  end;
+  *)
+end;
+
+procedure TIconWindow.GridKeyPress(Sender: TObject; var Key: Char);
+var
+  c: Char;
+  i, foc: Integer;
+  found: Boolean;
+  sel: Boolean;
+begin
+  case Key of
+    { optimized Case statement in ascending order of ASCII value }
+    ' ': if Grid.Focus < Dir.Count then
+         begin
+           { 2.11 fix }
+           foc := Grid.Focus;
+           sel := not Grid.Selected[foc];
+           Grid.Selected[foc] := sel;
+           UpdateStatusbar(False, True);
+           if sel then Selected := TDirItem(Dir[foc])
+           else Selected := nil;
+         end;
+    '*': Desktop.CloseOtherWindows(self);
+    '+': Desktop.CloseLowerWindows(Dir.Fullname);
+    ',': with Grid do { 2.12 }
+           if SelCount = Dir.Count then DeselectAll else SelectAll;
+    '-': Desktop.ClosePathWindows(Dir.Fullname);
+    '.': with TIncSearchDlg.Create(Application) do
+         try
+           OnSearch := SearchFileHandler;
+           ShowModal;
+         finally
+           Free;
+         end;
+    '/': Desktop.CloseWindows;
+    '?': SetFilterClick(nil);
+    'D': SharedWinMenu.Click(M_WIN_SORTBYDATE);
+    'I': SharedWinMenu.Click(M_WIN_LARGEICONS);
+    'L': SharedWinMenu.Click(M_WIN_LISTVIEW);
+    'M': SharedWinMenu.Click(M_WIN_SMALLICONS);
+    'N': SharedWinMenu.Click(M_WIN_SORTBYNAME);
+    'S': SharedWinMenu.Click(M_WIN_SORTBYSIZE);
+    'T': SharedWinMenu.Click(M_WIN_SORTBYTYPE);
+    '\': if Owner = Explorer then
+           { 3.1 Tree followes attached Icon Window }
+           Explorer.Travel(Dir.Path[1] + ':\')
+         else
+           Desktop.OpenFolder(Dir.Path[1] + ':\');
+  else if not (Key in Uppers) then
+    { Jump to the next object which begins with this character }
+    with Dir do if Count > 1 then
+    begin
+      c := LowCase(Key);
+      foc := Grid.Focus;
+      i := (foc + 1) mod Count;
+      while (i <> foc) and (LowCase(TDirItem(List^[i]).GetTitle[1]) <> c) do
+        i := (i + 1) mod Count;
+      if i <> foc then Grid.Select(i);
+    end;
+  end;
+end;
+
+procedure TIconWindow.FormDragDrop(Sender, Source: TObject; X, Y: Integer);
+begin
+  if Source is TMultiGrid then
+    TIconWindow(TMultiGrid(Source).Owner).DropInWindow(Dir)
+  else if Source = Bin.Listbox then
+    Bin.RestoreTo(Dir.Fullname)
+  else if Source = FindList then
+    ProcessFiles(FindForm.CompileSelection, Dir.Fullname);
+end;
+
+procedure TIconWindow.RefreshWin;
+begin
+  try
+    Dir.Scan;
+    if not Locked then AutoResize;
+    Arrange(Self);
+  except
+    on EScanError do
+    begin
+      Dir.Flush; { 3.1 }
+      raise;
+    end;
+  end;
+end;
+
+procedure TIconWindow.RunClick(Sender: TObject);
+begin
+  if Selected <> nil then
+    { 3.1 -- Copy entire path to run dialog }
+    RunExecute(Dir.Fullname + '\' + Selected.Filename, Dir.Fullname)
+  else
+    RunExecute('', Dir.Fullname);
+end;
+
+procedure TIconWindow.DropAsAliases(const foldername : TFilename);
+var
+  i: Integer;
+begin
+  ShowHourGlass;
+  for i := 0 to Dir.Count - 1 do
+    if Grid.Selected[i] then
+      with TDirItem(Dir[i]) do
+        WriteAlias(MakePath(foldername) + ChangeFileExt(Filename, AliasExtension));
+end;
+
+procedure TIconWindow.SetFilterClick(Sender: TObject);
+begin
+  ShowHourglass;
+  with TFilterDialog.Create(Application) do
+  try
+    if Execute(Dir) = mrOK then RefreshWin;
+  finally
+    Free;
+  end;
+end;
+
+procedure TIconWindow.SortByTypeClick(Sender: TObject);
+var
+  item: TDirItem;
+  code: Integer; { 2.2b }
+begin
+  { Handles all "sorting" menu item events }
+  with Sender as TMenuItem do
+    if not Checked then
+    begin
+      { save focused item }
+      item := nil;
+      if Grid.Focus < Dir.Count then item := TDirItem(Dir.Items[Grid.Focus]);
+      { 2.2b }
+      code := Tag - M_WIN_SORTBYNAME;
+      SetMenuCheck([ByName1, ByType1, BySize1, ByDate1], code); { 3.1 }
+      SetMenuCheck([SharedWinMenu.Element[M_WIN_SORTBYNAME],
+                    SharedWinMenu.Element[M_WIN_SORTBYTYPE],
+                    SharedWinMenu.Element[M_WIN_SORTBYSIZE],
+                    SharedWinMenu.Element[M_WIN_SORTBYDATE]], code);
+      if ToolBarShowing then
+        SetButtonState([ToolButtons[tcSortByName],
+                        ToolButtons[tcSortByType],
+                        ToolButtons[tcSortBySize],
+                        ToolButtons[tcSortByDate]], code);
+      Dir.SortOrder := TSortOrder(code);
+      Dir.Sort;
+      if item <> nil then Grid.Focus := Dir.IndexOf(item);
+      Dir.Update;
+      RefreshCursor;
+    end;
+end;
+
+function TIconWindow.CompileSelection(recurse: Boolean): TFileList;
+var
+  i: Integer;
+begin
+  { Fills a TFileList with the current selection.  Recurse controls
+    whether subdirectories have their content sizes counted.  Use
+    this instead of the TDirectory object when items may be moved
+    or deleted }
+  Desktop.SetCursor(crHourGlass);
+  with Selection do
+  begin
+    Clear;
+    Capacity := max(Capacity, Grid.SelCount);
+    Selection.DeepScan := recurse;
+    for i := 0 to Dir.Count-1 do
+      if Grid.Selected[i] then Selection.Add(Dir[i]);
+  end;
+  Desktop.ReleaseCursor;
+  Result := Selection;
+end;
+
+procedure TIconWindow.MarkItems(IsCopy: Boolean);
+var
+  i: Integer;
+begin
+  FileClipboard.Clear;
+  if Grid.SelCount > 0 then
+  begin
+    FileClipboardCopy := IsCopy;
+    FileClipboard.Add(Dir.Path);
+    for i := 0 to Dir.Count - 1 do
+      if Grid.Selected[i] then FileClipboard.Add(TDirItem(Dir.Items[i]).Filename);
+  end;
+end;
+
+procedure TIconWindow.SelectFromClipboard;
+var
+  filename: string[12];
+  i, index: Integer;
+begin
+  if FileClipboard.Count > 1 then
+  begin
+    Grid.DeselectAll;
+    for i := 1 to FileClipboard.Count-1 do
+      if Dir.Find(FileClipboard[i], index) then
+        Grid.Selected[index] := True;
+  end;
+end;
+
+procedure TIconWindow.PasteItems(IntoFolder: Boolean); { 2.2b }
+var
+  path: TFilename;
+  w: TIconWindow;
+  SourceDir, TargetDir: TDirectory;
+  SourceSelection: TFileList;
+  i, index: Integer;
+begin
+  if FileClipboard.Count <= 1 then Exit;
+  IntoFolder := IntoFolder and (Selected is TFolder) and
+    HDirectoryExists(Selected.Fullname);
+  path := FileClipboard[0];
+  if (IntoFolder and (path = MakePath(Selected.Fullname)))
+    or (not IntoFolder and (path = Dir.Path)) then
+    begin
+      ErrorMsgRes(SCannotPutToSelf);
+      Exit;
+    end;
+  if IntoFolder then
+  begin
+    TargetDir := TDirectory.Create(MakePath(Selected.Fullname));
+    TargetDir.Scan;
+  end
+  else TargetDir := Dir;
+  w := Desktop.WindowOf(ExtractFileDir(path));
+  if w <> nil then
+  begin
+    { Source window exists }
+    w.SelectFromClipboard;
+    w.DragCopy := FileClipboardCopy;
+    w.DropInWindow(TargetDir);
+    SetFocus;
+    if not FileClipboardCopy then FileClipboard.Clear;
+    if IntoFolder then TargetDir.Free;
+    Exit;
+  end;
+  { No source window is open }
+  SourceDir := TDirectory.Create(path);
+  SourceDir.Scan;
+  SourceSelection := TFileList.Create;
+  SourceSelection.DeepScan := True;
+  for i := 1 to FileClipboard.Count-1 do
+    if SourceDir.Find(FileClipboard[i], index) then
+      SourceSelection.Add(SourceDir.Items[index]);
+  case FileClipboardCopy of
+    True : if not InitBlindCopy(SourceDir.Fullname, SourceSelection) then Exit;
+    False: if not InitBlindMove(SourceDir.Fullname, SourceSelection) then Exit;
+  end;
+  try
+    if FileClipboardCopy then
+      for i := 0 to SourceSelection.count - 1 do
+        TDirItem(SourceSelection[i]).CopyToDirectory(TargetDir)
+    else
+      for i := 0 to SourceSelection.count - 1 do
+        TDirItem(SourceSelection[i]).MoveToDirectory(TargetDir);
+  finally
+    DoneBlindFileOp;
+    SourceDir.Flush;
+    Dir.Flush;
+    SourceDir.Free;
+    if IntoFolder then TargetDir.Free;
+    SourceSelection.Free;
+  end;
+end;
+
+procedure TIconWindow.OpenParentFolder; { 2.2b }
+var
+  s: TFilename;
+begin
+  s := ExtractFileDir(Dir.Fullname);
+  if Length(Dir.Path) > 3 then
+    if (Owner = Explorer) and (Explorer.SelectedFolder <> s) then
+      { 3.1 Tree follows attached Icon Window }
+      Explorer.Travel(s)
+    else
+      Desktop.OpenFolder(s)
+  else
+    Computer.ShowNormal;
+end;
+
+procedure TIconWindow.GridKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+  item: TMenuItem;
+  s: TFilename;
+  p: PChar;
+begin
+  { The grid can only have one PopupMenu property, so the window menu
+    is searched manually for a shortcut match }
+  s := '';
+  item := SharedWinMenu.FindItem(Shortcut(Key, Shift), fkShortcut);
+  if item <> nil then item.Click
+  else
+  begin
+    { Handle keyboard commands not in menus }
+    if (Key = VK_BACK) and (Shift + [ssAlt] = [ssAlt]) then
+      OpenParentFolder { 2.2b }
+    else if (Shift = [ssCtrl, ssShift]) and (Chr(Key) in ValidDrives) then
+      { Ctrl+Alt+Letter opens the root directory }
+      if Owner = Explorer then
+        { 3.1 Tree followes attached Icon Window }
+        Explorer.Travel(LowCase(Chr(Key)) + ':\')
+      else
+        Desktop.OpenFolder(LowCase(Chr(Key)) + ':\')
+    else if Shift = [ssCtrl] then
+      case key of
+        Ord('A'): SelectAllClick(Sender);
+        Ord('C'): MarkItems(True); { 2.2 }
+        Ord('E'): OpenExplorer(Dir.Fullname);
+        Ord('F'): FileFindExecute(Dir.Fullname);
+        Ord('O'): Computer.ExecuteMacro(self, '$Folder', '');
+        Ord('P'): begin
+                    if Selected <> nil then s := Selected.Fullname;
+                    if InputQuery(LoadStr(SPrintFile), LoadStr(SFilename), s) then
+                      PrintFile(s);
+                  end;
+        Ord('S'): with TSelectFileDlg.Create(Application) do
+                  try
+                    OnSelectFiles := SelectFileHandler;
+                    ShowModal;
+                  finally
+                    Free;
+                  end;
+        Ord('T'): ToolbarClick(Sender);
+        Ord('U'): DefaultExecCommand(UndeleteProg, Dir.Fullname, SW_SHOW);
+        Ord('V'): PasteItems(False); { 2.2 }
+        Ord('X'): MarkItems(False); { 2.2 }
+        Ord('Z'): CopyToClipboard; { 2.2 moved to Ctrl+Z }
+        VK_F5   : Desktop.Cascade;
+      end
+    else if (Shift = [ssShift]) then
+      case key of
+        VK_DELETE: DeleteClick(nil);
+        VK_F5    : Desktop.ArrangeIcons
+      end
+    else if Shift = [] then
+      case Key of
+        VK_F3 : FileFindExecute(Dir.Fullname);
+        VK_F12: Application.Minimize;
+      end;
+  end;
+end;
+
+procedure TIconWindow.WMSysCommand(var Msg: TWMSysCommand);
+begin
+  inherited;
+  with Sounds do case Msg.CmdType and $FFF0 of
+    SC_MINIMIZE: PlaySound(Values['WindowMinimize']);
+    SC_MAXIMIZE: PlaySound(Values['WindowMaximize']);
+    SC_CLOSE   : PlaySound(Values['WindowClose']);
+    SC_RESTORE : PlaySound(Values['WindowRestore']);
+  end;
+end;
+
+procedure TIconWindow.FormShow(Sender: TObject);
+begin
+  PlaySound(Sounds.Values['WindowOpen']);
+  if IconWindowTask then Taskbar.AddButton(Handle);
+end;
+
+procedure TIconWindow.DuplicateClick(Sender: TObject);
+var
+  s: string;
+begin
+   if not (Selected is TFileItem) then exit;
+   s := '';
+   if InputQuery(FmtLoadStr(SDuplicateFile, [Selected.Filename]),
+     LoadStr(SNewFilename), s) then
+     begin
+       (Selected as TFileItem).Duplicate(Lowercase(s));
+       Dir.Update;
+     end;
+end;
+
+procedure TIconWindow.GridDrawCell(Sender: TObject; Index: Integer;
+  Rect: TRect; State: TGridDrawState);
+begin
+  TDirItem(Dir[Index]).Draw(Grid.Canvas, Rect);
+end;
+
+procedure TIconWindow.GridDrawSmall(Sender: TObject; Index: Integer;
+  Rect: TRect; State: TGridDrawState);
+begin
+  TDirItem(Dir[Index]).DrawSmall(Grid.Canvas, Rect);
+end;
+
+procedure TIconWindow.GridDrawList(Sender: TObject; Index: Integer;
+  Rect: TRect; State: TGridDrawState);
+begin
+  TDirItem(Dir[Index]).DrawAsList(Grid.Canvas, Rect)
+end;
+
+procedure TIconWindow.GridSelectCell(Sender: TObject; Index: Integer;
+  var CanSelect: Boolean);
+begin
+  CanSelect := not Stretching;
+end;
+
+procedure TIconWindow.DropServerFileDrop(Sender: TObject; X, Y: Integer;
+  Target: Word);
+var
+  i: Integer;
+begin
+  with DropServer.Files do
+  begin
+    if Grid.SelCount > 0 then
+      for i := 0 to Dir.Count-1 do
+        if Grid.Selected[i] then Add(TDirItem(Dir[i]).Fullname);
+    if IsPrintManager(Target) and (Count > 0) then
+    begin
+      PrintFile(Strings[0]);
+      Clear;
+    end;
+  end;
+end;
+
+procedure TIconWindow.TotalLabelMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if ssShift in Shift then SelLabelMouseDown(Self, Button, Shift, X, Y)
+  else if Button = mbRight then DiskPropExecute(Upcase(Dir.Path[1]));
+end;
+
+procedure TIconWindow.GridMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  r, s: TRect;
+  i, count, topitem: Integer;
+begin
+  if Button <> mbLeft then exit;
+  ClipCursor(nil);
+  with Grid do
+  begin
+    count := Grid.SelCount;
+    if Stretching then
+    begin
+      { Select files inside lasso }
+      Stretching := False;
+      R := NormalizeRect(Anchor, Corner);
+      DrawLasso(R);
+      topitem := Toprow * ColCount;
+      for i := topitem to Min(Dir.Count,
+        topitem + (VisibleColCount * (VisibleRowCount+1)))-1 do
+        begin
+          s := CellBounds(i);
+          InflateRect(s, -16, -8);
+          if Intersects(R, S) then Selected[i] := True;
+        end;
+    end;
+    { Deselect when the user clicks in an empty area, provided that
+      no new files were selected and a drag hasn't just finished }
+    if (count = SelCount) and not DragJustEnded and
+      (FileAt(X, Y, True) = nil) and (Dir.Count > 0) then
+        DeselectAll;
+    GridSelect(self, Focus);
+  end;
+  DragJustEnded := False;
+end;
+
+procedure TIconWindow.GridEndDrag(Sender, Target: TObject; X, Y: Integer);
+begin
+  DragJustEnded := True;
+  DropServer.DragFinished;
+end;
+
+procedure TIconWindow.SelLabelMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  i: Integer;
+  k: Word;
+begin
+  if Button = mbLeft then with Grid do
+  begin
+    if ssCtrl in Shift then
+    begin
+      for i := 0 to Dir.Count - 1 do Selected[i] := not Selected[i];
+      UpdateStatusbar(False, True);
+    end
+    else if SelCount = 0 then SelectAll
+    else DeselectAll
+  end
+  else if Button = mbRight then
+  begin
+    { fake a Ctrl+S shortcut }
+    k := Ord('S');
+    GridKeyDown(Grid, k, [ssCtrl]);
+  end;
+end;
+
+procedure TIconWindow.GridMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+begin
+ if Grid.Dragging then
+ begin
+   if DropServer.CanDrop and AnimCursor then
+     SetCursor(Screen.Cursors[crFlutter]);
+ end
+ else if Stretching then
+ begin
+    { erase previous lasso and redraw }
+    DrawLasso(NormalizeRect(Anchor, Corner));
+    Corner := Point(X, Y);
+    DrawLasso(NormalizeRect(Anchor, Corner));
+  end;
+end;
+
+procedure TIconWindow.DropClientDropFiles(Sender: TObject);
+var
+  target: TDirItem;
+begin
+  with DropClient do
+    if (WindowState <> wsMinimized) and PtInRect(Grid.BoundsRect, DropPos) then
+    begin
+      target := FileAt(DropPos.x, DropPos.y, False);
+      if (target <> nil) and target.AcceptsDrops then target.DragDrop(Files)
+      else ProcessFiles(Files, Dir.Fullname)
+  end
+  else ProcessFiles(Files, Dir.Fullname)
+end;
+
+procedure TIconWindow.FolderRenamed(const previous, current: TFilename);
+var
+  s: TFilename;
+begin
+  { Search for the ancestor which has been renamed and change that
+    part of the string to the new name }
+  s := Dir.Fullname;
+  if (previous = s) or IsAncestorDir(previous, s) then
+  begin
+    System.Delete(s, 1, Length(previous));
+    Desktop.RemoveWindow(self);
+    Dir.Path := current + s + '\';
+    AssignCaption;
+    Desktop.AddWindow(self);
+  end;
+end;
+
+procedure TIconWindow.DropServerDeskDrop(Sender: TObject; X, Y: Integer;
+  Target: Word);
+begin
+  if (Selected <> nil) and CanEditSettings { 2.2 } then
+    Selected.CreateShortcut.MinPosition := Point(X - 16, Y - 16);
+end;
+
+procedure TIconWindow.WMNCRButtonDown(var Msg: TWMNCRButtonDown);
+begin
+  inherited;
+  with Msg do
+    if HitTest = HTSYSMENU then
+    begin
+      ConstructPathMenu;
+      PathMenu.Popup(XCursor, YCursor);
+    end;
+end;
+
+function TIconWindow.CompileFilenames: TStringList;
+var
+  i: Integer;
+begin
+  { Just returns a new list of filenames.  Compare CompileSelection method }
+  Result := TStringList.Create;
+  for i := 0 to Dir.Count-1 do
+    if Grid.Selected[i] then Result.Add(TDirItem(Dir[i]).Fullname);
+end;
+
+procedure TIconWindow.SetDragCopy(copy: Boolean);
+const
+  DragCursors: array[Boolean, Boolean] of TCursor =
+    ((crDropFile, crDropMulti), (crDropCopy, crDropMultiCopy ));
+begin
+  { Sets the cursor shape depending on whether copy mode is on, and
+    how many items are selected }
+  FDragCopy := copy;
+  with Grid do DragCursor := DragCursors[FDragCopy, SelCount > 1];
+  RefreshCursor;
+end;
+
+procedure TIconWindow.FormDblClick(Sender: TObject);
+const
+  NewStates: array[TWindowState] of TWindowState =
+    (wsMaximized, wsMinimized, wsNormal);
+begin
+  WindowState := NewStates[WindowState];
+end;
+
+procedure TIconWindow.GridSelect(Sender: TObject; Index: Integer);
+begin
+  { Called whenever the selection has changed }
+  if (index < Dir.Count) and (Grid.SelCount > 0) then
+    Selected := TDirItem(Dir[index])
+  else
+  begin
+    Selected := nil;
+    if Dir.Count = 0 then Grid.Focus := 0;
+  end;
+  UpdateStatusBar(False, True);
+end;
+
+procedure TIconWindow.InspectClick(Sender: TObject);
+begin
+  if (Selected is TFileItem) and (InspectProg > '') then
+    OpenFileWith(Selected.Fullname, InspectProg);
+end;
+
+procedure TIconWindow.ChangeDir(const foldername: string);
+begin
+  if foldername = Dir.Fullname then Exit;
+  Desktop.RemoveWindow(self);
+  Dir.Path := MakePath(foldername);
+  AssignCaption;
+  Desktop.AddWindow(self);
+  RefreshWin;
+  with Grid do
+  begin
+    if TopRow > 0 then
+    begin
+      Update;
+      TopRow := 0;
+    end;
+    Focus := 0;
+  end;
+end;
+
+procedure TIconWindow.ViewListClick(Sender: TObject);
+begin
+  with Sender as TMenuItem do
+    DisplayMode := TDisplayMode(Tag - M_WIN_LARGEICONS);
+  SetMenuCheck([LargeIcons1,
+                SmallIcons1,
+                ListView1], Integer(DisplayMode)); { 3.1 }
+  SetMenuCheck([SharedWinMenu.Element[M_WIN_LARGEICONS],
+                SharedWinMenu.Element[M_WIN_SMALLICONS],
+                SharedWinMenu.Element[M_WIN_LISTVIEW]], Integer(DisplayMode));
+  if ToolBarShowing then
+    SetButtonState([ToolButtons[tcLargeIcons],
+                    ToolButtons[tcSmallIcons],
+                    ToolButtons[tcList]], Integer(DisplayMode));
+  with Grid do
+  begin
+    Visible := False;
+    if DisplayMode = dmList then
+    begin
+      if not Header.Visible then
+      begin
+        { 3.1 }
+        Height := Height - 17;
+        Top := Top + 17;
+        Header.Visible := True;
+      end;
+      DefaultRowHeight := LineHeight;
+      OnDrawCell := GridDrawList;
+    end
+    else if DisplayMode = dmSmallIcons then
+    begin
+      if Header.Visible then
+      begin
+        { 3.1 }
+        Top := Top - 17;
+        Height := Height + 17;
+        Header.Visible := False;
+      end;
+      DefaultRowHeight := LineHeight;
+      OnDrawCell := GridDrawSmall;
+    end
+    else
+    begin
+      if Header.Visible then
+      begin
+        { 3.1 }
+        Top := Top - 17;
+        Height := Height + 17;
+        Header.Visible := False;
+      end;
+      DefaultRowHeight := BrowseGrid.Y;
+      OnDrawCell := GridDrawCell;
+    end;
+    if not Locked and (WindowState = wsNormal) then AutoResize
+    else Resize;
+    Visible := True;
+    SetFocus;
+  end;
+end;
+
+procedure TIconWindow.FormMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  p: TPoint;
+begin
+  if Button = mbRight then
+  begin
+    GetCursorPos(p);
+    SharedWinMenu.Popup(p.X, p.Y);
+  end;
+end;
+
+procedure TIconWindow.AliasPropClick(Sender: TObject);
+begin
+  if Selected is TAlias then TAlias(Selected).Edit;
+end;
+
+procedure TIconWindow.WMActivate(var Msg: TWMActivate);
+begin
+  inherited;
+  if Msg.Active = WA_INACTIVE then
+    Application.HintPause := NormalHintPause
+  else
+    Application.HintPause := HintDelay;
+end;
+
+procedure TIconWindow.FormHide(Sender: TObject);
+begin
+  if IconWindowTask then Taskbar.DeleteButton(Handle);
+end;
+
+procedure TIconWindow.DescribeClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  if Grid.Selcount = 0 then Exit;
+  if UseDescriptions and Simul4DOS then
+    Dir.Desc.LoadFromPath(Dir.Path);
+  ShowHourglass;
+  CompileSelection(False);
+  for i := 0 to Selection.count - 1 do
+    if not TDirItem(Selection[i]).EditDescription then Break;
+  Dir.Desc.SaveToPath(Dir.Path);
+  Grid.Invalidate;
+end;
+
+procedure TIconWindow.FileSystemClick(Sender: TObject);
+begin
+  ShowModalDialog(TFileSysPropDlg);
+end;
+
+procedure TIconWindow.SettingsChanged(Changes: TSettingChanges);
+begin
+  if [scSystem, scFileSystem, scDesktop, scDisplay] * Changes <> [] then
+  begin
+    Configure;
+    { 3.1 }
+    AssignCaption;
+    SizeHeader;
+  end;
+  if sc4DOS in Changes then RefreshWin;
+  Grid.Setfocus;
+end;
+
+procedure TIconWindow.SelectFileHandler(Sender: TObject;
+  const FileSpec : string; select : Boolean);
+var
+  i: Integer;
+begin
+  for i := 0 to Dir.Count - 1 do
+    if WildCardMatch(TDirItem(Dir[i]).Filename, FileSpec) then
+      Grid.Selected[i] := select;
+  GridSelect(self, Grid.Focus);
+end;
+
+procedure TIconWindow.GridDblClick(Sender: TObject);
+begin
+  if (GetAsyncKeyState(VK_SHIFT) < 0) and (Selected is TFolder) then
+    OpenExplorer(Selected.Fullname)
+  else
+    OpenClick(nil);
+end;
+
+procedure TIconWindow.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if Owner = Explorer then
+  begin
+    SavePosition(ini, 'Explorer');
+    ini.WriteInteger('Explorer', 'TreeWidth', DragPanel.Left);
+    Explorer.Close;
+  end;
+  Action := caFree;
+end;
+
+function MakeValidFilename(const s: TFilename): TFilename;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := 1 to Length(s) do
+    if not (s[i] in InvalidFilenameChars) then
+      AppendStr(Result, s[i]);
+end;
+
+procedure TIconWindow.NewAliasClick(Sender: TObject);
+const
+  NewAliasKind: array[Boolean] of TReferenceKind =
+    (rkFile, rkInternet);
+var
+  s: TFilename;
+  Icon: TIcon;
+  R: TReference;
+begin
+  ShowHourglass;
+  R := TAliasReference.Create;
+  with R do
+  try
+    Kind := NewAliasKind[Computer.BrowserLink.IsBrowserLoaded];
+    if AssignFromExternal then
+    begin
+      s := MangleFilename(Dir.Path,
+        MakeValidFilename(Copy(Caption, 1, 8)) + AliasExtension);
+      if (ConfirmNewAlias or not (dfWriteable in GetDriveFlags(s[1]))) and not
+        InputQuery(LoadStr(SCreateAlias), LoadStr(SAliasFilename), s) then Exit;
+      Icon := TIcon.Create;
+      try
+        AssignIcon(Icon);
+        TAlias.Store(s, R, Icon);
+        Desktop.UpdateFileWindow(s);
+      finally
+        Icon.Free;
+      end;
+    end
+  finally
+    Free;
+  end;
+end;
+
+procedure TIconWindow.UpdateStatusbar(TotalChanged, SelChanged: Boolean);
+begin
+  ShowingSelection := False;
+  if (SelChanged and Narrow and (Grid.SelCount = 0)) or TotalChanged then
+    TotalLabel.Caption := Format(SSNumObjects,
+      [Dir.Count, OneItem[Dir.Count = 1], FormatByte(Dir.Size, 2)]);
+  if SelChanged then
+    if Narrow and (Grid.SelCount > 0) then
+    begin
+      TotalLabel.Caption := Format(SelectionLabels[Grid.SelCount = 1],
+        [Grid.SelCount, FormatByte(Selsize, 2)]);
+      ShowingSelection := True;
+    end
+    else
+      SelLabel.Caption := Format(SelectionLabels[Grid.SelCount = 1],
+        [Grid.SelCount, FormatByte(Selsize, 2)]);
+end;
+
+procedure TIconWindow.TotalLabelClick(Sender: TObject);
+begin
+  if GetAsyncKeyState(VK_SHIFT) >= 0 then RefreshWin;
+end;
+
+procedure TIconWindow.WinMenuPopup(Sender: TObject);
+begin
+  SharedWinMenu.Element[M_WIN_SETFILTER].Checked := Dir.Filter <> DefaultFilter;
+end;
+
+procedure TIconWindow.CopyToClipboard;
+var
+  strings: TStrings;
+  details: TFileDetails;
+  item: TDirItem;
+  i: Integer;
+  s: string;
+begin
+  if Grid.SelCount = 0 then
+    Clipboard.AsText := Dir.Path + Dir.Filter
+  else
+  begin
+    strings := TStringList.Create;
+    try
+      strings.Add(LoadStr(SDirectoryOf) + Dir.Fullname);
+      if not (DisplayMode = dmList) then
+      begin
+        for i := 0 to Dir.Count-1 do
+          if Grid.Selected[i] then
+            strings.Add(TDirItem(Dir[i]).GetTitle)
+      end
+      else
+      begin
+        details := Dir.Columns;
+        for i := 0 to Dir.Count - 1 do
+          if Grid.Selected[i] then
+          begin
+            item := TDirItem(Dir[i]);
+            s := Format('%-12s', [item.Filename]);
+            if fdSize in details then
+            begin
+              if item is TFolder then
+                AppendStr(s, ' <DIR>     ')
+              else AppendStr(s, Format(' %10s',
+                [FormatByte(item.Size, ListKBDecimals)]));
+            end;
+            if fdDate in details then
+              AppendStr(s, Format(' %*s',
+                [Length(SampleDate), DateToStr(item.TimeStamp)]));
+            if fdTime in details then
+              AppendStr(s,Format(' %*s',
+                [Length(SampleTime), ShortTimeToStr(item.TimeStamp)]));
+            if fdAttr in details then
+              AppendStr(s, Format(' %-4s', [AttrToStr(item.Attr and not faDirectory)]));
+            if UseDescriptions and (fdDesc in details) then
+              AppendStr(s, ' ' + item.Description);
+            strings.Add(s);
+          end;
+      end;
+      CopyStringsToClipboard(strings);
+    finally
+      strings.Free;
+    end;
+  end;
+end;
+
+procedure TIconWindow.GotoItem(const filename: string);
+var
+  i: Integer;
+begin
+  if Dir.Find(filename, i) then with Grid do
+  begin
+    Select(i);
+    Selected[i] := True;
+  end;
+end;
+
+procedure TIconWindow.AssignCaption;
+var
+  folder, buf: string[79];
+  des: TDescriptions;
+begin
+  folder := Dir.Fullname;
+  TotalLabel.Hint := folder;
+  buf := GlobalCaptions.Values[folder];
+  if (buf = '') and DescCaptions and (Length(folder) > 3) then
+  begin
+    des := TDescriptions.Create;
+    { 2.11 fix }
+    des.LoadFromPath(ExtractFilePath(folder));
+    buf := des.Get(Extractfilename(folder), nil);
+    des.Free;
+  end;
+  if ShortWinCaptions or (buf > '') then
+  begin
+    if buf = '' then
+    begin
+      if Length(folder) = 3 then
+        buf := MakeDriveName(GuessDriveType(Dir.Path[1]), Dir.Path[1])
+      else
+      begin
+        buf := ExtractFilename(folder);
+        if UpcaseFirstChar then buf[1] := Upcase(buf[1]);
+      end;
+    end;
+    Caption := buf;
+  end
+  else
+  begin
+    folder[1] := Upcase(folder[1]); { 3.1 }
+    Caption := folder;
+  end;
+  if Owner = Explorer then Caption := 'Exploring ' + Caption; { 3.1 }
+end;
+
+procedure TIconWindow.SearchFileHandler(Sender: TObject; const s: string);
+var
+  i: Integer;
+  cap: string[31];
+  found: Boolean;
+begin
+  if s = '' then Exit;
+  for i := 0 to Dir.Count-1 do
+  begin
+    if SharedWinMenu.Element[M_WIN_LARGEICONS].Checked then
+      cap := TDirItem(Dir[i]).GetTitle
+    else cap := TDirItem(Dir[i]).Filename;
+    if s[Length(s)] = ' ' then
+      found := CompareText(Copy(s, 1, Length(s)-1), cap) = 0
+    else found := Pos(s, Lowercase(cap)) = 1;
+    if found then
+    begin
+      GotoItem(TDirItem(Dir[i]).Filename);
+      Exit;
+    end;
+  end;
+end;
+
+{ 2.2b }
+procedure TIconWindow.ShowToolbar;
+var
+  ToolRes: TBitmap;
+  x: Integer;
+
+procedure AddToolbarButton(command: TToolCommand; const HintStr: string;
+  Group: Integer; ClickHandler: TNotifyEvent);
+var
+  button: TStyleSpeed;
+  ToolRect: TRect;
+begin
+  button := TStyleSpeed.Create(self);
+  ToolRect := Bounds(ToolbarIndex[command] * 16, 0, 16 ,16);
+  with button do
+  begin
+    SetBounds(x, 4, 24, 24);
+    AllowAllUp := False;
+    GroupIndex := Group;
+    Hint := HintStr;
+    OnClick := ClickHandler;
+    OnMouseMove := ToolMouseMove;
+    Parent := self;
+    ShowHint := True;
+    Style := sbWin95;
+    { 3.1 }
+    with Glyph do begin
+      Height := 16;
+      Width := 16;
+      Canvas.CopyRect(Bounds(0, 0, 16, 16), ToolRes.Canvas, ToolRect);
+    end;
+  end;
+  Inc(x, button.Width);
+  ToolButtons[command] := button;
+end;
+
+begin {ShowToolbar}
+  if not ToolbarShowing then
+  begin
+    ToolbarShowing := True;
+    LockWindowUpdate(Handle);
+    { 3.1 }
+    ToolRes := TResBitmap.AlternateLoad('TOOLBMPS', 'toolico.bmp');
+    TreePanel.Height := TreePanel.Height - 28;
+    TreePanel.Top := 31;
+    DragPanel.Height := DragPanel.Height - 28;
+    DragPanel.Top := 32;
+    Bevel.Top := 31;
+    Header.Top := 32;
+    { 3.1 end }
+    Grid.Height := Grid.Height - 28;
+    Grid.Top := Grid.Top + 28;
+    x := 4;
+    AddToolbarButton(tcAncestors, 'Display ancestor menu', 0, ToolAncestorsClick);
+    AddToolbarButton(tcParent, 'Parent folder', 0, ToolParentClick);
+    AddToolbarButton(tcCreateFolder, 'Create folder', 0, CreateFolderClick);
+    Inc(x, 8);
+    if NetDriver > 0 then
+    begin
+      AddToolbarButton(tcConnect, 'Map network drive', 0, ConnectClick);
+      AddToolbarButton(tcDisconnect, 'Disconnect network drive', 0, DisconnectClick);
+      Inc(x, 8);
+    end;
+    AddToolbarButton(tcCut, 'Cut', 0, CutClick);
+    AddToolbarButton(tcCopy, 'Copy', 0, CopyClick);
+    AddToolbarButton(tcPaste, 'Paste', 0, PasteClick);
+    Inc(x, 8);
+    AddToolbarButton(tcDelete, 'Delete', 0, DeleteClick);
+    AddToolbarButton(tcProperties, 'Properties', 0, PropertiesClick);
+    Inc(x, 8);
+    AddToolbarButton(tcLargeIcons, 'Large icon view', 1, ToolLargeIconsClick);
+    AddToolbarButton(tcSmallIcons, 'Small icon view', 1, ToolSmallIconsClick);
+    AddToolbarButton(tcList, 'List view', 1, ToolListClick);
+    Inc(x, 8);
+    AddToolbarButton(tcSortByName, 'Sort by filename', 2, ToolSortByNameClick);
+    AddToolbarButton(tcSortByType, 'Sort by filetype', 2, ToolSortByTypeClick);
+    AddToolbarButton(tcSortBySize, 'Sort by filesize', 2, ToolSortBySizeClick);
+    AddToolbarButton(tcSortByDate, 'Sort by filedate', 2, ToolSortByDateClick);
+    SetButtonState([ToolButtons[tcLargeIcons],
+                    ToolButtons[tcSmallIcons],
+                    ToolButtons[tcList]], Integer(DisplayMode));
+    SetButtonState([ToolButtons[tcSortByName],
+                    ToolButtons[tcSortByType],
+                    ToolButtons[tcSortBySize],
+                    ToolButtons[tcSortByDate]], Integer(DefaultSort));
+    LockWindowUpdate(0);
+    { 3.1 }
+    Toolbar1.Checked := True;
+    ToolRes.Free;
+  end;
+end;
+
+procedure TIconWindow.HideToolbar;
+var
+  tc: TToolCommand;
+begin
+  if ToolbarShowing then
+  begin
+    ToolbarShowing := False;
+    LockWindowUpdate(Handle);
+    for tc := Low(TToolCommand) to High(TToolCommand) do ToolButtons[tc].Free;
+    FillChar(ToolButtons, SizeOf(ToolButtons), 0);
+    { 3.1 }
+    TreePanel.Top := 3;
+    TreePanel.Height := TreePanel.Height + 28;
+    DragPanel.Top := 4;
+    DragPanel.Height := DragPanel.Height + 28;
+    Bevel.Top := 3;
+    Header.Top := 4;
+    { /3.1 }
+    Grid.Height := Grid.Height + 28;
+    Grid.Top := Grid.Top - 28;
+    LockWindowUpdate(0);
+    Toolbar1.Checked := False; { 3.1 }
+  end;
+end;
+
+procedure TIconWindow.ToolAncestorsClick(Sender: TObject);
+begin
+  ConstructPathMenu;
+  with ToolButtons[tcAncestors] do
+    with ClientToScreen(Point(Left, Top + Height)) do
+      PathMenu.Popup(X - 4, Y - 4);
+end;
+
+procedure TIconWindow.ToolParentClick(Sender: TObject);
+begin
+  OpenParentFolder;
+end;
+
+procedure TIconWindow.ToolLargeIconsClick(Sender: TObject);
+begin
+  SharedWinMenu.Click(M_WIN_LARGEICONS);
+end;
+
+procedure TIconWindow.ToolSmallIconsClick(Sender: TObject);
+begin
+  SharedWinMenu.Click(M_WIN_SMALLICONS);
+end;
+
+procedure TIconWindow.ToolListClick(Sender: TObject);
+begin
+  SharedWinMenu.Click(M_WIN_LISTVIEW);
+end;
+
+procedure TIconWindow.ToolSortByNameClick(Sender: TObject);
+begin
+  SharedWinMenu.Click(M_WIN_SORTBYNAME);
+end;
+
+procedure TIconWindow.ToolSortByTypeClick(Sender: TObject);
+begin
+  SharedWinMenu.Click(M_WIN_SORTBYTYPE);
+end;
+
+procedure TIconWindow.ToolSortBySizeClick(Sender: TObject);
+begin
+  SharedWinMenu.Click(M_WIN_SORTBYSIZE);
+end;
+
+procedure TIconWindow.ToolSortByDateClick(Sender: TObject);
+begin
+  SharedWinMenu.Click(M_WIN_SORTBYDATE);
+end;
+
+procedure TIconWindow.ToolMouseMove(Sender: TObject; Shift: TShiftState;
+  X, Y: Integer);
+begin
+  Cursor := crDefault;
+end;
+
+procedure TIconWindow.FormActivate(Sender: TObject);
+begin
+  AttachMenus;
+end;
+
+procedure TIconWindow.CutClick(Sender: TObject);
+begin
+  MarkItems(False);
+end;
+
+procedure TIconWindow.CopyClick(Sender: TObject);
+begin
+  MarkItems(True);
+end;
+
+procedure TIconWindow.PasteClick(Sender: TObject);
+begin
+  PasteItems(Selected is TFolder);
+end;
+
+procedure TIconWindow.AttachMenus;
+begin
+  RequireMenus;
+  Grid.PopupMenu := SharedObjectMenu;
+  SharedObjectMenu.Attach([OpenClick, OpenWithClick, InspectClick,
+    CutClick, CopyClick, PasteClick, AliasPropClick, DescribeClick,
+    DeleteClick, RenameClick, DuplicateClick, PropertiesClick]);
+  SharedWinMenu.Attach([ViewListClick, ViewListClick, ViewListClick,
+    SortByTypeClick, SortByTypeClick, SortByTypeClick, SortByTypeClick,
+    CutClick, CopyClick, PasteClick, FileSystemClick, SetFilterClick,
+    CreateFolderClick, NewAliasClick, RunClick]);
+  SharedObjectMenu.OnPopup := ObjectMenuPopup;
+  SetMenuCheck([ByName1, ByType1, BySize1, ByDate1],
+                Integer(Dir.SortOrder)); { 3.1 }
+  SetMenuCheck([SharedWinMenu.Element[M_WIN_SORTBYNAME],
+                SharedWinMenu.Element[M_WIN_SORTBYTYPE],
+                SharedWinMenu.Element[M_WIN_SORTBYSIZE],
+                SharedWinMenu.Element[M_WIN_SORTBYDATE]], Integer(Dir.SortOrder));
+  SetMenuCheck([LargeIcons1, SmallIcons1, ListView1],
+                Integer(DisplayMode)); { 3.1 }
+  SetMenuCheck([SharedWinMenu.Element[M_WIN_LARGEICONS],
+                SharedWinMenu.Element[M_WIN_SMALLICONS],
+                SharedWinMenu.Element[M_WIN_LISTVIEW]], Integer(DisplayMode));
+end;
+
+{ 3.1 }
+
+procedure TIconWindow.HeaderSized(Sender: TObject; ASection,
+  AWidth: Integer);
+var
+  details: TFileDetails;
+  i: Integer;
+begin
+  if DisplayMode <> dmList then Exit;
+  NameColWidth := Header.SectionWidth[0] - 18;
+  details := dir.Columns;
+  i := 1;
+  if fdSize in details then
+  begin
+    SizeColWidth := Header.SectionWidth[i];
+    Inc(i);
+  end;
+  if fdDate in details then
+  begin
+    DateColWidth := Header.SectionWidth[i];
+    Inc(i);
+  end;
+  if fdTime in details then
+  begin
+    TimeColWidth := Header.SectionWidth[i];
+    Inc(i)
+  end;
+  if fdAttr in details then
+    AttrColWidth := Header.SectionWidth[i];
+  Grid.Invalidate;
+end;
+
+procedure TIconWindow.DragPanelMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if Button = mbLeft then
+  begin
+    SliderPanel := TPanel.Create(Self);
+    with SliderPanel do
+    begin
+      Parent := Self;
+      BevelInner := bvNone;
+      BevelOuter := bvNone;
+      Caption := '';
+      Color := clBlack;
+      Cursor := crHSplit;
+      Top := DragPanel.Top;
+      Left := DragPanel.Left;
+      Height := DragPanel.Height;
+      Width := DragPanel.Width;
+      Visible := True;
+    end;
+    Dragging := True;
+  end;
+end;
+
+procedure TIconWindow.DragPanelMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+var
+  ALeft : Integer;
+begin
+  if Dragging then
+  begin
+    ALeft := DragPanel.Left + X - 1;
+    if ALeft < (TreePanel.Left + 80) then
+      ALeft := TreePanel.Left + 80
+    else if ALeft > (Grid.Left + Grid.Width - 80) then
+      ALeft := Grid.Left + Grid.Width - 80;
+    SliderPanel.Left := ALeft;
+    SliderPanel.Invalidate;
+  end;
+end;
+
+procedure TIconWindow.DragPanelMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if Dragging then
+  begin
+    Dragging := False;
+    SliderPanel.Visible := False;
+    DragPanel.Left := SliderPanel.Left;
+    SetTreeWidth;
+    SliderPanel.Free;
+    Invalidate;
+  end;
+end;
+
+procedure TIconWindow.SetTreeWidth;
+begin
+  TreePanel.Width := DragPanel.Left - 3;
+  Bevel.SetBounds(DragPanel.Left + 3, Bevel.Top,
+    ClientWidth - DragPanel.Left - 6, Bevel.Height);
+  Header.SetBounds(DragPanel.Left + 4, Header.Top,
+    ClientWidth - DragPanel.Left - 8, Header.Height);
+  Grid.SetBounds(DragPanel.Left + 4, Grid.Top,
+    ClientWidth - DragPanel.Left - 8, Grid.Height);
+end;
+
+procedure TIconWindow.CloseClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TIconWindow.SelectAllClick(Sender: TObject);
+begin
+  with Grid do
+    if SelCount = Dir.Count then DeselectAll
+    else SelectAll;
+end;
+
+procedure TIconWindow.ToolbarClick(Sender: TObject);
+begin
+  if ToolbarShowing then HideToolbar
+  else ShowToolbar;
+end;
+
+procedure TIconWindow.RefreshClick(Sender: TObject);
+begin
+  RefreshWin;
+  if Owner = Explorer then Explorer.RefreshTreeClick(Sender);
+end;
+
+procedure TIconWindow.FindClick(Sender: TObject);
+begin
+  FileFindExecute(Dir.Fullname);
+end;
+
+procedure TIconWindow.ConnectClick(Sender: TObject);
+begin
+  if NetConnectDialog.Execute then
+  begin
+    DetectDrives;
+    if Explorer <> nil then Explorer.RefreshTreeClick(Self);
+    Computer.RefreshSys.Click;
+  end;
+end;
+
+procedure TIconWindow.DisconnectClick(Sender: TObject);
+begin
+  if NetDisconnectDialog.Execute then
+  begin
+    DetectDrives;
+    if Explorer <> nil then Explorer.RefreshTreeClick(Self);
+    Computer.RefreshSys.Click;
+  end;
+end;
+
+procedure TIconWindow.ContentsClick(Sender: TObject);
+begin
+  Application.HelpJump('Contents');
+end;
+
+procedure TIconWindow.TopicSearchClick(Sender: TObject);
+const
+  EmptyString: PChar = '';
+begin
+  Application.HelpCommand(HELP_PARTIALKEY, Longint(EmptyString));
+end;
+
+procedure TIconWindow.TipofthedayClick(Sender: TObject);
+begin
+  ShowModalDialog(TTipDialog);
+end;
+
+procedure TIconWindow.AboutClick(Sender: TObject);
+begin
+  ShowModalDialog(TAboutBox);
+end;
+
+procedure DoneIconWin; far;
+begin
+  FileClipboard.Free;
+end;
+
+initialization
+  PathMenu := TPopupMenu.Create(Application);
+  Xspare := GetSystemMetrics(SM_CYVSCROLL) + 15;
+  Yspare := GetSystemMetrics(SM_CYCAPTION) +
+    GetSystemMetrics(SM_CYMENU) { 3.1 } + 30;
+  SampleDate := DateToStr(EncodeDate(1999, 12, 12));
+  SampleTime := ShortTimeToStr(EncodeTime(12, 0, 0, 0));
+  FileClipboard := TStringList.Create;
+  if Screen.PixelsPerInch > 96 then
+  begin
+    LabelTop := 2;
+    LabelDiv := 170;
+  end;
+  AddExitProc(DoneIconWin);
+end.
+
