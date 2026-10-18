@@ -23,11 +23,16 @@ text after line-ending normalization. Against Reborn's 149 source/text files:
 - **Review next:** XP's `CHANGBMP`, `XPPROP` and `XPBUTTON` as optional,
   theme-neutral features; do not replace the baseline UI wholesale.
 - **Extract, do not fork:** German/French strings and the French translation
-  helper (`TRAD`) into a future locale layer.
+  attribution into a future locale layer. `TRAD` is a credits form, not a
+  translation engine.
 - **Audit:** the 3.1 beta `CFS*` units and older `EXPLRWIN` implementation for
   capabilities later removed; port only behavior with tests.
 - **Reference only:** Mark Stroberg's binary LFN branch and Microsoft WinFile.
 
 The comparison is intentionally structural first. Each selected feature still
 needs a behavioral test in Windows for Workgroups 3.11 before merging.
+
+See [ADDONS.md](ADDONS.md) for the subsequent component-level review and
+download/source/license inventory. The beta network abstraction is unfinished;
+CalTheme 2.5 and Clean Start have now been recovered as source references.
 

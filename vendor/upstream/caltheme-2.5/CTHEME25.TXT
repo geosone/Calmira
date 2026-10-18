@@ -1,0 +1,146 @@
+A) CALTHEME 2 - ICON THEME  AND INI FILE EDITOR FOR CALMIRA
+-----------------------------------------------------------
+
+VERSION 2.5: DECEMBER, 2000
+
+CalTheme 2 is a utility which automates some of the advanced features 
+of the Calmira program - primarily the ability to customize the program's 
+default icons, which are stored within Calmira itself.
+
+The CALMIRA.INI file can be edited externally or from within Calmira to
+provide these features, but CalTheme makes the process much simpler. 
+
+The program uses custom-made Calmira icon libraries to modify the 
+entire set of built-in Calmira icons at one time. Libraries are available 
+from the CalTheme webpage, and instructions are given below on how
+to create your own.
+
+You can install CalTheme simply by copying or unzipping it from a disk
+or directory. CalTheme works by detecting, and writing to, Calmira's 
+own INI file, which also resides in Calmira's directory.
+
+
+B) NEW IN CALTHEME 2.5
+----------------------
+
+Simpler and more streamlined interface.
+
+No longer needs to be in the same folder as Calmira itself (though this is
+still recommended), and will search for CALMIRA.INI if required.
+
+Now has options to "remember" the last-used icon theme folder, wallpaper 
+folder, and dialogue tab.
+
+Immediate previewing, changing and applying of icon themes instead of having 
+to use a separate dialogue...
+
+... but because of this (and the space the new layout takes up), the option 
+to change individual icons has had to be discontinued. 
+
+Full, case-sensitive or -insensitive, forward and back search and replace 
+has been implemented on the "Manual Edit" tab.
+
+Previewing and stretching/shrinking of wallpaper bitmaps now work as they
+should.
+
+Needs the Verdana font: this is included in the archive, but you'll need to
+copy it into the System folder and install it if you don't have it already.
+
+
+C) DLLS PROVIDED WITH CALTHEME:
+-------------------------------
+
+None in this release. All the CalTheme DLLs I've created are available from
+http://www.d.burgess.clara.net/all_dlls.zip, which will be updated as and
+when necessary.
+
+
+D) NOTES FOR CREATING CALMIRA ICON LIBRARIES
+--------------------------------------------
+
+1) Assumptions
+
+This section assumes that you are confident in working with files 
+containing resources, and have access to one or more programs which
+can edit DLLs and other files.
+
+2) Recommended programs: 
+
+* Borland Resource Workshop (may still be available free by mail order 
+from the UK magazine PC Plus as a cover-CD item)
+
+* IconJack by Neil Rubenking - does exactly what we want here; can load 
+icons from several files at a time, delete unwanted items and combine
+the rest into a DLL file. Can only read ICOs, EXEs, and DLLs, though 
+(However, if you also run 32-bit Windows, there's now a 32-bit version
+of IconJack available which reads and writes to ICLs). Available, free 
+with Delphi source, from ZDNet's PC Magazine website.
+
+3) Guide to creating Calmira icon files
+
+i) The file can be in DLL, ICL or EXE format; CalTheme recognises all three.
+
+ii) There must be at least 22 icons in a created file. You can include more 
+than this for other purposes, but the first 22 will be recognised and used 
+by CalTheme. The first 22 icons must be the ones with which you want to 
+replace the built-in icons.
+
+iii) The index numbers of the icons should correspond to the numbers in the 
+table below (ie the icon with index 0 should be the "Folder" icon, etc.). 
+In theory, it doesn't matter to Calmira which icons are used to represent
+a particular item or shortcut, but in practise the icon needs to be a
+recognisable one.
+
+Icon Index      INI File Key		Used to display
+----------      ------------            ---------------
+
+	0  	_folder		Folders and minimized icon windows
+	1  	_file		Ordinary files
+	2  	_doc		Document files with no icon available
+	3  	_tfile		Small file in list view
+	4  	_tfolder	Small folder in list view
+	5  	_tprog		Small program in list view
+	6  	_compute	Minimized Computer window
+	7 	_explore	Minimized Explorer window
+	8 	_windows	Windows binary files with no icon
+	9  	_msdos		MS-DOS programs
+	10 	_multi		Multiple files in File Properties dialog
+	11 	_finddlg	Minimized Find dialog
+	12 	_rundlg		Minimized Run dialog
+	13 	_hard		Hard drives
+	14 	_floppy		Floppy drives
+	15 	_cdrom		CD-ROM drives
+	16 	_ramdisk	RAM disks
+	17 	_network	Remote or network drives
+	18 	_emptbin	An empty wastepaper bin
+	19 	_fullbin	A full wastepaper bin
+	20 	_internt	Internet shortcuts and aliases
+	21 	_shutdn		Large shutdown icon in Start Menu
+
+iv) The small icons (_tfolder, _tfile and _tprog) must occupy only the top 
+left quadrant of the icon image, that is, a 16 x 16 square.  
+
+v) If you want to use 256-colour icons, there are some points to be aware
+of:
+
+* You will need a 16-bit colour or better display for the icons to show
+properly.
+
+* It's strongly recommended that you only have one, 32x32, 256-colour icon 
+in each indexed icon resource. If there is a 16-colour and 256-colour icon 
+in the same resource, Win3 will always default to the 16-colour one, and 
+will show a 16x16 256-colour icon in preference to a 32x32 256-colour one 
+if both are present in the same resource. There's no point in including 
+larger icons (eg 48x48) as Win3 can't display them at their default size.
+
+
+E) NOTES FOR DEVELOPERS
+
+CalTheme was built using the standard Delphi 1 VCL, with the exception 
+of the following:
+
+* TTabPanel and TPicBtn from the Calmira VCL (I'm assuming you have this).
+
+* TTranImage by Nuno Antunes (included with the source - you can use a 
+TImage if you don't want to bother with image transparency which adapts 
+to different colour schemes; you'll save about 4Kb in program size).

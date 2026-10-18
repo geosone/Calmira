@@ -1,0 +1,956 @@
+
+		;clean-start public domain
+
+		pull equ pop	;push is nicer
+		pullf equ popf
+		o equ offset
+
+		end_of_file equ 26	;end of file marker
+
+		org 0100h
+
+		;release unused memory
+
+		mov bx,o end_program	;calculate address of end of program
+		mov dx,bx
+		shr bx,1
+		shr bx,1
+		shr bx,1
+		shr bx,1
+		and dx,0fh	;add a paragraph?
+if ne		inc bx
+
+		;release memory for command line
+
+		mov ah,04ah	;fn id
+		int 021h	;release memory
+		mov ds,ax,cs
+		mov es,ax
+
+		;setup stack
+
+		cli	;disable interrupts
+		mov sp,o end_temp_stack	;load offset to temporary stack
+		sti	;enable interrupts
+
+		;load pointer to command line
+
+		xor cx,cx	;load length of command line
+		mov cl,b 080h
+		jcxz >e1	;do default action if no args
+		mov si,081h	;load offset
+
+		;move to next non whitespace character
+
+c1:
+		jcxz >e1	;read date and time of last session
+		lodsb	;load byte
+		cmp al,020h	;space or control code?
+		loope c1	;read next char if space
+		jb c1	;or control code
+
+		;check for switch
+
+		cmp al,'-'	;valid switch?
+		je >b1	;check arg
+		cmp al,'/'
+		je >b1
+
+		;abort
+
+		mov dx,o switch_err	;load error message
+		call write_message	;write text message
+		mov al,o switch_exit_code
+exit:
+		mov ah,04ch	;fn id
+		int 021h	;exit
+
+		;check for valid option
+
+b1:
+		mov bp,si	;save switch offset
+		mov es,dx,cs
+b1:
+		mov di,o options	;load ptr to default options
+
+		;compare options
+
+a1:
+		mov si,bp	;load ofs to start of switch
+a2:
+		cmpsb	;compare option
+		jne >a3	;move to next supported opt
+		dec cx
+
+		;check for end of option switch
+
+		cmp b[di],0	;end of option?
+		je >a4	;chk for end of switch
+		jcxz >a3	;move to next option
+		jmp a2
+e2:
+		call write_fn_address	;store offset to option handler
+e1:
+		jmp long >d1	;process log file
+
+		;move to next option
+
+a3:
+		xor al,al	;load zero
+a5:
+		scasb	;term char?
+		jne a5
+		add di,o next_switch	;skip rest of record
+
+		;check for end of supported switches
+
+		cmp b[di],0	;no-more switches?
+		jne a1	;compare next switch
+		mov dx,o unsupported_err	;load error message
+		call write_message	;write text message
+		mov al,o unsupported_exit_code
+		jmp exit	;abort
+
+		;check if end of switch on cmd line
+
+a4:
+		mov b in_quotes,0	;reset quotes flag
+		inc di	;move past delimiter
+		inc w num_options_specified	;increment options count
+		jcxz e2	;read date and time of last session
+		cmp b[si],020h	;whitespace?
+		ja a3	;move to next sprtd switch
+
+		;check for option arguments
+
+a1:
+		mov w[di],si	;save offset to args
+		dec cx
+		lodsb
+		cmp al,020h	;whitespace?
+		jcxz >a2		
+		jbe a1	;next char
+
+		;make sure argument follows
+
+		cmp al,'-'	;switch?
+		je >a3	;cancel argument offset
+		cmp al,'/'
+		je >a3
+		mov b end_arg,0
+		jmp >a1
+
+		;oh the limits of the pc
+
+a7:
+		jmp long >d2
+a3:
+		jmp long >a3
+a2:
+		jmp long >a2
+
+		;move to next switch
+
+a4:
+		lodsb	;load char from cmd line
+		dec cx
+		jcxz a7	;read date and time of last session
+a1:
+		cmp al,027h	;quote in command line?
+		jne >a5	;check if quoting
+
+		;update pointer to start of command
+
+		test b in_quotes,1	;quoting?
+		je >a6	;mark start of command
+		mov bx,si	;save offset to end of command
+		inc b in_quotes	;toggle quotes flag
+		jmp a4	;toggle quotes flag
+a6:
+		test b in_quotes,2	;quotes already done for this option?
+		jne quotes_error	;save pointer to start of command
+
+		;toggle quotes flag
+
+a6:
+		mov w[di],si	;save pointer
+		inc b in_quotes	;toggle quotes flag
+a5:
+		test b in_quotes,1	;in quotes?
+		jne a4
+
+		;check for whitespace
+
+		cmp al,020h	;whitespace?
+		ja >a1	;check for switch if not
+		cmp b[si+0fffe],027h	;already marked?
+		je >a5
+		cmp b[si+0fffe],020h	;whitespace before?
+		jbe >a5
+		mov bx,si	;save offset to end of argument
+
+		;indicate next switch character is option
+
+a5:
+		mov b end_arg,1	;allow for switch
+a1:
+		cmp al,'-'	;switch?
+		je >a1
+		cmp al,'/'
+		je >a1
+		cmp al,020h	;space?
+		jbe a4
+		test b in_quotes,2	;has a portion been quoted?
+		je a4
+
+		;exit with error
+
+quotes_error:
+		mov dx,o too_many_quotes_err	;load error message
+		call write_message	;write text message
+		mov al,o too_many_quotes_code	;load error code
+		jmp exit	;exit
+
+		;copy address to handler
+
+a1:
+		cmp b end_arg,0	;allow for switch?
+		je a4	;scan to next switch if not
+		dec bx
+		mov b[bx],0	;mark end of argument
+b2:
+		call write_fn_address	;store offset to option handler
+		jcxz >d1	;update log file
+		jmp b1	;move to next argument
+
+		;reset argument offset
+
+a2:
+		ja >a1	;read date and time of last session
+a3:
+		mov w[di],0	;indicate no argument
+		jcxz >d1
+		jmp b2
+
+		;append zero to end of last argument
+
+a1:
+		mov b[si],0	;terminate argument
+		call write_fn_address	;store offset to option handler
+		jmp >d1	;read log file
+
+		;check if last char is quote
+
+d2:
+		cmp al,027h	;quote in command line?
+		jne >a1	;check if quoting
+		cmp b in_quotes,0	;quoting?
+if ne		dec si
+a1:
+		mov b[si],0	;mark end of argument
+		jmp b2	;write address to function
+
+		;read in last session details
+
+d1:
+		mov si,w log_file_command	;is a log file specified?
+		or si,si
+if e		mov si,o log_file	;copy default filename
+		mov w log_filename,si
+		call open_file	;open log file
+		jnc >d1	;save file id
+
+		;create log file
+
+		call today	;store todays date
+		call write_log_to_disk	;write to disk
+if c		jmp exit
+		mov b new_log_file,1	;incase -f is specified
+		jmp >d3	;process options
+
+		;exit with error [file read failed]
+
+e2:
+		pullf	;level stack
+e1:
+		mov dx,o cant_read_err	;load error message
+		call write_message	;write text message
+		mov al,o cant_read_exit_code
+		jmp exit
+
+		;read last session status
+
+d1:
+		mov w log_handle,ax	;save handle to option file
+		mov bx,ax
+		mov ah,03fh
+		mov cx,o max_log_size	;allow for maximum log size
+		mov dx,o log_buffer
+		int 021h
+		mov bx,ax
+		mov b[bx+log_buffer],0	;write terminating zero
+
+		;close file checking for errors
+
+		pushf	;save flags
+		mov ah,03eh	;close file fn id
+		mov bx,w log_handle
+		int 021h
+		jc e2	;exit if error
+		pullf
+		jc e1	;exit if error
+
+		;read status details from log file
+
+		mov si,o log_buffer	;load pointer to first field
+		mov di,o log_settings
+		mov cx,o num_log_settings
+d2:
+		xor ax,ax
+		cwd	;load default 0
+
+		;convert string to decimal
+
+b1:
+		lodsb	;load string digit
+		sub al,'0'	;make digit binary
+		add dx,ax
+		cmp b[si],','	;end of string?
+		je >b2	;move to next string
+		mov bx,dx	;multiply by 10
+		shl dx,1
+		shl dx,1
+		add dx,bx
+		shl dx,1
+		jmp b1
+
+		;copy binary setting
+
+b2:
+		mov w[di],dx	;save binary value
+		inc di,di	;move to next setting
+		inc si
+		loop d2
+
+		;move to option details
+
+d3:
+		mov bx,o to_do	;load pointer to start of handler vars
+		mov cx,w num_options_specified	;check if any options are used
+		jcxz >e2
+
+		;call option handlers
+
+d1:
+		push bx,cx	;save handler address
+		call w[bx]	;call handler
+		pull cx,bx
+		jc >e1	;exit if error
+		add bx,2
+		loop d1	;process next option
+
+		;check if any options were called
+
+e1:
+		jmp exit	;exit
+e2:
+		call help_fn	;do help if not
+		jmp exit	;exit
+
+		;------------------------
+		;option function handlers
+		;------------------------
+
+		;------------------
+		;error command [-e]
+		;------------------
+
+error_fn:
+		xor al,al	;exit with ok status
+		cmp w win_closed_last,0	;did windows close safely?
+		je ret	;exit if yes
+scan:
+		mov w win_closed_last,0	;reset flag
+		mov si,w error_command	;load alternative command
+		or si,si	;is there one?
+if e		mov si,o default_error_cmd
+		call exec	;run scan
+		jc ret	;exit if error
+
+		;update log file
+
+		push ax	;save return code
+		call today	;write to log file
+		call write_log_to_disk	;write log back
+		mov b log_file_updated,1	;no need to write twice
+
+		;return correct error code
+
+		pull bx	;restore return code
+		jc ret	;exit if error
+		mov ax,bx
+		or al,080h	;indicate child process
+		ret
+
+		;--------------------------
+		;first command for day [-f]
+		;--------------------------
+
+first_fn:
+		cmp w first_command,0	;load command offset
+		je ret	;exit if not specified
+		cmp b new_log_file,0	;new log file?
+		jne >b1	;exec command
+
+		;compare todays date to last session
+
+		mov ah,02ah	;fn id
+		int 021h	;get date
+		cmp w year,cx	;compare year
+		jb >b1	;execute command if different
+		xor ax,ax
+		mov al,dh
+		cmp w month,ax	;compare month
+		jb >b1
+		mov al,dl
+		cmp w day,ax	;compare day
+		je ret	;exit if not first run today
+
+		;run command
+
+b1:
+		mov si,w first_command	;load command offset
+		call exec
+		jc ret	;exit if error
+		push ax	;save return code
+		call today	;update log
+		call write_log_to_disk	;write to disk
+		mov b log_file_updated,1	;no need to write twice
+
+		;return correct error code
+
+		pull bx	;restore return code
+		jc ret	;exit if error
+		mov ax,bx
+		or al,080h	;indicate child process
+		ret
+
+		;------------------
+		;start command [-s]
+		;------------------
+
+start_fn:
+		mov ax,o in_windows	;did windows close safely?
+		xchg ax,w win_closed_last
+		or ax,ax
+if ne		call scan	;scan disk if not
+		xor cx,cx	;init log buffer count
+
+		;create log file with todays date
+
+		cmp b log_file_updated,0	;has log file been updated?
+if e		call today	;write to buffer
+		call write_log_to_disk	;write to disk
+		jc ret	;exit if error
+
+		;start windows
+
+a1:
+		mov ax,w start_command	;load alternative command
+		or ax,ax	;is there one?
+		je ret	;exit if not
+		mov si,ax
+		call exec	;run scan
+		ret
+
+		;----------------
+		;end command [-c]
+		;----------------
+
+end_fn:
+		mov ax,o out_windows	;did windows close safely?
+		xchg ax,w win_closed_last
+		or ax,ax
+		je ret	;exit if already closed
+
+		;create log file with todays date
+
+		cmp b log_file_updated,0	;has log file been updated?
+if e		call today	;write to buffer
+		call write_log_to_disk	;write to disk
+if nc		xor al,al	;indicate no errors
+		ret	;exit
+
+		;-----------------
+		;help command [-h]
+		;-----------------
+
+help_fn:
+		mov dx,o help_text	;load offset to help message
+		mov ah,9
+		int 021h	;write message
+		clc	;ok
+		ret
+
+		;----------------
+		;log command [-l]
+		;----------------
+
+log_fn:
+		ret
+
+		;-----------------
+		;utility functions
+		;-----------------
+
+		;---------------------------------
+		;copy filename to temporary buffer
+		;---------------------------------
+
+copy_filename:
+		mov di,o filename_buffer	;load pointer to temporary buffer
+		mov dx,di
+a1:
+		lodsb	;copy filename
+		stosb
+		or al,al	;end of filename?
+		jne a1
+		ret	;exit
+
+		;--------------------------------
+		;open file  [si=filename to open]
+		;--------------------------------
+
+open_file:
+		call copy_filename	;copy filename to buffer
+		mov ax,03d00h	;int21 function id [open file]
+		int 021h
+		ret
+
+		;-------------------
+		;create new log file
+		;-------------------
+
+create_log:
+		mov si,w log_filename	;load offset to log filename
+		call copy_filename	;copy filename to buffer
+		mov ah,03ch
+		xor cx,cx
+		int 021h
+		jnc ret	;save file id
+
+		;write error
+
+cant_create: 
+		mov dx,o cant_create_err	;load error message
+		call write_message	;write text message
+		mov al,o cant_create_exit_code
+		stc	;indicate error
+		ret
+
+		;----------------------------------------
+		;write log file to disk [cx=size of data]
+		;----------------------------------------
+
+write_log_to_disk:
+		call create_log	;create blank file
+		jc ret	;exit if error
+		mov w log_handle,ax	;load log file id
+		mov cx,w log_buffer_size	;load size of status file
+		mov dx,o log_buffer
+
+		;write log file to disk
+
+a1:
+		push cx,dx	;save offset to buffer
+		mov bx,w log_handle
+		mov ah,040h	;fn id [write to disk]
+		int 021h	;return ax=bytes written
+
+		;check if all bytes written
+
+		pull dx,cx	;load size of log file
+		jc close_log	;exit if error
+		or ax,ax	;any bytes written?
+		stc	;indicate error
+		je close_log	;exit with error
+		add dx,ax
+		sub cx,ax	;subtract bytes reported
+		jne a1	;write bytes if all not written
+
+		;close log file
+
+close_log:
+		pushf	;save error status
+		mov ah,03eh
+		mov bx,w log_handle
+		int 021h	;close file
+		jnc >a1	;exit if ok
+		pullf	;error from write?
+		jnc >a1	;exit
+
+		;write error and exit
+
+		call cant_create	;write message
+		ret	;exit
+a1:
+		pull bp
+		ret
+
+		;-----------------------
+		;write comma to log file
+		;-----------------------
+
+write_log_comma:
+		mov b[di],','	;store comma
+		inc di
+
+		;write to log file
+
+write_log:
+		mov bx,10	;load divisor
+		xor cx,cx	;init count
+		mov si,o first_digit	;load offset to buffer
+a1:
+		xor dx,dx	;clear remainder
+		div bx	;divide by 10
+		add dl,'0'	;add ascii base
+		dec si
+		inc cx
+		mov b[si],dl
+		or ax,ax	;finished?
+		jne a1	;get next digit
+
+		;store ascii number
+
+		rep
+		movsb	;copy ascii digits
+		ret
+
+		;------------------------------------
+		;store todays date in log file buffer
+		;------------------------------------
+
+today:
+		mov ah,02ah	;fn id
+		int 021h	;get date
+		mov w year,cx	;store year
+		xor ax,ax
+		mov al,dh
+		mov w month,ax	;store month
+		mov al,dl
+		mov w day,ax
+
+		;write to log file
+
+		mov di,o log_buffer	;load offset to log file
+		call write_log
+		mov ax,w month	;write month
+		call write_log_comma
+		mov ax,w year	;write year
+		call write_log_comma
+		mov ax,w win_closed_last	;write in windows status
+		call write_log_comma
+
+		;write end of file and return size of log file
+
+		mov ax,o end_of_file*256+02Ch	;append end of file marker
+		stosw
+		sub di,o log_buffer	;calculate size of log file
+		mov w log_buffer_size,di	;save it
+		ret	;exit
+
+		;-----------------------------------
+		;calculate address of option handler
+		;-----------------------------------
+
+write_fn_address:
+		xor ax,ax	;swap zero with address
+		xchg ax,w[di+2]	;load address
+		or ax,ax	;has this option already been done?
+		je >e1	;exit with error
+		mov bp,si	;save switch offset
+		mov si,o to_do	;calculate corresponding handler var
+		mov bx,w num_options_specified
+		dec bx
+		shl bx,1
+		mov w[bx+si],ax
+		ret	;exit
+
+		;report silly message
+
+e1:
+		mov dx,o option_done_err	;load error message
+		call write_message
+		mov al,o option_done_code
+		pull dx
+		jmp exit	;exit
+
+		;--------------------------------------
+		;execute command line [si=command line]
+		;--------------------------------------
+
+		;get comspec filename
+
+exec:
+		push si	;save offset to command line
+		mov es,w[02ch]	;load segment to environment block
+		mov w >f1,es
+		xor di,di	;load offset
+		xor al,al
+a1:
+		mov si,o comspec_string	;load offset to comspec search string
+		mov cx,o comspec_string_size	;load length of string
+		repe
+		cmpsb	;compare strings
+		je >a2	;load offset to comspec if found
+
+		;move to next entry
+
+		mov cx,08000h	;load maximum environment block size
+		repne
+		scasb	;scan to end of environment string
+	es	cmp b[di],0	;end of environment block?
+		jne a1	;check next environment string if not
+
+		;write error message
+
+		pull si	;level stack
+		mov dx,o cant_find_comspec_err	;write error message
+		call write_message	;write text message
+		mov al,o cant_find_comspec_code
+		stc
+		ret	;exit
+
+		;initialise file control blocks
+
+a2:
+		push di	;save offset to comspec filename
+		mov es,dx,cs	;copy segment to psp
+		mov di,o fcb1	;load offset to fcb #1
+		mov si,o fcb	;load offset to fcb string
+		mov ax,02901h	;load function parameters
+		int 021h	;format fcb #1
+		mov ds,ax,cs	;restore segment register
+		mov es,ax
+		mov di,o fcb2	;load offset to fcb #2
+		mov si,o fcb	;load offset to fcb string
+		mov ax,02901h	;load function parameters
+		int 021h	;format fcb #2
+
+		;initialise parameter block
+
+		mov es,ax,cs	;load code segment
+		mov ds,ax
+		mov w >f3,ax	;store segment address of program
+		mov w >f4,ax
+		mov w >f5,ax
+		pull dx	;restore offset to comspec
+
+		;append carriage return to end of command line
+
+		pull si	;load offset to command line
+		mov di,o command_buffer+1	;load offset to buffer
+		xor ax,ax	;scan for zero delimiter
+		mov cx,3
+
+		;copy initial /c switch for command.com
+
+		mov ax,'/ '	;copy string
+		stosw
+		mov ax,' c'
+		stosw
+
+		;copy command line
+
+a1:
+		inc cx	;increment count
+		lodsb	;copy to buffer
+		or al,al	;last character?
+if e		mov al,13	;store carriage return
+		stosb
+		jne a1
+
+		;write count and terminating carriage return to command line
+
+a2:
+		mov b command_buffer,cl	;move to char before cmd
+		mov w >f2,o command_buffer
+		mov bx,o >f1	;load offset
+
+		;call comspec
+
+		mov ds,w[02ch]	;load segment to comspec filename
+		mov ax,04b00h	;load function parameters
+		int 021h	;call comspec
+		mov ds,bx,cs	;restore segment registers
+		mov es,bx
+
+		;restore stack pointer and exit
+
+		jnc ret	;exit if ok
+		mov dx,o cant_load_comspec_err	;write error message
+		call write_message	;write text message
+		mov al,o cant_load_comspec_code
+		stc	;write message and exit
+		ret	;exit
+
+		;-------------
+		;write message
+		;-------------
+
+write_message:
+		push dx	;save message offset
+		mov dx,o cr	;load offset to carraige return
+		mov ah,9
+		int 021h	;write carriage return
+		pull dx
+		mov ah,9
+		int 021h	;write message
+		mov dx,o cr	;load offset to carraige return
+		mov ah,9
+		int 021h	;write carriage return
+		ret	;exit
+
+		;---------
+		;variables
+		;---------
+
+		;default help message
+
+help_text:
+	db 13,10
+	db 'clean start, written by andrew sprott, placed in public domain 1999',13,10,10
+	db 'usage cs -hscefl',13,10,10
+	db '-h : this message',13,10
+	db '-s [drive:\path\program] : flag started session and optionally start command',13,10
+	db '-c : flag closed session',13,10
+	db '-e [drive:\path\program] : program to run if error; default scandisk.bat',13,10
+	db '-f [drive:\path\program] : run program if first check in day',13,10
+	db '-l [drive:\path\logfile] : specify log file; default c:\cs.log',13,10,10
+	db 'commands can be quoted to avoid confusion',13,10,'$'
+
+	;exec variables
+
+comspec_string db 'COMSPEC='	;comspec string in environment block
+comspec_string_size equ $-comspec_string
+
+f1 dw 0		;segment address of environment block
+f2 dw 0		;offset of command tail
+f3 dw 0		;segment of command tail
+   dw offset fcb1	;segment:offset of fcb #1
+f4 dw 0
+   dw offset fcb2	;segment:offset of fcb #2
+f5 dw 0
+
+fcb db 13
+
+	;boolean variables
+
+in_quotes db 0	;cmd line parser is in quotes
+end_arg db 0	;indicates space separates arguments
+new_log_file db 0	;flags first time
+log_file_updated db 0	;saves updating log file twice
+
+	;errors
+
+cr db 13,10,'$'
+
+switch_err db 'switch expected$'
+switch_exit_code equ 1
+unsupported_err db 'switch unsupported$'
+unsupported_exit_code equ 2
+cant_create_err db 'cant create log file$'
+cant_create_exit_code equ 3
+cant_read_err db 'cant create log file$'
+cant_read_exit_code equ 4
+cant_find_comspec_err db 'cannot locate command.com$'
+cant_find_comspec_code equ 5
+cant_load_comspec_err db 'cannot run command.com$'
+cant_load_comspec_code equ 6
+too_many_quotes_err db 'too many quotes$'
+too_many_quotes_code equ 7
+option_done_err db 'too many cooks spoil the broth matey$'
+option_done_code equ 8
+
+	;options
+
+num_options_specified dw 0	;number of options on command line
+
+options:
+	db 'e',0	;check for windows error
+error_command dw 0
+	dw error_fn
+	db 'f',0	;execute if first session for day
+first_command dw 0
+	dw first_fn
+	db 's',0	;log start session
+start_command dw 0
+	dw start_fn
+	db 'c',0	;log close session
+end_command dw 0
+	dw end_fn
+	db 'l',0	;specify alternate log filename
+log_file_command dw 0
+	dw log_fn
+	db 'h',0	;help dialog
+help_command dw 0
+	dw help_fn
+	db 0	;end of switches
+
+next_switch equ 4	;size of two words [dw]
+
+	;table of options to be processed
+
+to_do:
+	dw 0	;error_command
+	dw 0	;first_command
+	dw 0	;start command
+	dw 0	;end command
+	dw 0	;log file command
+	dw 0	;help command
+
+	;file system
+
+default_error_cmd db 'scandisk.bat',0
+in_windows equ 1
+out_windows equ 0
+
+log_handle dw 0	;file handle
+log_file db 'c:\cs.log',0	;records status of last session
+log_filename dw log_file
+
+max_log_size equ 64
+
+number_buffer db '00000'
+first_digit:
+
+log_settings:
+	day dw 19
+	month dw 12
+	year dw 1999
+	win_closed_last dw 0
+
+num_log_settings equ ($-log_settings)/2
+
+log_buffer_size dw buffer_size
+log_buffer db '19,12,1999,0,',13,26	;last date, 0=windows safely closed
+buffer_size equ $-log_buffer
+log_buffer_remain equ max_log_size-buffer_size
+	db log_buffer_remain dup ?
+
+command_buffer:
+filename_buffer db 64 dup ?	;used to open files
+
+fcb_size equ 010h	;size of file control block
+fcb1 db fcb_size dup ?	;string buffer
+fcb2 db fcb_size dup ?	;string buffer
+
+temp_stack dw 127 dup ?	;temporary stack
+end_temp_stack dw ?
+
+end_program:
+
+	;ends
+
+

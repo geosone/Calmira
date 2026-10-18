@@ -64,3 +64,6 @@ The optional W95ICONS.DLL is no longer shipped. `make ctl3d` builds the GPL
 Open386MAX replacement for CTL3DV2.DLL with OpenWatcom and JWlink; see
 [`docs/BINARY_DEPENDENCIES.md`](docs/BINARY_DEPENDENCIES.md).
 
+The historical add-on and branch review, including recovered CalTheme and
+Clean Start sources, is in [`docs/ADDONS.md`](docs/ADDONS.md).
+

@@ -21,6 +21,8 @@ archives were tested with `unzip -t`; no path traversal entries were found.
 | `geosone-jwasm` | github.com/geosone/JWasm | Pinned build dependency with MASM 5.1 patches, commit `e9462f1e` |
 | `geosone-jwlink` | github.com/geosone/jwlink | Pinned build dependency with MS LINK/VxD/GCC patches, commit `c3f7e937` |
 | `open386max-ctl3d` | github.com/geosone/Open386MAX | GPL-3.0 CTL3DV2 Win16 replacement source snapshot, commit `82d33fc5` |
+| `caltheme-2.5` | calmira.de/downloads/files/david/calthem2.zip | GPL theme editor source/resources; bundled font and compiled binaries excluded |
+| `clean-start` | calmira.de/downloads/files/talisoft/cs.zip | Public-domain CS.86 DOS helper source |
 
 The original archives are in `archives/original/`. Their SHA-256 values are in
 `archives/original/SHA256SUMS`. Reborn's Git history is retained in its cloned
