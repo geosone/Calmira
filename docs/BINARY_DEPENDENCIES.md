@@ -28,10 +28,20 @@ subclassing, automatic CBT hooks and system-colour changes for Windows 3.x.
 This is a separately built C DLL; Pascal callers keep the existing Win16 ABI.
 
 The build checks the NE DLL flag, shared data, exported module name and all
-export names/ordinals against the source definition. Native Windows 3.1/3.11
-dialog rendering, focus, keyboard operation and colour-change acceptance
-tests with the finished Calmira GUI remain outstanding. Do not infer full
-Microsoft API equivalence from a successful build or export check.
+export names/ordinals against the source definition. A native WfW 3.11 probe
+also passed DLL loading, ordinal lookups, explicit and automatic subclassing,
+edit focus/text, checkbox state, system-colour refresh and unregistering.
+A screenshot confirmed control rendering. Run it on a disposable image copy:
+
+```sh
+WIN311_IMAGE=/path/to/win311.img make ctl3d-runtime-test
+```
+
+The default FAT partition offset is 32256 bytes; override `WIN311_OFFSET` for
+another layout. The test requires QEMU, mtools and a prepared DOS/Windows
+image (with `C:\HIMEM.SYS` and `C:\WINDOWS`). No Microsoft image is distributed.
+Full keyboard/mouse and finished-Calmira GUI acceptance remain outstanding.
+Do not infer complete Microsoft API equivalence from this focused test.
 
 The original binary remains in the archived Reborn tree only. The package
 includes the replacement's license as `LICENSES/CTL3D.TXT` and displays it

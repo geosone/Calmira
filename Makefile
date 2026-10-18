@@ -20,7 +20,7 @@ CTL3D_EXPORTS = $(shell awk '$$2 ~ /^@[0-9]+$$/ { print "export " $$1 "." substr
 .PHONY: all compare verify-sources test fpc-test toolchain-smoke doslfn \
 	doslfn-test lfn-probe lfn-probe-test \
 	toolchain-info omf-toolchain fpc-win16-toolchain fpc-win16-smoke \
-	winfile16 ctl3d package clean
+	winfile16 ctl3d ctl3d-runtime-test package clean
 
 all: test
 
@@ -138,6 +138,9 @@ ctl3d: omf-toolchain
 		library windows option nocaseexact option version=3.10 disable 1121 \
 		$(CTL3D_EXPORTS) option map=$(CTL3D_DIR)/ctl3d.map
 	python3 tools/check_ctl3d.py $(CTL3D_DIR)/CTL3DV2.DLL
+
+ctl3d-runtime-test: ctl3d
+	WATCOM=$(WATCOM) sh tests/dos/test_ctl3d_win311.sh
 
 package: lfn-probe doslfn ctl3d
 	GDI="$(GDI)" sh tools/package.sh
