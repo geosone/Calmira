@@ -20,9 +20,11 @@ against all 20 WfW 3.11 language variants in the local 16-bit archive. GDI's
 upstream attribution and audit procedure are in
 [`docs/ndis386-cpu-speed.md`](https://github.com/geosone/gdi/blob/main/docs/ndis386-cpu-speed.md).
 
-The descriptor intentionally does not replace `SYSTEM.INI`'s shell line because
-GDI must first gain a generic, reversible “replace setting and restore on
-uninstall” operation.
+Setup asks whether Calmira should become the default Windows shell; the choice
+is enabled by default. GDI's generic `[System.ini] Set=` transaction replaces
+`[boot] shell=...`, records the exact former line in `%DIR%\SYSTEM.SET`, and
+restores it on uninstall. If the administrator changes the shell again after
+installation, uninstall preserves that later choice.
 
 Future combined media should compose independent descriptors rather than add
 product branches to GDI:
