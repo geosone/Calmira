@@ -60,7 +60,7 @@ uses
   IconWin in 'ICONWIN.PAS' {Icon Window},
   Start in 'START.PAS' {Start Menu},
   GrpSync in 'GRPSYNC.PAS',
-  program_groups in '..\src\portable\program_groups.pas',
+  program_groups in 'portable\program_groups.pas',
   ProgConv in 'PROGCONV.PAS' {Convert Dialog},
   Referenc in 'REFERENC.PAS' {References},
   Alias in 'ALIAS.PAS' {Aliases},

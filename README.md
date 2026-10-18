@@ -12,7 +12,8 @@ by a GeosOne DOS Installer package. Inno Setup is intentionally not used.
 
 ## Layout
 
-- `SRC/`, `VCL/`, `BMP/`, `HELP/`, `VENDOR/`: integration baseline.
+- `src/`: maintained Calmira implementation and Delphi project files.
+- `VCL/`, `BMP/`, `HELP/`, `VENDOR/`: supporting libraries and resources.
 - `vendor/upstream/`: extracted Calmira releases and Reborn history.
 - `vendor/reference/`: Microsoft WinFile and DOSLFN reference sources.
 - `vendor/build-deps/`: tracked GeosOne JWasm/JWlink source snapshots.

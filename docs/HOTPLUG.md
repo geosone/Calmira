@@ -1,7 +1,7 @@
 # Removable-Media Integration
 
 Calmira already centralizes drive discovery in `VCL/DRIVES.PAS` and uses one
-global timer in `SRC/COMPSYS.PAS`. Today it detects added/removed drive letters
+global timer in `src/COMPSYS.PAS`. Today it detects added/removed drive letters
 only when the Computer window is restored; persistent empty removable slots are
 not enough to signal a media change.
 

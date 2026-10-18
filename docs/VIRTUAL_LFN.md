@@ -5,7 +5,7 @@ Instant File Access demonstrated a useful fallback: keep real files under DOS
 VFAT and therefore does not require FAT32. It is not a replacement for a real
 filesystem LFN API: unaware DOS programs continue to see the aliases.
 
-Calmira already has mature `DESCRIPT.ION` support in `SRC/FOURDOS.PAS`.
+Calmira already has mature `DESCRIPT.ION` support in `src/FOURDOS.PAS`.
 `src/portable/virtual_lfn.pas` now supplies the independent mapping core:
 
 - validate real DOS 8.3 names and reject reserved devices such as `CON`;
