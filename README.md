@@ -59,3 +59,7 @@ refresh command, and periodic hotplug detection.
 Calmira also synchronizes validated Program Manager `.GRP` files into an owned
 Start-menu subtree at startup; see [`docs/PROGRAM_GROUPS.md`](docs/PROGRAM_GROUPS.md).
 
+The optional W95ICONS.DLL is no longer shipped. The legacy GUI still requires
+CTL3DV2.DLL until its control rendering is ported; see
+[`docs/BINARY_DEPENDENCIES.md`](docs/BINARY_DEPENDENCIES.md).
+

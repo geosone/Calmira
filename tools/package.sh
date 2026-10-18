@@ -43,7 +43,7 @@ cp "$root/src/CALMIRA.EXE" "$root/HELP/CALMIRA.HLP" "$root/src/CALMIRA.INI" "$st
 cp "$root/src/COUNTTIP.EXE" "$root/src/CTASKMAN.EXE" "$root/src/DIREXIST.EXE" "$stage/"
 cp "$root/src/DOSRUN.EXE" "$root/src/EXPLORER.EXE" "$root/src/SCRNSAVE.EXE" "$stage/"
 cp "$root/src/SHOWDESK.EXE" "$root/BMP/SHUTDOWN.BMP" "$root/src/START.BAT" "$stage/"
-cp "$root/src/START.INI" "$root/src/TIPS.TXT" "$root/VENDOR/W95ICONS.DLL" "$stage/"
+cp "$root/src/START.INI" "$root/src/TIPS.TXT" "$stage/"
 cp "$root/src/WNDHOOKS.DLL" "$stage/"
 cp "$root/build/dos/lfn/LFNPROBE.EXE" "$stage/"
 cp "$root/build/dos/doslfn/doslfn.com" "$stage/DOSLFN/DOSLFN.COM"
