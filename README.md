@@ -55,3 +55,6 @@ uses its notification flow as a reference, not its Win32 API calls directly.
 `build/winfile16/WINFILE.EXE`; it currently provides drive discovery, a manual
 refresh command, and periodic hotplug detection.
 
+Calmira also synchronizes validated Program Manager `.GRP` files into an owned
+Start-menu subtree at startup; see [`docs/PROGRAM_GROUPS.md`](docs/PROGRAM_GROUPS.md).
+

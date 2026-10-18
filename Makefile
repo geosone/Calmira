@@ -38,6 +38,9 @@ fpc-test:
 	$(FPC) -Mdelphi -S2 -Fu./src/portable -FU$(FPC_TEST_DIR)/units \
 		-FE$(FPC_TEST_DIR) tests/pascal/test_virtual_lfn.pas
 	$(FPC_TEST_DIR)/test_virtual_lfn
+	$(FPC) -Mdelphi -S2 -Fu./src/portable -FU$(FPC_TEST_DIR)/units \
+		-FE$(FPC_TEST_DIR) tests/pascal/test_program_groups.pas
+	$(FPC_TEST_DIR)/test_program_groups
 
 omf-toolchain:
 	OMF_BIN_DIR='$(abspath $(OMF_BIN_DIR))' sh tools/build_omf_tools.sh
@@ -92,6 +95,12 @@ fpc-win16-smoke: fpc-win16-toolchain
 		-FU$(BUILD_DIR)/tests/fpc-win16/units \
 		-FE$(BUILD_DIR)/tests/fpc-win16 \
 		tests/pascal/test_virtual_lfn.pas
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi -S2 -CX \
+		-Fu./src/portable -Fu./$(FPC_WIN16_UNITS) \
+		-FU$(BUILD_DIR)/tests/fpc-win16/units \
+		-FE$(BUILD_DIR)/tests/fpc-win16 \
+		tests/pascal/test_program_groups.pas
 
 winfile16: fpc-win16-toolchain
 	mkdir -p $(WINFILE16_DIR)/units

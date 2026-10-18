@@ -253,7 +253,7 @@ uses Desk, Shorts, DiskProp, Directry, About, IconWin, WinProcs, Drives,
   FileFind, IniFiles, Resource, Strings, MiscUtil, Files, FileMan, Environs,
   WasteBin, Graphics, Tree, ShutDown, RunProg, Referenc, ChkList, ShellAPI,
   StrtProp, DeskProp, TaskProp, SysProp, FSysProp, BinProp, ClipBrd, Tips,
-  Locale, Task, TaskMan, Embed, GotoFld, OpenDlg;
+  Locale, Task, TaskMan, Embed, GotoFld, OpenDlg, GrpSync;
 
 { This unit is responsible for opening various non-modal windows.
   Inconsistencies will arise if non-modal icon windows are opened while
@@ -804,7 +804,7 @@ begin
 end;
 
 const
-  MacroList : array[0..22] of PChar =
+  MacroList : array[0..23] of PChar =
     ({0}'$Help',
      {1}'$System',
      {2}'$Bin',
@@ -827,7 +827,8 @@ const
      {19}'$Folder',
      {20}'$LargeIconFolder',
      {21}'$SmallIconFolder',
-     {22}'$ListFolder');
+     {22}'$ListFolder',
+     {23}'$SyncProgramGroups');
 
 function FindCommand(const Cmds: array of PChar; const s: string): Integer;
 var
@@ -841,6 +842,8 @@ end;
 procedure TComputer.ExecuteMacro(Sender : TObject; const macro: string; params : string);
 var
   CommandID : Integer;
+  Imported, Rejected: Integer;
+  Updated: Boolean;
 begin
   if CheckDialogModal then Exit;
   CommandID := FindCommand(MacroList, macro);
@@ -866,6 +869,19 @@ begin
     17: DeskClearDesktop.Click;
     18: DeskMinimizePrograms.Click;
     19..22: ExecuteFolderMacro(CommandID - 19, params);
+    23: begin
+          Updated := SyncProgramGroups(True, Imported, Rejected);
+          if Updated then
+            StartMenu.Load;
+          if Rejected <> 0 then
+            MessageDlg(Format('%d Program Manager group(s) could not be read.',
+              [Rejected]), mtWarning, [mbOK], 0)
+          else if not Updated then
+            MessageDlg('PROGMAN.INI was not found.', mtWarning, [mbOK], 0)
+          else
+            MessageDlg(Format('%d Program Manager group(s) synchronized.',
+              [Imported]), mtInformation, [mbOK], 0);
+        end;
   else
     MsgDialogResFmt(SUnknownCommand, [macro], mtError, [mbOK], 0);
   end;
