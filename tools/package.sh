@@ -21,6 +21,7 @@ build/dos/lfn/LFNPROBE.EXE
 build/dos/doslfn/doslfn.com
 build/dos/doslfn/doslfnms.com
 build/dos/doslfn/lfnxlat.386
+build/win16/ctl3d/CTL3DV2.DLL
 "
 
 for relative in $required; do
@@ -56,7 +57,9 @@ for table in "$root/build/dos/doslfn/"*uni.tbl; do
     cp "$table" "$stage/DOSLFN/$table_name"
 done
 cp "$root/build/dos/doslfn/NLS/"* "$stage/DOSLFN/NLS/"
-cp "$root/VENDOR/CTL3DV2.DLL" "$root/src/LFNFUNCS.DLL" "$stage/SYSTEM/"
+cp "$root/build/win16/ctl3d/CTL3DV2.DLL" "$root/src/LFNFUNCS.DLL" "$stage/SYSTEM/"
+mkdir -p "$stage/LICENSES"
+cp "$root/vendor/build-deps/open386max-ctl3d/LICENSE" "$stage/LICENSES/CTL3D.TXT"
 cp "$root/src/TRAY/"*.ALS "$stage/TRAY/"
 
 echo "Package staged in $stage"

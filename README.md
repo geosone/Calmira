@@ -33,6 +33,7 @@ make doslfn
 make doslfn-test
 make lfn-probe
 make winfile16
+make ctl3d
 make package GDI=../gdi
 ```
 
@@ -59,7 +60,7 @@ refresh command, and periodic hotplug detection.
 Calmira also synchronizes validated Program Manager `.GRP` files into an owned
 Start-menu subtree at startup; see [`docs/PROGRAM_GROUPS.md`](docs/PROGRAM_GROUPS.md).
 
-The optional W95ICONS.DLL is no longer shipped. The legacy GUI still requires
-CTL3DV2.DLL until its control rendering is ported; see
+The optional W95ICONS.DLL is no longer shipped. `make ctl3d` builds the GPL
+Open386MAX replacement for CTL3DV2.DLL with OpenWatcom and JWlink; see
 [`docs/BINARY_DEPENDENCIES.md`](docs/BINARY_DEPENDENCIES.md).
 

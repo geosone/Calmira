@@ -13,11 +13,14 @@ WCC ?= $(WATCOM_BIN)/wcc
 OMF_BIN_DIR ?= $(BUILD_DIR)/toolchains/bin
 JWASM ?= $(OMF_BIN_DIR)/jwasm
 JWLINK ?= $(OMF_BIN_DIR)/jwlink
+CTL3D_SRC := vendor/build-deps/open386max-ctl3d
+CTL3D_DIR := $(BUILD_DIR)/win16/ctl3d
+CTL3D_EXPORTS = $(shell awk '$$2 ~ /^@[0-9]+$$/ { print "export " $$1 "." substr($$2,2) }' $(CTL3D_SRC)/CTL3DV2.DEF)
 
 .PHONY: all compare verify-sources test fpc-test toolchain-smoke doslfn \
 	doslfn-test lfn-probe lfn-probe-test \
 	toolchain-info omf-toolchain fpc-win16-toolchain fpc-win16-smoke \
-	winfile16 package clean
+	winfile16 ctl3d package clean
 
 all: test
 
@@ -122,7 +125,21 @@ toolchain-info:
 	@printf 'Free Pascal source: '; git -C vendor/reference/freepascal rev-parse HEAD
 	@sed -n '/^\[jwasm\]/,/^$$/p; /^\[jwlink\]/,$$p' vendor/build-deps/LOCK
 
-package: lfn-probe doslfn
+ctl3d: omf-toolchain
+	mkdir -p $(CTL3D_DIR)
+	WATCOM=$(WATCOM) $(WCC) -q -bt=windows -ms -ecc -zp2 -j -2 \
+		-s -os -zq -zW -zu -bd -dSTRICT -dCTL3D_DLL \
+		-i=$(CTL3D_SRC) -i=$(WATCOM)/h -i=$(WATCOM)/h/win \
+		-fo=$(CTL3D_DIR)/ctl3d.obj $(CTL3D_SRC)/CTL3D.C
+	$(JWLINK) option quiet format windows dll \
+		name $(CTL3D_DIR)/CTL3DV2.DLL option modname=CTL3DV2 \
+		file $(CTL3D_DIR)/ctl3d.obj file $(WATCOM)/lib286/win/libentry.obj \
+		libpath $(WATCOM)/lib286/win libpath $(WATCOM)/lib286 \
+		library windows option nocaseexact option version=3.10 disable 1121 \
+		$(CTL3D_EXPORTS) option map=$(CTL3D_DIR)/ctl3d.map
+	python3 tools/check_ctl3d.py $(CTL3D_DIR)/CTL3DV2.DLL
+
+package: lfn-probe doslfn ctl3d
 	GDI="$(GDI)" sh tools/package.sh
 
 clean:

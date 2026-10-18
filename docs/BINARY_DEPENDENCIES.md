@@ -14,24 +14,29 @@ replacement has been claimed or generated from the historical binary.
 
 ## CTL3DV2.DLL
 
-The legacy Delphi GUI requires this library for its 3D controls, as documented
-in `HELP/Calmira.rtf`. Its dependency comes from the Delphi framework; the
-framework implementation is not supplied by this repository's `VCL/`
-extension units. Simply removing the DLL from the legacy package does not
-produce a working open-source GUI.
+The legacy Delphi GUI uses this API for 3D controls. `make ctl3d` now builds
+the GPL-3.0 Open386MAX implementation with OpenWatcom and the pinned JWlink
+fork, producing `build/win16/ctl3d/CTL3DV2.DLL`. The active package uses this
+build output instead of distributing the historical Microsoft binary.
 
-Wine provides LGPL-2.1-or-later sources at
-[dlls/ctl3dv2.dll16/ctl3d.c](https://github.com/wine-mirror/wine/blob/master/dlls/ctl3dv2.dll16/ctl3d.c).
-That implementation explicitly consists of API stubs, uses Wine's 16-bit
-compatibility headers and does not implement the original 3D rendering.
-It is an API reference, not a tested drop-in DLL for native Windows 3.1.
+The committed source snapshot is from
+[geosone/Open386MAX](https://github.com/geosone/Open386MAX/tree/82d33fc5861e5c4ff8b21d480e8730f11b312379/CTL3D),
+revision `82d33fc5861e5c4ff8b21d480e8730f11b312379`. Its source, definition file,
+header and license live under `vendor/build-deps/open386max-ctl3d/` and are
+recorded in `vendor/build-deps/LOCK`. It implements control painting, dialog
+subclassing, automatic CBT hooks and system-colour changes for Windows 3.x.
+This is a separately built C DLL; Pascal callers keep the existing Win16 ABI.
 
-The Free Pascal GUI port should draw controls with the native Windows 3.1
-USER/GDI APIs and owned Pascal code. Its final EXE and helper DLL import tables
-must be checked for CTL3D/CTL3DV2 imports before dropping CTL3DV2.DLL from the
-package. Dialog rendering, focus, keyboard operation and colour changes must
-then be exercised under Windows 3.1/3.11. Until that port exists, the historical
-DLL remains an explicit dependency of the legacy package.
+The build checks the NE DLL flag, shared data, exported module name and all
+export names/ordinals against the source definition. Native Windows 3.1/3.11
+dialog rendering, focus, keyboard operation and colour-change acceptance
+tests with the finished Calmira GUI remain outstanding. Do not infer full
+Microsoft API equivalence from a successful build or export check.
+
+The original binary remains in the archived Reborn tree only. The package
+includes the replacement's license as `LICENSES/CTL3D.TXT` and displays it
+alongside Calmira's license. A future Free Pascal control implementation may
+remove the DLL interface entirely.
 
 `WNDHOOKS.DLL` and `LFNFUNCS.DLL` are separate Calmira libraries with source
 projects under `src/`; they are not the two historical binaries above.
