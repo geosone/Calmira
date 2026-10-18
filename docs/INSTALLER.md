@@ -13,6 +13,13 @@ change during uninstall. It never relies on language-specific file offsets.
 `LFNPROBE.EXE` supplies the package-defined `LFN`, `FAT32`, and `DOS71`
 detections; FAT32 selects the patch by default, but the user retains control.
 
+If WfW 3.11 networking is installed, the descriptor also detects `NDIS.386`
+and applies the fast-CPU startup fix automatically. A missing driver is skipped;
+an existing unknown binary is never modified. The 24-byte signature was checked
+against all 20 WfW 3.11 language variants in the local 16-bit archive. GDI's
+upstream attribution and audit procedure are in
+[`docs/ndis386-cpu-speed.md`](https://github.com/geosone/gdi/blob/main/docs/ndis386-cpu-speed.md).
+
 The descriptor intentionally does not replace `SYSTEM.INI`'s shell line because
 GDI must first gain a generic, reversible “replace setting and restore on
 uninstall” operation.
