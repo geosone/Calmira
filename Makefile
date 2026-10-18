@@ -14,8 +14,8 @@ OMF_BIN_DIR ?= $(BUILD_DIR)/toolchains/bin
 JWASM ?= $(OMF_BIN_DIR)/jwasm
 JWLINK ?= $(OMF_BIN_DIR)/jwlink
 
-.PHONY: all compare verify-sources test fpc-test toolchain-smoke lfn-probe \
-	lfn-probe-test \
+.PHONY: all compare verify-sources test fpc-test toolchain-smoke doslfn \
+	doslfn-test lfn-probe lfn-probe-test \
 	toolchain-info omf-toolchain fpc-win16-toolchain fpc-win16-smoke \
 	winfile16 package clean
 
@@ -64,6 +64,12 @@ lfn-probe: omf-toolchain
 lfn-probe-test: lfn-probe
 	tests/dos/test_lfnprobe.sh
 
+doslfn:
+	sh tools/fetch_doslfn.sh
+
+doslfn-test: lfn-probe doslfn
+	tests/dos/test_doslfn.sh
+
 fpc-win16-toolchain: omf-toolchain
 	@if test -x '$(FPC_WIN16)' && test '$(FPC_REBUILD)' != '1'; then \
 		printf '%s\n' 'Using installed Win16 FPC: $(FPC_WIN16)'; \
@@ -107,7 +113,7 @@ toolchain-info:
 	@printf 'Free Pascal source: '; git -C vendor/reference/freepascal rev-parse HEAD
 	@sed -n '/^\[jwasm\]/,/^$$/p; /^\[jwlink\]/,$$p' vendor/build-deps/LOCK
 
-package: lfn-probe
+package: lfn-probe doslfn
 	GDI="$(GDI)" sh tools/package.sh
 
 clean:

@@ -22,11 +22,27 @@ not assumptions.
 
 ## Driver Work
 
-Use `vendor/reference/doslfn` as the behavioral reference for the `71xx` API,
-Unicode/code-page conversion, FAT12/16/32 directory entries, removable-media
-cache invalidation, and the Windows 3.x translation VxD. Before distributing a
-derived binary, record explicit license terms; the GitHub tree currently has no
-machine-readable license file.
+`make doslfn` downloads the upstream v0.42a release, verifies its SHA-256, and
+stages `DOSLFN.COM`, `DOSLFNMS.COM`, `LFNXLAT.386`, translations, and Unicode
+tables under `build/dos/doslfn/`. The GeosOne installer offers the full driver
+when no `71xx` provider is active. Its separate compact-driver option selects
+`DOSLFNMS.COM` for MS-DOS 7; do not select it merely because another DOS reports
+version 7.10 for compatibility.
+
+`make doslfn-test` boots MS-DOS 7.1 twice in QEMU and verifies that both TSR
+variants change the probe result from `LFN=no` to `LFN=yes`. Set `BOOTIMG` when
+the test disk is not at the local default path.
+
+Use `vendor/reference/doslfn` as the behavioral and porting reference for the
+`71xx` API, Unicode/code-page conversion, FAT12/16/32 directory entries,
+removable-media cache invalidation, and the Windows 3.x translation VxD. The
+source still uses Borland TASM IDEAL syntax. Open Watcom's IDEAL compatibility
+does not accept all of its TASM macros, while JWasm is MASM-compatible, so a
+source-built JWasm driver remains a port rather than a compiler switch. Before
+publishing a derived binary, record explicit license terms; the GitHub tree
+currently has no machine-readable license file. The verified binary is fetched
+directly from the upstream release and is not committed as a generated
+artifact.
 
 The implementation should expose a small installation contract:
 

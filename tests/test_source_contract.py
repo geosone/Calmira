@@ -43,6 +43,17 @@ class SourceContractTests(unittest.TestCase):
         for forbidden in ("Forms", "WinProcs", "WinTypes", "Controls"):
             self.assertNotIn(forbidden, source)
 
+    def test_doslfn_driver_is_verified_and_installer_managed(self):
+        fetch = (ROOT / "tools" / "fetch_doslfn.sh").read_text()
+        descriptor = (ROOT / "install" / "INSTALL.INI").read_text()
+        modules = (ROOT / ".gitmodules").read_text()
+        self.assertIn("7e630d35db1d9ff41ef6407e0829c52330e5058e951fa53208a7a1d8379bbeeb", fetch)
+        self.assertIn("https://github.com/geosone/doslfn.git", modules)
+        self.assertIn("Option=!?LFN|Install a DOSLFN long-filename driver", descriptor)
+        self.assertIn("LH %DIR%\\DOSLFN\\DOSLFN.COM", descriptor)
+        self.assertIn("LH %DIR%\\DOSLFN\\DOSLFNMS.COM", descriptor)
+        self.assertIn("device=%DIR%\\DOSLFN\\LFNXLAT.386", descriptor)
+
     def test_toolchain_sources_are_pinned_clones(self):
         for name in ("freepascal", "open-watcom-v2", "jwasm", "jwlink"):
             self.assertTrue((ROOT / "vendor" / "reference" / name / ".git").exists())

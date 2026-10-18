@@ -28,6 +28,8 @@ make compare
 make test
 make omf-toolchain
 make toolchain-smoke
+make doslfn
+make doslfn-test
 make lfn-probe
 make winfile16
 make package GDI=../gdi
@@ -38,9 +40,12 @@ compiles portable units with FPC. The complete GUI is still being migrated from
 Delphi 1 VCL to the FPC Win16 target; see `docs/TOOLCHAINS.md`. `make package`
 expects built binaries and uses `gdi/build/INSTALL.EXE`.
 
-`make lfn-probe` builds the DOS host-capability detector used to select a real
-71xx LFN provider, the `DESCRIPT.ION` virtual-LFN fallback, and the optional
-FAT32 WIN386 patch without conflating those separate capabilities.
+`make doslfn` fetches and checksum-verifies the upstream DOSLFN v0.42a driver,
+its Windows 3.x translator, code-page tables and translations. The source is
+tracked through the `geosone/doslfn` submodule for the ongoing TASM-to-JWasm
+port. `make lfn-probe` builds the DOS host-capability detector used to select a
+real 71xx LFN provider, the `DESCRIPT.ION` virtual-LFN fallback, and the
+optional FAT32 WIN386 patch without conflating those separate capabilities.
 
 Initialize the WinFile reference fork after cloning with
 `git submodule update --init --recursive`. The submodule follows the

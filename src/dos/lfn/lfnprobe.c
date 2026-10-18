@@ -40,7 +40,7 @@ static void dos_version( unsigned char *major, unsigned char *minor )
 	*minor = regs.h.ah;
 }
 
-/* DOS 7 extended DPB.  The maximum-cluster DWORD starts at offset 45 in
+/* DOS 7 extended DPB.  The maximum-cluster DWORD starts at offset 43 in
  * the 3F-byte structure.  Unlike AX=71A0, this does not require an LFN
  * provider and can therefore identify a bare MS-DOS 7.1 FAT32 volume. */
 static int is_fat32( char drive )
@@ -62,7 +62,7 @@ static int is_fat32( char drive )
 	intdosx( &inregs, &outregs, &segments );
 	if ( outregs.x.cflag )
 		return 0;
-	memcpy( &maximum_cluster, dpb + 45, sizeof(maximum_cluster) );
+	memcpy( &maximum_cluster, dpb + 43, sizeof(maximum_cluster) );
 	return maximum_cluster >= 65525UL;
 }
 
