@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 65 native suites pass with the corrected compiler/private RTL, including mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 66 native suites pass with the corrected compiler/private RTL, including the initial Forms unit, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -895,3 +895,7 @@ including finalization). The probe keeps the 4-KiB stack/2-KiB heap and uses
 63,648 bytes of the guarded data budget. `caMinimize`, form Icon/Menu,
 FormStyle, hints and runtime DFM streaming are deliberately absent. With this
 unit `make calmira` now stops at the next missing unit, `Dialogs`.
+
+The complete `make -j4 win16-fixed-regression` passes with this suite added
+(`build/tests/forms-final-regression.log`, exit 0): 65 distinct private GDI
+artifact logs plus the separate classes fixture, all 66 configured suites.
