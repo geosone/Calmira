@@ -1,0 +1,416 @@
+--- a/rtl/win16/wintypes.inc
++++ b/rtl/win16/wintypes.inc
+@@ -346,9 +346,19 @@
+   HPALETTE = THandle;
+   HFONT    = THandle;
+ 
+-  PRECT = ^RECT;
+-  NPRECT = ^RECT; near;
+-  LPRECT = ^RECT; far;
++  PRECT = ^TRect;
++  NPRECT = ^TRect; near;
++  LPRECT = ^TRect; far;
++{$ifdef CALMIRA_WIN16_DELPHI1_TYPES}
++  { Delphi 1 WinTypes declares only TRect/TPoint. Type names RECT and POINT
++    would hide Classes.Rect/Point in units that use WinTypes after Classes. }
++  TRect = record
++    left: SmallInt;
++    top: SmallInt;
++    right: SmallInt;
++    bottom: SmallInt;
++  end;
++{$else CALMIRA_WIN16_DELPHI1_TYPES}
+   RECT = record
+     left: SmallInt;
+     top: SmallInt;
+@@ -356,17 +366,25 @@
+     bottom: SmallInt;
+   end;
+   TRect = RECT;
++{$endif CALMIRA_WIN16_DELPHI1_TYPES}
+ 
+-  PPOINT = ^POINT;
+-  NPPOINT = ^POINT; near;
+-  LPPOINT = ^POINT; far;
++  PPOINT = ^TPoint;
++  NPPOINT = ^TPoint; near;
++  LPPOINT = ^TPoint; far;
++{$ifdef CALMIRA_WIN16_DELPHI1_TYPES}
++  TPoint = record
++    x: SmallInt;
++    y: SmallInt;
++  end;
++{$else CALMIRA_WIN16_DELPHI1_TYPES}
+   POINT = record
+     x: SmallInt;
+     y: SmallInt;
+   end;
+   TPoint = POINT;
++{$endif CALMIRA_WIN16_DELPHI1_TYPES}
+ 
+-  MAKEPOINT = POINT;
++  MAKEPOINT = TPoint;
+ 
+ { Device Capabilities }
+ const
+@@ -554,7 +572,7 @@
+   LPLOGPEN = ^LOGPEN; far;
+   LOGPEN = record
+     lopnStyle: UINT;
+-    lopnWidth: POINT;
++    lopnWidth: TPoint;
+     lopnColor: COLORREF;
+   end;
+   TLogPen = LOGPEN;
+@@ -1316,7 +1334,7 @@
+     wParam: WPARAM;
+     lParam: LPARAM;
+     time: DWORD;
+-    pt: POINT;
++    pt: TPoint;
+   end;
+   TMsg = MSG;
+ 
+@@ -1610,11 +1628,11 @@
+   PMINMAXINFO = ^MINMAXINFO;
+   LPMINMAXINFO = ^MINMAXINFO; far;
+   MINMAXINFO = record
+-    ptReserved: POINT;
+-    ptMaxSize: POINT;
+-    ptMaxPosition: POINT;
+-    ptMinTrackSize: POINT;
+-    ptMaxTrackSize: POINT;
++    ptReserved: TPoint;
++    ptMaxSize: TPoint;
++    ptMaxPosition: TPoint;
++    ptMinTrackSize: TPoint;
++    ptMaxTrackSize: TPoint;
+   end;
+   TMinMaxInfo = MINMAXINFO;
+ 
+@@ -1652,7 +1670,7 @@
+   PAINTSTRUCT = record
+     hdc: HDC;
+     fErase: BOOL;
+-    rcPaint: RECT;
++    rcPaint: TRect;
+     fRestore: BOOL;
+     fIncUpdate: BOOL;
+     rgbReserved: array [0..15] of BYTE;
+@@ -1688,7 +1706,7 @@
+   PNCCALCSIZE_PARAMS = ^NCCALCSIZE_PARAMS;
+   LPNCCALCSIZE_PARAMS = ^NCCALCSIZE_PARAMS; far;
+   NCCALCSIZE_PARAMS = record
+-    rgrc: array [0..1] of RECT;
++    rgrc: array [0..1] of TRect;
+   end;
+   TNCCalcSize_Params = NCCALCSIZE_PARAMS;
+ 
+@@ -1902,7 +1920,7 @@
+   PMOUSEHOOKSTRUCT = ^MOUSEHOOKSTRUCT;
+   LPMOUSEHOOKSTRUCT = ^MOUSEHOOKSTRUCT; far;
+   MOUSEHOOKSTRUCT = record
+-    pt: POINT;
++    pt: TPoint;
+     hwnd: HWND;
+     wHitTestCode: UINT;
+     dwExtraInfo: DWORD;
+@@ -2324,7 +2342,7 @@
+     itemState: UINT;
+     hwndItem: HWND;
+     hDC: HDC;
+-    rcItem: RECT;
++    rcItem: TRect;
+     itemData: DWORD;
+   end;
+   TDrawItemStruct = DRAWITEMSTRUCT;
+--- a/rtl/win16/winprocsh.inc
++++ b/rtl/win16/winprocsh.inc
+@@ -398,11 +398,11 @@
+ function CreateRectRgn(nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): HRGN; external 'GDI';
+ function CreateRectRgnIndirect(lprc: LPRECT): HRGN; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function CreateRectRgnIndirect(constref rc: RECT): HRGN; external 'GDI';
++function CreateRectRgnIndirect(constref rc: TRect): HRGN; external 'GDI';
+ {$endif}
+ function CreateEllipticRgnIndirect(lprc: LPRECT): HRGN; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function CreateEllipticRgnIndirect(constref rc: RECT): HRGN; external 'GDI';
++function CreateEllipticRgnIndirect(constref rc: TRect): HRGN; external 'GDI';
+ {$endif}
+ function CreateEllipticRgn(nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): HRGN; external 'GDI';
+ function CreatePolygonRgn(lppt: LPPOINT; cPoints, fnPolyFillMode: SmallInt): HRGN; external 'GDI';
+@@ -424,12 +424,12 @@
+ 
+ function GetRgnBox(hrgn: HRGN; lprc: LPRECT): SmallInt; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function GetRgnBox(hrgn: HRGN; var rc: RECT): SmallInt; external 'GDI';
++function GetRgnBox(hrgn: HRGN; var rc: TRect): SmallInt; external 'GDI';
+ {$endif}
+ 
+ function RectInRegion(hrgn: HRGN; lprc: LPRECT): BOOL; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function RectInRegion(hrgn: HRGN; constref rc: RECT): BOOL; external 'GDI';
++function RectInRegion(hrgn: HRGN; constref rc: TRect): BOOL; external 'GDI';
+ {$endif}
+ function PtInRegion(hrgn: HRGN; nXPos, nYPos: SmallInt): BOOL; external 'GDI';
+ 
+@@ -477,7 +477,7 @@
+ function SelectClipRgn(hdc: HDC; hrgn: HRGN): SmallInt; external 'GDI';
+ function GetClipBox(hdc: HDC; lprc: LPRECT): SmallInt; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function GetClipBox(hdc: HDC; var rc: RECT): SmallInt; external 'GDI';
++function GetClipBox(hdc: HDC; var rc: TRect): SmallInt; external 'GDI';
+ {$endif}
+ 
+ function IntersectClipRect(hdc: HDC; nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): SmallInt; external 'GDI';
+@@ -487,7 +487,7 @@
+ function PtVisible(hdc: HDC; nXPos, nYPos: SmallInt): BOOL; external 'GDI';
+ function RectVisible(hdc: HDC; lprc: LPRECT): BOOL; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function RectVisible(hdc: HDC; constref rc: RECT): BOOL; external 'GDI';
++function RectVisible(hdc: HDC; constref rc: TRect): BOOL; external 'GDI';
+ {$endif}
+ 
+ { General drawing support }
+@@ -532,14 +532,14 @@
+ function FrameRect(hdc: HDC; lprc: LPRECT; hbr: HBRUSH): SmallInt; external 'USER';
+ procedure InvertRect(hdc: HDC; lprc: LPRECT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function FillRect(hdc: HDC; constref rc: RECT; hbr: HBRUSH): SmallInt; external 'USER';
+-function FrameRect(hdc: HDC; constref rc: RECT; hbr: HBRUSH): SmallInt; external 'USER';
+-procedure InvertRect(hdc: HDC; constref rc: RECT); external 'USER';
++function FillRect(hdc: HDC; constref rc: TRect; hbr: HBRUSH): SmallInt; external 'USER';
++function FrameRect(hdc: HDC; constref rc: TRect; hbr: HBRUSH): SmallInt; external 'USER';
++procedure InvertRect(hdc: HDC; constref rc: TRect); external 'USER';
+ {$endif}
+ 
+ procedure DrawFocusRect(hdc: HDC; lprc: LPRECT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure DrawFocusRect(hdc: HDC; constref rc: RECT); external 'USER';
++procedure DrawFocusRect(hdc: HDC; constref rc: TRect); external 'USER';
+ {$endif}
+ 
+ { Text support }
+@@ -559,7 +559,7 @@
+ 
+ function DrawText(hdc: HDC; lpsz: LPCSTR; cb: SmallInt; lprc: LPRECT; fuFormat: UINT): SmallInt; external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function DrawText(hdc: HDC; lpsz: LPCSTR; cb: SmallInt; var rc: RECT; fuFormat: UINT): SmallInt; external 'USER';
++function DrawText(hdc: HDC; lpsz: LPCSTR; cb: SmallInt; var rc: TRect; fuFormat: UINT): SmallInt; external 'USER';
+ {$endif}
+ 
+ function GrayString(hdc: HDC; hbr: HBRUSH; gsprc: GRAYSTRINGPROC; lParam: LPARAM; cch, x, y, cx, cy: SmallInt): BOOL; external 'USER';
+@@ -725,25 +725,25 @@
+ procedure OffsetRect(lprc: LPRECT; x, y: SmallInt); external 'USER';
+ procedure InflateRect(lprc: LPRECT; xAmt, yAmt: SmallInt); external 'USER';
+ 
+-function PtInRect(lprc: LPRECT; pt: POINT): BOOL; external 'USER';
++function PtInRect(lprc: LPRECT; pt: TPoint): BOOL; external 'USER';
+ 
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure SetRect(var rc: RECT; nLeft, nTop, nRight, nBottom: SmallInt); external 'USER';
+-procedure SetRectEmpty(var rc: RECT); external 'USER';
++procedure SetRect(var rc: TRect; nLeft, nTop, nRight, nBottom: SmallInt); external 'USER';
++procedure SetRectEmpty(var rc: TRect); external 'USER';
+ 
+-procedure CopyRect(var rcDst: RECT; constref rcSrc: RECT); external 'USER';
++procedure CopyRect(var rcDst: TRect; constref rcSrc: TRect); external 'USER';
+ 
+-function IsRectEmpty(constref rc: RECT): BOOL; external 'USER';
++function IsRectEmpty(constref rc: TRect): BOOL; external 'USER';
+ 
+-function EqualRect(constref rc1, rc2: RECT): BOOL; external 'USER';
++function EqualRect(constref rc1, rc2: TRect): BOOL; external 'USER';
+ 
+-function IntersectRect(var rcDest: RECT; constref rcSrc1, rcSrc2: RECT): BOOL; external 'USER';
+-function UnionRect(var rcDest: RECT; constref rcSrc1, rcSrc2: RECT): BOOL; external 'USER';
++function IntersectRect(var rcDest: TRect; constref rcSrc1, rcSrc2: TRect): BOOL; external 'USER';
++function UnionRect(var rcDest: TRect; constref rcSrc1, rcSrc2: TRect): BOOL; external 'USER';
+ 
+-procedure OffsetRect(var rc: RECT; x, y: SmallInt); external 'USER';
+-procedure InflateRect(var rc: RECT; xAmt, yAmt: SmallInt); external 'USER';
++procedure OffsetRect(var rc: TRect; x, y: SmallInt); external 'USER';
++procedure InflateRect(var rc: TRect; xAmt, yAmt: SmallInt); external 'USER';
+ 
+-function PtInRect(var rc: RECT; pt: POINT): BOOL; external 'USER';
++function PtInRect(var rc: TRect; pt: TPoint): BOOL; external 'USER';
+ {$endif}
+ 
+ { Window message support }
+@@ -854,8 +854,8 @@
+ procedure GetClientRect(hwnd: HWND; lprc: LPRECT); external 'USER';
+ procedure GetWindowRect(hwnd: HWND; lprc: LPRECT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure GetClientRect(hwnd: HWND; var rc: RECT); external 'USER';
+-procedure GetWindowRect(hwnd: HWND; var rc: RECT); external 'USER';
++procedure GetClientRect(hwnd: HWND; var rc: TRect); external 'USER';
++procedure GetWindowRect(hwnd: HWND; var rc: TRect); external 'USER';
+ {$endif}
+ 
+ function SetWindowPos(hwnd, hwndInsertAfter: HWND; x, y, cx, cy: SmallInt; fuFlags: UINT): BOOL; external 'USER';
+@@ -879,8 +879,8 @@
+ procedure AdjustWindowRect(lprc: LPRECT; dwStyle: DWORD; fMenu: BOOL); external 'USER';
+ procedure AdjustWindowRectEx(lprc: LPRECT; dwStyle: DWORD; fMenu: BOOL; dwExStyle: DWORD); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure AdjustWindowRect(var rc: RECT; dwStyle: DWORD; fMenu: BOOL); external 'USER';
+-procedure AdjustWindowRectEx(var rc: RECT; dwStyle: DWORD; fMenu: BOOL; dwExStyle: DWORD); external 'USER';
++procedure AdjustWindowRect(var rc: TRect; dwStyle: DWORD; fMenu: BOOL); external 'USER';
++procedure AdjustWindowRectEx(var rc: TRect; dwStyle: DWORD; fMenu: BOOL; dwExStyle: DWORD); external 'USER';
+ {$endif}
+ 
+ function FlashWindow(hwnd: HWND; fInvert: BOOL): BOOL; external 'USER';
+@@ -899,12 +899,12 @@
+ procedure ClientToScreen(hwnd: HWND; lppt: LPPOINT); external 'USER';
+ procedure ScreenToClient(hwnd: HWND; lppt: LPPOINT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure ClientToScreen(hwnd: HWND; var pt: POINT); external 'USER';
+-procedure ScreenToClient(hwnd: HWND; var pt: POINT); external 'USER';
++procedure ClientToScreen(hwnd: HWND; var pt: TPoint); external 'USER';
++procedure ScreenToClient(hwnd: HWND; var pt: TPoint); external 'USER';
+ {$endif}
+ 
+-function WindowFromPoint(pt: POINT): HWND; external 'USER';
+-function ChildWindowFromPoint(hwndParent: HWND; pt: POINT): HWND; external 'USER';
++function WindowFromPoint(pt: TPoint): HWND; external 'USER';
++function ChildWindowFromPoint(hwndParent: HWND; pt: TPoint): HWND; external 'USER';
+ 
+ { Window query and enumeration }
+ 
+@@ -955,7 +955,7 @@
+ 
+ function GetUpdateRect(hwnd: HWND; lprc: LPRECT; fErase: BOOL): BOOL; external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function GetUpdateRect(hwnd: HWND; var rc: RECT; fErase: BOOL): BOOL; external 'USER';
++function GetUpdateRect(hwnd: HWND; var rc: TRect; fErase: BOOL): BOOL; external 'USER';
+ {$endif}
+ function GetUpdateRgn(hwnd: HWND; hrgn: HRGN; fErase: BOOL): SmallInt; external 'USER';
+ 
+@@ -970,7 +970,7 @@
+ procedure ScrollWindow(hwnd: HWND; dx, dy: SmallInt; lprcScroll, lprcClip: LPRECT); external 'USER';
+ function ScrollDC(hdc: HDC; dx, dy: SmallInt; lprcScroll, lprcClip: LPRECT; hrgnUpdate: HRGN; lprcUpdate: LPRECT): BOOL; external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function ScrollDC(hdc: HDC; dx, dy: SmallInt; var rcScroll, rcClip: RECT; hrgnUpdate: HRGN; lprcUpdate: LPRECT): BOOL; external 'USER';
++function ScrollDC(hdc: HDC; dx, dy: SmallInt; var rcScroll, rcClip: TRect; hrgnUpdate: HRGN; lprcUpdate: LPRECT): BOOL; external 'USER';
+ {$endif}
+ 
+ { Window activation }
+@@ -1112,7 +1112,7 @@
+ procedure SetCursorPos(x, y: SmallInt); external 'USER';
+ procedure GetCursorPos(lppt: LPPOINT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure GetCursorPos(var pt: POINT); external 'USER';
++procedure GetCursorPos(var pt: TPoint); external 'USER';
+ {$endif}
+ 
+ function SetCursor(hcur: HCURSOR): HCURSOR; external 'USER';
+@@ -1140,7 +1140,7 @@
+ procedure SetCaretPos(x, y: SmallInt); external 'USER';
+ procedure GetCaretPos(lppt: LPPOINT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure GetCaretPos(var pt: POINT); external 'USER';
++procedure GetCaretPos(var pt: TPoint); external 'USER';
+ {$endif}
+ 
+ procedure HideCaret(hwnd: HWND); external 'USER';
+@@ -1209,7 +1209,7 @@
+ 
+ procedure MapDialogRect(hwndDlg: HWND; lprc: LPRECT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure MapDialogRect(hwndDlg: HWND; var rc: RECT); external 'USER';
++procedure MapDialogRect(hwndDlg: HWND; var rc: TRect); external 'USER';
+ {$endif}
+ function GetDialogBaseUnits: DWORD; external 'USER';
+ 
+--- a/rtl/win16/win31.pp
++++ b/rtl/win16/win31.pp
+@@ -247,15 +247,15 @@
+     otmLineGap: UINT;
+     otmsCapEmHeight: UINT;
+     otmsXHeight: UINT;
+-    otmrcFontBox: RECT;
++    otmrcFontBox: TRect;
+     otmMacAscent: SmallInt;
+     otmMacDescent: SmallInt;
+     otmMacLineGap: UINT;
+     otmusMinimumPPEM: UINT;
+-    otmptSubscriptSize: POINT;
+-    otmptSubscriptOffset: POINT;
+-    otmptSuperscriptSize: POINT;
+-    otmptSuperscriptOffset: POINT;
++    otmptSubscriptSize: TPoint;
++    otmptSubscriptOffset: TPoint;
++    otmptSuperscriptSize: TPoint;
++    otmptSuperscriptOffset: TPoint;
+     otmsStrikeoutSize: UINT;
+     otmsStrikeoutPosition: SmallInt;
+     otmsUnderscorePosition: SmallInt;
+@@ -331,7 +331,7 @@
+   GLYPHMETRICS = record
+     gmBlackBoxX: UINT;
+     gmBlackBoxY: UINT;
+-    gmptGlyphOrigin: POINT;
++    gmptGlyphOrigin: TPoint;
+     gmCellIncX: SmallInt;
+     gmCellIncY: SmallInt;
+   end;
+@@ -530,9 +530,9 @@
+     length: UINT;
+     flags: UINT;
+     showCmd: UINT;
+-    ptMinPosition: POINT;
+-    ptMaxPosition: POINT;
+-    rcNormalPosition: RECT;
++    ptMinPosition: TPoint;
++    ptMaxPosition: TPoint;
++    rcNormalPosition: TRect;
+   end;
+   TWindowPlacement = WINDOWPLACEMENT;
+ 
+@@ -596,7 +596,7 @@
+   PNCCALCSIZE_PARAMS = ^NCCALCSIZE_PARAMS;
+   LPNCCALCSIZE_PARAMS = ^NCCALCSIZE_PARAMS; far;
+   NCCALCSIZE_PARAMS = record
+-    rgrc: array [0..2] of RECT;
++    rgrc: array [0..2] of TRect;
+     lppos: LPWINDOWPOS;
+   end;
+   TNCCalcSize_Params = NCCALCSIZE_PARAMS;
+@@ -880,8 +880,8 @@
+ function SetBoundsRect(hDC: HDC; lprcBounds: LPRECT; flags: UINT): UINT; external 'GDI';
+ function GetBoundsRect(hDC: HDC; lprcBounds: LPRECT; flags: UINT): UINT; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function SetBoundsRect(hDC: HDC; const lprcBounds: RECT; flags: UINT): UINT; external 'GDI';
+-function GetBoundsRect(hDC: HDC; var lprcBounds: RECT; flags: UINT): UINT; external 'GDI';
++function SetBoundsRect(hDC: HDC; const lprcBounds: TRect; flags: UINT): UINT; external 'GDI';
++function GetBoundsRect(hDC: HDC; var lprcBounds: TRect; flags: UINT): UINT; external 'GDI';
+ {$endif}
+ 
+ { Coordinate transformation support }
+@@ -970,7 +970,7 @@
+ { Rectangle support }
+ function SubtractRect(lprcDest: LPRECT; lprcSource1, lprcSource2: LPRECT): BOOL; external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function SubtractRect(var rcDest: RECT; constref rcSource1, rcSource2: RECT): BOOL; external 'USER';
++function SubtractRect(var rcDest: TRect; constref rcSource1, rcSource2: TRect): BOOL; external 'USER';
+ {$endif}
+ 
+ { Window message support }
+@@ -994,7 +994,7 @@
+ 
+ procedure MapWindowPoints(hwndFrom, hwndTo: HWND; lppt: LPPOINT; cpt: UINT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure MapWindowPoints(hwndFrom, hwndTo: HWND; var pt: POINT; cpt: UINT); external 'USER';
++procedure MapWindowPoints(hwndFrom, hwndTo: HWND; var pt: TPoint; cpt: UINT); external 'USER';
+ {$endif}
+ 
+ { Window drawing support }
+@@ -1029,7 +1029,7 @@
+ function GetCursor: HCURSOR; external 'USER';
+ procedure GetClipCursor(lprc: LPRECT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure GetClipCursor(var rc: RECT); external 'USER';
++procedure GetClipCursor(var rc: TRect); external 'USER';
+ {$endif}
+ 
+ { Icon support }

@@ -5,8 +5,8 @@
  procedure AssignStr(var P: PString; const S: string); {$ifdef SYSUTILSINLINE}inline;{$endif}
  procedure AppendStr(var Dest: String; const S: string);{$ifdef SYSUTILSINLINE}inline;{$endif}
 +{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
-+{ Delphi 1 declared these for short strings; var parameters must match exactly. }
-+procedure AppendStr(var Dest: ShortString; const S: ShortString);
++{ Delphi 1 ({$P+}) took any short string here; OpenString keeps that. }
++procedure AppendStr(var Dest: OpenString; const S: ShortString);
 +{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
  function UpperCase(const s: ansistring): ansistring; overload;
  function UpperCase(const s: ansistring; LocaleOptions: TLocaleOptions): ansistring; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
@@ -16,7 +16,7 @@
  Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
  Procedure FmtStr(Var Res: string; const Fmt : string; Const args: Array of const; Const FormatSettings: TFormatSettings);
 +{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
-+Procedure FmtStr(Var Res: ShortString; Const Fmt : String; Const args: Array of const);
++Procedure FmtStr(Var Res: OpenString; Const Fmt : String; Const args: Array of const);
 +{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
  {$ifndef FPUNONE}
  {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -28,7 +28,7 @@
  end;
  
 +{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
-+procedure AppendStr(var Dest: ShortString; const S: ShortString);
++procedure AppendStr(var Dest: OpenString; const S: ShortString);
 +begin
 +  Dest:=Dest+S;
 +end;
@@ -42,7 +42,7 @@
  end;
  
 +{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
-+Procedure FmtStr(Var Res: ShortString; Const Fmt : String; Const args: Array of const);
++Procedure FmtStr(Var Res: OpenString; Const Fmt : String; Const args: Array of const);
 +
 +begin
 +  Res:=Format(Fmt,Args,DefaultFormatSettings);
@@ -74,7 +74,7 @@
  function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []): string;
  procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; Options : TFormatDateTimeOptions = []);
 +{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
-+procedure DateTimeToString(var Result: ShortString; const FormatStr: string; const DateTime: TDateTime);
++procedure DateTimeToString(var Result: OpenString; const FormatStr: string; const DateTime: TDateTime);
 +{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
  procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []);
  Function DateTimeToFileDate(DateTime : TDateTime) : int64;
@@ -86,7 +86,7 @@
  end;
  
 +{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
-+procedure DateTimeToString(var Result: ShortString; const FormatStr: string; const DateTime: TDateTime);
++procedure DateTimeToString(var Result: OpenString; const FormatStr: string; const DateTime: TDateTime);
 +var
 +  Formatted: string;
 +begin

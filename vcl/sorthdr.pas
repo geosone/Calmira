@@ -40,7 +40,7 @@ procedure Register;
 
 implementation
 
-{$R sorthdr.res}
+{$IFNDEF FPC}{$R sorthdr.res}{$ENDIF}
 
 var
   SortArrows: TBitmap;

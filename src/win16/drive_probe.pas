@@ -94,7 +94,7 @@ end;
 
 procedure ResizeChildren(Window: HWND);
 var
-  Client: RECT;
+  Client: TRect;
   Width: SmallInt;
   Height: SmallInt;
 begin

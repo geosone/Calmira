@@ -37,7 +37,7 @@ class FormsLayerTests(unittest.TestCase):
     def test_unsupported_services_are_not_silently_aliased(self):
         source = SOURCE.read_text()
         interface = source.split('unit Forms;', 1)[1].split('implementation', 1)[0]
-        for name in ('property Icon', 'property Menu', 'HintColor', 'FormStyle'):
+        for name in ('property Menu', 'HintColor', 'KeyPreview'):
             self.assertNotIn(name, interface)
         self.assertIn("raise ENativeScreenError.Create('Invalid screen form')", source)
 

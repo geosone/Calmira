@@ -138,9 +138,9 @@ procedure LoadResources;
 
 implementation
 
-{$R icons.res}
-{$R bitmaps.res}
-{$R cursors.res}
+{$IFNDEF FPC}{$R icons.res}{$ENDIF}
+{$IFNDEF FPC}{$R bitmaps.res}{$ENDIF}
+{$IFNDEF FPC}{$R cursors.res}{$ENDIF}
 
 uses SysUtils, WinProcs, ShellAPI, IniFiles, Forms, Controls,
   Locale, Files, MiscUtil, Settings, Environs, Registry;

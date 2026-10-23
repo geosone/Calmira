@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 79 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons and combo boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 80 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1112,3 +1112,31 @@ In Calmira's own VCL, `apholder`, `drives`, `dropserv` and `extform` got small
 the `Win31` unit). 24 of the 32 VCL units now compile standalone.
 
 The full regression passed (`build/tests/audit-regression.log`, exit 0).
+
+## Delphi 1 Types, List Boxes and Form Frames
+
+- The RTL strings patch now declares `AppendStr`, `DateTimeToString` and the
+  ShortString `FmtStr` with `OpenString` parameters, matching Delphi 1 `{$P+}`.
+- `tools/patches/fpc-win16-delphi1-types.patch` (enabled by
+  `CALMIRA_WIN16_DELPHI1_TYPES`) makes WinTypes declare only the Delphi 1
+  record names `TPoint`/`TRect`, so `Point(...)` and `Rect(...)` are the
+  Classes/Graphics functions again instead of FPC's `POINT`/`RECT` types.
+- `src/win16/native_listbox.pas` adds TCustomListBox/TListBox (exported by
+  StdCtrls): Items, ItemIndex, TopIndex, Selected, MultiSelect/ExtendedSelect,
+  Sorted, Columns, IntegralHeight, owner-draw fixed/variable with
+  OnDrawItem/OnMeasureItem, ItemAtPos/ItemRect and state kept across handle
+  recreation. Covered by `make win16-listbox-runtime-test`.
+- TForm has `BorderStyle`, `BorderIcons`, `Position` (`poScreenCenter`),
+  `FormStyle` (`fsStayOnTop`; MDI is rejected), `Icon` (drawn and dragged while
+  minimized, falling back to `Application.Icon`, which loads `MAINICON`),
+  `Designer` (always nil) and `GetParentForm`. `TFormBorderStyle` and
+  `TBorderStyle = bsNone..bsSingle` live in `control_base`.
+- Forms has `AllocateHWnd`/`DeallocateHWnd` with `TWndMethod`; Controls has
+  `NewStyleControls` (False on Windows 3.x).
+- `{$R ...}` lines in `vcl/chklist.pas`, `vcl/extform.pas`, `vcl/sorthdr.pas`
+  and `src/resource.pas` are guarded with `{$IFNDEF FPC}`. The final Calmira
+  link must bind icons.res, bitmaps.res, cursors.res, chklist.res,
+  capbtns.res, sorthdr.res, locale.res and calmira.res with wrc after linking.
+
+`extform` and `sorthdr` now compile standalone. The full regression passed
+(`build/tests/forms-regression.log`, 80 suites, exit 0).

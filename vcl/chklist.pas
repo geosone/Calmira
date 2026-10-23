@@ -135,7 +135,7 @@ procedure Register;
 
 implementation
 
-{$R *.res}
+{$IFNDEF FPC}{$R *.res}{$ENDIF}
 
 var
   CheckedBmp, UncheckedBmp: TBitmap;

@@ -8,6 +8,9 @@ uses Classes, WinTypes, native_cursors;
 type
   TControlOperation = (coReadEnabled, coWriteEnabled, coReadVisible,
     coWriteVisible, coShow, coHide, coFront, coBack);
+  { Delphi 1 Forms types, shared here so controls need not use Forms. }
+  TFormBorderStyle = (bsNone, bsSingle, bsSizeable, bsDialog);
+  TBorderStyle = bsNone..bsSingle;
   TDragMode = (dmManual, dmAutomatic);
   TDragState = (dsDragEnter, dsDragLeave, dsDragMove);
   TDragDropEvent = procedure(Sender, Source: TObject; X, Y: Integer) of object;

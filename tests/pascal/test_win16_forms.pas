@@ -1,10 +1,13 @@
 program FormsTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Classes, SysUtils, Controls, Forms, native_form, native_application;
+uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Controls, Forms, native_form, native_window,
+  native_application;
 type
   TMainForm = class(TForm)
   protected
     procedure DoShow; override;
+  public
+    procedure UtilityProc(var Message: TMessage);
   end;
   TChildForm = class(TForm)
   public
@@ -20,7 +23,7 @@ type
     destructor Destroy; override;
   end;
 var MainForm: TMainForm; Child, Modal, Loose: TChildForm; Foreign: TNativeForm;
-  Freed, Rejected, Failed, ShownMain: Boolean; Count, ModalCode, Filtered: Integer;
+  Freed, Rejected, Failed, ShownMain: Boolean; Count, ModalCode, Filtered, Utility: Integer; UtilityHandle: HWND;
 {$I win16_stack_guard.inc}
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
@@ -34,6 +37,12 @@ procedure Check(Okay: Boolean; const Text: string);
 begin
   if Okay then LogLine('PASS ' + Text)
   else begin Failed := True; LogLine('FAIL ' + Text); end;
+end;
+procedure TMainForm.UtilityProc(var Message: TMessage);
+begin
+  if Message.Msg = WM_USER + 5 then
+  begin Inc(Utility); Message.Result := Message.WParam * 7; end
+  else Message.Result := DefWindowProc(UtilityHandle, Message.Msg, Message.WParam, Message.LParam);
 end;
 procedure TMainForm.DoShow;
 begin
@@ -152,6 +161,77 @@ begin
   Check((Filtered = 1) and not Loose.Visible, 'clearing OnMessage restores dispatch');
   Loose.Free;
 end;
+procedure FrameProperties;
+var Style: LongInt; R: TRect;
+begin
+  Check(not NewStyleControls, 'NewStyleControls is False on Windows 3.1');
+  Loose := TChildForm.Create(nil);
+  Check((Loose.BorderStyle = bsSizeable) and (Loose.BorderIcons = [biSystemMenu, biMinimize, biMaximize]) and
+    (Loose.Position = poDesigned) and (Loose.FormStyle = fsNormal), 'Delphi 1 frame defaults');
+  Loose.BorderStyle := bsDialog; Loose.Position := poScreenCenter; Loose.FormStyle := fsStayOnTop;
+  Loose.SetBounds(0, 0, 200, 100); Loose.Show;
+  Style := GetWindowLong(Loose.Handle, GWL_STYLE);
+  GetWindowRect(Loose.Handle, R);
+  Check((Style and WS_DLGFRAME <> 0) and (Style and WS_THICKFRAME = 0) and (Style and WS_SYSMENU <> 0) and
+    (Style and (WS_MINIMIZEBOX or WS_MAXIMIZEBOX) = 0), 'bsDialog keeps only the system menu');
+  Check(Abs(R.Left - (GetSystemMetrics(SM_CXSCREEN) - 200) div 2) <= 1, 'poScreenCenter');
+  Check(GetWindowLong(Loose.Handle, GWL_EXSTYLE) and WS_EX_TOPMOST <> 0, 'fsStayOnTop');
+  Rejected := False;
+  try Loose.BorderStyle := bsSingle; except on ENativeWindowError do Rejected := True; end;
+  Check(Rejected and (Loose.BorderStyle = bsDialog), 'live frame change is rejected');
+  Loose.FormStyle := fsNormal;
+  Check(GetWindowLong(Loose.Handle, GWL_EXSTYLE) and WS_EX_TOPMOST = 0, 'fsNormal clears topmost live');
+  Loose.Free;
+  Loose := TChildForm.Create(nil);
+  Loose.BorderStyle := bsNone; Loose.SetBounds(10, 10, 80, 60); Loose.Show;
+  Style := GetWindowLong(Loose.Handle, GWL_STYLE);
+  Check((Style and WS_CAPTION = 0) and (Style and WS_THICKFRAME = 0), 'bsNone has no frame');
+  Loose.Free;
+  Rejected := False;
+  try TForm(Application.MainForm).FormStyle := fsMDIChild; except on ENativeWindowError do Rejected := True; end;
+  Check(Rejected, 'MDI styles are rejected');
+end;
+procedure MinimizedIcon;
+begin
+  Check(Application.Icon.Empty, 'Application.Icon is empty without a MAINICON resource');
+  Loose := TChildForm.Create(nil); Loose.SetBounds(30, 30, 160, 100);
+  Loose.Icon.CopyFromHandle(LoadIcon(0, IDI_HAND));
+  Loose.Show; Loose.WindowState := wsMinimized; UpdateWindow(Loose.Handle);
+  Check(IsIconic(Loose.Handle) and
+    (HICON(SendMessage(Loose.Handle, WM_QUERYDRAGICON, 0, 0)) = Loose.Icon.Handle),
+    'a minimized form drags and draws its Icon');
+  Loose.Icon.Clear; UpdateWindow(Loose.Handle);
+  Check(HICON(SendMessage(Loose.Handle, WM_QUERYDRAGICON, 0, 0)) = LoadIcon(0, IDI_APPLICATION),
+    'without icons the stock application icon is used');
+  Check(Loose.CallbackErrors = 0, 'iconic painting raised nothing');
+  Loose.Free;
+end;
+procedure ParentForm;
+var Panel: TCustomControl; Child: TCustomControl;
+begin
+  Loose := TChildForm.Create(nil);
+  Panel := TCustomControl.Create(Loose); Panel.Parent := Loose;
+  Child := TCustomControl.Create(Loose); Child.Parent := Panel;
+  Check((GetParentForm(Child) = Loose) and (GetParentForm(Loose) = Loose) and (Loose.Designer = nil),
+    'GetParentForm walks up to the form; no run-time designer');
+  Child.Parent := nil;
+  Check(GetParentForm(Child) = nil, 'an orphan control has no form');
+  Loose.Free;
+end;
+procedure UtilityWindow;
+var Wnd: HWND;
+begin
+  Utility := 0;
+  Wnd := AllocateHWnd(MainForm.UtilityProc); UtilityHandle := Wnd;
+  Check((Wnd <> 0) and IsWindow(Wnd) and not IsWindowVisible(Wnd), 'AllocateHWnd creates a hidden window');
+  Check((SendMessage(Wnd, WM_USER + 5, 7, 0) = 49) and (Utility = 1), 'the method receives every message');
+  Check(SendMessage(Wnd, WM_GETTEXTLENGTH, 0, 0) = 0, 'unhandled messages reach DefWindowProc');
+  DeallocateHWnd(Wnd);
+  Check(not IsWindow(Wnd), 'DeallocateHWnd destroys it');
+  Rejected := False;
+  try DeallocateHWnd(Wnd); except on ENativeWindowError do Rejected := True; end;
+  Check(Rejected, 'unknown windows are rejected');
+end;
 procedure ModalFree;
 begin
   Application.CreateForm(TChildForm, Modal);
@@ -172,7 +252,7 @@ begin
 end;
 begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
-  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; ModalFree; RunMain;
+  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; ParentForm; UtilityWindow; ModalFree; RunMain;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Check(StackGuardIntact, 'forms stack boundary');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');

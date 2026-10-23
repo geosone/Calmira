@@ -981,7 +981,7 @@ if NewStyleControls or (csDestroying in ComponentState) then
 Perform(WM_NCPAINT,0,1);
 end;
 
-{$R capbtns.res}
+{$IFNDEF FPC}{$R capbtns.res}{$ENDIF}
 
 constructor TExtForm.Create(AOwner: TComponent);
 begin

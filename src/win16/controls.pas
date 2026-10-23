@@ -244,6 +244,9 @@ const
   ssMiddle = native_input.ssMiddle; ssDouble = native_input.ssDouble;
 function Point(X, Y: Integer): TPoint;
 function PtInRect(const Area: TRect; const Position: TPoint): Boolean;
+var
+  { Delphi 1: True only on Windows 4.x, where controls get the new look. }
+  NewStyleControls: Boolean;
 implementation
 uses WinProcs, native_window;
 function TranslatePosition(const Position, Origin: TPoint; Inverse: Boolean): TPoint;
@@ -1350,6 +1353,7 @@ begin
   end;
 end;
 initialization
+  NewStyleControls := Lo(LoWord(GetVersion)) >= 4;
   NativeDragManager := TNativeDragManager.Create;
   DragManager := NativeDragManager;
 finalization

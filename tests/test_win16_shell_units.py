@@ -13,13 +13,14 @@ class HugeModelTests(unittest.TestCase):
         self.assertNotIn('-Mdelphi -Wh -CX', makefile)
         script = (ROOT / 'tools/build_win16_rtl.sh').read_text()
         self.assertIn('-Wm$model', script)
-        for define in ('CALMIRA_WIN16_DOS_NO_STRINGS', 'CALMIRA_WIN16_DELPHI1_STRINGS'):
+        for define in ('CALMIRA_WIN16_DOS_NO_STRINGS', 'CALMIRA_WIN16_DELPHI1_STRINGS',
+                       'CALMIRA_WIN16_DELPHI1_TYPES'):
             self.assertIn(define, script)
 
     def test_rtl_patches_are_staged(self):
         prepare = (ROOT / 'tools/prepare_win16_rtl.py').read_text()
         for name in ('fpc-win16-huge-startup.patch', 'fpc-win16-dos-no-strings.patch',
-                     'fpc-win16-delphi1-strings.patch'):
+                     'fpc-win16-delphi1-strings.patch', 'fpc-win16-delphi1-types.patch'):
             self.assertIn(name, prepare)
             self.assertTrue((ROOT / 'tools/patches' / name).is_file(), name)
 
