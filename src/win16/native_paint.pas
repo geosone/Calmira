@@ -9,15 +9,14 @@ type
   TNativePaintWindow = class(TNativeWindow)
   private
     FCanvas: TCanvas;
-    FColor: TColor;
     FPainting: Boolean;
     FPaintRect: TRect;
-    procedure SetColor(Value: TColor);
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure WMEraseBackground(var Message: TMessage); message WM_ERASEBKGND;
   protected
     procedure Paint; virtual;
     procedure PaintOverlay; virtual;
+    procedure ColorChanged; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -26,7 +25,6 @@ type
     procedure Repaint;
     procedure DrawNow(Painter: TNotifyEvent);
     property Canvas: TCanvas read FCanvas;
-    property Color: TColor read FColor write SetColor;
     property Painting: Boolean read FPainting;
     property PaintRect: TRect read FPaintRect;
   end;
@@ -36,18 +34,14 @@ uses WinProcs;
 constructor TNativePaintWindow.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FColor := clBtnFace; FCanvas := TCanvas.Create;
+  FCanvas := TCanvas.Create;
 end;
 destructor TNativePaintWindow.Destroy;
 begin
   try inherited Destroy; finally FCanvas.Free; end;
 end;
-procedure TNativePaintWindow.SetColor(Value: TColor);
-begin
-  if Value = FColor then Exit;
-  FColor := Value;
-  if Handle <> 0 then Invalidate;
-end;
+procedure TNativePaintWindow.ColorChanged;
+begin if Handle <> 0 then Invalidate; end;
 procedure TNativePaintWindow.Paint;
 begin end;
 procedure TNativePaintWindow.PaintOverlay;
@@ -75,7 +69,7 @@ begin
       if State = 0 then raise ENativeWindowError.Create('Cannot save native paint DC');
       try
         FCanvas.Handle := DC;
-        Background := CreateSolidBrush(ColorToRGB(FColor));
+        Background := CreateSolidBrush(ColorToRGB(Color));
         if Background = 0 then raise ENativeWindowError.Create('Cannot create paint background');
         try
           if WinProcs.FillRect(DC, FPaintRect, Background) = 0 then

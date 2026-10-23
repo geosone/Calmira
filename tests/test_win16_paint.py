@@ -21,7 +21,7 @@ class Win16PaintTests(unittest.TestCase):
 
     def test_background_fill_preserves_user_brush_and_native_clip(self):
         source = (ROOT / 'src/win16/native_paint.pas').read_text()
-        for text in ('FPaintRect := PS.rcPaint', 'CreateSolidBrush(ColorToRGB(FColor))',
+        for text in ('FPaintRect := PS.rcPaint', 'CreateSolidBrush(ColorToRGB(Color))',
                      'WinProcs.FillRect(DC, FPaintRect, Background)',
                      'finally DeleteObject(Background)', 'message WM_ERASEBKGND'):
             self.assertIn(text, source)

@@ -101,15 +101,16 @@ end;
 procedure PrepareForm(Form: TForm; const Caption: string);
 begin
   Form.Caption := Caption;
-  Form.Canvas.Font.Name := 'MS Sans Serif'; Form.Canvas.Font.Height := -11;
-  Form.Canvas.Font.Style := []; Form.Canvas.Font.Color := clBlack;
+  { Children pick this up through ParentFont. }
+  Form.Font.Name := 'MS Sans Serif'; Form.Font.Height := -11;
+  Form.Font.Style := []; Form.Font.Color := clBlack;
 end;
 function AddButton(Form: TForm; const Caption: string; X, Y: Integer;
   ModalCode: TModalResult): TButton;
 begin
   Result := TButton.Create(Form); Result.Parent := Form;
   Result.SetBounds(X, Y, MsgDlgBtnSize.X, MsgDlgBtnSize.Y);
-  Result.Font.Assign(Form.Canvas.Font); Result.Caption := Caption;
+  Result.Caption := Caption;
   Result.ModalResult := ModalCode;
 end;
 function CreateMessageDialog(const Msg: string; AType: TMsgDlgType;
@@ -131,12 +132,11 @@ begin
     begin
       Icon := TMessageIcon.Create(Form); Icon.Parent := Form;
       Icon.FIcon := LoadIcon(0, Icons[AType]);
-      Icon.Color := Form.Color; Icon.SetBounds(Margin, Margin, IconSize, IconSize);
+      Icon.SetBounds(Margin, Margin, IconSize, IconSize);
       TextLeft := Margin + IconSize + Margin;
     end;
     Text := TLabel.Create(Form); Text.Parent := Form;
-    Text.Font.Assign(Form.Canvas.Font); Text.WordWrap := True; Text.ShowAccelChar := False;
-    Text.Color := Form.Color;
+    Text.WordWrap := True; Text.ShowAccelChar := False;
     TextArea := MeasureText(Text.Font, Msg, GetSystemMetrics(SM_CXSCREEN) div 2);
     TextWidth := TextArea.Right - TextArea.Left;
     Text.SetBounds(TextLeft, Margin, TextWidth, TextArea.Bottom - TextArea.Top);
@@ -203,11 +203,10 @@ begin
   try
     PrepareForm(Form, ACaption);
     Prompt := TLabel.Create(Form); Prompt.Parent := Form;
-    Prompt.Font.Assign(Form.Canvas.Font); Prompt.Color := Form.Color;
     Prompt.SetBounds(Margin, Margin, EditWidth, 13); Prompt.Caption := APrompt;
     Edit := TEdit.Create(Form); Edit.Parent := Form;
     Edit.SetBounds(Margin, Margin + 18, EditWidth, 23);
-    Edit.Font.Assign(Form.Canvas.Font); Edit.MaxLength := 255; Edit.Text := Value;
+    Edit.MaxLength := 255; Edit.Text := Value;
     Edit.TabOrder := 0; Prompt.FocusControl := Edit;
     ButtonTop := Margin + 18 + 23 + Margin;
     Button := AddButton(Form, DialogText('OK', 'OK'),

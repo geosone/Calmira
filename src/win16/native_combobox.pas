@@ -55,14 +55,12 @@ type
     procedure SetSorted(Value: Boolean);
     function GetDroppedDown: Boolean;
     procedure SetDroppedDown(Value: Boolean);
-    function GetFont: TFont;
-    procedure SetFont(Value: TFont);
-    procedure FontChanged(Sender: TObject);
     function ListHeight: Integer;
     procedure SaveState;
     procedure LoadItems;
     procedure Notify(Event: TNotifyEvent);
   protected
+    procedure FontChanged; override;
     function NativeClassName: PChar; override;
     procedure WndProc(var M: TMessage); override;
     function ControlCommand(Code: Word): Boolean; override;
@@ -88,7 +86,7 @@ type
     property MaxLength: Integer read FMaxLength write SetMaxLength default 0;
     property DropDownCount: Integer read FDropDownCount write SetDropDownCount default 8;
     property Sorted: Boolean read FSorted write SetSorted default False;
-    property Font: TFont read GetFont write SetFont;
+    property Font;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
     property OnDropDown: TNotifyEvent read FOnDropDown write FOnDropDown;
@@ -206,12 +204,12 @@ begin
   FItemIndex := -1;
   FDropDownCount := 8;
   TabStop := True;
+  Color := clWindow; ParentColor := False;
   SetBounds(0, 0, 145, 21);
-  Canvas.Font.OnChange := FontChanged;
+ 
 end;
 destructor TCustomComboBox.Destroy;
 begin
-  if Canvas <> nil then Canvas.Font.OnChange := nil;
   inherited Destroy;
   FItems.Free;
 end;
@@ -276,7 +274,7 @@ begin
   if FStyle <> csSimple then Height := Height + ListHeight;
   inherited CreateHandle(Parent, '', Style, X, Y, Width, Height);
   try
-    FontChanged(Self);
+    FontChanged;
     LoadItems;
     if FMaxLength > 0 then Perform(CB_LIMITTEXT, FMaxLength, 0);
     if FItemIndex >= FItems.Count then FItemIndex := -1;
@@ -412,14 +410,7 @@ begin
   else Result := False;
   end;
 end;
-function TCustomComboBox.GetFont: TFont;
-begin Result := Canvas.Font; end;
-procedure TCustomComboBox.SetFont(Value: TFont);
-begin
-  if Value = nil then Fail('Combo box font cannot be nil');
-  Font.Assign(Value);
-end;
-procedure TCustomComboBox.FontChanged(Sender: TObject);
+procedure TCustomComboBox.FontChanged;
 var NativeFont: HFONT;
 begin
   if Handle = 0 then Exit;

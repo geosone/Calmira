@@ -22,8 +22,6 @@ type
     procedure SetWidth(Index: Integer; Value: Integer);
     procedure SectionsChanged(Sender: TObject);
     function DividerAt(X: Integer): Integer;
-    function GetFont: TFont;
-    procedure SetFont(Value: TFont);
   protected
     procedure Paint; override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
@@ -37,7 +35,7 @@ type
     property SectionWidth[Index: Integer]: Integer read GetWidth write SetWidth;
   published
     property AllowResize: Boolean read FAllowResize write FAllowResize default True;
-    property Font: TFont read GetFont write SetFont;
+    property Font;
     property Sections: TStrings read GetSections write SetSections;
     property OnSizing: TSectionEvent read FOnSizing write FOnSizing;
     property OnSized: TSectionEvent read FOnSized write FOnSized;
@@ -97,13 +95,6 @@ begin
   try FSections.Objects[Index] := TObject(Pointer(LongInt(Value)));
   finally FSections.OnChange := SectionsChanged; end;
   Invalidate;
-end;
-function THeader.GetFont: TFont;
-begin Result := Canvas.Font; end;
-procedure THeader.SetFont(Value: TFont);
-begin
-  if Value = nil then raise ENativeWindowError.Create('Header font cannot be nil');
-  Canvas.Font.Assign(Value); Invalidate;
 end;
 function THeader.DividerAt(X: Integer): Integer;
 var I, Right: Integer;

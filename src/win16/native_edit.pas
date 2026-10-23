@@ -34,10 +34,8 @@ type
     procedure SetReadOnly(Value: Boolean);
     procedure SetPasswordChar(Value: Char);
     procedure SetCharCase(Value: TEditCharCase);
-    function GetFont: TFont;
-    procedure SetFont(Value: TFont);
-    procedure FontChanged(Sender: TObject);
   protected
+    procedure FontChanged; override;
     function NativeClassName: PChar; override;
     procedure WndProc(var M: TMessage); override;
     function ControlCommand(Code: Word): Boolean; override;
@@ -46,7 +44,6 @@ type
     function ExtraStyle: DWORD; virtual;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure DefaultHandler(var Message); override;
     procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt); override;
@@ -68,7 +65,7 @@ type
     property ReadOnly: Boolean read FReadOnly write SetReadOnly default False;
     property PasswordChar: Char read FPasswordChar write SetPasswordChar;
     property CharCase: TEditCharCase read FCharCase write SetCharCase default ecNormal;
-    property Font: TFont read GetFont write SetFont;
+    property Font;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property Enabled;
     property Visible;
@@ -82,10 +79,9 @@ var EditProcedure: WNDPROC;
 constructor TEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner); TabStop := True;
-  SetBounds(0, 0, 121, 23); Canvas.Font.OnChange := FontChanged;
+  Color := clWindow; ParentColor := False;
+  SetBounds(0, 0, 121, 23);
 end;
-destructor TEdit.Destroy;
-begin if Canvas <> nil then Canvas.Font.OnChange := nil; inherited Destroy; end;
 function TEdit.NativeClassName: PChar;
 begin RegisterNativeSuperclass('EDIT', EditClass, EditProcedure); Result := EditClass; end;
 procedure TEdit.DefaultHandler(var Message);
@@ -109,7 +105,7 @@ begin
     try
       Perform(EM_LIMITTEXT, NativeLimit, 0);
       Perform(EM_SETPASSWORDCHAR, Ord(FPasswordChar), 0);
-      FontChanged(Self); WriteSelection; SetModified(FModified);
+      FontChanged; WriteSelection; SetModified(FModified);
     except DestroyHandle; raise; end;
   finally FInitializing := False; end;
 end;
@@ -288,14 +284,7 @@ begin
   if Value = ecLowerCase then Style := Style or ES_LOWERCASE;
   SetWindowLong(Handle, GWL_STYLE, Style);
 end;
-function TEdit.GetFont: TFont;
-begin Result := Canvas.Font; end;
-procedure TEdit.SetFont(Value: TFont);
-begin
-  if Value = nil then raise ENativeWindowError.Create('Edit font cannot be nil');
-  Font.Assign(Value);
-end;
-procedure TEdit.FontChanged(Sender: TObject);
+procedure TEdit.FontChanged;
 var NativeFont: HFONT;
 begin
   if Handle = 0 then Exit;

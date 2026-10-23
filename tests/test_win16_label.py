@@ -40,9 +40,11 @@ class Win16LabelTests(unittest.TestCase):
 
     def test_font_is_owned_and_native_dc_state_is_restored(self):
         source = (ROOT / 'src/win16/native_label.pas').read_text()
-        for text in ('Result := Canvas.Font', 'Canvas.Font.Assign(Value)',
-                     'Canvas.Font.OnChange := FontChanged',
-                     'Canvas.Font.OnChange := nil', 'if Value = nil then',
+        base = (ROOT / 'src/win16/control_base.pas').read_text()
+        for text in ('FFont := TGDIFont.Create; FFont.OnChange := FontObjectChanged',
+                     'FFont.OnChange := nil', 'if Value = nil then raise'):
+            self.assertIn(text, base)
+        for text in ('procedure FontChanged; override;', 'SelectObject(Canvas.Handle, Font.Handle)',
                      'State := SaveDC(Canvas.Handle)',
                      'finally RestoreDC(Canvas.Handle, State)',
                      'Pos(#0, Value)', 'SetBkMode(Canvas.Handle, TRANSPARENT)'):

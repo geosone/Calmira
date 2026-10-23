@@ -4,13 +4,14 @@ unit control_base;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This control base requires Win16}{$ENDIF}
 interface
-uses Classes, WinTypes, native_cursors;
+uses Classes, WinTypes, gdi_canvas, native_cursors;
 type
   TControlOperation = (coReadEnabled, coWriteEnabled, coReadVisible,
     coWriteVisible, coShow, coHide, coFront, coBack);
   { Delphi 1 Forms types, shared here so controls need not use Forms. }
   TFormBorderStyle = (bsNone, bsSingle, bsSizeable, bsDialog);
   TBorderStyle = bsNone..bsSingle;
+  TAlign = (alNone, alTop, alBottom, alLeft, alRight, alClient);
   TDragMode = (dmManual, dmAutomatic);
   TDragState = (dsDragEnter, dsDragLeave, dsDragMove);
   TDragDropEvent = procedure(Sender, Source: TObject; X, Y: Integer) of object;
@@ -27,6 +28,12 @@ type
   end;
   TControl = class(TComponent)
   private
+    FAlign: TAlign;
+    FColor: TColor;
+    FFont: TGDIFont;
+    FParentColor, FParentFont, FShowHint, FParentShowHint: Boolean;
+    FInheriting: Boolean;
+    FHint: string;
     FDragMode: TDragMode;
     FDragCursor: TCursor;
     FOnDragDrop: TDragDropEvent;
@@ -37,7 +44,29 @@ type
     procedure SetEnabled(Value: Boolean);
     function GetVisible: Boolean;
     procedure SetVisible(Value: Boolean);
+    procedure SetAlign(Value: TAlign);
+    procedure SetColor(Value: TColor);
+    procedure SetFont(Value: TGDIFont);
+    procedure SetParentColor(Value: Boolean);
+    procedure SetParentFont(Value: Boolean);
+    procedure SetShowHint(Value: Boolean);
+    procedure SetParentShowHint(Value: Boolean);
+    procedure FontObjectChanged(Sender: TObject);
   protected
+    { Asks the parent to lay out its aligned children again. }
+    procedure RequestAlign; virtual;
+    { The control whose Font/Color/ShowHint the Parent* properties follow. }
+    function ParentControl: TControl; virtual;
+    { Calls ParentPropertiesChanged on each child; Controls implements it. }
+    procedure NotifyChildren; virtual;
+    { Font changed: ApplyFont copies it to the drawing canvas, then FontChanged
+      reacts (repaint, WM_SETFONT). Color changed: ColorChanged. }
+    procedure ApplyFont; virtual;
+    procedure FontChanged; virtual;
+    procedure ColorChanged; virtual;
+    { True while a value is being copied from the parent, so the Parent*
+      flag that caused it stays set. }
+    property Inheriting: Boolean read FInheriting write FInheriting;
     { One policy slot, rather than a virtual slot per property/view method. }
     procedure ControlOperation(Operation: TControlOperation; var Value: Boolean); virtual; abstract;
     procedure DoEndDrag(Target: TObject; X, Y: Integer); virtual;
@@ -56,6 +85,18 @@ type
     procedure BeginDrag(Immediate: Boolean);
     procedure EndDrag(Drop: Boolean);
     procedure DragDrop(Source: TObject; X, Y: Integer); virtual;
+    { Re-reads the Parent* properties from ParentControl; called after
+      reparenting and when the parent's values change. }
+    procedure ParentPropertiesChanged; virtual;
+    property Align: TAlign read FAlign write SetAlign default alNone;
+    { As in Delphi, assigning Color or Font clears ParentColor/ParentFont. }
+    property Color: TColor read FColor write SetColor;
+    property Font: TGDIFont read FFont write SetFont;
+    property ParentColor: Boolean read FParentColor write SetParentColor default True;
+    property ParentFont: Boolean read FParentFont write SetParentFont default True;
+    property ShowHint: Boolean read FShowHint write SetShowHint;
+    property ParentShowHint: Boolean read FParentShowHint write SetParentShowHint default True;
+    property Hint: string read FHint write FHint;
     property Dragging: Boolean read GetDragging;
     { Position in the parent's client area. }
     property BoundsRect: TRect read GetControlBounds write SetControlBounds;
@@ -72,15 +113,96 @@ var
   DragSource: TControl;
 implementation
 uses SysUtils;
+procedure TControl.SetAlign(Value: TAlign);
+begin
+  if Value = FAlign then Exit;
+  FAlign := Value;
+  RequestAlign;
+end;
+procedure TControl.RequestAlign;
+begin end;
+function TControl.ParentControl: TControl;
+begin Result := nil; end;
+procedure TControl.NotifyChildren;
+begin end;
+procedure TControl.ApplyFont;
+begin end;
+procedure TControl.FontChanged;
+begin end;
+procedure TControl.ColorChanged;
+begin end;
+procedure TControl.SetColor(Value: TColor);
+begin
+  if Value = FColor then Exit;
+  FColor := Value;
+  if not FInheriting then FParentColor := False;
+  ColorChanged;
+  NotifyChildren;
+end;
+procedure TControl.SetFont(Value: TGDIFont);
+begin
+  if Value = nil then raise Exception.Create('Control font cannot be nil');
+  FFont.Assign(Value);
+end;
+procedure TControl.FontObjectChanged(Sender: TObject);
+begin
+  if not FInheriting then FParentFont := False;
+  ApplyFont;
+  FontChanged;
+  NotifyChildren;
+end;
+procedure TControl.SetParentColor(Value: Boolean);
+begin
+  if Value = FParentColor then Exit;
+  FParentColor := Value;
+  if Value then ParentPropertiesChanged;
+end;
+procedure TControl.SetParentFont(Value: Boolean);
+begin
+  if Value = FParentFont then Exit;
+  FParentFont := Value;
+  if Value then ParentPropertiesChanged;
+end;
+procedure TControl.SetShowHint(Value: Boolean);
+begin
+  if not FInheriting then FParentShowHint := False;
+  if Value = FShowHint then Exit;
+  FShowHint := Value;
+  NotifyChildren;
+end;
+procedure TControl.SetParentShowHint(Value: Boolean);
+begin
+  if Value = FParentShowHint then Exit;
+  FParentShowHint := Value;
+  if Value then ParentPropertiesChanged;
+end;
+procedure TControl.ParentPropertiesChanged;
+var Parent: TControl;
+begin
+  Parent := ParentControl;
+  if Parent = nil then Exit;
+  FInheriting := True;
+  try
+    if FParentFont then FFont.Assign(Parent.FFont);
+    if FParentColor then SetColor(Parent.FColor);
+    if FParentShowHint then SetShowHint(Parent.FShowHint);
+  finally FInheriting := False; end;
+end;
 constructor TControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FDragCursor := crDrag;
+  { Delphi uses clWindow; every control here starts as a button-face surface. }
+  FColor := clBtnFace;
+  FParentColor := True; FParentFont := True; FParentShowHint := True;
+  FFont := TGDIFont.Create; FFont.OnChange := FontObjectChanged;
 end;
 destructor TControl.Destroy;
 begin
   if DragManager <> nil then DragManager.Forget(Self);
   inherited Destroy;
+  if FFont <> nil then FFont.OnChange := nil;
+  FFont.Free; FFont := nil;
 end;
 function TControl.GetDragging: Boolean;
 begin Result := DragSource = Self; end;

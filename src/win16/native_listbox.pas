@@ -68,9 +68,6 @@ type
     procedure SetExtendedSelect(Value: Boolean);
     procedure SetIntegralHeight(Value: Boolean);
     procedure SetSorted(Value: Boolean);
-    function GetFont: TFont;
-    procedure SetFont(Value: TFont);
-    procedure FontChanged(Sender: TObject);
     procedure SetColumnWidth;
     procedure CheckIndex(Index: Integer);
     procedure SaveState;
@@ -78,6 +75,7 @@ type
     procedure RequireLiveStyle;
     procedure WMSize(var M: TMessage); message WM_SIZE;
   protected
+    procedure FontChanged; override;
     function NativeClassName: PChar; override;
     procedure WndProc(var M: TMessage); override;
     function ControlCommand(Code: Word): Boolean; override;
@@ -105,7 +103,7 @@ type
     procedure Clear;
     function ItemAtPos(Pos: TPoint; Existing: Boolean): Integer;
     function ItemRect(Index: Integer): TRect;
-    property Font: TFont read GetFont write SetFont;
+    property Font;
     property Items: TStrings read GetItems write SetItems;
     property ItemIndex: Integer read GetItemIndex write SetItemIndex;
     property SelCount: Integer read GetSelCount;
@@ -235,13 +233,12 @@ begin
   FBorderStyle := bsSingle;
   FExtendedSelect := True;
   TabStop := True;
-  Color := clWindow;
+  Color := clWindow; ParentColor := False;
   SetBounds(0, 0, 121, 97);
-  Canvas.Font.OnChange := FontChanged;
+ 
 end;
 destructor TCustomListBox.Destroy;
 begin
-  if Canvas <> nil then Canvas.Font.OnChange := nil;
   inherited Destroy;
   FSelection.Free;
   FItems.Free;
@@ -299,7 +296,7 @@ begin
   if TabStop then Style := Style or WS_TABSTOP;
   inherited CreateHandle(Parent, '', Style, X, Y, Width, Height);
   try
-    FontChanged(Self);
+    FontChanged;
     if FStyle = lbOwnerDrawFixed then Perform(LB_SETITEMHEIGHT, 0, FItemHeight);
     LoadItems;
     SetColumnWidth;
@@ -514,8 +511,8 @@ begin
     Canvas.Handle := Item.hDC;
     Canvas.Brush.Style := bsSolid;
     Canvas.Brush.Color := Color;
-    { The highlight colour is for this item only; keep the published Font. }
-    Canvas.Font.OnChange := nil; TextColor := Canvas.Font.Color;
+    { The highlight colour is for this item only. }
+    TextColor := Canvas.Font.Color;
     try
       if (Integer(Item.itemID) >= 0) and (odSelected in State) then
       begin
@@ -526,7 +523,7 @@ begin
         DrawItem(Item.itemID, Item.rcItem, State)
       else Canvas.FillRect(Item.rcItem);
       if odFocused in State then DrawFocusRect(Item.hDC, Item.rcItem);
-    finally Canvas.Font.Color := TextColor; Canvas.Font.OnChange := FontChanged; end;
+    finally Canvas.Font.Color := TextColor; end;
   finally
     Canvas.Handle := Previous; FDrawing := False; RestoreDC(Item.hDC, Saved);
   end;
@@ -548,14 +545,7 @@ procedure TCustomListBox.Click;
 begin if Assigned(FOnClick) then FOnClick(Self); end;
 procedure TCustomListBox.DblClick;
 begin if Assigned(FOnDblClick) then FOnDblClick(Self); end;
-function TCustomListBox.GetFont: TFont;
-begin Result := Canvas.Font; end;
-procedure TCustomListBox.SetFont(Value: TFont);
-begin
-  if Value = nil then Fail('List box font cannot be nil');
-  Font.Assign(Value);
-end;
-procedure TCustomListBox.FontChanged(Sender: TObject);
+procedure TCustomListBox.FontChanged;
 var NativeFont: HFONT;
 begin
   if Handle = 0 then Exit;

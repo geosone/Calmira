@@ -14,11 +14,9 @@ type
     FDefault, FCancel: Boolean;
     FModalResult: TModalResult;
     procedure SetDefault(Value: Boolean);
-    function GetFont: TFont;
-    procedure SetFont(Value: TFont);
-    procedure FontChanged(Sender: TObject);
     procedure SetCaption(const Value: string);
   protected
+    procedure FontChanged; override;
     function NativeClassName: PChar; override;
     function ButtonStyle: Word; virtual;
     function ControlDialogKey(Key: Word): Boolean; override;
@@ -30,14 +28,13 @@ type
     property Drawing: Boolean read FDrawing;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure DefaultHandler(var Message); override;
     procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt); override;
     procedure Click; virtual;
   published
     property Caption: string read FCaption write SetCaption;
-    property Font: TFont read GetFont write SetFont;
+    property Font;
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
     property Enabled;
     property Visible;
@@ -54,12 +51,7 @@ var ButtonProcedure: WNDPROC;
 constructor TButton.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner); TabStop := True; SetBounds(0, 0, 75, 23);
-  Canvas.Font.OnChange := FontChanged;
-end;
-destructor TButton.Destroy;
-begin
-  if Canvas <> nil then Canvas.Font.OnChange := nil;
-  inherited Destroy;
+ 
 end;
 function TButton.NativeClassName: PChar;
 begin RegisterNativeSuperclass('BUTTON', ButtonClass, ButtonProcedure); Result := ButtonClass; end;
@@ -95,7 +87,7 @@ begin
   if TabStop then Style := Style or WS_TABSTOP;
   inherited CreateHandle(Parent, FCaption, (Style and not DWORD($F)) or ButtonStyle,
     X, Y, Width, Height);
-  try FontChanged(Self); except DestroyHandle; raise; end;
+  try FontChanged; except DestroyHandle; raise; end;
 end;
 procedure TButton.DefaultHandler(var Message);
 begin
@@ -108,14 +100,7 @@ begin
   if (M.Msg = WM_PAINT) or (M.Msg = WM_ERASEBKGND) then DefaultHandler(M)
   else inherited WndProc(M);
 end;
-function TButton.GetFont: TFont;
-begin Result := Canvas.Font; end;
-procedure TButton.SetFont(Value: TFont);
-begin
-  if Value = nil then raise ENativeWindowError.Create('Button font cannot be nil');
-  Canvas.Font.Assign(Value);
-end;
-procedure TButton.FontChanged(Sender: TObject);
+procedure TButton.FontChanged;
 var NativeFont: HFONT;
 begin
   if Handle <> 0 then

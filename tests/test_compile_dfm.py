@@ -130,7 +130,7 @@ class DfmCompilerTests(unittest.TestCase):
         output.encode('ascii')
         self.assertIn('InitialControl := Edit;', output)
         self.assertIn('Edit.CharCase := ecLowerCase;', output)
-        self.assertIn('Canvas.Font.Height := -11;', output)
+        self.assertIn('\n  Font.Height := -11;', output)
         self.assertIn('AdjustWindowRect(', output)
 
     def test_raw_and_wrapped_resources_have_same_tree(self):
@@ -297,8 +297,24 @@ class DfmCompilerTests(unittest.TestCase):
                                   root.children)]
         output = self.emit(root)
         self.assertIn('Edit.Parent := Area;', output)
-        self.assertIn('Edit.Font.Assign(Area.Canvas.Font);', output)
+        # Children inherit the parent's font through ParentFont.
+        self.assertNotIn('Font.Assign', output)
         root.children[0].cls = 'TButton'
+        with self.assertRaises(DfmError):
+            self.emit(root)
+
+    def test_parent_properties_follow_color_and_font(self):
+        root = copy.deepcopy(self.root)
+        edit = root.children[-1]
+        edit.properties.update({'parentcolor': Value('boolean', True), 'parentfont': Value('boolean', False),
+                                'ctl3d': Value('boolean', False), 'showhint': Value('boolean', True),
+                                'hint': Value('string', 'Type here')})
+        output = self.emit(root)
+        for text in ('Edit.ParentColor := True;', 'Edit.ParentFont := False;', 'Edit.Ctl3D := False;',
+                     'Edit.ShowHint := True;', "Edit.Hint := 'Type here';"):
+            self.assertIn(text, output)
+        label = root.children[0]
+        label.properties['ctl3d'] = Value('boolean', False)
         with self.assertRaises(DfmError):
             self.emit(root)
 

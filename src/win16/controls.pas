@@ -14,6 +14,7 @@ type
   TShiftState = native_input.TShiftState;
   TModalResult = SmallInt;
   TControlViewAction = (cvaShow, cvaHide, cvaFront, cvaBack);
+  TAlign = control_base.TAlign;
   TDragMode = control_base.TDragMode;
   TDragState = control_base.TDragState;
   TDragDropEvent = control_base.TDragDropEvent;
@@ -28,6 +29,8 @@ const
   CM_MOUSEENTER = CM_BASE + 19;
   CM_MOUSELEAVE = CM_BASE + 20;
   CM_BUTTONPRESSED = CM_BASE + 24;
+  alNone = control_base.alNone; alTop = control_base.alTop; alBottom = control_base.alBottom;
+  alLeft = control_base.alLeft; alRight = control_base.alRight; alClient = control_base.alClient;
   dmManual = control_base.dmManual; dmAutomatic = control_base.dmAutomatic;
   dsDragEnter = control_base.dsDragEnter; dsDragLeave = control_base.dsDragLeave;
   dsDragMove = control_base.dsDragMove;
@@ -45,6 +48,9 @@ type
     FEnabled, FVisible: Boolean;
     FTabStop: Boolean;
     FHelpContext: LongInt;
+    FAlignLevel: Integer;
+    FCtl3D, FParentCtl3D: Boolean;
+    FAligning, FAlignPending: Boolean;
     FMouseControl, FCaptureControl: TGraphicControl;
     procedure SetHelpContext(Value: LongInt);
     function GraphicAt(X, Y: Integer): TGraphicControl;
@@ -92,6 +98,18 @@ type
     function ControlDrawItem(var Item: TDrawItemStruct): Boolean; virtual;
     { True for internal USER children (e.g. a combo box's edit) that act as Self. }
     function OwnsNativeChild(Window: HWND): Boolean; virtual;
+    { Delphi 1 layout: alTop, alBottom, alLeft, alRight, then alClient, each
+      ordered by position, inside Rect (initially ClientRect). }
+    procedure AlignControls(AControl: TControl; var Rect: TRect); virtual;
+    procedure RequestAlign; override;
+    function ParentControl: TControl; override;
+    procedure NotifyChildren; override;
+    procedure ApplyFont; override;
+    procedure FontChanged; override;
+    { Ctl3D is kept and inherited as in Delphi; no CTL3D.DLL drawing yet. }
+    procedure Ctl3DChanged; virtual;
+    procedure SetCtl3D(Value: Boolean);
+    procedure SetParentCtl3D(Value: Boolean);
     procedure WMCommand(var M: TWMCommand); message WM_COMMAND;
     procedure WMDrawItem(var M: TWMDrawItem); message WM_DRAWITEM;
     procedure WMGetDlgCode(var M: TWMGetDlgCode); message WM_GETDLGCODE;
@@ -109,6 +127,9 @@ type
       X, Y, Width, Height: SmallInt); override;
     procedure CreateControl(ParentWindow: HWND);
     procedure SetBounds(X, Y, AWidth, AHeight: Integer); virtual;
+    procedure DisableAlign;
+    procedure EnableAlign;
+    procedure Realign;
     procedure Invalidate; override;
     procedure Update;
     procedure Show;
@@ -139,13 +160,15 @@ type
     property Parent: TCustomControl read FParent write SetParent;
     property ControlCount: Integer read GetControlCount;
     property Controls[Index: Integer]: TControl read GetControl;
+    procedure ParentPropertiesChanged; override;
+    property Ctl3D: Boolean read FCtl3D write SetCtl3D default True;
+    property ParentCtl3D: Boolean read FParentCtl3D write SetParentCtl3D default True;
   end;
   TGraphicControl = class(TControl)
   private
     FParent: TCustomControl;
     FCanvas: TCanvas;
     FLeft, FTop, FWidth, FHeight: Integer;
-    FColor: TColor;
     FVisible, FEnabled: Boolean;
     FOnClick, FOnDblClick: TNotifyEvent;
     FOnMouseDown, FOnMouseUp: TMouseEvent;
@@ -156,7 +179,6 @@ type
     procedure SetTop(Value: Integer);
     procedure SetWidth(Value: Integer);
     procedure SetHeight(Value: Integer);
-    procedure SetColor(Value: TColor);
     procedure SetVisible(Value: Boolean);
     procedure SetEnabled(Value: Boolean);
     function GetBoundsRect: TRect;
@@ -169,6 +191,11 @@ type
     { False for controls that decide themselves when a press is a click. }
     FClickEvents: Boolean;
     procedure ControlOperation(Operation: TControlOperation; var Value: Boolean); override;
+    procedure RequestAlign; override;
+    function ParentControl: TControl; override;
+    procedure ApplyFont; override;
+    procedure FontChanged; override;
+    procedure ColorChanged; override;
     procedure Paint; virtual;
     function GetControlBounds: TRect; override;
     procedure SetControlBounds(const Value: TRect); override;
@@ -207,7 +234,6 @@ type
     property ClientRect: TRect read GetClientRect;
     property ClientWidth: Integer read FWidth;
     property ClientHeight: Integer read FHeight;
-    property Color: TColor read FColor write SetColor;
     property Visible: Boolean read FVisible write SetVisible;
     property Enabled: Boolean read FEnabled write SetEnabled;
   end;
@@ -269,7 +295,46 @@ begin
     (Position.Y >= Area.Top) and (Position.Y < Area.Bottom);
 end;
 constructor TCustomControl.Create(AOwner: TComponent);
-begin inherited Create(AOwner); FEnabled := True; FVisible := True; end;
+begin
+  inherited Create(AOwner); FEnabled := True; FVisible := True;
+  FCtl3D := True; FParentCtl3D := True;
+end;
+function TCustomControl.ParentControl: TControl;
+begin Result := FParent; end;
+procedure TCustomControl.NotifyChildren;
+var I: Integer;
+begin
+  if FControls <> nil then
+    for I := 0 to FControls.Count - 1 do TControl(FControls[I]).ParentPropertiesChanged;
+end;
+procedure TCustomControl.ApplyFont;
+begin Canvas.Font.Assign(Font); end;
+procedure TCustomControl.FontChanged;
+begin Invalidate; end;
+procedure TCustomControl.Ctl3DChanged;
+begin end;
+procedure TCustomControl.SetCtl3D(Value: Boolean);
+begin
+  if not Inheriting then FParentCtl3D := False;
+  if Value = FCtl3D then Exit;
+  FCtl3D := Value;
+  Ctl3DChanged;
+  NotifyChildren;
+end;
+procedure TCustomControl.SetParentCtl3D(Value: Boolean);
+begin
+  if Value = FParentCtl3D then Exit;
+  FParentCtl3D := Value;
+  if Value then ParentPropertiesChanged;
+end;
+procedure TCustomControl.ParentPropertiesChanged;
+begin
+  inherited ParentPropertiesChanged;
+  if not FParentCtl3D or (FParent = nil) then Exit;
+  Inheriting := True;
+  try SetCtl3D(FParent.FCtl3D);
+  finally Inheriting := False; end;
+end;
 procedure TCustomControl.SetHelpContext(Value: LongInt);
 begin
   if Value < 0 then raise ENativeWindowError.Create('Invalid help context');
@@ -704,11 +769,91 @@ begin
     FLeft := X; FTop := Y; FWidth := AWidth; FHeight := AHeight;
   finally FChanging := False; end;
   Invalidate;
+  if (Align <> alNone) and (FParent <> nil) and not FParent.FAligning then FParent.Realign;
 end;
 procedure TCustomControl.WMMove(var M: TMessage);
 begin ReadBounds; DefaultHandler(M); end;
 procedure TCustomControl.WMSize(var M: TMessage);
-begin ReadBounds; DefaultHandler(M); Invalidate; end;
+begin ReadBounds; DefaultHandler(M); Invalidate; Realign; end;
+procedure TCustomControl.DisableAlign;
+begin Inc(FAlignLevel); end;
+procedure TCustomControl.EnableAlign;
+begin
+  if FAlignLevel = 0 then raise ENativeWindowError.Create('Unbalanced EnableAlign');
+  Dec(FAlignLevel);
+  if (FAlignLevel = 0) and FAlignPending then Realign;
+end;
+procedure TCustomControl.Realign;
+var Area: TRect;
+begin
+  if FAlignLevel > 0 then begin FAlignPending := True; Exit; end;
+  if FAligning then Exit;
+  FAlignPending := False;
+  Area := GetClientRect;
+  AlignControls(nil, Area);
+end;
+procedure TCustomControl.RequestAlign;
+begin if FParent <> nil then FParent.Realign; end;
+procedure TCustomControl.AlignControls(AControl: TControl; var Rect: TRect);
+var List: TList; A: TAlign; I, J: Integer; Control: TControl; Bounds, Target: TRect;
+  W, H: Integer;
+  function Key(C: TControl): Integer;
+  var B: TRect;
+  begin
+    B := C.BoundsRect;
+    case A of
+      alTop: Result := B.Top;
+      alBottom: Result := -B.Bottom;
+      alLeft: Result := B.Left;
+      alRight: Result := -B.Right;
+    else Result := 0;
+    end;
+  end;
+  function Before(X, Y: TControl): Boolean;
+  begin
+    { The control being moved wins a tie, as in Delphi. }
+    Result := (Key(X) < Key(Y)) or ((Key(X) = Key(Y)) and (X = AControl));
+  end;
+begin
+  if (FControls = nil) or (FControls.Count = 0) then Exit;
+  FAligning := True;
+  List := TList.Create;
+  try
+    for A := alTop to alClient do
+    begin
+      List.Clear;
+      for I := 0 to FControls.Count - 1 do
+      begin
+        Control := TControl(FControls[I]);
+        if (Control.Align <> A) or not Control.Visible then Continue;
+        J := List.Count;
+        while (J > 0) and Before(Control, TControl(List[J - 1])) do Dec(J);
+        List.Insert(J, Control);
+      end;
+      for I := 0 to List.Count - 1 do
+      begin
+        Control := TControl(List[I]);
+        Bounds := Control.BoundsRect;
+        W := Bounds.Right - Bounds.Left; H := Bounds.Bottom - Bounds.Top;
+        Target := Rect;
+        case A of
+          alTop: begin Target.Bottom := Rect.Top + H; Inc(Rect.Top, H); end;
+          alBottom: begin Target.Top := Rect.Bottom - H; Dec(Rect.Bottom, H); end;
+          alLeft: begin Target.Right := Rect.Left + W; Inc(Rect.Left, W); end;
+          alRight: begin Target.Left := Rect.Right - W; Dec(Rect.Right, W); end;
+        end;
+        if Target.Right < Target.Left then Target.Right := Target.Left;
+        if Target.Bottom < Target.Top then Target.Bottom := Target.Top;
+        if (Target.Left <> Bounds.Left) or (Target.Top <> Bounds.Top) or
+          (Target.Right <> Bounds.Right) or (Target.Bottom <> Bounds.Bottom) then
+          Control.BoundsRect := Target;
+      end;
+    end;
+  finally
+    List.Free;
+    FAligning := False;
+  end;
+end;
 procedure TCustomControl.WMNCDestroy(var M: TMessage);
 begin FMouseControl := nil; FCaptureControl := nil; ReadBounds; DefaultHandler(M); end;
 const
@@ -899,6 +1044,11 @@ begin
     raise;
   end;
   Invalidate;
+  if Align <> alNone then
+  begin
+    if Previous <> nil then Previous.Realign;
+    if Value <> nil then Value.Realign;
+  end;  if Value <> nil then ParentPropertiesChanged;
 end;
 function TCustomControl.GetEnabled: Boolean;
 begin if Handle = 0 then Result := FEnabled else Result := IsWindowEnabled(Handle); end;
@@ -917,8 +1067,9 @@ procedure TCustomControl.SetVisible(Value: Boolean);
 begin
   FVisible := Value;
   if not Value then MouseCapture := False;
-  if Handle = 0 then Exit;
-  if Value then ShowWindow(Handle, SW_SHOWNOACTIVATE) else ShowWindow(Handle, SW_HIDE);
+  if Handle <> 0 then
+    if Value then ShowWindow(Handle, SW_SHOWNOACTIVATE) else ShowWindow(Handle, SW_HIDE);
+  if (Align <> alNone) and (FParent <> nil) then FParent.Realign;
 end;
 procedure TCustomControl.WMGetDlgCode(var M: TWMGetDlgCode);
 begin DefaultHandler(M); end;
@@ -926,7 +1077,7 @@ begin DefaultHandler(M); end;
 constructor TGraphicControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner); FCanvas := TCanvas.Create;
-  FVisible := True; FEnabled := True; FColor := clBtnFace; FClickEvents := True;
+  FVisible := True; FEnabled := True; FClickEvents := True;
 end;
 function TGraphicControl.Perform(Msg, WParam: Word; LParam: LongInt): LongInt;
 var Message: TMessage;
@@ -1061,6 +1212,8 @@ begin
 end;
 procedure TGraphicControl.Repaint;
 begin Invalidate; Update; end;
+procedure TGraphicControl.RequestAlign;
+begin if FParent <> nil then FParent.Realign; end;
 procedure TGraphicControl.SetParent(Value: TCustomControl);
 var Previous: TCustomControl;
 begin
@@ -1091,6 +1244,11 @@ begin
   if Previous <> nil then
   begin Previous.FGraphics.Remove(Self); Previous.FControls.Remove(Self); end;
   Invalidate;
+  if Align <> alNone then
+  begin
+    if Previous <> nil then Previous.Realign;
+    if Value <> nil then Value.Realign;
+  end;  if Value <> nil then ParentPropertiesChanged;
 end;
 procedure TGraphicControl.SetBounds(X, Y, AWidth, AHeight: Integer);
 begin
@@ -1101,6 +1259,7 @@ begin
   if (FCanvas <> nil) and (FCanvas.Handle <> 0) then
     raise ENativeWindowError.Create('Cannot resize during graphic paint');
   DirtyBounds; FLeft := X; FTop := Y; FWidth := AWidth; FHeight := AHeight; Invalidate;
+  if (Align <> alNone) and (FParent <> nil) and not FParent.FAligning then FParent.Realign;
 end;
 procedure TGraphicControl.SetLeft(Value: Integer);
 begin SetBounds(Value, FTop, FWidth, FHeight); end;
@@ -1110,13 +1269,20 @@ procedure TGraphicControl.SetWidth(Value: Integer);
 begin SetBounds(FLeft, FTop, Value, FHeight); end;
 procedure TGraphicControl.SetHeight(Value: Integer);
 begin SetBounds(FLeft, FTop, FWidth, Value); end;
-procedure TGraphicControl.SetColor(Value: TColor);
-begin if Value <> FColor then begin FColor := Value; Invalidate; end; end;
+function TGraphicControl.ParentControl: TControl;
+begin Result := FParent; end;
+procedure TGraphicControl.ApplyFont;
+begin FCanvas.Font.Assign(Font); end;
+procedure TGraphicControl.FontChanged;
+begin Invalidate; end;
+procedure TGraphicControl.ColorChanged;
+begin Invalidate; end;
 procedure TGraphicControl.SetVisible(Value: Boolean);
 begin
   if Value = FVisible then Exit;
   if not Value and (FParent <> nil) then FParent.ForgetGraphic(Self);
   DirtyBounds; FVisible := Value; Invalidate;
+  if (Align <> alNone) and (FParent <> nil) then FParent.Realign;
 end;
 procedure TGraphicControl.SetEnabled(Value: Boolean);
 begin
@@ -1145,7 +1311,7 @@ begin
     Surface := TBitmap.Create;
     try
       Surface.SetSize(FWidth, FHeight);
-      Background := CreateSolidBrush(ColorToRGB(FColor));
+      Background := CreateSolidBrush(ColorToRGB(Color));
       if Background = 0 then raise ENativeWindowError.Create('Cannot create graphic brush');
       try
         if WinProcs.FillRect(Surface.Canvas.Handle, Area, Background) = 0 then

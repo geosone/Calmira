@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 80 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 82 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1140,3 +1140,33 @@ The full regression passed (`build/tests/audit-regression.log`, exit 0).
 
 `extform` and `sorthdr` now compile standalone. The full regression passed
 (`build/tests/forms-regression.log`, 80 suites, exit 0).
+
+## Align and Parent Properties
+
+- `TControl.Align` (public, as in Delphi 1) with `alTop`/`alBottom`/`alLeft`/
+  `alRight`/`alClient`. `TCustomControl.AlignControls` lays children out in
+  that order, each group sorted by position. Parent resizes, child
+  visibility/size/parent changes realign; `DisableAlign`/`EnableAlign` defer
+  layout and `Realign` forces it. Covered by `make win16-align-runtime-test`.
+- `Font`, `Color`, `ParentFont`, `ParentColor`, `ShowHint`, `ParentShowHint`
+  and `Hint` moved into `control_base.TControl`; `TCustomControl` adds `Ctl3D`
+  and `ParentCtl3D`. Assigning a value clears its `Parent*` flag, setting the
+  flag re-reads the parent, and changes cascade to children (native ones get
+  `WM_SETFONT`). `Font` is now separate from `Canvas.Font`, which is only
+  refreshed from it, so paint-time canvas changes no longer alter the control.
+  The nine controls with copied Font accessors now override `FontChanged`.
+  TEdit, TComboBox and TListBox start with `clWindow` and `ParentColor = False`.
+  `Ctl3D` and the hint properties are state only: nothing draws through
+  CTL3D.DLL and there are no hint windows yet. Covered by
+  `make win16-parent-runtime-test`.
+- Dialogs and DFM-generated forms set the form's `Font`, and children inherit
+  it instead of copying `Canvas.Font`. The DFM compiler accepts `ParentFont`,
+  `ParentColor`, `Ctl3D`, `ParentCtl3D` (windowed controls only), `ShowHint`,
+  `ParentShowHint` and `Hint`.
+
+A plain `make win16-<name>` builds with the unpatched compiler in
+`build/toolchains/fpc-win16`, which miscompiles these larger classes (a
+TEdit reported a stray `Canvas.Handle`). Only the `win16-fixed-regression`
+builds (`build/class-pointer/...`, `fpc-class-pointer`) are authoritative.
+
+The full regression passed (`build/tests/parent-regression.log`, 82 suites, exit 0).

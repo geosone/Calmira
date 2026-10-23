@@ -19,17 +19,14 @@ type
     procedure SetAlignment(Value: TAlignment);
     procedure SetCaption(const Value: string);
     procedure TurnSiblingsOff;
-    function GetFont: TFont;
-    procedure SetFont(Value: TFont);
-    procedure FontChanged(Sender: TObject);
   protected
+    procedure FontChanged; override;
     function NativeClassName: PChar; override;
     procedure WndProc(var M: TMessage); override;
     function ControlCommand(Code: Word): Boolean; override;
     function ControlMnemonic(Key: Char): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure DefaultHandler(var Message); override;
     procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt); override;
@@ -39,7 +36,7 @@ type
     property Caption: string read FCaption write SetCaption;
     property Checked: Boolean read FChecked write SetChecked default False;
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
-    property Font: TFont read GetFont write SetFont;
+    property Font;
     property Enabled;
     property Visible;
     property TabStop;
@@ -54,10 +51,8 @@ begin
   inherited Create(AOwner);
   FAlignment := taRightJustify;
   SetBounds(0, 0, 113, 17);
-  Canvas.Font.OnChange := FontChanged;
+ 
 end;
-destructor TRadioButton.Destroy;
-begin if Canvas <> nil then Canvas.Font.OnChange := nil; inherited Destroy; end;
 function TRadioButton.NativeClassName: PChar;
 begin RegisterNativeSuperclass('BUTTON', RadioClass, RadioProcedure); Result := RadioClass; end;
 procedure TRadioButton.DefaultHandler(var Message);
@@ -81,7 +76,7 @@ begin
   if TabStop then Style := Style or WS_TABSTOP;
   inherited CreateHandle(Parent, FCaption, Style, X, Y, Width, Height);
   try
-    Perform(BM_SETCHECK, Ord(FChecked), 0); FontChanged(Self);
+    Perform(BM_SETCHECK, Ord(FChecked), 0); FontChanged;
   except DestroyHandle; raise; end;
 end;
 procedure TRadioButton.TurnSiblingsOff;
@@ -146,14 +141,7 @@ begin
   if Handle <> 0 then begin StrPCopy(Buffer, Value); SetWindowText(Handle, Buffer); end;
   FCaption := Value; Invalidate;
 end;
-function TRadioButton.GetFont: TFont;
-begin Result := Canvas.Font; end;
-procedure TRadioButton.SetFont(Value: TFont);
-begin
-  if Value = nil then raise ENativeWindowError.Create('Radio button font cannot be nil');
-  Font.Assign(Value);
-end;
-procedure TRadioButton.FontChanged(Sender: TObject);
+procedure TRadioButton.FontChanged;
 var NativeFont: HFONT;
 begin
   if Handle = 0 then Exit;

@@ -35,8 +35,8 @@ class Win16ButtonTests(unittest.TestCase):
         for text in ("RegisterNativeSuperclass('BUTTON'", 'CallWindowProc(ButtonProcedure',
                      '(M.Msg = WM_PAINT) or (M.Msg = WM_ERASEBKGND)',
                      'Result := Code = BN_CLICKED', 'Result and Enabled and Visible',
-                     'Perform(WM_SETFONT, NativeFont, 0)', 'Canvas.Font.OnChange := FontChanged',
-                     'try FontChanged(Self); except DestroyHandle; raise',
+                     'Perform(WM_SETFONT, NativeFont, 0)', 'procedure FontChanged; override;',
+                     'try FontChanged; except DestroyHandle; raise',
                      'Perform(WM_SETFONT, GetStockObject(SYSTEM_FONT), 0)',
                      'if FDrawing then raise', 'finally Canvas.Handle := Previous; FDrawing := False'):
             self.assertIn(text, source)

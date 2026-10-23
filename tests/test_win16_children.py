@@ -17,10 +17,13 @@ class MixedChildrenTests(unittest.TestCase):
         self.assertIn('TNativeWindow = class(TControl)', native)
         self.assertNotIn('HWND', base)
         virtuals = set(re.findall(r'(?:procedure|function) (\w+)(?:\([^)]*\))?[^;]*; virtual;', base))
-        # One view policy slot plus the bounds pair and the Delphi drag hooks.
+        # One view policy slot, the bounds pair, the Delphi drag hooks and the
+        # Align/ParentFont/ParentColor notifications.
         self.assertEqual(virtuals, {'ControlOperation', 'GetControlBounds', 'SetControlBounds',
                                     'DoEndDrag', 'DragOver', 'DragDrop',
-                                    'Start', 'Finish', 'Forget'})
+                                    'Start', 'Finish', 'Forget', 'RequestAlign', 'ParentControl',
+                                    'NotifyChildren', 'ApplyFont', 'FontChanged', 'ColorChanged',
+                                    'ParentPropertiesChanged'})
         self.assertIn('ControlOperation(Operation: TControlOperation; var Value: Boolean); virtual; abstract;', base)
         for name in ('Show', 'Hide', 'BringToFront', 'SendToBack', 'GetEnabled', 'SetEnabled',
                      'GetVisible', 'SetVisible'):
@@ -41,7 +44,7 @@ class MixedChildrenTests(unittest.TestCase):
 
     def test_staging_allocates_before_native_changes_and_removes_both_records_on_failure(self):
         source = (ROOT / 'src/win16/controls.pas').read_text()
-        body = source.split('procedure TCustomControl.SetParent', 1)[1].split('function ', 1)[0]
+        body = source.split('procedure TCustomControl.SetParent(', 1)[1].split('function ', 1)[0]
         self.assertLess(body.index('Value.FControls.Add(Self)'), body.index('WinProcs.SetParent('))
         self.assertIn('except FParent := Previous; raise', body)
         self.assertIn('Previous.FWindows.Remove(Self); Previous.FControls.Remove(Self)', body)

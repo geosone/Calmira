@@ -13,20 +13,17 @@ type
     FWordWrap, FShowAccelChar: Boolean;
     FFocusControl: TCustomControl;
     procedure SetFocusControl(Value: TCustomControl);
-    function GetFont: TFont;
-    procedure SetFont(Value: TFont);
-    procedure FontChanged(Sender: TObject);
     procedure SetCaption(const Value: string);
     procedure SetAlignment(Value: TAlignment);
     procedure SetWordWrap(Value: Boolean);
     procedure SetShowAccelChar(Value: Boolean);
   protected
+    procedure FontChanged; override;
     procedure Paint; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function DialogChar(Key: Char; Root: TCustomControl): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     { Typed resource binding; not a general runtime published-property streamer. }
     property FocusControl: TCustomControl read FFocusControl write SetFocusControl;
     { These properties use typed DFM binding, not runtime property RTTI. }
@@ -35,7 +32,7 @@ type
     property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property WordWrap: Boolean read FWordWrap write SetWordWrap default False;
     property ShowAccelChar: Boolean read FShowAccelChar write SetShowAccelChar default True;
-    property Font: TFont read GetFont write SetFont;
+    property Font;
     property Color;
     property Visible;
   end;
@@ -68,22 +65,10 @@ constructor TLabel.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FShowAccelChar := True;
-  Canvas.Font.OnChange := FontChanged;
+ 
   SetBounds(0, 0, 65, 17);
 end;
-destructor TLabel.Destroy;
-begin
-  if Canvas <> nil then Canvas.Font.OnChange := nil;
-  inherited Destroy;
-end;
-function TLabel.GetFont: TFont;
-begin Result := Canvas.Font; end;
-procedure TLabel.SetFont(Value: TFont);
-begin
-  if Value = nil then raise ENativeWindowError.Create('Label font cannot be nil');
-  Canvas.Font.Assign(Value);
-end;
-procedure TLabel.FontChanged(Sender: TObject);
+procedure TLabel.FontChanged;
 begin Invalidate; end;
 procedure TLabel.SetCaption(const Value: string);
 begin

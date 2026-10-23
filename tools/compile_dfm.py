@@ -233,7 +233,10 @@ def literal(text):
 
 
 COMMON = {'left', 'top', 'width', 'height', 'visible', 'enabled', 'taborder', 'tabstop', 'helpcontext',
-          'font.name', 'font.height', 'font.color', 'font.style'}
+          'font.name', 'font.height', 'font.color', 'font.style', 'parentfont', 'parentcolor',
+          'ctl3d', 'parentctl3d', 'showhint', 'parentshowhint', 'hint'}
+# Delphi TWinControl properties that graphic controls lack.
+WINDOWED_ONLY = {'taborder', 'tabstop', 'helpcontext', 'ctl3d', 'parentctl3d'}
 EVENTS = {'tedit': {'onchange', 'onkeydown', 'onkeyup', 'onkeypress', 'onenter', 'onexit'},
           'tbutton': {'onclick'}, 'tcheckbox': {'onclick'}, 'tlabel': set(),
           'tcustomcontrol': {'onkeydown', 'onkeyup', 'onkeypress', 'onenter', 'onexit'}}
@@ -251,7 +254,8 @@ PROP_NAMES = {p.casefold(): p for p in (
     'ModalResult', 'Checked', 'State', 'AllowGrayed', 'Alignment', 'WordWrap', 'ShowAccelChar',
     'Color', 'Visible', 'Enabled', 'TabStop', 'TabOrder', 'HelpContext', 'OnShow', 'OnHide', 'OnClose',
     'OnCloseQuery', 'OnClick', 'OnChange', 'OnKeyDown', 'OnKeyUp', 'OnKeyPress', 'OnEnter', 'OnExit',
-    'Stretch', 'Center', 'AutoSize', 'Margin', 'Spacing', 'NumGlyphs', 'Layout')}
+    'Stretch', 'Center', 'AutoSize', 'Margin', 'Spacing', 'NumGlyphs', 'Layout',
+    'ParentFont', 'ParentColor', 'Ctl3D', 'ParentCtl3D', 'ShowHint', 'ParentShowHint', 'Hint')}
 COLORS = frozenset(('clBlack clMaroon clGreen clOlive clNavy clPurple clTeal clGray clSilver clRed '
                     'clLime clYellow clBlue clFuchsia clAqua clWhite clWindow clWindowText '
                     'clBtnFace clBtnText clGrayText clHighlight clHighlightText').split())
@@ -319,7 +323,7 @@ class Compiler:
             if value.kind == 'integer' and -2147483648 <= value.data <= 2147483647:
                 return f'Graphics.TColor({value.data})'
             self.fail(node, prop, 'unsupported color')
-        if prop in ('caption', 'text', 'font.name', 'passwordchar'):
+        if prop in ('caption', 'text', 'font.name', 'passwordchar', 'hint'):
             if value.kind != 'string':
                 self.fail(node, prop, 'expected ANSI string')
             if prop == 'passwordchar' and len(value.data.encode('cp1252')) != 1:
@@ -336,7 +340,8 @@ class Compiler:
                 self.fail(node, prop, 'expected event method name')
             return identifier(value.data)
         if prop in ('visible', 'enabled', 'tabstop', 'readonly', 'default', 'cancel', 'checked',
-                    'allowgrayed', 'wordwrap', 'showaccelchar', 'stretch', 'center', 'autosize'):
+                    'allowgrayed', 'wordwrap', 'showaccelchar', 'stretch', 'center', 'autosize',
+                    'parentfont', 'parentcolor', 'ctl3d', 'parentctl3d', 'showhint', 'parentshowhint'):
             if value.kind != 'boolean':
                 self.fail(node, prop, 'expected Boolean')
             return 'True' if value.data else 'False'
@@ -363,9 +368,9 @@ class Compiler:
         for node in self.components.values():
             allowed = ROOT_PROPERTIES if node is self.root else COMMON | PROPERTIES[node.cls.casefold()] | EVENTS[node.cls.casefold()]
             if node.cls.casefold() in ('tlabel', 'timage'):
-                allowed = allowed - {'taborder', 'tabstop', 'helpcontext'}
+                allowed = allowed - WINDOWED_ONLY
             if node.cls.casefold() == 'timage':
-                allowed = allowed - {'font.name', 'font.height', 'font.color', 'font.style'}
+                allowed = allowed - {'font.name', 'font.height', 'font.color', 'font.style', 'parentfont'}
             for prop in node.properties:
                 if prop not in allowed:
                     self.fail(node, prop)
@@ -430,7 +435,7 @@ class Compiler:
             self.emit(f'Color := {self.value(root, "color", root.properties["color"])};')
         if 'helpcontext' in root.properties:
             self.emit(f'HelpContext := {self.value(root, "helpcontext", root.properties["helpcontext"])};')
-        self.font('Canvas.Font', root)
+        self.font('Font', root)
         self.emit(f'DfmArea := Graphics.Rect(0, 0, {width}, {height});')
         self.emit(f'AdjustWindowRect(DfmArea, DfmStyle_{root.cls}, False);')
         if position == 'poScreenCenter':
@@ -453,9 +458,8 @@ class Compiler:
                                for p in ('left', 'top', 'width', 'height'))
             self.emit(f'{target}.SetBounds({bounds});')
             if cls != 'TImage':
-                font = target + '.Canvas.Font' if cls == 'TCustomControl' else target + '.Font'
-                self.emit(f'{font}.Assign({"Canvas.Font" if parent is root else parent.name + ".Canvas.Font"});')
-                self.font(font, node)
+                # The parent's font arrives through ParentFont when Parent is set.
+                self.font(target + '.Font', node)
             if self.typed(node, 'kind', 'ident', 'bkCustom') == 'bkCancel':
                 self.emit(f'{target}.Default := False; {target}.Cancel := True; {target}.ModalResult := mrCancel;')
                 if 'caption' not in node.properties:

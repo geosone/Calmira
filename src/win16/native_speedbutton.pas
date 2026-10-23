@@ -29,8 +29,6 @@ type
     procedure SetMargin(Value: Integer);
     procedure SetSpacing(Value: Integer);
     procedure SetNumGlyphs(Value: Integer);
-    function GetFont: TFont;
-    procedure SetFont(Value: TFont);
     procedure UpdateExclusive;
     procedure CMButtonPressed(var Message: TMessage); message CM_BUTTONPRESSED;
     procedure CMEnabledChanged(var Message: TMessage); message CM_ENABLEDCHANGED;
@@ -48,7 +46,7 @@ type
     property GroupIndex: Integer read FGroupIndex write SetGroupIndex default 0;
     property Down: Boolean read FDown write SetDown default False;
     property Caption: string read FCaption write SetCaption;
-    property Font: TFont read GetFont write SetFont;
+    property Font;
     property Glyph: Graphics.TBitmap read FGlyph write SetGlyph;
     property Layout: TButtonLayout read FLayout write SetLayout default blGlyphLeft;
     property Margin: Integer read FMargin write SetMargin default -1;
@@ -84,13 +82,6 @@ begin
   else if FDown then FState := bsExclusive
   else FState := bsUp;
   Invalidate;
-end;
-function TSpeedButton.GetFont: TFont;
-begin Result := Canvas.Font; end;
-procedure TSpeedButton.SetFont(Value: TFont);
-begin
-  if Value = nil then raise ENativeWindowError.Create('Speed button font cannot be nil');
-  Canvas.Font.Assign(Value); Invalidate;
 end;
 procedure TSpeedButton.SetGlyph(Value: Graphics.TBitmap);
 begin FGlyph.Assign(Value); end;

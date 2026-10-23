@@ -18,17 +18,14 @@ type
     function GetChecked: Boolean;
     procedure SetChecked(Value: Boolean);
     procedure SetCaption(const Value: string);
-    function GetFont: TFont;
-    procedure SetFont(Value: TFont);
-    procedure FontChanged(Sender: TObject);
   protected
+    procedure FontChanged; override;
     function NativeClassName: PChar; override;
     procedure WndProc(var M: TMessage); override;
     function ControlCommand(Code: Word): Boolean; override;
     function ControlMnemonic(Key: Char): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure DefaultHandler(var Message); override;
     procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt); override;
@@ -39,7 +36,7 @@ type
     property State: TCheckBoxState read GetState write SetState default cbUnchecked;
     property AllowGrayed: Boolean read FAllowGrayed write FAllowGrayed default False;
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
-    property Font: TFont read GetFont write SetFont;
+    property Font;
     property Enabled;
     property Visible;
     property TabStop;
@@ -61,10 +58,8 @@ var CheckProcedure: WNDPROC;
 constructor TCheckBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner); TabStop := True; SetBounds(0, 0, 97, 17);
-  Canvas.Font.OnChange := FontChanged;
+ 
 end;
-destructor TCheckBox.Destroy;
-begin if Canvas <> nil then Canvas.Font.OnChange := nil; inherited Destroy; end;
 function TCheckBox.NativeClassName: PChar;
 begin RegisterNativeSuperclass('BUTTON', CheckClass, CheckProcedure); Result := CheckClass; end;
 procedure TCheckBox.DefaultHandler(var Message);
@@ -87,7 +82,7 @@ begin
   if TabStop then Style := Style or WS_TABSTOP;
   inherited CreateHandle(Parent, FCaption, Style, X, Y, Width, Height);
   try
-    Perform(BM_SETCHECK, Ord(FState), 0); FontChanged(Self);
+    Perform(BM_SETCHECK, Ord(FState), 0); FontChanged;
   except DestroyHandle; raise; end;
 end;
 function TCheckBox.GetState: TCheckBoxState;
@@ -138,14 +133,7 @@ begin
   if Handle <> 0 then begin StrPCopy(Buffer, Value); SetWindowText(Handle, Buffer); end;
   FCaption := Value; Invalidate;
 end;
-function TCheckBox.GetFont: TFont;
-begin Result := Canvas.Font; end;
-procedure TCheckBox.SetFont(Value: TFont);
-begin
-  if Value = nil then raise ENativeWindowError.Create('Checkbox font cannot be nil');
-  Font.Assign(Value);
-end;
-procedure TCheckBox.FontChanged(Sender: TObject);
+procedure TCheckBox.FontChanged;
 var NativeFont: HFONT;
 begin
   if Handle = 0 then Exit;
