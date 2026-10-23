@@ -1,6 +1,20 @@
 {
   "en": {
-    "Forms": {"TStandardButtons.Cancel.Caption": "Cancel"},
+    "Forms": {
+      "TStandardButtons.Cancel.Caption": "Cancel",
+      "TMessageForm.Warning.Caption": "Warning",
+      "TMessageForm.Error.Caption": "Error",
+      "TMessageForm.Information.Caption": "Information",
+      "TMessageForm.Confirm.Caption": "Confirm",
+      "TMessageForm.Yes.Caption": "&Yes",
+      "TMessageForm.No.Caption": "&No",
+      "TMessageForm.OK.Caption": "OK",
+      "TMessageForm.Help.Caption": "&Help",
+      "TMessageForm.Abort.Caption": "&Abort",
+      "TMessageForm.Retry.Caption": "&Retry",
+      "TMessageForm.Ignore.Caption": "&Ignore",
+      "TMessageForm.All.Caption": "&All"
+    },
     "Help": {
       "Title": "Calmira Reloaded Help",
       "Missing": "The help file was not found. Restore it from the matching installation package.",
@@ -50,7 +64,21 @@
       "1210": "Die neuen Kennwörter stimmen nicht überein. Bitte erneut eingeben.",
       "1212": "Das eingegebene alte Kennwort ist falsch."
     },
-    "Forms": {"TStandardButtons.Cancel.Caption": "Abbrechen"},
+    "Forms": {
+      "TStandardButtons.Cancel.Caption": "Abbrechen",
+      "TMessageForm.Warning.Caption": "Warnung",
+      "TMessageForm.Error.Caption": "Fehler",
+      "TMessageForm.Information.Caption": "Information",
+      "TMessageForm.Confirm.Caption": "Bestätigen",
+      "TMessageForm.Yes.Caption": "&Ja",
+      "TMessageForm.No.Caption": "&Nein",
+      "TMessageForm.OK.Caption": "OK",
+      "TMessageForm.Help.Caption": "&Hilfe",
+      "TMessageForm.Abort.Caption": "A&bbrechen",
+      "TMessageForm.Retry.Caption": "&Wiederholen",
+      "TMessageForm.Ignore.Caption": "&Ignorieren",
+      "TMessageForm.All.Caption": "&Alle"
+    },
     "Help": {
       "Title": "Calmira Reloaded Hilfe",
       "Missing": "Die Hilfedatei wurde nicht gefunden. Stelle sie aus dem passenden Installationspaket wieder her.",
@@ -87,7 +115,21 @@
     }
   },
   "fr": {
-    "Forms": {"TStandardButtons.Cancel.Caption": "Annuler"},
+    "Forms": {
+      "TStandardButtons.Cancel.Caption": "Annuler",
+      "TMessageForm.Warning.Caption": "Avertissement",
+      "TMessageForm.Error.Caption": "Erreur",
+      "TMessageForm.Information.Caption": "Information",
+      "TMessageForm.Confirm.Caption": "Confirmation",
+      "TMessageForm.Yes.Caption": "&Oui",
+      "TMessageForm.No.Caption": "&Non",
+      "TMessageForm.OK.Caption": "OK",
+      "TMessageForm.Help.Caption": "&Aide",
+      "TMessageForm.Abort.Caption": "&Abandonner",
+      "TMessageForm.Retry.Caption": "&Réessayer",
+      "TMessageForm.Ignore.Caption": "&Ignorer",
+      "TMessageForm.All.Caption": "&Tous"
+    },
     "Help": {
       "Title": "Aide Calmira Reloaded",
       "Missing": "Le fichier d'aide est introuvable. Restaurez-le depuis le paquet d'installation correspondant.",

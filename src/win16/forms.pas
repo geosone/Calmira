@@ -11,7 +11,6 @@ interface
 uses Classes, SysUtils, WinTypes, Messages, Controls, native_form, native_modal,
   native_application, native_screen;
 type
-  EFormsError = class(Exception);
   TCloseAction = TNativeCloseAction;
   TCloseEvent = TNativeCloseEvent;
   TCloseQueryEvent = TNativeCloseQueryEvent;
@@ -69,7 +68,7 @@ begin
 end;
 procedure TForm.Release;
 begin
-  if Application = nil then raise EFormsError.Create('Invalid form release');
+  if Application = nil then raise ENativeApplicationError.Create('Invalid form release');
   Application.QueueRelease(Self);
 end;
 constructor TApplication.Create(AOwner: TComponent);
@@ -78,14 +77,14 @@ begin
 end;
 procedure TApplication.QueueRelease(Form: TForm);
 begin
-  if (Form = nil) or ShuttingDown then raise EFormsError.Create('Invalid form release');
+  if (Form = nil) or ShuttingDown then raise ENativeApplicationError.Create('Invalid form release');
   if FReleases.IndexOf(Form) >= 0 then Exit;
   if not FReleaseHooked then begin HookMainWindow(ReleaseHook); FReleaseHooked := True; end;
   FReleases.Add(Form);
   try
     Form.FreeNotification(Self);
     if not PostMessage(Handle, ReleaseMessage, 0, 0) then
-      raise EFormsError.Create('Cannot queue form release');
+      raise ENativeApplicationError.Create('Cannot queue form release');
   except FReleases.Remove(Form); raise; end;
 end;
 procedure TApplication.FreeReleases;

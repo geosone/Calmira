@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 66 native suites pass with the corrected compiler/private RTL, including the initial Forms unit, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 68 native suites pass with the corrected compiler/private RTL, including the initial Forms/Dialogs units, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -38,6 +38,8 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make win16-form-resize` | Native client metrics, virtual Resize/OnResize, child layout, reentry guards and modal/recreation tests |
 | `make win16-form-state` | Deferred/live min/max/normal state, retained normal placement, focus guards, modal startup and recreation |
 | `make win16-forms` | Initial `Forms` unit: global Application/Screen, typed TForm/MainForm/Screen views, deferred caFree/Release and unit finalization |
+| `make win16-dialogs` | Initial `Dialogs`: MessageDlg/ShowMessage with real native buttons, icons, Delphi default/cancel rules, wrapping and localized captions |
+| `make win16-input-query` | InputQuery/InputBox: selected initial text, typed accept, Escape cancel and resource cycles |
 | `make winfile16-core` | Original Microsoft filename, directory-memory and size-format modules |
 | `make drive-probe` | Separate `DRVPROBE.EXE` diagnostic, not a file manager |
 | `make win16-helpers` | FPC SHOWDESK, SCRNSAVE, EXPLORER and CTASKMAN executables |
@@ -892,10 +894,45 @@ Delphi's own restriction.
 
 `make win16-forms-runtime-test` checks these cases natively (23 checks,
 including finalization). The probe keeps the 4-KiB stack/2-KiB heap and uses
-63,648 bytes of the guarded data budget. `caMinimize`, form Icon/Menu,
+63,504 bytes of the guarded data budget. `caMinimize`, form Icon/Menu,
 FormStyle, hints and runtime DFM streaming are deliberately absent. With this
-unit `make calmira` now stops at the next missing unit, `Dialogs`.
+unit `make calmira` stopped at the next missing unit, `Dialogs`.
 
 The complete `make -j4 win16-fixed-regression` passes with this suite added
 (`build/tests/forms-final-regression.log`, exit 0): 65 distinct private GDI
 artifact logs plus the separate classes fixture, all 66 configured suites.
+
+## Initial Dialogs Unit
+
+`src/win16/dialogs.pas` supplies the Delphi 1 `TMsgDlgType`/`TMsgDlgBtn`
+types, `CreateMessageDialog`, `MessageDlg`, `ShowMessage`, `InputQuery` and
+`InputBox`. Dialogs are real modal native forms with USER buttons, a shared
+system icon and an EDIT control, not `MessageBox`, so every original button
+combination works, including `mbYesNoCancel + [mbAll]` from fileman.pas.
+OK, otherwise Yes, is the default button; Cancel, otherwise No, otherwise OK
+handles Escape. Without OK/Yes the first button receives focus. Text wraps at
+half the screen width. Titles and buttons use the form-text provider with
+`TMessageForm.<Key>.Caption` entries in English, German and French; Cancel
+reuses `TStandardButtons.Cancel.Caption`. A Help button calls
+`Application.HelpContext` with the dialog's HelpContext.
+
+`win16-dialogs-runtime-test` and `win16-input-query-runtime-test` drive the
+dialogs from inside `Application.Run` through queued keys, mouse clicks and
+characters, then read caption, button order, focus and edit selection back
+through USER. They also cycle dialogs to check form, window and GDI release.
+The common dialogs (TOpenDialog, TFontDialog, TColorDialog) are not provided
+yet. `make calmira` now stops at the next missing unit, `ShellAPI`.
+The complete `make -j4 win16-fixed-regression` passes with both suites added
+(`build/tests/dialogs-final-regression.log`, exit 0): all 68 configured suites.
+
+### DGROUP pressure
+
+Both dialog probes need a 1-KiB local heap instead of 2 KiB: at 65,376 bytes
+Windows 3.11 refused to start the message probe with "not enough memory",
+while 64,352/64,464 bytes start and pass. In these probes the FPC RTL alone
+(SysUtils, Classes, System, SysConst/RTLConsts resource strings) occupies more
+than 40 KiB of DGROUP, VMTs and RTTI another substantial share. Dialogs
+therefore avoids a TForm subclass and its own exception class. The full shell
+links far more classes; moving VMT/RTTI/resource strings out of DGROUP (or an
+equivalent RTL reduction) is required before CALMIRA.EXE can start, independent
+of the remaining missing units.

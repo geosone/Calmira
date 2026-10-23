@@ -1,6 +1,6 @@
 program FormsTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Classes, SysUtils, Controls, Forms, native_form;
+uses WinTypes, WinProcs, Classes, SysUtils, Controls, Forms, native_form, native_application;
 type
   TMainForm = class(TForm)
   protected
@@ -122,7 +122,7 @@ begin
   Application.ProcessMessages;
   Check(Application.PendingReleases.Count = 0, 'stale release message is harmless');
   Rejected := False;
-  try Application.QueueRelease(nil); except on EFormsError do Rejected := True; end;
+  try Application.QueueRelease(nil); except on ENativeApplicationError do Rejected := True; end;
   Check(Rejected, 'nil release rejected');
 end;
 procedure ModalFree;
