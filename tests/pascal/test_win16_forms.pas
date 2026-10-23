@@ -12,13 +12,15 @@ type
     destructor Destroy; override;
     procedure CloseHandler(Sender: TObject; var Action: TCloseAction);
     procedure ModalShow(Sender: TObject);
+    procedure MinimizeHandler(Sender: TObject; var Action: TCloseAction);
+    procedure Filter(var Msg: TMsg; var Handled: Boolean);
   end;
   TTeardownProbe = class(TComponent)
   public
     destructor Destroy; override;
   end;
 var MainForm: TMainForm; Child, Modal, Loose: TChildForm; Foreign: TNativeForm;
-  Freed, Rejected, Failed, ShownMain: Boolean; Count, ModalCode: Integer;
+  Freed, Rejected, Failed, ShownMain: Boolean; Count, ModalCode, Filtered: Integer;
 {$I win16_stack_guard.inc}
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
@@ -49,6 +51,15 @@ end;
 procedure TChildForm.CloseHandler(Sender: TObject; var Action: TCloseAction);
 begin
   if FreeMode then Action := caFree;
+end;
+procedure TChildForm.MinimizeHandler(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caMinimize;
+end;
+procedure TChildForm.Filter(var Msg: TMsg; var Handled: Boolean);
+begin
+  if (Msg.hwnd = Handle) and (Msg.message = WM_CLOSE) then
+  begin Inc(Filtered); Handled := True; end;
 end;
 procedure TChildForm.ModalShow(Sender: TObject);
 begin
@@ -125,6 +136,22 @@ begin
   try Application.QueueRelease(nil); except on ENativeApplicationError do Rejected := True; end;
   Check(Rejected, 'nil release rejected');
 end;
+procedure MinimizeAndFilter;
+begin
+  Loose := TChildForm.Create(nil); Loose.SetBounds(240, 160, 160, 100); Loose.Show;
+  Loose.OnClose := Loose.MinimizeHandler; Freed := False;
+  Loose.Close;
+  Check(Loose.Visible and IsIconic(Loose.Handle) and (Loose.WindowState = wsMinimized) and
+    not Freed and (Application.PendingReleases.Count = 0), 'caMinimize minimizes instead of closing');
+  Loose.WindowState := wsNormal; Loose.OnClose := nil; Filtered := 0;
+  Application.OnMessage := Loose.Filter;
+  PostMessage(Loose.Handle, WM_CLOSE, 0, 0); Application.ProcessMessages;
+  Check((Filtered = 1) and Loose.Visible, 'Delphi 1 OnMessage sees the message and Handled stops it');
+  Application.OnMessage := nil;
+  PostMessage(Loose.Handle, WM_CLOSE, 0, 0); Application.ProcessMessages;
+  Check((Filtered = 1) and not Loose.Visible, 'clearing OnMessage restores dispatch');
+  Loose.Free;
+end;
 procedure ModalFree;
 begin
   Application.CreateForm(TChildForm, Modal);
@@ -145,7 +172,7 @@ begin
 end;
 begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
-  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; ModalFree; RunMain;
+  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; ModalFree; RunMain;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Check(StackGuardIntact, 'forms stack boundary');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');

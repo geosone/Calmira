@@ -1,7 +1,7 @@
 { SPDX-License-Identifier: GPL-2.0-or-later
   Tested Win16 Graphics compatibility subset, not the complete Delphi VCL. }
 unit Graphics;
-{$mode delphi}{$H+}
+{$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This Graphics adapter requires Win16}{$ENDIF}
 interface
 uses Classes, WinTypes, gdi_canvas, gdi_bitmap, gdi_icon;
@@ -9,6 +9,8 @@ type
   TRect = WinTypes.TRect;
   TPoint = WinTypes.TPoint;
   TColor = gdi_canvas.TColor;
+  { Delphi 1 Classes type with a ShortString argument (FPC's takes AnsiString). }
+  TGetStrProc = procedure(const S: string) of object;
   TGraphic = TGDIGraphic;
   TPen = TGDIPen;
   TFont = TGDIFont;
@@ -91,7 +93,7 @@ const
   bsCross = gdi_canvas.bsCross; bsDiagCross = gdi_canvas.bsDiagCross;
   fsBold = gdi_canvas.fsBold; fsItalic = gdi_canvas.fsItalic;
   fsUnderline = gdi_canvas.fsUnderline; fsStrikeOut = gdi_canvas.fsStrikeOut;
-  fsBorder = gdi_canvas.fsBorder; fsSurface = gdi_canvas.fsSurface;
+  fsSurface = gdi_canvas.fsSurface; fsBorder = gdi_canvas.fsBorder;
   clBlack = TColor($000000); clMaroon = TColor($000080);
   clGreen = TColor($008000); clOlive = TColor($008080);
   clNavy = TColor($800000); clPurple = TColor($800080);
@@ -100,18 +102,18 @@ const
   clLime = TColor($00FF00); clYellow = TColor($00FFFF);
   clBlue = TColor($FF0000); clFuchsia = TColor($FF00FF);
   clAqua = TColor($FFFF00); clWhite = TColor($FFFFFF);
-  clScrollBar = TColor($80000000); clBackground = TColor($80000001);
-  clActiveCaption = TColor($80000002); clInactiveCaption = TColor($80000003);
-  clMenu = TColor($80000004); clWindow = TColor($80000005);
-  clWindowFrame = TColor($80000006); clMenuText = TColor($80000007);
-  clWindowText = TColor($80000008); clCaptionText = TColor($80000009);
-  clActiveBorder = TColor($8000000A); clInactiveBorder = TColor($8000000B);
-  clAppWorkSpace = TColor($8000000C); clHighlight = TColor($8000000D);
-  clHighlightText = TColor($8000000E); clBtnFace = TColor($8000000F);
-  clBtnShadow = TColor($80000010); clGrayText = TColor($80000011);
-  clBtnText = TColor($80000012); clInactiveCaptionText = TColor($80000013);
-  clBtnHighlight = TColor($80000014);
-  clNone = TColor($1FFFFFFF); clDefault = TColor($20000000);
+  clScrollBar = TColor(-1); clBackground = TColor(-2);
+  clActiveCaption = TColor(-3); clInactiveCaption = TColor(-4);
+  clMenu = TColor(-5); clWindow = TColor(-6);
+  clWindowFrame = TColor(-7); clMenuText = TColor(-8);
+  clWindowText = TColor(-9); clCaptionText = TColor(-10);
+  clActiveBorder = TColor(-11); clInactiveBorder = TColor(-12);
+  clAppWorkSpace = TColor(-13); clHighlight = TColor(-14);
+  clHighlightText = TColor(-15); clBtnFace = TColor(-16);
+  clBtnShadow = TColor(-17); clGrayText = TColor(-18);
+  clBtnText = TColor(-19); clInactiveCaptionText = TColor(-20);
+  clBtnHighlight = TColor(-21);
+  clLtGray = TColor($C0C0C0); clDkGray = TColor($808080);
 function Rect(Left, Top, Right, Bottom: SmallInt): TRect;
 function Bounds(Left, Top, Width, Height: SmallInt): TRect;
 function ColorToRGB(Color: TColor): LongInt;
@@ -151,9 +153,10 @@ begin Result := TCanvas.Create; end;
 function TBitmap.GetCanvas: TCanvas;
 begin Result := TCanvas(inherited Canvas); end;
 procedure TBitmap.LoadFromResourceName(Instance: HINST; const Name: string);
+var Buffer: array[0..255] of Char;
 begin
   if (Name = '') or (Pos(#0, Name) <> 0) then raise EGDIError.Create('Invalid bitmap resource name');
-  LoadFromResource(Instance, PChar(Name));
+  LoadFromResource(Instance, StrPCopy(Buffer, Name));
 end;
 procedure TBitmap.LoadFromResourceID(Instance: HINST; ID: Word);
 begin LoadFromResource(Instance, PChar(ID)); end;
@@ -245,11 +248,27 @@ begin Result := gdi_canvas.ColorToRGB(Color); end;
 function IdentToColor(const Ident: string; var Color: LongInt): Boolean;
 begin Result := color_names.IdentToColor(Ident, Color); end;
 function ColorToIdent(Color: LongInt; var Ident: string): Boolean;
-begin Result := color_names.ColorToIdent(Color, Ident); end;
+var Name: AnsiString;
+begin
+  Name := Ident; Result := color_names.ColorToIdent(Color, Name);
+  if Result then Ident := Name;
+end;
 function StringToColor(const Text: string): TColor;
 begin Result := color_names.StringToColor(Text); end;
 function ColorToString(Color: TColor): string;
 begin Result := color_names.ColorToString(Color); end;
+type
+  TColorNameRelay = class
+    Target: TGetStrProc;
+    procedure Visit(const S: AnsiString);
+  end;
+procedure TColorNameRelay.Visit(const S: AnsiString);
+begin Target(S); end;
 procedure GetColorValues(Proc: TGetStrProc);
-begin color_names.GetColorValues(Proc); end;
+var Relay: TColorNameRelay;
+begin
+  Relay := TColorNameRelay.Create;
+  try Relay.Target := Proc; color_names.GetColorValues(Relay.Visit);
+  finally Relay.Free; end;
+end;
 end.

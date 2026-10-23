@@ -84,6 +84,8 @@ class Win16MessageTests(unittest.TestCase):
             self.assertIn('PAutoDataSegHeader(Ptr(SSeg,0))', (first / 'rtl/win16/system.pp').read_text(encoding='latin1'))
             self.assertIn('procedure AppendStr(var Dest: ShortString; const S: ShortString);',
                           (first / 'rtl/objpas/sysutils/sysstr.inc').read_text(encoding='latin1'))
+            self.assertIn('Procedure FmtStr(Var Res: ShortString; Const Fmt : String; Const args: Array of const);',
+                          (first / 'rtl/objpas/sysutils/sysstrh.inc').read_text(encoding='latin1'))
             self.assertIn('TFileName = ShortString;',
                           (first / 'rtl/objpas/sysutils/sysutilh.inc').read_text(encoding='latin1'))
             self.assertIn('procedure DateTimeToString(var Result: ShortString;',

@@ -7,10 +7,10 @@ unit Dialogs;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This Dialogs subset requires Win16}{$ENDIF}
 interface
-uses Classes, WinTypes, Controls, Forms;
+uses Classes, WinTypes, Controls, Forms, Buttons;
 type
   TMsgDlgType = (mtWarning, mtError, mtInformation, mtConfirmation, mtCustom);
-  TMsgDlgBtn = (mbYes, mbNo, mbOK, mbCancel, mbHelp, mbAbort, mbRetry, mbIgnore, mbAll);
+  TMsgDlgBtn = (mbYes, mbNo, mbOK, mbCancel, mbAbort, mbRetry, mbIgnore, mbAll, mbHelp);
   TMsgDlgButtons = set of TMsgDlgBtn;
 const
   mbYesNoCancel = [mbYes, mbNo, mbCancel];
@@ -24,20 +24,26 @@ function MessageDlg(const Msg: string; AType: TMsgDlgType;
 procedure ShowMessage(const Msg: string);
 function InputQuery(const ACaption, APrompt: string; var Value: string): Boolean;
 function InputBox(const ACaption, APrompt, ADefault: string): string;
+const
+  { Delphi 1 defaults. The buttons are native USER buttons, so the style and
+    glyph switches are kept for source compatibility only; the size is used. }
+  MsgDlgButtonStyle: TButtonStyle = bsAutoDetect;
+  MsgDlgGlyphs: Boolean = True;
+  MsgDlgBtnSize: TPoint = (X: 77; Y: 27);
 implementation
 uses SysUtils, WinProcs, Graphics, native_application, native_label, native_button, native_edit, form_text;
 const
   DialogStyle = WS_POPUP or WS_CAPTION or WS_DLGFRAME or WS_SYSMENU;
-  Margin = 12; IconSize = 32; ButtonWidth = 75; ButtonHeight = 23; ButtonGap = 6;
+  Margin = 12; IconSize = 32; ButtonGap = 6;
   { Keys double as English defaults. }
   TitleKeys: array[TMsgDlgType] of string[11] =
     ('Warning', 'Error', 'Information', 'Confirm', '');
   ButtonKeys: array[TMsgDlgBtn] of string[6] =
-    ('Yes', 'No', 'OK', 'Cancel', 'Help', 'Abort', 'Retry', 'Ignore', 'All');
+    ('Yes', 'No', 'OK', 'Cancel', 'Abort', 'Retry', 'Ignore', 'All', 'Help');
   ButtonTexts: array[TMsgDlgBtn] of string[7] =
-    ('&Yes', '&No', 'OK', 'Cancel', '&Help', '&Abort', '&Retry', '&Ignore', '&All');
+    ('&Yes', '&No', 'OK', 'Cancel', '&Abort', '&Retry', '&Ignore', '&All', '&Help');
   ButtonResults: array[TMsgDlgBtn] of TModalResult =
-    (mrYes, mrNo, mrOk, mrCancel, mrNone, mrAbort, mrRetry, mrIgnore, mrAll);
+    (mrYes, mrNo, mrOk, mrCancel, mrAbort, mrRetry, mrIgnore, mrAll, mrNone);
 type
   { No TForm subclass: its VMT alone costs 352 bytes of the shared DGROUP. }
   TMessageIcon = class(TGraphicControl)
@@ -102,7 +108,7 @@ function AddButton(Form: TForm; const Caption: string; X, Y: Integer;
   ModalCode: TModalResult): TButton;
 begin
   Result := TButton.Create(Form); Result.Parent := Form;
-  Result.SetBounds(X, Y, ButtonWidth, ButtonHeight);
+  Result.SetBounds(X, Y, MsgDlgBtnSize.X, MsgDlgBtnSize.Y);
   Result.Font.Assign(Form.Canvas.Font); Result.Caption := Caption;
   Result.ModalResult := ModalCode;
 end;
@@ -138,7 +144,7 @@ begin
     Count := 0;
     for B := Low(TMsgDlgBtn) to High(TMsgDlgBtn) do
       if B in AButtons then Inc(Count);
-    ButtonsWidth := Count * ButtonWidth + (Count - 1) * ButtonGap;
+    ButtonsWidth := Count * MsgDlgBtnSize.X + (Count - 1) * ButtonGap;
     ClientWidth := TextLeft + TextWidth + Margin;
     if ButtonsWidth + 2 * Margin > ClientWidth then ClientWidth := ButtonsWidth + 2 * Margin;
     ButtonTop := Margin + TextArea.Bottom - TextArea.Top;
@@ -168,9 +174,9 @@ begin
         { Without OK/Yes, focus starts on the first button, as in Delphi. }
         if (HasDefault and (B = DefaultButton)) or (not HasDefault and (Order = 0)) then
           Form.InitialControl := Button;
-        Inc(X, ButtonWidth + ButtonGap); Inc(Order);
+        Inc(X, MsgDlgBtnSize.X + ButtonGap); Inc(Order);
       end;
-    FinishForm(Form, ClientWidth, ButtonTop + ButtonHeight + Margin);
+    FinishForm(Form, ClientWidth, ButtonTop + MsgDlgBtnSize.Y + Margin);
   except Form.Free; raise; end;
   Result := Form;
 end;
@@ -205,13 +211,13 @@ begin
     Edit.TabOrder := 0; Prompt.FocusControl := Edit;
     ButtonTop := Margin + 18 + 23 + Margin;
     Button := AddButton(Form, DialogText('OK', 'OK'),
-      (FormWidth - 2 * ButtonWidth - ButtonGap) div 2, ButtonTop, mrOk);
+      (FormWidth - 2 * MsgDlgBtnSize.X - ButtonGap) div 2, ButtonTop, mrOk);
     Button.Default := True; Button.TabOrder := 1;
     Button := AddButton(Form, DialogText('Cancel', 'Cancel'),
       (FormWidth + ButtonGap) div 2, ButtonTop, mrCancel);
     Button.Cancel := True; Button.TabOrder := 2;
     Form.InitialControl := Edit;
-    FinishForm(Form, FormWidth, ButtonTop + ButtonHeight + Margin);
+    FinishForm(Form, FormWidth, ButtonTop + MsgDlgBtnSize.Y + Margin);
     Edit.SelectAll;
     if Form.ShowModal = mrOk then begin Value := Edit.Text; Result := True; end;
   finally Form.Free; end;

@@ -39,7 +39,6 @@ type
     FHelpFile: string;
 {$IFDEF FPC}
     FHelpActive: Boolean;
-    function HandleHelp(Command: Word; Data: LongInt; var CallHelp: Boolean): Boolean;
 {$ENDIF}
     FHint: string;
     FHintColor: TColor;
@@ -58,6 +57,9 @@ type
     FOnWndProc: TWindowHook;
     FOnActiveControlChange: TNotifyEvent;
     FOnActiveFormChange: TNotifyEvent;
+{$IFDEF FPC}
+    function HandleHelp(Command: Word; Data: LongInt; var CallHelp: Boolean): Boolean;
+{$ENDIF}
   protected
     { Protected declarations }
     procedure Loaded; override;

@@ -4,8 +4,11 @@ unit ExtCtrls;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This ExtCtrls subset requires Win16}{$ENDIF}
 interface
-uses Classes, Graphics, Controls, native_notebook, native_header;
+uses Classes, Graphics, Controls, native_notebook, native_header, native_bevel;
 type
+  TBevel = native_bevel.TBevel;
+  TBevelStyle = native_bevel.TBevelStyle;
+  TBevelShape = native_bevel.TBevelShape;
   TNotebook = native_notebook.TNotebook;
   TPage = native_notebook.TPage;
   THeader = native_header.THeader;
@@ -35,6 +38,11 @@ type
     property Visible;
   end;
 { Delphi 1 bevel: Width nested frames, top/left in TopColor; Rect shrinks by Width. }
+const
+  bsLowered = native_bevel.bsLowered; bsRaised = native_bevel.bsRaised;
+  bsBox = native_bevel.bsBox; bsFrame = native_bevel.bsFrame;
+  bsTopLine = native_bevel.bsTopLine; bsBottomLine = native_bevel.bsBottomLine;
+  bsLeftLine = native_bevel.bsLeftLine; bsRightLine = native_bevel.bsRightLine;
 procedure Frame3D(Canvas: TCanvas; var Rect: TRect; TopColor, BottomColor: TColor;
   Width: Integer);
 implementation

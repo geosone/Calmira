@@ -13,7 +13,7 @@ type
     bsBDiagonal, bsCross, bsDiagCross);
   TFontStyle = (fsBold, fsItalic, fsUnderline, fsStrikeOut);
   TFontStyles = set of TFontStyle;
-  TFillStyle = (fsBorder, fsSurface);
+  TFillStyle = (fsSurface, fsBorder);
   TGDIGraphic = class(TPersistent)
   private
     FOnChange: TNotifyEvent;
@@ -159,7 +159,8 @@ type
 const
   clBlack = TColor($000000); clWhite = TColor($FFFFFF);
   clRed = TColor($0000FF); clLime = TColor($00FF00); clBlue = TColor($FF0000);
-  clWindow = TColor(-2147483643); clBtnFace = TColor(-2147483633);
+  { Delphi 1 system colours: -(COLOR_x) - 1. }
+  clWindow = TColor(-6); clBtnFace = TColor(-16);
 function ColorToRGB(Color: TColor): LongInt;
 implementation
 uses WinProcs, gdi_colorkey;
@@ -200,7 +201,7 @@ begin if Assigned(FOnChange) then FOnChange(Self); end;
 
 function ColorToRGB(Color: TColor): LongInt;
 begin
-  if Color < 0 then Result := GetSysColor(Color and $FF)
+  if Color < 0 then Result := GetSysColor(-(Color + 1))
   else Result := Color and $FFFFFF;
 end;
 procedure TGDIResource.ReleaseHandle;
@@ -512,7 +513,7 @@ begin
   Changed;
 end;
 procedure TGDICanvas.FloodFill(X, Y: SmallInt; Color: TColor; FillStyle: TFillStyle);
-var State: SmallInt; Drawn: Boolean;
+var State: SmallInt; Drawn: Boolean; Mode: Word;
 begin
   RequireHandle;
   if FBrush.Style = bsClear then Exit;
@@ -520,7 +521,8 @@ begin
   try
     if SelectObject(FHandle, FBrush.GetHandle) = 0 then raise EGDIError.Create('Cannot select fill brush');
     SetROP2(FHandle, R2_COPYPEN);
-    Drawn := ExtFloodFill(FHandle, X, Y, ColorToRGB(Color), Ord(FillStyle));
+    if FillStyle = fsSurface then Mode := FLOODFILLSURFACE else Mode := FLOODFILLBORDER;
+    Drawn := ExtFloodFill(FHandle, X, Y, ColorToRGB(Color), Mode);
   finally EndDraw(State); end;
   if Drawn then Changed;
 end;

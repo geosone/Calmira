@@ -28,7 +28,8 @@ class Win16EntryControlTests(unittest.TestCase):
                      'while (I < 255) and (Source[I] <> #0)',
                      'GetWindowTextLength(Handle) > 255',
                      'Length(FText) - FSelLength + LongInt(Length(Value)) > 255',
-                     '(Value < 1) or (Value > 255)', 'Pos(#0, Value)'):
+                     '(Value < 0) or (Value > 255)', 'if FMaxLength = 0 then Result := 255',
+                     'default 0;', 'Pos(#0, Value)'):
             self.assertIn(text, source)
         self.assertNotIn('StrLen(', source)
 

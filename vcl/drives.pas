@@ -345,7 +345,11 @@ begin
     MOV     DS,AX
     LEA     DX,FCB                  { put offset of FCB in dx }
     MOV     AX,1300h                { function 13h (delete file) }
+{$IFDEF FPC}
+    INT     21h                     { FPC has no DOS3Call import }
+{$ELSE}
     CALL    DOS3Call                { invoke int 21h }
+{$ENDIF}
     POP     DS                      { restore ds }
     CMP     AL,00h                  { check for success }
     JE      @@End

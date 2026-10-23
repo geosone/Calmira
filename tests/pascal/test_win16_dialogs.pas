@@ -1,6 +1,6 @@
 program DialogsTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Controls, Forms, Dialogs, form_text;
+uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Controls, Forms, Buttons, Dialogs, form_text;
 type
   TCatalog = class
     function Translate(const RootClass, ComponentName, PropertyName,
@@ -42,6 +42,16 @@ begin
   Answer := MessageDlg(Text + #13#10'x', mtWarning, [mbOK], 0);
   Check((Answer = mrOk) and (Driver.Height >= ShortHeight + 20) and
     (Driver.Width <= GetSystemMetrics(SM_CXSCREEN) div 2 + 80), 'wrap');
+  Check((MsgDlgBtnSize.X = 77) and (MsgDlgBtnSize.Y = 27) and MsgDlgGlyphs and
+    (MsgDlgButtonStyle = bsAutoDetect), 'Delphi 1 dialog globals');
+  MsgDlgBtnSize.Y := 47; MsgDlgButtonStyle := bsNew;
+  Script(akKey, VK_RETURN, '');
+  MessageDlg('Hello', mtInformation, [mbOK], 0);
+  Check(Driver.Height = ShortHeight + 20, 'MsgDlgBtnSize drives the button height');
+  MsgDlgBtnSize.Y := 27;
+  Script(akKey, VK_ESCAPE, '');
+  Answer := MessageDlg('Help?', mtConfirmation, [mbHelp, mbOK, mbCancel], 0);
+  Check((Answer = mrCancel) and (Driver.Children = 'OK|Cancel|&Help'), 'Delphi 1 button order puts Help last');
   Script(akKey, VK_RETURN, '');
   ShowMessage('Plain');
   Check(Driver.Acted and (Driver.Caption = Application.Title) and (Driver.Children = 'OK'), 'ShowMessage');

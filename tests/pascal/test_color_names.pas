@@ -18,10 +18,11 @@ begin
 end;
 begin
   Collector := TCollector.Create;
-  try GetColorValues(Collector.Visit); Check(Collector.Count = 39, 'complete Win3.1 color set');
+  try GetColorValues(Collector.Visit); Check(Collector.Count = 37, 'complete Delphi 1 color set');
   finally Collector.Free; end;
   Check(StringToColor('cLbTnHiGhLiGhT') = clBtnHighlight, 'case insensitive names');
-  Check(StringToColor('$80000005') = clWindow, 'unsigned system-color hex');
+  Check((clScrollBar = -1) and (clBtnFace = -16) and (clBtnHighlight = -21), 'Delphi 1 system colours');
+  Check(StringToColor('$FFFFFFFA') = clWindow, 'unsigned system-color hex');
   Check(StringToColor('$FFFFFFFF') = -1, 'all-bits hex');
   Check(StringToColor('-123') = -123, 'signed decimal');
   Check(StringToColor('16711680') = clBlue, 'decimal RGB');
@@ -42,6 +43,6 @@ begin
   Rejected := False;
   try StringToColor('$FFFFFFFFFFFFFFFF'); except on EConvertError do Rejected := True; end;
   Check(Rejected, 'unsigned 64-bit hex cannot wrap into a signed color');
-  Check(StringToColor('$80000000') = clScrollBar, 'lowest signed color bit pattern');
+  Check(StringToColor('-16') = clBtnFace, 'signed system colour');
   WriteLn('PASS color names and conversions');
 end.

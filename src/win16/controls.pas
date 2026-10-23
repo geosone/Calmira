@@ -64,7 +64,6 @@ type
     function GetVisible: Boolean;
     procedure ReadBounds;
     function GetBoundsRect: TRect;
-    function GetClientRect: TRect;
     function GetClientWidth: Integer;
     function GetClientHeight: Integer;
     function GetLeft: Integer;
@@ -83,6 +82,7 @@ type
     function GetControl(Index: Integer): TControl;
   protected
     procedure ControlOperation(Operation: TControlOperation; var Value: Boolean); override;
+    function GetClientRect: TRect; virtual;
     procedure ChangeView(Action: TControlViewAction); virtual;
     { Model-only teardown restoration; never moves a live HWND. }
     procedure StoreBounds(const Area: TRect);

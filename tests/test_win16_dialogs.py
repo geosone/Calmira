@@ -11,8 +11,8 @@ class DialogsSubsetTests(unittest.TestCase):
     def test_delphi_1_types_keep_their_order(self):
         source = SOURCE.read_text()
         self.assertIn('TMsgDlgType = (mtWarning, mtError, mtInformation, mtConfirmation, mtCustom);', source)
-        self.assertIn('TMsgDlgBtn = (mbYes, mbNo, mbOK, mbCancel, mbHelp, mbAbort, mbRetry, mbIgnore, mbAll);', source)
-        self.assertIn('(mrYes, mrNo, mrOk, mrCancel, mrNone, mrAbort, mrRetry, mrIgnore, mrAll)', source)
+        self.assertIn('TMsgDlgBtn = (mbYes, mbNo, mbOK, mbCancel, mbAbort, mbRetry, mbIgnore, mbAll, mbHelp);', source)
+        self.assertIn('(mrYes, mrNo, mrOk, mrCancel, mrAbort, mrRetry, mrIgnore, mrAll, mrNone)', source)
 
     def test_dialogs_use_native_controls_not_messagebox(self):
         source = SOURCE.read_text()

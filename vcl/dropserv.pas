@@ -78,7 +78,7 @@ unit DropServ;
 interface
 
 uses SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
-  Forms, Dialogs, DragDrop;
+  Forms, Dialogs, DragDrop{$IFDEF FPC}, Win31{$ENDIF};
 
 type
   TFileDragEvent = procedure (Sender: TObject; X, Y: Integer;

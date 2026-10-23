@@ -18,10 +18,13 @@ class Win16GraphicsTests(unittest.TestCase):
         graphics = (ROOT / 'src/win16/graphics.pas').read_text()
         portable = (ROOT / 'src/portable/color_names.pas').read_text()
         def colors(text, typename):
-            return {name.lower(): int(value, 16) for name, value in
-                    re.findall(r'(cl\w+)\s*=\s*' + typename + r'\(\$([0-9A-Fa-f]+)\)', text)}
+            return {name.lower(): int(value.replace('$', '0x'), 0) for name, value in
+                    re.findall(r'(cl\w+)\s*=\s*' + typename + r'\((-?\$?[0-9A-Fa-f]+)\)', text)}
         values = colors(graphics, 'TColor')
         self.assertEqual(len(values), 39)
+        # Delphi 1 GRAPHICS.INT: clX = TColor(-COLOR_X - 1); no clNone/clDefault.
+        self.assertEqual((values['clscrollbar'], values['clbtnface'], values['clbtnhighlight']), (-1, -16, -21))
+        self.assertNotIn('clnone', values)
         self.assertEqual(values, colors(portable, 'LongInt'))
 
     def test_native_probe_uses_public_api_and_real_original_color_unit(self):

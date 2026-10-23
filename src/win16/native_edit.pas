@@ -30,6 +30,7 @@ type
     function GetModified: Boolean;
     procedure SetModified(Value: Boolean);
     procedure SetMaxLength(Value: Integer);
+    function NativeLimit: Integer;
     procedure SetReadOnly(Value: Boolean);
     procedure SetPasswordChar(Value: Char);
     procedure SetCharCase(Value: TEditCharCase);
@@ -41,6 +42,8 @@ type
     procedure WndProc(var M: TMessage); override;
     function ControlCommand(Code: Word): Boolean; override;
     procedure Change; virtual;
+    { Extra ES_* bits for descendants (TSpinEdit needs ES_MULTILINE). }
+    function ExtraStyle: DWORD; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -61,7 +64,7 @@ type
     property Modified: Boolean read GetModified write SetModified;
   published
     property Text: string read GetText write SetText;
-    property MaxLength: Integer read FMaxLength write SetMaxLength default 255;
+    property MaxLength: Integer read FMaxLength write SetMaxLength default 0;
     property ReadOnly: Boolean read FReadOnly write SetReadOnly default False;
     property PasswordChar: Char read FPasswordChar write SetPasswordChar;
     property CharCase: TEditCharCase read FCharCase write SetCharCase default ecNormal;
@@ -78,7 +81,7 @@ const EditClass = 'CalmiraNativeEdit';
 var EditProcedure: WNDPROC;
 constructor TEdit.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner); FMaxLength := 255; TabStop := True;
+  inherited Create(AOwner); TabStop := True;
   SetBounds(0, 0, 121, 23); Canvas.Font.OnChange := FontChanged;
 end;
 destructor TEdit.Destroy;
@@ -95,7 +98,7 @@ procedure TEdit.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
 begin
   if (Parent = 0) or (Style and WS_CHILD = 0) then
     raise ENativeWindowError.Create('Edit requires a child window');
-  Style := (Style and not DWORD($FFFF or WS_TABSTOP)) or WS_BORDER or ES_AUTOHSCROLL;
+  Style := (Style and not DWORD($FFFF or WS_TABSTOP)) or WS_BORDER or ES_AUTOHSCROLL or ExtraStyle;
   if TabStop then Style := Style or WS_TABSTOP;
   if FReadOnly then Style := Style or ES_READONLY;
   if FCharCase = ecUpperCase then Style := Style or ES_UPPERCASE;
@@ -104,12 +107,14 @@ begin
   try
     inherited CreateHandle(Parent, FText, Style, X, Y, Width, Height);
     try
-      Perform(EM_LIMITTEXT, FMaxLength, 0);
+      Perform(EM_LIMITTEXT, NativeLimit, 0);
       Perform(EM_SETPASSWORDCHAR, Ord(FPasswordChar), 0);
       FontChanged(Self); WriteSelection; SetModified(FModified);
     except DestroyHandle; raise; end;
   finally FInitializing := False; end;
 end;
+function TEdit.ExtraStyle: DWORD;
+begin Result := 0; end;
 procedure TEdit.ReadText;
 var Buffer: array[0..255] of Char; Count: Integer;
 begin
@@ -250,10 +255,14 @@ begin
 end;
 procedure TEdit.SetModified(Value: Boolean);
 begin FModified := Value; if Handle <> 0 then Perform(EM_SETMODIFY, Ord(Value), 0); end;
+function TEdit.NativeLimit: Integer;
+begin
+  if FMaxLength = 0 then Result := 255 else Result := FMaxLength;
+end;
 procedure TEdit.SetMaxLength(Value: Integer);
 begin
-  if (Value < 1) or (Value > 255) then raise ENativeWindowError.Create('Edit limit must be 1..255');
-  FMaxLength := Value; if Handle <> 0 then Perform(EM_LIMITTEXT, Value, 0);
+  if (Value < 0) or (Value > 255) then raise ENativeWindowError.Create('Edit limit must be 0..255');
+  FMaxLength := Value; if Handle <> 0 then Perform(EM_LIMITTEXT, NativeLimit, 0);
 end;
 procedure TEdit.SetReadOnly(Value: Boolean);
 begin

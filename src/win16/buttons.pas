@@ -7,6 +7,8 @@ interface
 uses Classes, WinTypes, Graphics, native_button, native_speedbutton;
 type
   TButtonLayout = native_speedbutton.TButtonLayout;
+  { Delphi 1 BitBtn/MessageDlg look; only the new 3D look is drawn. }
+  TButtonStyle = (bsAutoDetect, bsWin31, bsNew);
   TButtonState = native_speedbutton.TButtonState;
   TSpeedButton = native_speedbutton.TSpeedButton;
 const

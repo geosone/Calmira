@@ -1,5 +1,5 @@
 program TestWin16Graphics;
-{$mode delphi}{$H+}{$APPTYPE GUI}{$M 4096,4096}
+{$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,4096}
 { Intentionally use only the public compatibility API and the unchanged
   original CalColor unit, not the foundation unit names. }
 uses WinTypes, WinProcs, Classes, SysUtils, Graphics, CalColor;
@@ -97,6 +97,9 @@ begin
     Check(IdentToColor('clBtnFace', Value) and (Value = clBtnFace), 'Graphics color identifier');
     Check(ColorToIdent(clBtnFace, Name) and (Name = 'clBtnFace'), 'Graphics color name');
     Check(ColorToRGB(clWindow) = GetSysColor(COLOR_WINDOW), 'public system-color resolution');
+    Check((clBtnFace = -16) and (ColorToRGB(clBtnFace) = GetSysColor(COLOR_BTNFACE)) and
+      (ColorToRGB(clScrollBar) = GetSysColor(COLOR_SCROLLBAR)) and
+      (ColorToRGB(clBtnHighlight) = GetSysColor(20 { COLOR_BTNHIGHLIGHT })), 'Delphi 1 system-colour encoding');
     Check(StringToColor(ColorToString($123456)) = $123456, 'public numeric color round trip');
     Rejected := False;
     try StringToColor('$FFFFFFFFFFFFFFFF'); except on EConvertError do Rejected := True; end;

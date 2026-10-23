@@ -57,6 +57,7 @@ class Win16DrawingTests(unittest.TestCase):
     def test_fill_enum_exports_and_native_order(self):
         core = (ROOT / 'src/win16/gdi_canvas.pas').read_text()
         facade = (ROOT / 'src/win16/graphics.pas').read_text()
-        self.assertIn('TFillStyle = (fsBorder, fsSurface)', core)
-        self.assertIn('ExtFloodFill(FHandle, X, Y, ColorToRGB(Color), Ord(FillStyle))', core)
-        self.assertIn('fsBorder = gdi_canvas.fsBorder; fsSurface = gdi_canvas.fsSurface', facade)
+        # Delphi 1 GRAPHICS.INT order; the USER mode is mapped, not Ord().
+        self.assertIn('TFillStyle = (fsSurface, fsBorder)', core)
+        self.assertIn('if FillStyle = fsSurface then Mode := FLOODFILLSURFACE else Mode := FLOODFILLBORDER;', core)
+        self.assertIn('fsSurface = gdi_canvas.fsSurface; fsBorder = gdi_canvas.fsBorder', facade)

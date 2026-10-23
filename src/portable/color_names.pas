@@ -12,18 +12,18 @@ const
   clLime = LongInt($00FF00); clYellow = LongInt($00FFFF);
   clBlue = LongInt($FF0000); clFuchsia = LongInt($FF00FF);
   clAqua = LongInt($FFFF00); clWhite = LongInt($FFFFFF);
-  clScrollBar = LongInt($80000000); clBackground = LongInt($80000001);
-  clActiveCaption = LongInt($80000002); clInactiveCaption = LongInt($80000003);
-  clMenu = LongInt($80000004); clWindow = LongInt($80000005);
-  clWindowFrame = LongInt($80000006); clMenuText = LongInt($80000007);
-  clWindowText = LongInt($80000008); clCaptionText = LongInt($80000009);
-  clActiveBorder = LongInt($8000000A); clInactiveBorder = LongInt($8000000B);
-  clAppWorkSpace = LongInt($8000000C); clHighlight = LongInt($8000000D);
-  clHighlightText = LongInt($8000000E); clBtnFace = LongInt($8000000F);
-  clBtnShadow = LongInt($80000010); clGrayText = LongInt($80000011);
-  clBtnText = LongInt($80000012); clInactiveCaptionText = LongInt($80000013);
-  clBtnHighlight = LongInt($80000014);
-  clNone = LongInt($1FFFFFFF); clDefault = LongInt($20000000);
+  clScrollBar = LongInt(-1); clBackground = LongInt(-2);
+  clActiveCaption = LongInt(-3); clInactiveCaption = LongInt(-4);
+  clMenu = LongInt(-5); clWindow = LongInt(-6);
+  clWindowFrame = LongInt(-7); clMenuText = LongInt(-8);
+  clWindowText = LongInt(-9); clCaptionText = LongInt(-10);
+  clActiveBorder = LongInt(-11); clInactiveBorder = LongInt(-12);
+  clAppWorkSpace = LongInt(-13); clHighlight = LongInt(-14);
+  clHighlightText = LongInt(-15); clBtnFace = LongInt(-16);
+  clBtnShadow = LongInt(-17); clGrayText = LongInt(-18);
+  clBtnText = LongInt(-19); clInactiveCaptionText = LongInt(-20);
+  clBtnHighlight = LongInt(-21);
+  clLtGray = LongInt($C0C0C0); clDkGray = LongInt($808080);
 function IdentToColor(const Ident: string; var Color: LongInt): Boolean;
 function ColorToIdent(Color: LongInt; var Ident: string): Boolean;
 function StringToColor(const Text: string): LongInt;
@@ -32,7 +32,7 @@ procedure GetColorValues(Proc: TGetStrProc);
 implementation
 uses SysUtils;
 type TColorName = record Value: LongInt; Name: PChar; end;
-const Names: array[0..38] of TColorName = (
+const Names: array[0..36] of TColorName = (
   (Value: clBlack; Name: 'clBlack'), (Value: clMaroon; Name: 'clMaroon'),
   (Value: clGreen; Name: 'clGreen'), (Value: clOlive; Name: 'clOlive'),
   (Value: clNavy; Name: 'clNavy'), (Value: clPurple; Name: 'clPurple'),
@@ -51,8 +51,7 @@ const Names: array[0..38] of TColorName = (
   (Value: clHighlightText; Name: 'clHighlightText'), (Value: clBtnFace; Name: 'clBtnFace'),
   (Value: clBtnShadow; Name: 'clBtnShadow'), (Value: clGrayText; Name: 'clGrayText'),
   (Value: clBtnText; Name: 'clBtnText'), (Value: clInactiveCaptionText; Name: 'clInactiveCaptionText'),
-  (Value: clBtnHighlight; Name: 'clBtnHighlight'), (Value: clNone; Name: 'clNone'),
-  (Value: clDefault; Name: 'clDefault'));
+  (Value: clBtnHighlight; Name: 'clBtnHighlight'));
 function IdentToColor(const Ident: string; var Color: LongInt): Boolean;
 var I: Integer;
 begin

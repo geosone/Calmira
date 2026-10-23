@@ -2,7 +2,7 @@
   Initial Forms compatibility layer over the tested native application, screen
   and modal-form foundations. It supplies the global Application/Screen pair,
   typed TForm access and deferred Release; it is not the complete Delphi Forms
-  unit. caMinimize, runtime DFM streaming, menus, hints, Icon and form styles
+  unit. Runtime DFM streaming, menus, hints, Icon and form styles
   are absent and must fail to compile rather than be silently aliased. }
 unit Forms;
 {$mode delphi}{$H-}
@@ -15,6 +15,7 @@ type
   TCloseEvent = TNativeCloseEvent;
   TCloseQueryEvent = TNativeCloseQueryEvent;
   TWindowState = native_form.TWindowState;
+  TMessageEvent = procedure(var Msg: TMsg; var Handled: Boolean) of object;
   TForm = class(TNativeModalForm)
   protected
     procedure DoClose(var Action: TCloseAction); override;
@@ -28,10 +29,13 @@ type
   private
     FReleases: TList;
     FReleaseHooked: Boolean;
+    FOnMessage: TMessageEvent;
     function ReleaseHook(var Message: TMessage): Boolean;
     procedure FreeReleases;
     function GetMainForm: TForm;
     procedure SetMainForm(Value: TForm);
+    function MessageFilter(var Message: TMsg): Boolean;
+    procedure SetOnMessage(Value: TMessageEvent);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -40,6 +44,8 @@ type
     procedure QueueRelease(Form: TForm);
     property MainForm: TForm read GetMainForm write SetMainForm;
     property PendingReleases: TList read FReleases;
+    { Delphi 1 signature over the native Boolean filter. }
+    property OnMessage: TMessageEvent read FOnMessage write SetOnMessage;
   end;
   TScreen = class(TNativeScreen)
   private
@@ -52,7 +58,7 @@ type
     property ActiveForm: TForm read GetActiveForm;
   end;
 const
-  caNone = ncaNone; caHide = ncaHide; caFree = ncaDestroy;
+  caNone = ncaNone; caHide = ncaHide; caFree = ncaDestroy; caMinimize = ncaMinimize;
 var
   Application: TApplication;
   Screen: TScreen;
@@ -107,6 +113,17 @@ procedure TApplication.Notification(AComponent: TComponent; Operation: TOperatio
 begin
   if (Operation = opRemove) and (FReleases <> nil) then FReleases.Remove(AComponent);
   inherited Notification(AComponent, Operation);
+end;
+function TApplication.MessageFilter(var Message: TMsg): Boolean;
+begin
+  Result := False;
+  if Assigned(FOnMessage) then FOnMessage(Message, Result);
+end;
+procedure TApplication.SetOnMessage(Value: TMessageEvent);
+begin
+  FOnMessage := Value;
+  if Assigned(Value) then TNativeApplication(Self).OnMessage := MessageFilter
+  else TNativeApplication(Self).OnMessage := nil;
 end;
 function TApplication.GetMainForm: TForm;
 begin Result := TNativeApplication(Self).MainForm as TForm; end;

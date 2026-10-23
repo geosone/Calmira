@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 77 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons and combo boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 79 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons and combo boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1076,3 +1076,39 @@ and stops at the first `{$R *.DFM}` (about.pas).
 `make win16-speedbutton-runtime-test` and `make win16-drag-runtime-test` cover
 the slice; the full `make -j4 -k win16-fixed-regression` passed all 77 suites
 (`build/tests/drag-regression.log`, exit 0).
+
+## Delphi 1 Fidelity Fixes, Spin and Bevel
+
+An audit of the compat units against the Delphi 1.02 `*.INT` files found
+Delphi 2+ values that are now corrected:
+
+- System colours use the Delphi 1 encoding `TColor(-COLOR_x - 1)`
+  (`clBtnFace = -16`), and `ColorToRGB` maps them back with
+  `GetSysColor(-(Color + 1))`. `clNone`/`clDefault` (absent in Delphi 1) were
+  removed; `clLtGray`/`clDkGray` were added.
+- `TFillStyle = (fsSurface, fsBorder)` and
+  `TMsgDlgBtn = (mbYes, mbNo, mbOK, mbCancel, mbAbort, mbRetry, mbIgnore, mbAll, mbHelp)`
+  follow the Delphi order; FloodFill maps the style explicitly.
+- `caMinimize` minimizes the form instead of closing it (a main form still ends
+  the application, as in Delphi).
+- `Application.OnMessage` has the Delphi 1 `TMessageEvent`
+  `(var Msg: TMsg; var Handled: Boolean)` signature over the native filter.
+- `TEdit.MaxLength` defaults to 0 (no limit; Text stays a 255-byte ShortString).
+- `GetClientRect` is protected and virtual, as `TabPanel` overrides it.
+- Graphics is compiled with ShortStrings like the other units and declares the
+  Delphi 1 `TGetStrProc`; the RTL strings patch adds a ShortString `FmtStr`.
+- Buttons declares `TButtonStyle`; Dialogs has `MsgDlgButtonStyle`,
+  `MsgDlgGlyphs` (source compatibility only) and `MsgDlgBtnSize`, which sizes
+  the dialog buttons (Delphi default 77x27).
+
+`src/win16/native_spin.pas` (unit `Spin`) provides TSpinButton (400/100 ms
+auto-repeat) and TSpinEdit (embedded button, `EM_SETRECTNP`, Value clamping,
+MinValue/MaxValue/Increment, arrow keys, digit filter, clamp on exit);
+`native_bevel.pas` provides TBevel, exported through ExtCtrls. Covered by
+`make win16-spin-runtime-test` and `make win16-bevel-runtime-test`.
+
+In Calmira's own VCL, `apholder`, `drives`, `dropserv` and `extform` got small
+`{$IFDEF FPC}` edits (field order, `INT 21h` for the missing DOS3Call import,
+the `Win31` unit). 24 of the 32 VCL units now compile standalone.
+
+The full regression passed (`build/tests/audit-regression.log`, exit 0).

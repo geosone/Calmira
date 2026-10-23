@@ -11,6 +11,16 @@
  function UpperCase(const s: ansistring): ansistring; overload;
  function UpperCase(const s: ansistring; LocaleOptions: TLocaleOptions): ansistring; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
  function LowerCase(const s: ansistring): ansistring; overload;
+@@ -162,6 +166,9 @@
+ Function StrLFmt(Buffer : PChar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const; Const FormatSettings: TFormatSettings) : PChar;
+ Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
+ Procedure FmtStr(Var Res: string; const Fmt : string; Const args: Array of const; Const FormatSettings: TFormatSettings);
++{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
++Procedure FmtStr(Var Res: ShortString; Const Fmt : String; Const args: Array of const);
++{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
+ {$ifndef FPUNONE}
+ {$ifdef FPC_HAS_TYPE_EXTENDED}
+ Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
 --- a/rtl/objpas/sysutils/sysstr.inc
 +++ b/rtl/objpas/sysutils/sysstr.inc
 @@ -84,6 +84,13 @@
@@ -26,6 +36,21 @@
 +
  function IsLeadChar(B: Byte): Boolean; inline;
  
+ 
+@@ -1253,6 +1260,14 @@
+   FmtStr(Res,Fmt,Args,DefaultFormatSettings);
+ end;
+ 
++{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
++Procedure FmtStr(Var Res: ShortString; Const Fmt : String; Const args: Array of const);
++
++begin
++  Res:=Format(Fmt,Args,DefaultFormatSettings);
++end;
++{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
++
+ 
+ Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : PChar;
  
 --- a/rtl/objpas/sysutils/sysutilh.inc
 +++ b/rtl/objpas/sysutils/sysutilh.inc

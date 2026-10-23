@@ -205,7 +205,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-forms-runtime-test win16-dialogs-runtime-test win16-input-query-runtime-test \
 		win16-shellapi-runtime-test win16-inifiles-runtime-test win16-menus-runtime-test \
 		win16-system-dlls-runtime-test win16-clipbrd-runtime-test win16-radio-runtime-test \
-		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test \
+		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test win16-spin-runtime-test win16-bevel-runtime-test \
 		win16-cursor-runtime-test win16-cursor-modal-runtime-test \
 		win16-form-activation-runtime-test win16-form-resize-runtime-test win16-form-state-runtime-test \
 		win16-ui-runtime-test win16-window-runtime-test win16-input-runtime-test \
@@ -631,6 +631,30 @@ win16-speedbutton: fpc-win16-gui-rtl
 		-oGDITEST.EXE tests/pascal/test_win16_speedbutton.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-speedbutton/GDITEST.EXE
 
+.PHONY: win16-spin win16-spin-runtime-test
+win16-spin: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-spin/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-spin/units -FE$(BUILD_DIR)/tests/win16-spin \
+		-oGDITEST.EXE tests/pascal/test_win16_spin.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-spin/GDITEST.EXE
+
+win16-spin-runtime-test: win16-spin
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-spin/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-bevel win16-bevel-runtime-test
+win16-bevel: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-bevel/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-bevel/units -FE$(BUILD_DIR)/tests/win16-bevel \
+		-oGDITEST.EXE tests/pascal/test_win16_bevel.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-bevel/GDITEST.EXE
+
+win16-bevel-runtime-test: win16-bevel
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-bevel/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
 win16-speedbutton-runtime-test: win16-speedbutton
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-speedbutton/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
@@ -783,7 +807,7 @@ win16-gdi-runtime-test: win16-gdi
 win16-graphics: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-graphics/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -Fuvcl -FU$(BUILD_DIR)/tests/win16-graphics/units \
 		-FE$(BUILD_DIR)/tests/win16-graphics -oGDITEST.EXE tests/pascal/test_win16_graphics.pas
 	python3 tests/bitmap_fixtures.py $(BUILD_DIR)/tests/win16-graphics

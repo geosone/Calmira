@@ -98,7 +98,7 @@ begin
     Check(Edit.Text = 'b', 'live native lowercase');
     Edit.CharCase := ecNormal; Edit.Text := '123';
     Rejected := False;
-    try Edit.MaxLength := 0; except on ENativeWindowError do Rejected := True; end;
+    try Edit.MaxLength := -1; except on ENativeWindowError do Rejected := True; end;
     Check(Rejected and (Edit.MaxLength = 3), 'invalid limit preserves state');
     Rejected := False;
     try Edit.Text := 'bad'#0'value'; except on ENativeWindowError do Rejected := True; end;

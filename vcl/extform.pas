@@ -98,7 +98,7 @@ const
 
 implementation
 
-uses WinProcs, MiscUtil, LangUI;
+uses WinProcs, MiscUtil, LangUI{$IFDEF FPC}, Win31{$ENDIF};
 
 function TExtForm.GetMinPosition: TPoint;
 var

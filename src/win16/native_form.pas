@@ -15,7 +15,7 @@ type
     procedure FormClosed(Value: TNativeForm); virtual; abstract;
     function FormHelp(Value: TNativeForm; Context: LongInt): Boolean; virtual;
   end;
-  TNativeCloseAction = (ncaNone, ncaHide, ncaDestroy);
+  TNativeCloseAction = (ncaNone, ncaHide, ncaDestroy, ncaMinimize);
   TWindowState = (wsNormal, wsMinimized, wsMaximized);
   TNativeCloseQueryEvent = procedure(Sender: TObject; var CanClose: Boolean) of object;
   TNativeCloseEvent = procedure(Sender: TObject; var Action: TNativeCloseAction) of object;
@@ -386,7 +386,7 @@ end;
 function TNativeForm.TryClose: Boolean;
 var Action: TNativeCloseAction;
 begin
-  Result := False;
+  Result := False; Action := ncaNone;
   CheckChanging; FChangingForm := True;
   try
     if Handle = 0 then Exit;
@@ -396,8 +396,10 @@ begin
       ncaNone: ;
       ncaHide: begin HideWindow; Result := True; end;
       ncaDestroy: begin HideWindow; DestroyHandle; Result := True; end;
+      ncaMinimize: Result := True;
     end;
   finally FChangingForm := False; end;
+  if Result and (Action = ncaMinimize) then SetWindowState(wsMinimized);
   if Result and (FHost <> nil) then FHost.FormClosed(Self);
 end;
 procedure TNativeForm.Close;
