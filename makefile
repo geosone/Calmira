@@ -205,7 +205,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-forms-runtime-test win16-dialogs-runtime-test win16-input-query-runtime-test \
 		win16-shellapi-runtime-test win16-inifiles-runtime-test win16-menus-runtime-test \
 		win16-system-dlls-runtime-test win16-clipbrd-runtime-test win16-radio-runtime-test \
-		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test win16-spin-runtime-test win16-bevel-runtime-test win16-listbox-runtime-test win16-align-runtime-test win16-parent-runtime-test win16-ownerdraw-runtime-test win16-canvas-context-runtime-test win16-hints-runtime-test win16-minimize-runtime-test win16-grids-runtime-test \
+		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test win16-spin-runtime-test win16-bevel-runtime-test win16-listbox-runtime-test win16-align-runtime-test win16-parent-runtime-test win16-ownerdraw-runtime-test win16-canvas-context-runtime-test win16-hints-runtime-test win16-minimize-runtime-test win16-grids-runtime-test win16-form-loader-runtime-test \
 		win16-cursor-runtime-test win16-cursor-modal-runtime-test \
 		win16-form-activation-runtime-test win16-form-resize-runtime-test win16-form-state-runtime-test \
 		win16-ui-runtime-test win16-window-runtime-test win16-input-runtime-test \
@@ -714,6 +714,22 @@ win16-grids: fpc-win16-gui-rtl
 
 win16-grids-runtime-test: win16-grids
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-grids/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-form-loader win16-form-loader-runtime-test
+$(BUILD_DIR)/generated/forms/form_loader_probe_dfm.pas: tests/form_loader_fixture.py tests/pascal/form_loader_probe.pas tools/dfm_loader.py tools/compile_dfm.py
+	python3 tests/form_loader_fixture.py $@
+
+win16-form-loader: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/form_loader_probe_dfm.pas
+	mkdir -p $(BUILD_DIR)/tests/win16-form-loader/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Futests/pascal -Fu$(BUILD_DIR)/generated/forms \
+		-FU$(BUILD_DIR)/tests/win16-form-loader/units -FE$(BUILD_DIR)/tests/win16-form-loader \
+		-oGDITEST.EXE tests/pascal/test_win16_form_loader.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-form-loader/GDITEST.EXE
+
+win16-form-loader-runtime-test: win16-form-loader
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-form-loader/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-ownerdraw win16-ownerdraw-runtime-test
 win16-ownerdraw: fpc-win16-gui-rtl

@@ -93,8 +93,14 @@ begin
   Check(Application.Initialized, 'repeated Initialize is accepted');
   Check((caNone = ncaNone) and (caHide = ncaHide), 'close actions share native values');
 end;
+{ These forms have no DFM; Create needs a registered loader, as Delphi
+  needs a resource. }
+procedure NoComponents(Form: TForm);
+begin end;
 procedure Creation;
 begin
+  RegisterFormLoader(TMainForm, NoComponents);
+  RegisterFormLoader(TChildForm, NoComponents);
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TChildForm, Child);
   Check((Application.MainForm = MainForm) and (MainForm.Owner = Application) and

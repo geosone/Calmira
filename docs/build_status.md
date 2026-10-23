@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 87 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 88 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1312,3 +1312,42 @@ The full regression passed (`build/tests/minimize.log`, 86 suites, exit 0).
 Covered by `make win16-grids-runtime-test`.
 
 The full regression passed (`build/tests/grids.log`, 87 suites, exit 0).
+
+## Form Loaders
+
+- Delphi creates a form's components by streaming its DFM resource at run
+  time. The port does this at build time instead: `tools/dfm_loader.py`
+  turns a binary DFM into a Pascal unit (`<form>_dfm`) with one `Load`
+  procedure. The unit registers it with `Forms.RegisterFormLoader`.
+- `TForm.Create` runs the loaders of the class and its ancestors, base
+  class first, as `InitInheritedComponent` does. A class without one raises
+  `EResNotFound`; `CreateNew` creates a form without components. Then
+  `Loaded` runs for the form and each loaded component, `OnCreate` runs
+  (its exceptions go to `Application.HandleException`), and a DFM
+  `Visible = True` shows the form. `OnDestroy` runs when the form is freed.
+  The form gets the DFM name, made unique among its owner's components
+  (`ProbeForm_1`).
+- The loader assigns values in stream order while each component is
+  `csLoading`. Component references (`FocusControl`, `PopupMenu`,
+  `ActiveControl` as `InitialControl`, ...) are assigned after all
+  components exist; then tab orders (sorted), then events. `Caption`,
+  `Hint` and string-list items go through `FormText`, so the language
+  catalogues apply. Notebook pages replace the default page; menu items
+  nest under their menu; embedded bitmaps go to a `.RES` sidecar.
+- Property names and values pass through unchanged, so FPC checks them
+  against the ported classes. A property the port lacks is a compile
+  error, not a silently dropped value. Design-only values (`TextHeight`,
+  `Scaled`, `IsControl`) are skipped; `PixelsPerInch` must be 96.
+- `TForm` gained a settable `ClientWidth`/`ClientHeight`, before and after
+  the window exists. `TNotebook` keeps a `PageIndex` read before its pages
+  and applies it in `Loaded`.
+- 34 of the 38 original DFMs generate. `strtprop`, `sysprop` and `tree` need
+  TScrollTree's outline data; `tips` has an icon picture. Whether the
+  generated units compile depends on the classes and properties the port
+  provides; that is the next step, form by form. The four forms ported
+  earlier (`askdrop`, `incsrch`, `password`, `select`) keep their
+  TNativeForm constructors from `tools/compile_dfm.py`.
+
+Covered by `make win16-form-loader-runtime-test` and `tests/test_dfm_loader.py`.
+
+The full regression passed (`build/tests/form-loader.log`, 88 suites, exit 0).

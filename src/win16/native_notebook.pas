@@ -39,6 +39,8 @@ type
     FPages: TList;
     FAccess: TPageStrings;
     FPageIndex: Integer;
+    { PageIndex read from a form resource; pages follow it. -1 if none. }
+    FLoadingPageIndex: Integer;
     FOnPageChanged: TNotifyEvent;
     function GetPages: TStrings;
     procedure SetPages(Value: TStrings);
@@ -49,6 +51,8 @@ type
     procedure FitPage(Page: TPage);
     procedure ShowPage(Page: TPage);
     procedure WMSize(var M: TMessage); message WM_SIZE;
+  protected
+    procedure Loaded; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -137,6 +141,7 @@ begin
   FAccess := TPageStrings.Create;
   FAccess.FNotebook := Self;
   SetBounds(0, 0, 150, 150);
+  FLoadingPageIndex := -1;
   { Delphi 1 starts with one page named Default. }
   FAccess.Add('Default');
 end;
@@ -177,6 +182,7 @@ begin
 end;
 procedure TNotebook.SetPageIndex(Value: Integer);
 begin
+  if csLoading in ComponentState then begin FLoadingPageIndex := Value; Exit; end;
   if Value = FPageIndex then Exit;
   if (Value < 0) or (Value >= FPages.Count) then Fail('Notebook page index out of range');
   FPageIndex := Value;
@@ -199,6 +205,14 @@ var I: Integer;
 begin
   inherited CreateHandle(Parent, Caption, Style, X, Y, Width, Height);
   for I := 0 to FPages.Count - 1 do FitPage(TPage(FPages[I]));
+end;
+procedure TNotebook.Loaded;
+begin
+  inherited Loaded;
+  if FLoadingPageIndex < 0 then Exit;
+  if FLoadingPageIndex >= FPages.Count then Fail('Notebook page index out of range');
+  FPageIndex := FLoadingPageIndex; FLoadingPageIndex := -1;
+  ShowPage(GetPage(FPageIndex));
 end;
 procedure TNotebook.WMSize(var M: TMessage);
 var I: Integer;

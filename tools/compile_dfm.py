@@ -35,6 +35,8 @@ class Component:
     name: str
     properties: dict = field(default_factory=dict)
     children: list = field(default_factory=list)
+    # Original property spelling; catalogue keys are case-sensitive.
+    spelling: dict = field(default_factory=dict)
 
 
 IDENT = re.compile(r'[A-Za-z_][A-Za-z_0-9]{0,62}\Z')
@@ -182,6 +184,7 @@ class Reader:
             if self.props > 1024:
                 raise DfmError('DFM property limit exceeded')
             result.properties[key] = self.value()
+            result.spelling[key] = prop
         while self.data[self.pos:self.pos + 1] != b'\0':
             result.children.append(self.component(depth + 1))
         self.take(1)
