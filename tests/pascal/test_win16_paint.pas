@@ -1,7 +1,7 @@
 program TestWin16Paint;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,4096}
 uses WinTypes, WinProcs, Win31, Classes, SysUtils, Messages, Graphics,
-  native_window, native_paint;
+  native_window, native_paint, gdi_canvas;
 type
   TProbe = class(TNativePaintWindow)
   public
@@ -95,7 +95,9 @@ begin
     Check(Pixel(20, 20) = clLime, 'window remains drawable after paint exception');
     Rejected := False;
     try Probe.Canvas.FillRect(Rect(0, 0, 4, 4)); except on Exception do Rejected := True; end;
-    Check(Rejected, 'drawing outside paint is rejected without acquiring an unscoped DC');
+    Check(not Rejected and (Probe.Canvas.Handle = 0) and DeviceContextsInUse,
+      'drawing outside paint borrows a window DC and leaves Handle unset');
+    FreeDeviceContexts;
     Before := Probe.PaintCount; Probe.InvalidateArea(Rect(0, 0, 0, 4)); UpdateWindow(Probe.Handle);
     Check(Probe.PaintCount = Before, 'empty invalidation does not schedule paint');
     Rejected := False;

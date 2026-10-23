@@ -43,7 +43,7 @@ type
     property Idling: Boolean read FIdling;
   end;
 implementation
-uses WinProcs;
+uses WinProcs, gdi_canvas;
 var ActiveLoop: TNativeMessageLoop;
 
 procedure TNativeMessageLoop.EnterPump;
@@ -66,7 +66,12 @@ end;
 function TNativeMessageLoop.PrepareWait(var IdleCalled: Boolean): Boolean;
 var Provider: TNativeMessageLoop; Pending: TMsg; Done: Boolean;
 begin
-  Result := True; IdleCalled := False; Provider := IdleProvider;
+  Result := True; IdleCalled := False;
+  { As Delphi does at idle, give back DCs borrowed for drawing outside paint
+    (USER has only five common DCs). }
+  if DeviceContextsInUse and not PeekMessage(Pending, 0, 0, 0, PM_NOREMOVE) then
+    FreeDeviceContexts;
+  Provider := IdleProvider;
   { Modal children inherit the nearest active parent's idle service. Do not
     recursively call a provider whose callback opened this modal child. }
   if Provider = nil then Exit;

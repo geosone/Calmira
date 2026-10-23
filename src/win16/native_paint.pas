@@ -6,6 +6,17 @@ unit native_paint;
 interface
 uses Classes, WinTypes, Messages, Graphics, native_window;
 type
+  { Draws on the window through GetDC when used outside painting. }
+  TWindowCanvas = class(TCanvas)
+  private
+    FOwner: TNativeWindow;
+    FWindow: HWND;
+  protected
+    function AcquireContext: HDC; override;
+    procedure ReleaseContext(Context: HDC); override;
+  public
+    constructor Create(Owner: TNativeWindow);
+  end;
   TNativePaintWindow = class(TNativeWindow)
   private
     FCanvas: TCanvas;
@@ -34,12 +45,23 @@ uses WinProcs;
 constructor TNativePaintWindow.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FCanvas := TCanvas.Create;
+  FCanvas := TWindowCanvas.Create(Self);
 end;
 destructor TNativePaintWindow.Destroy;
 begin
   try inherited Destroy; finally FCanvas.Free; end;
 end;
+constructor TWindowCanvas.Create(Owner: TNativeWindow);
+begin inherited Create; FOwner := Owner; end;
+function TWindowCanvas.AcquireContext: HDC;
+begin
+  Result := 0; FWindow := FOwner.Handle;
+  if FWindow = 0 then Exit;
+  Result := GetDC(FWindow);
+  if Result = 0 then FWindow := 0;
+end;
+procedure TWindowCanvas.ReleaseContext(Context: HDC);
+begin ReleaseDC(FWindow, Context); FWindow := 0; end;
 procedure TNativePaintWindow.ColorChanged;
 begin if Handle <> 0 then Invalidate; end;
 procedure TNativePaintWindow.Paint;

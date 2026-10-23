@@ -109,10 +109,13 @@ type
   private
     FOnChange: TNotifyEvent;
     FHandle: HDC;
+    FContext: HDC;
     FPen: TGDIPen;
     FBrush: TGDIBrush;
     FFont: TGDIFont;
     procedure Changed;
+    procedure SetHandle(Value: HDC);
+    function DC: HDC;
     procedure RequireHandle;
     function BeginDraw: SmallInt;
     procedure EndDraw(State: SmallInt);
@@ -124,6 +127,10 @@ type
     procedure SetFont(Value: TGDIFont);
   protected
     function CreateBrush: TGDIBrush; virtual;
+    { A device context for drawing while no Handle is assigned (outside
+      painting), as Delphi's TControlCanvas; 0 when there is none. }
+    function AcquireContext: HDC; virtual;
+    procedure ReleaseContext(Context: HDC); virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -149,13 +156,20 @@ type
     function TextWidth(const Text: string): SmallInt;
     function TextHeight(const Text: string): SmallInt;
     procedure RefreshSystemColors;
-    property Handle: HDC read FHandle write FHandle;
+    { Gives back the context from AcquireContext, if any. }
+    procedure FreeContext;
+    { The DC handed in by the owner (painting, owner draw), or 0. Drawing
+      without one uses AcquireContext, which leaves Handle at 0. }
+    property Handle: HDC read FHandle write SetHandle;
     property Pen: TGDIPen read FPen write SetPen;
     property Brush: TGDIBrush read FBrush write SetBrush;
     property Font: TGDIFont read FFont write SetFont;
     property Pixels[X, Y: SmallInt]: TColor read GetPixel write SetPixel;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
+{ Releases every context taken by AcquireContext; Delphi does this at idle. }
+procedure FreeDeviceContexts;
+function DeviceContextsInUse: Boolean;
 const
   clBlack = TColor($000000); clWhite = TColor($FFFFFF);
   clRed = TColor($0000FF); clLime = TColor($00FF00); clBlue = TColor($FF0000);
@@ -395,7 +409,52 @@ end;
 function TGDICanvas.CreateBrush: TGDIBrush;
 begin Result := TGDIBrush.Create; end;
 destructor TGDICanvas.Destroy;
-begin FFont.Free; FBrush.Free; FPen.Free; inherited Destroy; end;
+begin FreeContext; FFont.Free; FBrush.Free; FPen.Free; inherited Destroy; end;
+const ContextCacheSize = 4;
+var ContextCanvases: TList;
+procedure FreeDeviceContexts;
+begin
+  if ContextCanvases <> nil then
+    while ContextCanvases.Count > 0 do
+      TGDICanvas(ContextCanvases[ContextCanvases.Count - 1]).FreeContext;
+end;
+function DeviceContextsInUse: Boolean;
+begin Result := (ContextCanvases <> nil) and (ContextCanvases.Count > 0); end;
+function TGDICanvas.AcquireContext: HDC;
+begin Result := 0; end;
+procedure TGDICanvas.ReleaseContext(Context: HDC);
+begin end;
+procedure TGDICanvas.FreeContext;
+var Context: HDC;
+begin
+  if FContext = 0 then Exit;
+  Context := FContext; FContext := 0;
+  if ContextCanvases <> nil then ContextCanvases.Remove(Self);
+  ReleaseContext(Context);
+end;
+procedure TGDICanvas.SetHandle(Value: HDC);
+begin
+  { The owner's DC replaces a borrowed context, like Delphi's TControlCanvas. }
+  if Value <> 0 then FreeContext;
+  FHandle := Value;
+end;
+function TGDICanvas.DC: HDC;
+begin
+  if FHandle <> 0 then begin Result := FHandle; Exit; end;
+  if FContext = 0 then
+  begin
+    { USER has five common DCs: give back the oldest borrowed one first. }
+    if (ContextCanvases <> nil) and (ContextCanvases.Count >= ContextCacheSize) then
+      TGDICanvas(ContextCanvases[0]).FreeContext;
+    FContext := AcquireContext;
+    if FContext <> 0 then
+    begin
+      if ContextCanvases = nil then ContextCanvases := TList.Create;
+      ContextCanvases.Add(Self);
+    end;
+  end;
+  Result := FContext;
+end;
 procedure TGDICanvas.SetPen(Value: TGDIPen);
 begin FPen.Assign(Value); end;
 procedure TGDICanvas.SetBrush(Value: TGDIBrush);
@@ -403,26 +462,26 @@ begin FBrush.Assign(Value); end;
 procedure TGDICanvas.SetFont(Value: TGDIFont);
 begin FFont.Assign(Value); end;
 procedure TGDICanvas.RequireHandle;
-begin if FHandle = 0 then raise EGDIError.Create('Canvas has no device context'); end;
+begin if DC = 0 then raise EGDIError.Create('Canvas has no device context'); end;
 function TGDICanvas.BeginDraw: SmallInt;
 begin
-  RequireHandle; Result := SaveDC(FHandle);
+  RequireHandle; Result := SaveDC(DC);
   if Result = 0 then raise EGDIError.Create('Cannot save GDI context');
 end;
 procedure TGDICanvas.EndDraw(State: SmallInt);
-begin if not RestoreDC(FHandle, State) then raise EGDIError.Create('Cannot restore GDI context'); end;
+begin if not RestoreDC(DC, State) then raise EGDIError.Create('Cannot restore GDI context'); end;
 procedure TGDICanvas.MoveTo(X, Y: SmallInt);
-begin RequireHandle; WinProcs.MoveTo(FHandle, X, Y); end;
+begin RequireHandle; WinProcs.MoveTo(DC, X, Y); end;
 procedure TGDICanvas.LineTo(X, Y: SmallInt);
 var State: SmallInt;
 begin
   State := BeginDraw;
   try
-    if SelectObject(FHandle, FPen.GetHandle) = 0 then raise EGDIError.Create('Cannot select pen');
-    SetROP2(FHandle, R2_COPYPEN);
-    if not WinProcs.LineTo(FHandle, X, Y) then raise EGDIError.Create('Cannot draw line');
+    if SelectObject(DC, FPen.GetHandle) = 0 then raise EGDIError.Create('Cannot select pen');
+    SetROP2(DC, R2_COPYPEN);
+    if not WinProcs.LineTo(DC, X, Y) then raise EGDIError.Create('Cannot draw line');
   finally EndDraw(State); end;
-  WinProcs.MoveTo(FHandle, X, Y);
+  WinProcs.MoveTo(DC, X, Y);
   Changed;
 end;
 procedure TGDICanvas.PolyLine(const Points: array of TPoint);
@@ -431,9 +490,9 @@ begin
   if High(Points) < 0 then Exit;
   State := BeginDraw;
   try
-    if SelectObject(FHandle, FPen.GetHandle) = 0 then raise EGDIError.Create('Cannot select pen');
-    SetROP2(FHandle, R2_COPYPEN);
-    if not WinProcs.Polyline(FHandle, @Points[0], High(Points) + 1) then
+    if SelectObject(DC, FPen.GetHandle) = 0 then raise EGDIError.Create('Cannot select pen');
+    SetROP2(DC, R2_COPYPEN);
+    if not WinProcs.Polyline(DC, @Points[0], High(Points) + 1) then
       raise EGDIError.Create('Cannot draw polyline');
   finally EndDraw(State); end;
   Changed;
@@ -443,10 +502,10 @@ var State: SmallInt;
 begin
   State := BeginDraw;
   try
-    if (SelectObject(FHandle, FPen.GetHandle) = 0) or
-      (SelectObject(FHandle, FBrush.GetHandle) = 0) then raise EGDIError.Create('Cannot select drawing objects');
-    SetROP2(FHandle, R2_COPYPEN);
-    if not WinProcs.Rectangle(FHandle, Left, Top, Right, Bottom) then raise EGDIError.Create('Cannot draw rectangle');
+    if (SelectObject(DC, FPen.GetHandle) = 0) or
+      (SelectObject(DC, FBrush.GetHandle) = 0) then raise EGDIError.Create('Cannot select drawing objects');
+    SetROP2(DC, R2_COPYPEN);
+    if not WinProcs.Rectangle(DC, Left, Top, Right, Bottom) then raise EGDIError.Create('Cannot draw rectangle');
   finally EndDraw(State); end;
   Changed;
 end;
@@ -457,14 +516,14 @@ begin
   if FBrush.Style = bsClear then Exit;
   State := BeginDraw;
   try
-    SetROP2(FHandle, R2_COPYPEN);
-    if WinProcs.FillRect(FHandle, @Area, FBrush.GetHandle) = 0 then raise EGDIError.Create('Cannot fill rectangle');
+    SetROP2(DC, R2_COPYPEN);
+    if WinProcs.FillRect(DC, @Area, FBrush.GetHandle) = 0 then raise EGDIError.Create('Cannot fill rectangle');
   finally EndDraw(State); end;
   Changed;
 end;
 procedure TGDICanvas.SelectFont;
 begin
-  if SelectObject(FHandle, FFont.GetHandle) = 0 then raise EGDIError.Create('Cannot select font');
+  if SelectObject(DC, FFont.GetHandle) = 0 then raise EGDIError.Create('Cannot select font');
 end;
 procedure TGDICanvas.DrawFocusRect(const Area: TRect);
 var State: SmallInt;
@@ -473,8 +532,8 @@ begin
   if (Area.Right <= Area.Left) or (Area.Bottom <= Area.Top) then Exit;
   State := BeginDraw;
   try
-    SetTextColor(FHandle, 0); SetBkColor(FHandle, $FFFFFF);
-    WinProcs.DrawFocusRect(FHandle, @Area);
+    SetTextColor(DC, 0); SetBkColor(DC, $FFFFFF);
+    WinProcs.DrawFocusRect(DC, @Area);
   finally EndDraw(State); end;
   Changed;
 end;
@@ -486,15 +545,15 @@ begin
   State := BeginDraw;
   try
     SelectFont; StrPCopy(Buffer, Text); Options := ETO_CLIPPED;
-    SetROP2(FHandle, R2_COPYPEN);
-    SetTextAlign(FHandle, TA_LEFT or TA_TOP or TA_NOUPDATECP);
+    SetROP2(DC, R2_COPYPEN);
+    SetTextAlign(DC, TA_LEFT or TA_TOP or TA_NOUPDATECP);
     { Fill with the real brush, including hatch/pattern, not just its color. }
     if FBrush.Style <> bsClear then
-      if WinProcs.FillRect(FHandle, @Area, FBrush.GetHandle) = 0 then
+      if WinProcs.FillRect(DC, @Area, FBrush.GetHandle) = 0 then
         raise EGDIError.Create('Cannot fill text rectangle');
-    SetTextColor(FHandle, ColorToRGB(FFont.Color));
-    SetBkMode(FHandle, TRANSPARENT);
-    if not ExtTextOut(FHandle, X, Y, Options, @Area, Buffer, Length(Text), nil) then
+    SetTextColor(DC, ColorToRGB(FFont.Color));
+    SetBkMode(DC, TRANSPARENT);
+    if not ExtTextOut(DC, X, Y, Options, @Area, Buffer, Length(Text), nil) then
       raise EGDIError.Create('Cannot draw clipped text');
   finally EndDraw(State); end;
   Changed;
@@ -504,10 +563,10 @@ var State: SmallInt;
 begin
   State := BeginDraw;
   try
-    if (SelectObject(FHandle, FPen.GetHandle) = 0) or
-      (SelectObject(FHandle, FBrush.GetHandle) = 0) then raise EGDIError.Create('Cannot select pie resources');
-    SetROP2(FHandle, R2_COPYPEN);
-    if not WinProcs.Pie(FHandle, Left, Top, Right, Bottom, StartX, StartY, EndX, EndY) then
+    if (SelectObject(DC, FPen.GetHandle) = 0) or
+      (SelectObject(DC, FBrush.GetHandle) = 0) then raise EGDIError.Create('Cannot select pie resources');
+    SetROP2(DC, R2_COPYPEN);
+    if not WinProcs.Pie(DC, Left, Top, Right, Bottom, StartX, StartY, EndX, EndY) then
       raise EGDIError.Create('Cannot draw pie');
   finally EndDraw(State); end;
   Changed;
@@ -519,10 +578,10 @@ begin
   if FBrush.Style = bsClear then Exit;
   State := BeginDraw;
   try
-    if SelectObject(FHandle, FBrush.GetHandle) = 0 then raise EGDIError.Create('Cannot select fill brush');
-    SetROP2(FHandle, R2_COPYPEN);
+    if SelectObject(DC, FBrush.GetHandle) = 0 then raise EGDIError.Create('Cannot select fill brush');
+    SetROP2(DC, R2_COPYPEN);
     if FillStyle = fsSurface then Mode := FLOODFILLSURFACE else Mode := FLOODFILLBORDER;
-    Drawn := ExtFloodFill(FHandle, X, Y, ColorToRGB(Color), Mode);
+    Drawn := ExtFloodFill(DC, X, Y, ColorToRGB(Color), Mode);
   finally EndDraw(State); end;
   if Drawn then Changed;
 end;
@@ -531,7 +590,7 @@ var State: SmallInt;
 begin
   if Graphic = nil then raise EGDIError.Create('Missing graphic');
   State := BeginDraw;
-  try Graphic.DrawTo(FHandle, X, Y); finally EndDraw(State); end;
+  try Graphic.DrawTo(DC, X, Y); finally EndDraw(State); end;
   Changed;
 end;
 procedure TGDICanvas.StretchDraw(const Area: TRect; Graphic: TGDIGraphic);
@@ -544,7 +603,7 @@ begin
     raise EGDIError.Create('Invalid stretch destination size');
   if (W = 0) or (H = 0) or Graphic.Empty then Exit;
   State := BeginDraw;
-  try Graphic.StretchTo(FHandle, Area); finally EndDraw(State); end;
+  try Graphic.StretchTo(DC, Area); finally EndDraw(State); end;
   Changed;
 end;
 procedure TGDICanvas.CopyTransparent(const Destination: TRect; Source: TGDICanvas;
@@ -553,7 +612,7 @@ begin
   RequireHandle;
   if Source = nil then raise EGDIError.Create('Missing source canvas');
   Source.RequireHandle;
-  ColorKeyCopy(FHandle, Destination, Source.FHandle, SourceRect, ColorToRGB(KeyColor), 0);
+  ColorKeyCopy(DC, Destination, Source.DC, SourceRect, ColorToRGB(KeyColor), 0);
   if (Destination.Right > Destination.Left) and (Destination.Bottom > Destination.Top) and
     (SourceRect.Right > SourceRect.Left) and (SourceRect.Bottom > SourceRect.Top) then Changed;
 end;
@@ -564,8 +623,8 @@ begin
   if Source = nil then raise EGDIError.Create('Missing source canvas');
   Source.RequireHandle;
   if FBrush.Style = bsClear then
-    ColorKeyCopy(FHandle, Destination, Source.FHandle, SourceRect, ColorToRGB(KeyColor), 0)
-  else ColorKeyCopy(FHandle, Destination, Source.FHandle, SourceRect,
+    ColorKeyCopy(DC, Destination, Source.DC, SourceRect, ColorToRGB(KeyColor), 0)
+  else ColorKeyCopy(DC, Destination, Source.DC, SourceRect,
     ColorToRGB(KeyColor), FBrush.GetHandle);
   if (Destination.Right > Destination.Left) and (Destination.Bottom > Destination.Top) and
     (SourceRect.Right > SourceRect.Left) and (SourceRect.Bottom > SourceRect.Top) then Changed;
@@ -576,12 +635,12 @@ begin
   State := BeginDraw;
   try
     SelectFont; StrPCopy(Buffer, Text);
-    SetROP2(FHandle, R2_COPYPEN);
-    SetTextAlign(FHandle, TA_LEFT or TA_TOP or TA_NOUPDATECP);
-    SetTextColor(FHandle, ColorToRGB(FFont.Color));
-    if FBrush.Style = bsClear then SetBkMode(FHandle, TRANSPARENT)
-    else begin SetBkMode(FHandle, OPAQUE); SetBkColor(FHandle, ColorToRGB(FBrush.Color)); end;
-    if not WinProcs.TextOut(FHandle, X, Y, Buffer, Length(Text)) then raise EGDIError.Create('Cannot draw text');
+    SetROP2(DC, R2_COPYPEN);
+    SetTextAlign(DC, TA_LEFT or TA_TOP or TA_NOUPDATECP);
+    SetTextColor(DC, ColorToRGB(FFont.Color));
+    if FBrush.Style = bsClear then SetBkMode(DC, TRANSPARENT)
+    else begin SetBkMode(DC, OPAQUE); SetBkColor(DC, ColorToRGB(FBrush.Color)); end;
+    if not WinProcs.TextOut(DC, X, Y, Buffer, Length(Text)) then raise EGDIError.Create('Cannot draw text');
   finally EndDraw(State); end;
   Changed;
 end;
@@ -601,22 +660,22 @@ begin
     (DW > 32767) or (DH > 32767) or (SW > 32767) or (SH > 32767) then
     raise EGDIError.Create('Unsupported copy rectangle');
   if (DW = 0) or (DH = 0) or (SW = 0) or (SH = 0) then Exit;
-  if (FHandle = Source.FHandle) and ((DW <> SW) or (DH <> SH)) then
+  if (DC = Source.DC) and ((DW <> SW) or (DH <> SH)) then
     raise EGDIError.Create('Scaled self-copy requires a separate source bitmap');
   State := BeginDraw;
   try
     if (DW = SW) and (DH = SH) then
     begin
-      if not BitBlt(FHandle, Destination.Left, Destination.Top, DW, DH,
-        Source.FHandle, SourceRect.Left, SourceRect.Top, SRCCOPY) then
+      if not BitBlt(DC, Destination.Left, Destination.Top, DW, DH,
+        Source.DC, SourceRect.Left, SourceRect.Top, SRCCOPY) then
         raise EGDIError.Create('Cannot copy rectangle');
     end
     else
     begin
-      if SetStretchBltMode(FHandle, COLORONCOLOR) = 0 then
+      if SetStretchBltMode(DC, COLORONCOLOR) = 0 then
         raise EGDIError.Create('Cannot set bitmap stretch mode');
-      if not StretchBlt(FHandle, Destination.Left, Destination.Top, DW, DH,
-        Source.FHandle, SourceRect.Left, SourceRect.Top, SW, SH, SRCCOPY) then
+      if not StretchBlt(DC, Destination.Left, Destination.Top, DW, DH,
+        Source.DC, SourceRect.Left, SourceRect.Top, SW, SH, SRCCOPY) then
         raise EGDIError.Create('Cannot scale rectangle');
     end;
   finally EndDraw(State); end;
@@ -628,7 +687,7 @@ begin
   State := BeginDraw;
   try
     SelectFont; StrPCopy(Buffer, Text);
-    Extent := GetTextExtent(FHandle, Buffer, Length(Text));
+    Extent := GetTextExtent(DC, Buffer, Length(Text));
     Result.X := LoWord(Extent); Result.Y := HiWord(Extent);
   finally EndDraw(State); end;
 end;
@@ -639,14 +698,14 @@ function TGDICanvas.TextHeight(const Text: string): SmallInt;
 var Extent: TPoint;
 begin Extent := TextExtent(Text); Result := Extent.Y; end;
 function TGDICanvas.GetPixel(X, Y: SmallInt): TColor;
-begin RequireHandle; Result := WinProcs.GetPixel(FHandle, X, Y); end;
+begin RequireHandle; Result := WinProcs.GetPixel(DC, X, Y); end;
 procedure TGDICanvas.SetPixel(X, Y: SmallInt; Value: TColor);
 var State: SmallInt;
 begin
   State := BeginDraw;
   try
-    SetROP2(FHandle, R2_COPYPEN);
-    if WinProcs.SetPixel(FHandle, X, Y, ColorToRGB(Value)) = DWORD($FFFFFFFF) then Exit;
+    SetROP2(DC, R2_COPYPEN);
+    if WinProcs.SetPixel(DC, X, Y, ColorToRGB(Value)) = DWORD($FFFFFFFF) then Exit;
   finally EndDraw(State); end;
   Changed;
 end;

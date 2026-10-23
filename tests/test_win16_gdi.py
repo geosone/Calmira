@@ -28,8 +28,8 @@ class Win16GDITests(unittest.TestCase):
         self.assertIn('TBitmap = class(TGDIBitmap)', facade)
         self.assertIn('TIcon = class(TGDIIcon)', facade)
         self.assertNotIn('DeleteDC(FHandle)', source)
-        self.assertIn('SaveDC(FHandle)', source)
-        self.assertIn('RestoreDC(FHandle, State)', source)
+        self.assertIn('SaveDC(DC)', source)
+        self.assertIn('RestoreDC(DC, State)', source)
 
     def test_pen_and_hatch_enums_keep_the_win16_api_order(self):
         source = (ROOT / 'src/win16/gdi_canvas.pas').read_text()

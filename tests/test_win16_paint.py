@@ -35,7 +35,7 @@ class Win16PaintTests(unittest.TestCase):
                      'disjoint update regions preserve pixels inside their bounding gap',
                      'nested WM_PAINT does not replace active canvas or recurse',
                      'paint exception still detaches canvas and ends native paint',
-                     'drawing outside paint is rejected', 'window remains drawable after paint exception',
+                     'drawing outside paint borrows a window DC', 'window remains drawable after paint exception',
                      'GFSR_GDIRESOURCES', 'GFSR_USERRESOURCES'):
             self.assertIn(text, source)
 

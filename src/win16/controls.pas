@@ -317,7 +317,31 @@ var
   { Delphi 1: True only on Windows 4.x, where controls get the new look. }
   NewStyleControls: Boolean;
 implementation
-uses WinProcs, native_window;
+uses WinProcs, native_window, gdi_canvas;
+
+type
+  { Outside painting a graphic control draws on its parent's window DC,
+    moved and clipped to the control as during painting. }
+  TGraphicCanvas = class(TCanvas)
+  private
+    FControl: TGraphicControl;
+    FWindow: HWND;
+  protected
+    function AcquireContext: HDC; override;
+    procedure ReleaseContext(Context: HDC); override;
+  end;
+function TGraphicCanvas.AcquireContext: HDC;
+begin
+  Result := 0; FWindow := 0;
+  if (FControl.Parent = nil) or (FControl.Parent.Handle = 0) then Exit;
+  FWindow := FControl.Parent.Handle;
+  Result := GetDC(FWindow);
+  if Result = 0 then begin FWindow := 0; Exit; end;
+  SetViewportOrg(Result, FControl.Left, FControl.Top);
+  IntersectClipRect(Result, 0, 0, FControl.Width, FControl.Height);
+end;
+procedure TGraphicCanvas.ReleaseContext(Context: HDC);
+begin ReleaseDC(FWindow, Context); FWindow := 0; end;
 
 { Delphi 1: releasing the right button over a control whose PopupMenu has
   AutoPopup opens the menu at the cursor instead of reporting MouseUp. }
@@ -971,7 +995,11 @@ begin
   end;
 end;
 procedure TCustomControl.WMNCDestroy(var M: TMessage);
-begin FMouseControl := nil; FCaptureControl := nil; ReadBounds; DefaultHandler(M); end;
+begin
+  { Borrowed DCs of this window or its graphic children must not outlive it. }
+  if DeviceContextsInUse then FreeDeviceContexts;
+  FMouseControl := nil; FCaptureControl := nil; ReadBounds; DefaultHandler(M);
+end;
 const
   { Win16 has no WM_MOUSELEAVE: poll while a graphic child is hovered. }
   MouseLeaveTimer = $7E01;
@@ -1201,7 +1229,8 @@ begin DefaultHandler(M); end;
 
 constructor TGraphicControl.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner); FCanvas := TCanvas.Create;
+  inherited Create(AOwner); FCanvas := TGraphicCanvas.Create;
+  TGraphicCanvas(FCanvas).FControl := Self;
   FVisible := True; FEnabled := True; FClickEvents := True;
 end;
 function TGraphicControl.Perform(Msg, WParam: Word; LParam: LongInt): LongInt;
@@ -1370,6 +1399,7 @@ begin
     begin Value.FGraphics.Remove(Self); Value.FControls.Remove(Self); end;
     raise;
   end;
+  FCanvas.FreeContext;
   FParent := Value;
   if Previous <> nil then
   begin Previous.FGraphics.Remove(Self); Previous.FControls.Remove(Self); end;
@@ -1388,6 +1418,8 @@ begin
   if (X = FLeft) and (Y = FTop) and (AWidth = FWidth) and (AHeight = FHeight) then Exit;
   if (FCanvas <> nil) and (FCanvas.Handle <> 0) then
     raise ENativeWindowError.Create('Cannot resize during graphic paint');
+  { A borrowed context is set up for the old position. }
+  if FCanvas <> nil then FCanvas.FreeContext;
   DirtyBounds; FLeft := X; FTop := Y; FWidth := AWidth; FHeight := AHeight; Invalidate;
   if (Align <> alNone) and (FParent <> nil) and not FParent.FAligning then FParent.Realign;
 end;

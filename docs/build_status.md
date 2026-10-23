@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 83 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 84 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1204,3 +1204,28 @@ need TApplication events (`apholder`, `calvcl`) and the Grids, Tabs and
 DdeMan units.
 
 The full regression passed (`build/tests/ownerdraw2-regression.log`, 83 suites, exit 0).
+
+## Drawing Outside Painting
+
+Calmira measures and draws through `Canvas` outside `Paint` (TextWidth for
+column layout, drag feedback, hint sizing). As with Delphi's `TControlCanvas`,
+a canvas without an assigned `Handle` now borrows a device context on demand:
+
+- `TCustomControl.Canvas` uses `GetDC` on its own window. `TGraphicControl.Canvas`
+  uses the parent window's DC, with the origin moved to the control and the
+  clip limited to its bounds.
+- `Canvas.Handle` stays 0 while a context is borrowed, so `Handle <> 0` still
+  means "inside paint or owner draw". Assigning a Handle gives the borrowed
+  context back first.
+- Borrowed contexts are released when the message loop goes idle, when a
+  window is destroyed, when a graphic control moves or changes parent, and
+  when a canvas is freed. At most four are held at once; USER has only five
+  common DCs, so the oldest is released first.
+
+Covered by `make win16-canvas-context-runtime-test`.
+`win16-paint-runtime-test` now checks that drawing outside paint borrows a
+DC instead of raising.
+
+The full regression ran with 84 suites (`build/tests/canvas-context.log`); the
+only failure was the old paint check for the previous behaviour, which passes
+after the update above.

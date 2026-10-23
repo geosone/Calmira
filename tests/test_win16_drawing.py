@@ -11,7 +11,7 @@ class Win16DrawingTests(unittest.TestCase):
         bitmap = (ROOT / 'src/win16/gdi_bitmap.pas').read_text()
         probe = (ROOT / 'tests/pascal/test_win16_drawing.pas').read_text()
         for text in ('procedure StretchDraw(const Area: TRect; Graphic: TGDIGraphic)',
-                     'Graphic.StretchTo(FHandle, Area)', 'Scaling is not supported for this graphic',
+                     'Graphic.StretchTo(DC, Area)', 'Scaling is not supported for this graphic',
                      'LongInt(Area.Right) - Area.Left', 'Graphic.Empty then Exit'):
             self.assertIn(text, canvas)
         for text in ('if Destination = FDC then', 'Snapshot.Assign(Self)',
@@ -48,11 +48,32 @@ class Win16DrawingTests(unittest.TestCase):
 
     def test_native_focus_api_is_void_and_canvas_dc_is_borrowed(self):
         source = (ROOT / 'src/win16/gdi_canvas.pas').read_text()
-        self.assertIn('WinProcs.DrawFocusRect(FHandle, @Area);', source)
+        self.assertIn('WinProcs.DrawFocusRect(DC, @Area);', source)
         self.assertNotIn('if not WinProcs.DrawFocusRect', source)
         self.assertNotIn('DeleteDC(FHandle)', source)
         self.assertIn('CreatePatternBrush(FPattern)', source)
         self.assertIn('SelectObject(Temp, Previous); DeleteDC(Temp)', source)
+
+    def test_canvas_borrows_a_context_outside_painting(self):
+        core = (ROOT / 'src/win16/gdi_canvas.pas').read_text()
+        self.assertIn('property Handle: HDC read FHandle write SetHandle;', core)
+        self.assertIn('if Value <> 0 then FreeContext;', core)
+        self.assertIn('ContextCanvases.Count >= ContextCacheSize', core)
+        self.assertIn('begin FreeContext; FFont.Free;', core)
+        paint = (ROOT / 'src/win16/native_paint.pas').read_text()
+        self.assertIn('FCanvas := TWindowCanvas.Create(Self);', paint)
+        controls = (ROOT / 'src/win16/controls.pas').read_text()
+        self.assertIn('SetViewportOrg(Result, FControl.Left, FControl.Top);', controls)
+        self.assertIn('if DeviceContextsInUse then FreeDeviceContexts;', controls)
+        loop = (ROOT / 'src/win16/native_loop.pas').read_text()
+        self.assertIn('not PeekMessage(Pending, 0, 0, 0, PM_NOREMOVE) then\n    FreeDeviceContexts;', loop)
+        test = (ROOT / 'tests/pascal/test_win16_canvas_context.pas').read_text()
+        for text in ('Handle stays 0 with a borrowed context', 'a graphic canvas is clipped to the control',
+                     'destroying a window releases contexts', 'more canvases than common DCs',
+                     'the message loop releases contexts before idle'):
+            self.assertIn(text, test)
+        makefile = (ROOT / 'makefile').read_text()
+        self.assertIn('win16-canvas-context-runtime-test \\', makefile)
 
     def test_fill_enum_exports_and_native_order(self):
         core = (ROOT / 'src/win16/gdi_canvas.pas').read_text()
