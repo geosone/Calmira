@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 86 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 87 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1287,3 +1287,28 @@ The full regression passed (`build/tests/hints.log`, 85 suites, exit 0).
 Covered by `make win16-minimize-runtime-test`.
 
 The full regression passed (`build/tests/minimize.log`, 86 suites, exit 0).
+
+## Grids
+
+- New `src/win16/grids.pas` provides `TCustomGrid`, `TDrawGrid` and
+  `TStringGrid` with the Delphi 1 interface. Layout, painting (fixed and
+  cell grid lines, focus rectangle, `DefaultDrawing`), keyboard and mouse
+  selection with auto-scroll, `goRowSelect`, `goThumbTracking`, scroll bars,
+  custom `ColWidths`/`RowHeights` and `OnSelectCell`/`OnDrawCell`/
+  `OnTopLeftChanged` follow Delphi's algorithms.
+- Not provided: in-place editing, tabbing between cells, sizing and moving
+  rows or columns. Setting `goEditing`, `goTabs`, `goAlwaysShowEditor`,
+  `goRowSizing`, `goColSizing`, `goRowMoving` or `goColMoving` raises
+  `EInvalidGridOperation`, as does changing `BorderStyle` after the window
+  exists. `TStringGrid.Rows[]`/`Cols[]` have a fixed length; inserting or
+  deleting lines raises.
+- `StdCtrls` gained `TScrollStyle`.
+- Calmira's `vcl/multigrd.pas` (TMultiGrid) now compiles; the native test
+  covers its sizing, selection, `SelectAll` limit, `SetSize` and `DropFocus`.
+- Still blocking the shell: `icondlg` needs `TOpenDialog`, `scrtree` (and so
+  `calvcl`) needs the Outline unit, Tabs and DdeMan are missing, and the
+  DFM compiler does not yet know the grid classes.
+
+Covered by `make win16-grids-runtime-test`.
+
+The full regression passed (`build/tests/grids.log`, 87 suites, exit 0).

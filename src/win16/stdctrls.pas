@@ -23,6 +23,7 @@ type
   TMeasureItemEvent = native_listbox.TMeasureItemEvent;
   TCustomListBox = native_listbox.TCustomListBox;
   TListBox = native_listbox.TListBox;
+  TScrollStyle = (ssNone, ssHorizontal, ssVertical, ssBoth);
 const
   ecNormal = native_edit.ecNormal;
   ecUpperCase = native_edit.ecUpperCase;
