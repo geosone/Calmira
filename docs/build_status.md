@@ -37,6 +37,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make win16-form-activation` | Native form activation events, live child focus, reentry guards, modal restoration and lifetime tests |
 | `make win16-form-resize` | Native client metrics, virtual Resize/OnResize, child layout, reentry guards and modal/recreation tests |
 | `make win16-form-state` | Deferred/live min/max/normal state, retained normal placement, focus guards, modal startup and recreation |
+| `make win16-forms` | Initial `Forms` unit: global Application/Screen, typed TForm/MainForm/Screen views, deferred caFree/Release and unit finalization |
 | `make winfile16-core` | Original Microsoft filename, directory-memory and size-format modules |
 | `make drive-probe` | Separate `DRVPROBE.EXE` diagnostic, not a file manager |
 | `make win16-helpers` | FPC SHOWDESK, SCRNSAVE, EXPLORER and CTASKMAN executables |
@@ -871,3 +872,26 @@ This fork's NE support extracts to a temporary EXE at startup; it is not an
 in-place NE segment loader. Temporary writable disk space is required. DLL
 packing is not supported. GDI separately packs both its DOS MZ engine and its
 Win16 NE frontend. Compression does not fix missing application functionality.
+
+## Initial Forms Unit
+
+`src/win16/forms.pas` now provides the `Forms` unit name over the tested native
+application, screen and modal-form layers. Unit initialization creates and
+initializes the global `Application` and binds the global `Screen`;
+finalization frees both, including owned forms. `TForm` derives from the native
+modal form, so Show and ShowModal reuse the existing lifecycle. `MainForm`,
+`Screen.Forms[]` and `Screen.ActiveForm` are typed as `TForm`; a registered
+foreign native form is rejected by index and reads as no active TForm.
+
+`caFree` and `TForm.Release` hide immediately and free the form later through a
+registered message on the hidden application window, never inside the form's
+own dispatch. Repeated Release queues once, an explicit Free cancels a pending
+release and pending forms are freed during application teardown. A form whose
+handler is still active below a nested pump must not be released; this matches
+Delphi's own restriction.
+
+`make win16-forms-runtime-test` checks these cases natively (23 checks,
+including finalization). The probe keeps the 4-KiB stack/2-KiB heap and uses
+63,648 bytes of the guarded data budget. `caMinimize`, form Icon/Menu,
+FormStyle, hints and runtime DFM streaming are deliberately absent. With this
+unit `make calmira` now stops at the next missing unit, `Dialogs`.

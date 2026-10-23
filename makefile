@@ -197,6 +197,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-drain-runtime-test win16-application-pump-runtime-test \
 		win16-identity-runtime-test \
 		win16-screen-runtime-test win16-screen-modal-runtime-test \
+		win16-forms-runtime-test \
 		win16-cursor-runtime-test win16-cursor-modal-runtime-test \
 		win16-form-activation-runtime-test win16-form-resize-runtime-test win16-form-state-runtime-test \
 		win16-ui-runtime-test win16-window-runtime-test win16-input-runtime-test \
@@ -504,6 +505,18 @@ win16-form-activation: fpc-win16-gui-rtl
 
 win16-form-activation-runtime-test: win16-form-activation
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-form-activation/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-forms win16-forms-runtime-test
+win16-forms: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-forms/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-forms/units -FE$(BUILD_DIR)/tests/win16-forms \
+		-oGDITEST.EXE tests/pascal/test_win16_forms.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-forms/GDITEST.EXE
+
+win16-forms-runtime-test: win16-forms
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-forms/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-screen win16-screen-runtime-test win16-screen-modal win16-screen-modal-runtime-test
 win16-screen: fpc-win16-gui-rtl

@@ -2413,8 +2413,10 @@ transport, native task activation, cooperative root/modal idle, explicit excepti
 handling, WinHelp requests, focused registered-form F1 help, an explicit live
 screen/form view, native/windowless view ordering and coordinate conversion,
 scoped cursor management, controlled parameterless message draining, dialog-key routing
-and startup-modal lifecycle. It does not provide the original shell's full `Forms`
-API, global `Application`/`Screen` or runtime DFM loading. Those remain to be ported alongside the remaining
+and startup-modal lifecycle. An initial `Forms` unit now supplies the global
+`Application`/`Screen`, typed `TForm` views and deferred `caFree`/`Release`
+(see [build status](build_status.md#initial-forms-unit)). It does not yet
+provide the original shell's full `Forms` API or runtime DFM loading. Those remain to be ported alongside the remaining
 Graphics interface (including DFM/ICO streaming and arbitrary icon scaling), full
 Controls integration, broader control-canvas lifetime and menus. Each extension
 needs native behavior tests before original Calmira components can rely on it;
