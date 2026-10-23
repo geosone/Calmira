@@ -20,11 +20,13 @@ type
   TBitmap = class;
   TBrush = class(TGDIBrush)
   private
+    FBitmap: TBitmap;
     procedure SetBitmap(Value: TBitmap);
   public
-    { Current original consumers only set this property. Snapshot ownership
-      deliberately avoids a getter returning a borrowed/dangling bitmap. }
-    property Bitmap: TBitmap write SetBitmap;
+    { The pattern is a snapshot, so the brush stays valid after the bitmap is
+      freed. As in Delphi 1 the brush does not own the bitmap: the getter only
+      returns the caller's reference so it can free it (Calmira's IconMesh). }
+    property Bitmap: TBitmap read FBitmap write SetBitmap;
   end;
   TCanvas = class(TGDICanvas)
   private
@@ -122,10 +124,11 @@ implementation
 uses SysUtils, color_names;
 procedure TBrush.SetBitmap(Value: TBitmap);
 begin
-  if Value = nil then begin SetPattern(0, 0, 0); Exit; end;
+  if Value = nil then begin SetPattern(0, 0, 0); FBitmap := nil; Exit; end;
   if Value.Empty or (Value.Width <> 8) or (Value.Height <> 8) then
     raise EGDIError.Create('Pattern bitmap must be a nonempty 8 by 8 image');
   SetPattern(Value.Canvas.Handle, Value.Width, Value.Height);
+  FBitmap := Value;
 end;
 function TCanvas.CreateBrush: TGDIBrush;
 begin Result := TBrush.Create; end;

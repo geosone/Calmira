@@ -62,7 +62,9 @@ class Win16MessageTests(unittest.TestCase):
             heap.write_bytes(original_heap)
             extra = {}
             for name in ('rtl/win16/dos.pp', 'rtl/win16/prt0comn.asm',
-                         'rtl/objpas/sysutils/sysstrh.inc', 'rtl/objpas/sysutils/sysstr.inc'):
+                         'rtl/objpas/sysutils/sysstrh.inc', 'rtl/objpas/sysutils/sysstr.inc',
+                         'rtl/objpas/sysutils/sysutilh.inc', 'rtl/objpas/sysutils/datih.inc',
+                         'rtl/objpas/sysutils/dati.inc', 'rtl/win16/winprocsh.inc', 'rtl/win16/win31.pp'):
                 target = source / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 extra[name] = (ROOT / 'vendor/reference/freepascal' / name).read_bytes()
@@ -82,6 +84,15 @@ class Win16MessageTests(unittest.TestCase):
             self.assertIn('PAutoDataSegHeader(Ptr(SSeg,0))', (first / 'rtl/win16/system.pp').read_text(encoding='latin1'))
             self.assertIn('procedure AppendStr(var Dest: ShortString; const S: ShortString);',
                           (first / 'rtl/objpas/sysutils/sysstr.inc').read_text(encoding='latin1'))
+            self.assertIn('TFileName = ShortString;',
+                          (first / 'rtl/objpas/sysutils/sysutilh.inc').read_text(encoding='latin1'))
+            self.assertIn('procedure DateTimeToString(var Result: ShortString;',
+                          (first / 'rtl/objpas/sysutils/dati.inc').read_text(encoding='latin1'))
+            winprocs = (first / 'rtl/win16/winprocsh.inc').read_text(encoding='latin1')
+            self.assertIn('function FillRect(hdc: HDC; constref rc: RECT; hbr: HBRUSH)', winprocs)
+            self.assertIn('function IntersectRect(var rcDest: RECT; constref rcSrc1, rcSrc2: RECT)', winprocs)
+            self.assertIn('constref rcSource1, rcSource2: RECT',
+                          (first / 'rtl/win16/win31.pp').read_text(encoding='latin1'))
             patched_heap = (first / 'rtl/win16/glbheap.inc').read_text()
             self.assertIn('CALMIRA_WIN16_REALLOC_BOUNDS', patched_heap)
             self.assertIn('if CopySize>size then', patched_heap)

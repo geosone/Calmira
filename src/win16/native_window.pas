@@ -19,6 +19,8 @@ type
     procedure ControlOperation(Operation: TControlOperation; var Value: Boolean); override;
     function NativeClassName: PChar; virtual;
     procedure WndProc(var Message: TMessage); virtual;
+    function GetControlBounds: TRect; override;
+    procedure SetControlBounds(const Value: TRect); override;
   public
     destructor Destroy; override;
     procedure DefaultHandler(var Message); override;
@@ -33,6 +35,8 @@ type
   end;
 procedure RegisterNativeSuperclass(SourceName, PrivateName: PChar; var Original: WNDPROC);
 procedure EnsureNativeWindowClass(Name: PChar);
+{ The managed object behind a window of this task, or nil for foreign windows. }
+function FindNativeWindow(Window: HWND): TNativeWindow;
 implementation
 uses WinProcs, native_cursors;
 const WindowClassName = 'CalmiraNativeWindow';
@@ -123,6 +127,34 @@ begin
   Info.hCursor := LoadCursor(0, IDC_ARROW);
   Info.cbWndExtra := SizeOf(Pointer); Info.lpszClassName := Name;
   if not RegisterClass(Info) then raise ENativeWindowError.Create('Cannot register native window class');
+end;
+function TNativeWindow.GetControlBounds: TRect;
+var Corner: TPoint; Parent: HWND;
+begin
+  if FHandle = 0 then raise ENativeWindowError.Create('Missing native window');
+  GetWindowRect(FHandle, Result);
+  Parent := GetParent(FHandle);
+  if Parent = 0 then Exit;
+  Corner.X := Result.Left; Corner.Y := Result.Top; ScreenToClient(Parent, Corner);
+  OffsetRect(Result, Corner.X - Result.Left, Corner.Y - Result.Top);
+end;
+procedure TNativeWindow.SetControlBounds(const Value: TRect);
+begin
+  if FHandle = 0 then raise ENativeWindowError.Create('Missing native window');
+  MoveWindow(FHandle, Value.Left, Value.Top, Value.Right - Value.Left, Value.Bottom - Value.Top, True);
+end;
+function FindNativeWindow(Window: HWND): TNativeWindow;
+var Actual: Pointer; Proc: LongInt;
+begin
+  Result := nil;
+  if (Window = 0) or not IsWindow(Window) then Exit;
+  { Another instance shares the code segment, so also match the data instance. }
+  if GetWindowWord(Window, GWW_HINSTANCE) <> HInstance then Exit;
+  Proc := GetClassLong(Window, GCL_WNDPROC);
+  Move(Proc, Actual, SizeOf(Actual));
+  if Actual <> Pointer(@NativeWindowProc) then Exit;
+  Result := TNativeWindow(Pointer(GetWindowLong(Window,
+    GetClassWord(Window, GCW_CBWNDEXTRA) - SizeOf(Pointer))));
 end;
 procedure TNativeWindow.RecordCallbackError(const Text: string);
 begin

@@ -4,9 +4,17 @@ unit Buttons;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This Buttons subset requires Win16}{$ENDIF}
 interface
-uses Classes, WinTypes, Graphics, native_button;
+uses Classes, WinTypes, Graphics, native_button, native_speedbutton;
 type
-  TButtonLayout = (blGlyphLeft, blGlyphRight, blGlyphTop, blGlyphBottom);
+  TButtonLayout = native_speedbutton.TButtonLayout;
+  TButtonState = native_speedbutton.TButtonState;
+  TSpeedButton = native_speedbutton.TSpeedButton;
+const
+  blGlyphLeft = native_speedbutton.blGlyphLeft; blGlyphRight = native_speedbutton.blGlyphRight;
+  blGlyphTop = native_speedbutton.blGlyphTop; blGlyphBottom = native_speedbutton.blGlyphBottom;
+  bsUp = native_speedbutton.bsUp; bsDisabled = native_speedbutton.bsDisabled;
+  bsDown = native_speedbutton.bsDown; bsExclusive = native_speedbutton.bsExclusive;
+type
   TBitBtn = class(TButton)
   private
     FGlyph: Graphics.TBitmap;

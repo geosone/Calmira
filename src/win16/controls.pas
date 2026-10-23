@@ -14,6 +14,24 @@ type
   TShiftState = native_input.TShiftState;
   TModalResult = SmallInt;
   TControlViewAction = (cvaShow, cvaHide, cvaFront, cvaBack);
+  TDragMode = control_base.TDragMode;
+  TDragState = control_base.TDragState;
+  TDragDropEvent = control_base.TDragDropEvent;
+  TDragOverEvent = control_base.TDragOverEvent;
+  TEndDragEvent = control_base.TEndDragEvent;
+  TMouseEvent = native_input.TMouseEvent;
+  TMouseMoveEvent = native_input.TMouseMoveEvent;
+const
+  { Delphi 1 component messages that Calmira's own controls handle. }
+  CM_BASE = $0F00;
+  CM_ENABLEDCHANGED = CM_BASE + 12;
+  CM_MOUSEENTER = CM_BASE + 19;
+  CM_MOUSELEAVE = CM_BASE + 20;
+  CM_BUTTONPRESSED = CM_BASE + 24;
+  dmManual = control_base.dmManual; dmAutomatic = control_base.dmAutomatic;
+  dsDragEnter = control_base.dsDragEnter; dsDragLeave = control_base.dsDragLeave;
+  dsDragMove = control_base.dsDragMove;
+type
   TGraphicControl = class;
   TCustomControl = class(TNativeInputWindow)
   private
@@ -27,7 +45,13 @@ type
     FEnabled, FVisible: Boolean;
     FTabStop: Boolean;
     FHelpContext: LongInt;
+    FMouseControl, FCaptureControl: TGraphicControl;
     procedure SetHelpContext(Value: LongInt);
+    function GraphicAt(X, Y: Integer): TGraphicControl;
+    procedure SetMouseControl(Value: TGraphicControl);
+    procedure CheckMouseControl;
+    procedure ForgetGraphic(Control: TGraphicControl);
+    function RouteGraphicMouse(var M: TMessage): Boolean;
     function GetTabOrder: Integer;
     procedure SetTabOrder(Value: Integer);
     procedure SetTabStop(Value: Boolean);
@@ -75,6 +99,9 @@ type
     procedure WMMove(var M: TMessage); message WM_MOVE;
     procedure WMSize(var M: TMessage); message WM_SIZE;
     procedure WMNCDestroy(var M: TMessage); message WM_NCDESTROY;
+    procedure WndProc(var Message: TMessage); override;
+    function GetControlBounds: TRect; override;
+    procedure SetControlBounds(const Value: TRect); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -120,7 +147,11 @@ type
     FLeft, FTop, FWidth, FHeight: Integer;
     FColor: TColor;
     FVisible, FEnabled: Boolean;
+    FOnClick, FOnDblClick: TNotifyEvent;
+    FOnMouseDown, FOnMouseUp: TMouseEvent;
+    FOnMouseMove: TMouseMoveEvent;
     procedure SetParent(Value: TCustomControl);
+    procedure MouseMessage(Msg, Keys: Word; X, Y: Integer);
     procedure SetLeft(Value: Integer);
     procedure SetTop(Value: Integer);
     procedure SetWidth(Value: Integer);
@@ -135,12 +166,27 @@ type
     procedure PaintOn(DC: HDC);
     procedure ChangeOrder(Front: Boolean);
   protected
+    { False for controls that decide themselves when a press is a click. }
+    FClickEvents: Boolean;
     procedure ControlOperation(Operation: TControlOperation; var Value: Boolean); override;
     procedure Paint; virtual;
+    function GetControlBounds: TRect; override;
+    procedure SetControlBounds(const Value: TRect); override;
     function DialogChar(Key: Char; Root: TCustomControl): Boolean; virtual;
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); virtual;
+    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); virtual;
+    procedure MouseMove(Shift: TShiftState; X, Y: Integer); virtual;
+    procedure DblClick; virtual;
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
+    property OnDblClick: TNotifyEvent read FOnDblClick write FOnDblClick;
+    property OnMouseDown: TMouseEvent read FOnMouseDown write FOnMouseDown;
+    property OnMouseUp: TMouseEvent read FOnMouseUp write FOnMouseUp;
+    property OnMouseMove: TMouseMoveEvent read FOnMouseMove write FOnMouseMove;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure Click; virtual;
+    function Perform(Msg, WParam: Word; LParam: LongInt): LongInt;
     procedure SetBounds(X, Y, AWidth, AHeight: Integer); virtual;
     procedure Invalidate;
     procedure Show;
@@ -164,6 +210,21 @@ type
     property Color: TColor read FColor write SetColor;
     property Visible: Boolean read FVisible write SetVisible;
     property Enabled: Boolean read FEnabled write SetEnabled;
+  end;
+  { Delphi 1 TCustomControl descends from TWinControl; here they are one class. }
+  TWinControl = TCustomControl;
+  { A canvas on a control outside its Paint: the window's DC, or the parent's
+    clipped to the bounds of a graphic control. }
+  TControlCanvas = class(TCanvas)
+  private
+    FControl: TControl;
+    FWindow: HWND;
+    FContext: HDC;
+    procedure SetControl(Value: TControl);
+    procedure FreeContext;
+  public
+    destructor Destroy; override;
+    property Control: TControl read FControl write SetControl;
   end;
 const
   crDefault = native_cursors.crDefault; crNone = native_cursors.crNone;
@@ -646,7 +707,118 @@ begin ReadBounds; DefaultHandler(M); end;
 procedure TCustomControl.WMSize(var M: TMessage);
 begin ReadBounds; DefaultHandler(M); Invalidate; end;
 procedure TCustomControl.WMNCDestroy(var M: TMessage);
-begin ReadBounds; DefaultHandler(M); end;
+begin FMouseControl := nil; FCaptureControl := nil; ReadBounds; DefaultHandler(M); end;
+const
+  { Win16 has no WM_MOUSELEAVE: poll while a graphic child is hovered. }
+  MouseLeaveTimer = $7E01;
+  MouseLeaveInterval = 100;
+{ USER's four-byte POINT by value; see native_cursors. }
+function PackedWindowFromPoint(Value: LongInt): HWND; external 'USER' name 'WINDOWFROMPOINT';
+function TCustomControl.GraphicAt(X, Y: Integer): TGraphicControl;
+var I: Integer; Graphic: TGraphicControl;
+begin
+  Result := nil;
+  if FGraphics = nil then Exit;
+  { Last in the list paints last, so it is topmost. }
+  for I := FGraphics.Count - 1 downto 0 do
+  begin
+    Graphic := TGraphicControl(FGraphics[I]);
+    if Graphic.FVisible and Graphic.FEnabled and (X >= Graphic.FLeft) and (Y >= Graphic.FTop) and
+      (X < Graphic.FLeft + Graphic.FWidth) and (Y < Graphic.FTop + Graphic.FHeight) then
+    begin Result := Graphic; Exit; end;
+  end;
+end;
+procedure TCustomControl.SetMouseControl(Value: TGraphicControl);
+var Previous: TGraphicControl;
+begin
+  if Value = FMouseControl then Exit;
+  Previous := FMouseControl;
+  FMouseControl := Value;
+  if Previous <> nil then Previous.Perform(CM_MOUSELEAVE, 0, 0);
+  if (Value <> nil) and (FMouseControl = Value) then Value.Perform(CM_MOUSEENTER, 0, 0);
+  if Handle <> 0 then
+    if FMouseControl <> nil then SetTimer(Handle, MouseLeaveTimer, MouseLeaveInterval, nil)
+    else KillTimer(Handle, MouseLeaveTimer);
+end;
+procedure TCustomControl.CheckMouseControl;
+var Position: TPoint;
+begin
+  if FCaptureControl <> nil then Exit;
+  GetCursorPos(Position);
+  if PackedWindowFromPoint(MakeLong(Position.X, Position.Y)) <> Handle then SetMouseControl(nil)
+  else
+  begin
+    WinProcs.ScreenToClient(Handle, Position);
+    SetMouseControl(GraphicAt(Position.X, Position.Y));
+  end;
+end;
+procedure TCustomControl.ForgetGraphic(Control: TGraphicControl);
+begin
+  if FMouseControl = Control then
+  begin
+    FMouseControl := nil;
+    if Handle <> 0 then KillTimer(Handle, MouseLeaveTimer);
+  end;
+  if FCaptureControl = Control then
+  begin
+    FCaptureControl := nil;
+    MouseCapture := False;
+  end;
+end;
+function TCustomControl.RouteGraphicMouse(var M: TMessage): Boolean;
+var X, Y: Integer; Target: TGraphicControl;
+begin
+  Result := False;
+  X := SmallInt(LoWord(M.LParam)); Y := SmallInt(HiWord(M.LParam));
+  if FCaptureControl = nil then
+  begin
+    if M.Msg = WM_MOUSEMOVE then SetMouseControl(GraphicAt(X, Y));
+    Target := GraphicAt(X, Y);
+  end
+  else Target := FCaptureControl;
+  if Target = nil then Exit;
+  case M.Msg of
+    WM_LBUTTONDOWN, WM_RBUTTONDOWN, WM_MBUTTONDOWN,
+    WM_LBUTTONDBLCLK, WM_RBUTTONDBLCLK, WM_MBUTTONDBLCLK:
+      begin FCaptureControl := Target; MouseCapture := True; end;
+  end;
+  Target.MouseMessage(M.Msg, M.WParam, X - Target.FLeft, Y - Target.FTop);
+  case M.Msg of
+    WM_LBUTTONUP, WM_RBUTTONUP, WM_MBUTTONUP:
+      if (M.WParam and (MK_LBUTTON or MK_RBUTTON or MK_MBUTTON) = 0) and
+        (FCaptureControl <> nil) then
+      begin
+        FCaptureControl := nil;
+        MouseCapture := False;
+        SetMouseControl(GraphicAt(X, Y));
+      end;
+  end;
+  M.Result := 0;
+  Result := True;
+end;
+function TCustomControl.GetControlBounds: TRect;
+begin Result := GetBoundsRect; end;
+procedure TCustomControl.SetControlBounds(const Value: TRect);
+begin SetBoundsRect(Value); end;
+function TGraphicControl.GetControlBounds: TRect;
+begin Result := GetBoundsRect; end;
+procedure TGraphicControl.SetControlBounds(const Value: TRect);
+begin SetBoundsRect(Value); end;
+procedure TCustomControl.WndProc(var Message: TMessage);
+begin
+  case Message.Msg of
+    WM_MOUSEMOVE..WM_MBUTTONDBLCLK:
+      begin
+        if RouteGraphicMouse(Message) then Exit;
+        if (Message.Msg = WM_LBUTTONDOWN) and (DragMode = dmAutomatic) and Enabled then
+        begin BeginDrag(False); Message.Result := 0; Exit; end;
+      end;
+    WM_TIMER:
+      if Message.WParam = MouseLeaveTimer then
+      begin CheckMouseControl; Message.Result := 0; Exit; end;
+  end;
+  inherited WndProc(Message);
+end;
 procedure TCustomControl.StoreBounds(const Area: TRect);
 begin
   FLeft := Area.Left; FTop := Area.Top;
@@ -751,8 +923,58 @@ begin DefaultHandler(M); end;
 constructor TGraphicControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner); FCanvas := TCanvas.Create;
-  FVisible := True; FEnabled := True; FColor := clBtnFace;
+  FVisible := True; FEnabled := True; FColor := clBtnFace; FClickEvents := True;
 end;
+function TGraphicControl.Perform(Msg, WParam: Word; LParam: LongInt): LongInt;
+var Message: TMessage;
+begin
+  Message.Msg := Msg; Message.WParam := WParam; Message.LParam := LParam; Message.Result := 0;
+  Dispatch(Message);
+  Result := Message.Result;
+end;
+procedure TGraphicControl.MouseMessage(Msg, Keys: Word; X, Y: Integer);
+var Shift: TShiftState; Button: TMouseButton;
+begin
+  Shift := [];
+  if Keys and MK_SHIFT <> 0 then Include(Shift, ssShift);
+  if Keys and MK_CONTROL <> 0 then Include(Shift, ssCtrl);
+  if Keys and MK_LBUTTON <> 0 then Include(Shift, ssLeft);
+  if Keys and MK_RBUTTON <> 0 then Include(Shift, ssRight);
+  if Keys and MK_MBUTTON <> 0 then Include(Shift, ssMiddle);
+  if GetKeyState(VK_MENU) < 0 then Include(Shift, ssAlt);
+  if Msg = WM_MOUSEMOVE then begin MouseMove(Shift, X, Y); Exit; end;
+  if (Msg = WM_LBUTTONDOWN) and (DragMode = dmAutomatic) then begin BeginDrag(False); Exit; end;
+  case Msg of
+    WM_LBUTTONDOWN, WM_LBUTTONUP, WM_LBUTTONDBLCLK: Button := mbLeft;
+    WM_RBUTTONDOWN, WM_RBUTTONUP, WM_RBUTTONDBLCLK: Button := mbRight;
+    else Button := mbMiddle;
+  end;
+  case Msg of
+    WM_LBUTTONUP, WM_RBUTTONUP, WM_MBUTTONUP:
+      begin
+        MouseUp(Button, Shift, X, Y);
+        if FClickEvents and (Msg = WM_LBUTTONUP) and (X >= 0) and (Y >= 0) and
+          (X < FWidth) and (Y < FHeight) then Click;
+      end;
+    WM_LBUTTONDBLCLK, WM_RBUTTONDBLCLK, WM_MBUTTONDBLCLK:
+      begin
+        Include(Shift, ssDouble);
+        MouseDown(Button, Shift, X, Y);
+        if Msg = WM_LBUTTONDBLCLK then DblClick;
+      end;
+    else MouseDown(Button, Shift, X, Y);
+  end;
+end;
+procedure TGraphicControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin if Assigned(FOnMouseDown) then FOnMouseDown(Self, Button, Shift, X, Y); end;
+procedure TGraphicControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin if Assigned(FOnMouseUp) then FOnMouseUp(Self, Button, Shift, X, Y); end;
+procedure TGraphicControl.MouseMove(Shift: TShiftState; X, Y: Integer);
+begin if Assigned(FOnMouseMove) then FOnMouseMove(Self, Shift, X, Y); end;
+procedure TGraphicControl.Click;
+begin if Assigned(FOnClick) then FOnClick(Self); end;
+procedure TGraphicControl.DblClick;
+begin if Assigned(FOnDblClick) then FOnDblClick(Self); end;
 procedure TGraphicControl.ControlOperation(Operation: TControlOperation; var Value: Boolean);
 begin
   case Operation of
@@ -855,6 +1077,7 @@ begin
     except Value.FControls.Remove(Self); raise; end;
   end;
   Previous := FParent;
+  if Previous <> nil then Previous.ForgetGraphic(Self);
   try DirtyBounds;
   except
     if Value <> nil then
@@ -889,6 +1112,7 @@ begin if Value <> FColor then begin FColor := Value; Invalidate; end; end;
 procedure TGraphicControl.SetVisible(Value: Boolean);
 begin
   if Value = FVisible then Exit;
+  if not Value and (FParent <> nil) then FParent.ForgetGraphic(Self);
   DirtyBounds; FVisible := Value; Invalidate;
 end;
 procedure TGraphicControl.SetEnabled(Value: Boolean);
@@ -898,7 +1122,9 @@ begin
     (FParent.FChanging or FParent.Painting or FParent.FCompositing or
     (FParent.Canvas.Handle <> 0))) then
     raise ENativeWindowError.Create('Control lifecycle reentry');
+  if not Value and (FParent <> nil) then FParent.ForgetGraphic(Self);
   FEnabled := Value; Invalidate;
+  Perform(CM_ENABLEDCHANGED, 0, 0);
 end;
 procedure TGraphicControl.PaintOn(DC: HDC);
 var State, Clip: SmallInt; Background: HBRUSH; Area: TRect; Surface: TBitmap;
@@ -929,4 +1155,204 @@ begin
     finally Surface.Free; end;
   finally RestoreDC(DC, State); end;
 end;
+destructor TControlCanvas.Destroy;
+begin FreeContext; inherited Destroy; end;
+procedure TControlCanvas.FreeContext;
+begin
+  if FContext = 0 then Exit;
+  Handle := 0;
+  ReleaseDC(FWindow, FContext);
+  FContext := 0; FWindow := 0;
+end;
+procedure TControlCanvas.SetControl(Value: TControl);
+var Graphic: TGraphicControl;
+begin
+  FreeContext;
+  FControl := Value;
+  if Value is TCustomControl then FWindow := TCustomControl(Value).Handle
+  else if (Value is TGraphicControl) and (TGraphicControl(Value).Parent <> nil) then
+    FWindow := TGraphicControl(Value).Parent.Handle
+  else FWindow := 0;
+  if FWindow = 0 then Exit;
+  FContext := GetDC(FWindow);
+  if FContext = 0 then raise ENativeWindowError.Create('Cannot get control DC');
+  if Value is TGraphicControl then
+  begin
+    Graphic := TGraphicControl(Value);
+    SetViewportOrg(FContext, Graphic.Left, Graphic.Top);
+    IntersectClipRect(FContext, 0, 0, Graphic.Width, Graphic.Height);
+  end;
+  Handle := FContext;
+end;
+type
+  { Protected TControl drag hooks, reached from the manager. }
+  TDragAccess = class(TControl);
+  TDragCapture = class(TNativeWindow)
+  protected
+    procedure WndProc(var Message: TMessage); override;
+  end;
+  TNativeDragManager = class(TDragManager)
+  private
+    FCapture: TDragCapture;
+    FTarget: TControl;
+    FActive, FAccepted: Boolean;
+    FStart: TPoint;
+    function FindTarget(const Position: TPoint): TControl;
+    function TargetPoint(Target: TControl; const Position: TPoint): TPoint;
+    function Notify(Target: TControl; const Position: TPoint; State: TDragState): Boolean;
+    procedure ShowDragCursor;
+  public
+    destructor Destroy; override;
+    procedure Start(Control: TControl; Immediate: Boolean); override;
+    procedure Move(const Position: TPoint);
+    procedure Finish(Drop: Boolean); override;
+    procedure Forget(Control: TControl); override;
+  end;
+const
+  { Pixels the mouse must travel before a delayed drag starts (Delphi 1). }
+  DragThreshold = 5;
+  CM_RECAPTURE = CM_BASE + 100;
+var NativeDragManager: TNativeDragManager;
+procedure TDragCapture.WndProc(var Message: TMessage);
+var Position: TPoint;
+begin
+  case Message.Msg of
+    WM_MOUSEMOVE:
+      begin GetCursorPos(Position); NativeDragManager.Move(Position); end;
+    WM_LBUTTONUP: NativeDragManager.Finish(True);
+    WM_RBUTTONDOWN, WM_CANCELMODE: NativeDragManager.Finish(False);
+    CM_RECAPTURE:
+      { A native control may take capture back after the press that began the drag. }
+      if (DragSource <> nil) and (GetCapture <> Handle) then
+        if GetKeyState(VK_LBUTTON) < 0 then SetCapture(Handle)
+        else NativeDragManager.Finish(True);
+  else inherited WndProc(Message);
+  end;
+end;
+destructor TNativeDragManager.Destroy;
+begin
+  FCapture.Free;
+  inherited Destroy;
+end;
+function TNativeDragManager.FindTarget(const Position: TPoint): TControl;
+var Window: HWND; Native: TNativeWindow; Local: TPoint; Graphic: TGraphicControl;
+begin
+  Result := nil;
+  Window := PackedWindowFromPoint(MakeLong(Position.X, Position.Y));
+  { Unmanaged USER children (a combo box's edit) belong to their managed parent. }
+  while Window <> 0 do
+  begin
+    Native := FindNativeWindow(Window);
+    if Native is TCustomControl then Break;
+    Window := GetParent(Window);
+  end;
+  if Window = 0 then Exit;
+  Result := TCustomControl(Native);
+  Local := TCustomControl(Native).ScreenToClient(Position);
+  Graphic := TCustomControl(Native).GraphicAt(Local.X, Local.Y);
+  if Graphic <> nil then Result := Graphic;
+end;
+function TNativeDragManager.TargetPoint(Target: TControl; const Position: TPoint): TPoint;
+begin
+  if Target is TCustomControl then Result := TCustomControl(Target).ScreenToClient(Position)
+  else if (Target is TGraphicControl) and (TGraphicControl(Target).Parent <> nil) then
+    Result := TGraphicControl(Target).ScreenToClient(Position)
+  else Result := Position;
+end;
+function TNativeDragManager.Notify(Target: TControl; const Position: TPoint;
+  State: TDragState): Boolean;
+var Local: TPoint;
+begin
+  Result := False;
+  Local := TargetPoint(Target, Position);
+  TDragAccess(Target).DragOver(DragSource, Local.X, Local.Y, State, Result);
+end;
+procedure TNativeDragManager.ShowDragCursor;
+var Index: TCursor; Value: HCURSOR;
+begin
+  if FAccepted then Index := TDragAccess(DragSource).DragCursor else Index := crNoDrop;
+  if LookupNativeCursor(Index, Value) then WinProcs.SetCursor(Value);
+end;
+procedure TNativeDragManager.Start(Control: TControl; Immediate: Boolean);
+begin
+  if (DragSource <> nil) or (Control = nil) then Exit;
+  { A graphic source pressed through its parent: that capture becomes ours. }
+  if (Control is TGraphicControl) and (TGraphicControl(Control).Parent <> nil) then
+    TGraphicControl(Control).Parent.ForgetGraphic(TGraphicControl(Control));
+  if FCapture = nil then FCapture := TDragCapture.Create(nil);
+  if FCapture.Handle = 0 then FCapture.CreateHandle(0, '', WS_POPUP, 0, 0, 0, 0);
+  DragSource := Control;
+  FTarget := nil; FAccepted := False; FActive := Immediate;
+  GetCursorPos(FStart);
+  SetCapture(FCapture.Handle);
+  PostMessage(FCapture.Handle, CM_RECAPTURE, 0, 0);
+  if Immediate then Move(FStart);
+end;
+procedure TNativeDragManager.Move(const Position: TPoint);
+var Target: TControl; State: TDragState;
+begin
+  if DragSource = nil then Exit;
+  if not FActive then
+  begin
+    if (Abs(Position.X - FStart.X) < DragThreshold) and
+      (Abs(Position.Y - FStart.Y) < DragThreshold) then Exit;
+    FActive := True;
+  end;
+  Target := FindTarget(Position);
+  if Target <> FTarget then
+  begin
+    if FTarget <> nil then Notify(FTarget, Position, dsDragLeave);
+    { The leave handler may have ended the drag. }
+    if DragSource = nil then Exit;
+    FTarget := Target;
+    State := dsDragEnter;
+  end
+  else State := dsDragMove;
+  FAccepted := False;
+  if Target <> nil then FAccepted := Notify(Target, Position, State);
+  if DragSource <> nil then ShowDragCursor;
+end;
+procedure TNativeDragManager.Finish(Drop: Boolean);
+var Source, Target: TControl; Position, Local: TPoint; Accepted: Boolean;
+begin
+  if DragSource = nil then Exit;
+  Source := DragSource; Target := FTarget; Accepted := FAccepted and FActive;
+  GetCursorPos(Position);
+  { Clear first: the handlers below may start another drag. }
+  FTarget := nil; FAccepted := False;
+  if (FCapture <> nil) and (GetCapture = FCapture.Handle) then ReleaseCapture;
+  if Target <> nil then
+    if Drop and Accepted then
+    begin
+      Local := TargetPoint(Target, Position);
+      DragSource := nil;
+      TDragAccess(Target).DragDrop(Source, Local.X, Local.Y);
+    end
+    else
+    begin
+      Notify(Target, Position, dsDragLeave);
+      Target := nil;
+    end;
+  DragSource := nil;
+  if Target <> nil then Local := TargetPoint(Target, Position)
+  else Local := TargetPoint(Source, Position);
+  TDragAccess(Source).DoEndDrag(Target, Local.X, Local.Y);
+  RefreshNativeCursor(CursorTarget);
+end;
+procedure TNativeDragManager.Forget(Control: TControl);
+begin
+  if FTarget = Control then begin FTarget := nil; FAccepted := False; end;
+  if DragSource = Control then
+  begin
+    { No end-drag event for a source that is being destroyed. }
+    DragSource := nil; FTarget := nil; FAccepted := False;
+    if (FCapture <> nil) and (GetCapture = FCapture.Handle) then ReleaseCapture;
+  end;
+end;
+initialization
+  NativeDragManager := TNativeDragManager.Create;
+  DragManager := NativeDragManager;
+finalization
+  DragManager := nil;
+  NativeDragManager.Free;
 end.

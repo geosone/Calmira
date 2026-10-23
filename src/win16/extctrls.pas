@@ -1,11 +1,15 @@
 { SPDX-License-Identifier: GPL-2.0-or-later
-  Windowless image subset; not the complete Delphi ExtCtrls framework. }
+  Image, notebook and header subset; not the complete Delphi ExtCtrls framework. }
 unit ExtCtrls;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This ExtCtrls subset requires Win16}{$ENDIF}
 interface
-uses Classes, Graphics, Controls;
+uses Classes, Graphics, Controls, native_notebook, native_header;
 type
+  TNotebook = native_notebook.TNotebook;
+  TPage = native_notebook.TPage;
+  THeader = native_header.THeader;
+  TSectionEvent = native_header.TSectionEvent;
   TImage = class(TGraphicControl)
   private
     FPicture: TPicture;
@@ -30,8 +34,11 @@ type
     property Color;
     property Visible;
   end;
+{ Delphi 1 bevel: Width nested frames, top/left in TopColor; Rect shrinks by Width. }
+procedure Frame3D(Canvas: TCanvas; var Rect: TRect; TopColor, BottomColor: TColor;
+  Width: Integer);
 implementation
-uses native_window;
+uses WinProcs, native_window;
 constructor TImage.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -100,5 +107,23 @@ begin
     begin X := (Width - FPicture.Width) div 2; Y := (Height - FPicture.Height) div 2; end;
     Painter.Draw(X, Y, FPicture.Graphic);
   end;
+end;
+procedure Frame3D(Canvas: TCanvas; var Rect: TRect; TopColor, BottomColor: TColor;
+  Width: Integer);
+begin
+  Canvas.Pen.Width := 1;
+  Dec(Rect.Bottom); Dec(Rect.Right);
+  while Width > 0 do
+  begin
+    Dec(Width);
+    Canvas.Pen.Color := TopColor;
+    Canvas.PolyLine([Point(Rect.Left, Rect.Bottom), Point(Rect.Left, Rect.Top),
+      Point(Rect.Right, Rect.Top)]);
+    Canvas.Pen.Color := BottomColor;
+    Canvas.PolyLine([Point(Rect.Right, Rect.Top), Point(Rect.Right, Rect.Bottom),
+      Point(Rect.Left - 1, Rect.Bottom)]);
+    InflateRect(Rect, -1, -1);
+  end;
+  Inc(Rect.Bottom); Inc(Rect.Right);
 end;
 end.

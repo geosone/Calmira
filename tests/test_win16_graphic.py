@@ -1,5 +1,6 @@
 """Scope guards for true graphic children and the original pie-chart port."""
 from pathlib import Path
+import re
 import unittest
 
 from test_win16_handles import active_source
@@ -35,6 +36,7 @@ class Win16GraphicTests(unittest.TestCase):
     def test_compositor_preserves_dc_and_intersects_native_clip(self):
         source = (ROOT / 'src/win16/controls.pas').read_text()
         paint = source.split('procedure TGraphicControl.PaintOn', 1)[1]
+        paint = re.split(r'\n(?:procedure|function|constructor|destructor|type)\b', paint, maxsplit=1)[0]
         for text in ('State := SaveDC(DC)', 'OffsetViewportOrg(DC, FLeft, FTop)',
                      'IntersectClipRect(DC, 0, 0, FWidth, FHeight)',
                      'if Clip = NULLREGION then Exit', 'FCanvas.Handle := Surface.Canvas.Handle',

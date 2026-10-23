@@ -88,14 +88,20 @@ class Reader:
         return self.decode(self.take(self.byte()))
 
     @staticmethod
-    def decode(data):
+    def decode(data, allow_nul=False):
         try:
             result = data.decode('cp1252')
         except UnicodeError as error:
             raise DfmError('invalid Windows-1252 text') from error
-        if '\0' in result:
+        if '\0' in result and not allow_nul:
             raise DfmError('embedded NUL in DFM text')
         return result
+
+    def string_value(self, data):
+        # Delphi 1 THeader streams each section as #0width#0text. Such values
+        # get their own kind, so no ordinary string property can carry a NUL.
+        text = self.decode(data, allow_nul=True)
+        return Value('nulstring' if '\0' in text else 'string', text)
 
     def resource_id(self):
         first = self.byte()
@@ -116,8 +122,10 @@ class Reader:
         kind = self.byte()
         if kind in (2, 3, 4, 19):
             return Value('integer', self.number({2: '<b', 3: '<h', 4: '<i', 19: '<q'}[kind]))
-        if kind in (6, 7):
-            return Value('string' if kind == 6 else 'ident', self.text())
+        if kind == 6:
+            return self.string_value(self.take(self.byte()))
+        if kind == 7:
+            return Value('ident', self.text())
         if kind in (8, 9):
             return Value('boolean', kind == 9)
         if kind == 13:
@@ -143,7 +151,7 @@ class Reader:
             if count > 2 * 1024 * 1024:
                 raise DfmError('DFM value too large')
             data = self.take(count)
-            return Value('binary' if kind == 10 else 'string', data if kind == 10 else self.decode(data))
+            return Value('binary', data) if kind == 10 else self.string_value(data)
         if kind in (5, 15, 16, 17):
             return Value('numeric', self.take({5: 10, 15: 4, 16: 8, 17: 8}[kind]))
         raise DfmError(f'unsupported DFM value tag {kind}')
@@ -190,6 +198,19 @@ class Reader:
 
 def parse(data):
     return Reader(data).read()
+
+
+def header_sections(value):
+    """Decode Delphi 1 THeader.Sections: a list of #0width#0text strings."""
+    if value.kind != 'list':
+        raise DfmError('THeader sections: expected a string list')
+    result = []
+    for item in value.data:
+        match = re.fullmatch(r'\0(\d{1,5})\0([^\0]*)', item.data) if item.kind == 'nulstring' else None
+        if match is None or int(match.group(1)) > 32767:
+            raise DfmError('THeader sections: expected #0width#0text entries')
+        result.append((int(match.group(1)), match.group(2)))
+    return result
 
 
 def literal(text):

@@ -27,3 +27,49 @@
  function IsLeadChar(B: Byte): Boolean; inline;
  
  
+--- a/rtl/objpas/sysutils/sysutilh.inc
++++ b/rtl/objpas/sysutils/sysutilh.inc
+@@ -48,7 +48,12 @@
+ 
+    TProcedure = procedure;
+ 
++{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
++   { Delphi 1 code passes file names to OpenString var parameters. }
++   TFileName = ShortString;
++{$else CALMIRA_WIN16_DELPHI1_STRINGS}
+    TFileName = type string;
++{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
+ 
+    TIntegerSet = Set of 0..SizeOf(Integer)*8-1;
+ 
+--- a/rtl/objpas/sysutils/datih.inc
++++ b/rtl/objpas/sysutils/datih.inc
+@@ -164,6 +164,9 @@
+ function FormatDateTime(const FormatStr: string; DateTime: TDateTime; Options : TFormatDateTimeOptions = []): string;
+ function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []): string;
+ procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; Options : TFormatDateTimeOptions = []);
++{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
++procedure DateTimeToString(var Result: ShortString; const FormatStr: string; const DateTime: TDateTime);
++{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
+ procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []);
+ Function DateTimeToFileDate(DateTime : TDateTime) : int64;
+ Function UniversalToFileDate(DateTime : TDateTime) : int64;
+--- a/rtl/objpas/sysutils/dati.inc
++++ b/rtl/objpas/sysutils/dati.inc
+@@ -960,6 +960,16 @@
+   DateTimeToString(Result, FormatStr, DateTime, DefaultFormatSettings, Options);
+ end;
+ 
++{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
++procedure DateTimeToString(var Result: ShortString; const FormatStr: string; const DateTime: TDateTime);
++var
++  Formatted: string;
++begin
++  DateTimeToString(Formatted, FormatStr, DateTime, DefaultFormatSettings);
++  Result:=Formatted;
++end;
++{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
++
+ procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime;
+   const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []);
+ var

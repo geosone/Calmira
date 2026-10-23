@@ -13,7 +13,8 @@ PATCHES = [ROOT / 'tools/patches' / name for name in (
     'fpc-win16-message-dispatch.patch', 'fpc-win16-exception-tailcall.patch',
     'fpc-win16-gui-stdio.patch', 'fpc-win16-gui-error-buffer.patch',
     'fpc-win16-realloc-bounds.patch', 'fpc-win16-dos-no-strings.patch',
-    'fpc-win16-delphi1-strings.patch', 'fpc-win16-huge-startup.patch')]
+    'fpc-win16-delphi1-strings.patch', 'fpc-win16-huge-startup.patch',
+    'fpc-win16-const-rects.patch')]
 OVERLAYS = {Path('rtl/win16/calmira_guierr.inc'): ROOT / 'src/win16/rtl_gui_error.inc'}
 STAGING_SCHEMA = 2
 

@@ -1,0 +1,84 @@
+--- a/rtl/win16/winprocsh.inc
++++ b/rtl/win16/winprocsh.inc
+@@ -398,11 +398,11 @@
+ function CreateRectRgn(nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): HRGN; external 'GDI';
+ function CreateRectRgnIndirect(lprc: LPRECT): HRGN; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function CreateRectRgnIndirect(var rc: RECT): HRGN; external 'GDI';
++function CreateRectRgnIndirect(constref rc: RECT): HRGN; external 'GDI';
+ {$endif}
+ function CreateEllipticRgnIndirect(lprc: LPRECT): HRGN; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function CreateEllipticRgnIndirect(var rc: RECT): HRGN; external 'GDI';
++function CreateEllipticRgnIndirect(constref rc: RECT): HRGN; external 'GDI';
+ {$endif}
+ function CreateEllipticRgn(nLeftRect, nTopRect, nRightRect, nBottomRect: SmallInt): HRGN; external 'GDI';
+ function CreatePolygonRgn(lppt: LPPOINT; cPoints, fnPolyFillMode: SmallInt): HRGN; external 'GDI';
+@@ -429,7 +429,7 @@
+ 
+ function RectInRegion(hrgn: HRGN; lprc: LPRECT): BOOL; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function RectInRegion(hrgn: HRGN; var rc: RECT): BOOL; external 'GDI';
++function RectInRegion(hrgn: HRGN; constref rc: RECT): BOOL; external 'GDI';
+ {$endif}
+ function PtInRegion(hrgn: HRGN; nXPos, nYPos: SmallInt): BOOL; external 'GDI';
+ 
+@@ -487,7 +487,7 @@
+ function PtVisible(hdc: HDC; nXPos, nYPos: SmallInt): BOOL; external 'GDI';
+ function RectVisible(hdc: HDC; lprc: LPRECT): BOOL; external 'GDI';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function RectVisible(hdc: HDC; var rc: RECT): BOOL; external 'GDI';
++function RectVisible(hdc: HDC; constref rc: RECT): BOOL; external 'GDI';
+ {$endif}
+ 
+ { General drawing support }
+@@ -532,14 +532,14 @@
+ function FrameRect(hdc: HDC; lprc: LPRECT; hbr: HBRUSH): SmallInt; external 'USER';
+ procedure InvertRect(hdc: HDC; lprc: LPRECT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function FillRect(hdc: HDC; var rc: RECT; hbr: HBRUSH): SmallInt; external 'USER';
+-function FrameRect(hdc: HDC; var rc: RECT; hbr: HBRUSH): SmallInt; external 'USER';
+-procedure InvertRect(hdc: HDC; var rc: RECT); external 'USER';
++function FillRect(hdc: HDC; constref rc: RECT; hbr: HBRUSH): SmallInt; external 'USER';
++function FrameRect(hdc: HDC; constref rc: RECT; hbr: HBRUSH): SmallInt; external 'USER';
++procedure InvertRect(hdc: HDC; constref rc: RECT); external 'USER';
+ {$endif}
+ 
+ procedure DrawFocusRect(hdc: HDC; lprc: LPRECT); external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-procedure DrawFocusRect(hdc: HDC; var rc: RECT); external 'USER';
++procedure DrawFocusRect(hdc: HDC; constref rc: RECT); external 'USER';
+ {$endif}
+ 
+ { Text support }
+@@ -731,14 +731,14 @@
+ procedure SetRect(var rc: RECT; nLeft, nTop, nRight, nBottom: SmallInt); external 'USER';
+ procedure SetRectEmpty(var rc: RECT); external 'USER';
+ 
+-procedure CopyRect(var rcDst: RECT; var rcSrc: RECT); external 'USER';
++procedure CopyRect(var rcDst: RECT; constref rcSrc: RECT); external 'USER';
+ 
+-function IsRectEmpty(var rc: RECT): BOOL; external 'USER';
++function IsRectEmpty(constref rc: RECT): BOOL; external 'USER';
+ 
+-function EqualRect(var rc1, rc2: RECT): BOOL; external 'USER';
++function EqualRect(constref rc1, rc2: RECT): BOOL; external 'USER';
+ 
+-function IntersectRect(var rcDest: RECT; var rcSrc1, rcSrc2: RECT): BOOL; external 'USER';
+-function UnionRect(var rcDest: RECT; var rcSrc1, rcSrc2: RECT): BOOL; external 'USER';
++function IntersectRect(var rcDest: RECT; constref rcSrc1, rcSrc2: RECT): BOOL; external 'USER';
++function UnionRect(var rcDest: RECT; constref rcSrc1, rcSrc2: RECT): BOOL; external 'USER';
+ 
+ procedure OffsetRect(var rc: RECT; x, y: SmallInt); external 'USER';
+ procedure InflateRect(var rc: RECT; xAmt, yAmt: SmallInt); external 'USER';
+--- a/rtl/win16/win31.pp
++++ b/rtl/win16/win31.pp
+@@ -970,7 +970,7 @@
+ { Rectangle support }
+ function SubtractRect(lprcDest: LPRECT; lprcSource1, lprcSource2: LPRECT): BOOL; external 'USER';
+ {$ifdef VAR_PARAMS_ARE_FAR}
+-function SubtractRect(var rcDest: RECT; var rcSource1, rcSource2: RECT): BOOL; external 'USER';
++function SubtractRect(var rcDest: RECT; constref rcSource1, rcSource2: RECT): BOOL; external 'USER';
+ {$endif}
+ 
+ { Window message support }

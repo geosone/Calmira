@@ -8,7 +8,8 @@ import sys
 import tempfile
 import unittest
 
-from tools.compile_dfm import Component, Compiler, DfmError, Value, compile_dfm, inventory, literal, parse
+from tools.compile_dfm import (Component, Compiler, DfmError, Value, compile_dfm, header_sections, inventory,
+                               literal, parse)
 
 ROOT = Path(__file__).resolve().parents[1]
 ORIGINAL = ROOT / 'src/incsrch.dfm'
@@ -186,9 +187,25 @@ class DfmCompilerTests(unittest.TestCase):
                 parse(b'TPF0' + component(name=name))
 
     def test_invalid_strings_tags_and_sets_are_rejected(self):
-        for value in (b'\6\1\0', b'\6\1\x81', b'\xff', b'\x0b\1A\1a\0'):
+        for value in (b'\6\1\x81', b'\xff', b'\x0b\1A\1a\0'):
             with self.assertRaises(DfmError):
                 parse(b'TPF0' + component(props=(('Caption', value),)))
+
+    def test_nul_strings_are_only_header_sections(self):
+        # A NUL parses as its own kind; an ordinary string property rejects it.
+        root = parse(b'TPF0' + component(props=(('Caption', b'\6\3a\0b'),)))
+        self.assertEqual(root.properties['caption'], Value('nulstring', 'a\0b'))
+        self.root.children[0].properties['caption'] = Value('nulstring', 'a\0b')
+        with self.assertRaisesRegex(DfmError, 'expected ANSI string'):
+            self.emit()
+        sections = Value('list', (Value('nulstring', '\x0091\x00Filename'), Value('nulstring', '\x000\x00')))
+        self.assertEqual(header_sections(sections), [(91, 'Filename'), (0, '')])
+        for bad in (Value('string', '91 Filename'), Value('nulstring', '\x00x\x00Name'),
+                    Value('nulstring', '\x0099999\x00Wide'), Value('nulstring', '\x001\x00a\x00b')):
+            with self.subTest(bad=bad), self.assertRaises(DfmError):
+                header_sections(Value('list', (bad,)))
+        with self.assertRaises(DfmError):
+            header_sections(Value('string', 'x'))
 
     def test_text_literal_quotes_and_ansi_bytes(self):
         self.assertEqual(literal("a'bä\r\n"), "'a''b'#228#13#10")

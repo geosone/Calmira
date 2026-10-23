@@ -230,7 +230,7 @@ function RemoveDir(const Dir: TFilename): Boolean;
 
 implementation
 
-uses WinProcs, Messages, ShellAPI, Strings, Clipbrd, ToolHelp;
+uses WinProcs, Messages, ShellAPI, Strings, Clipbrd, ToolHelp{$IFDEF FPC}, Win31{$ENDIF};
 
 function Min(a, b: Integer): Integer; assembler;
 asm
@@ -321,9 +321,21 @@ function Intersects(const R, S: TRect): Boolean;
 var
   dummy: TRect;
 begin
-  Result := IntersectRect(dummy, R, S) <> 0;
+  { FPC declares the Win 3.1 BOOL result; Delphi 1 used Integer. }
+  Result := IntersectRect(dummy, R, S){$IFNDEF FPC} <> 0{$ENDIF};
 end;
 
+{$IFDEF FPC}
+{ FPC passes record parameters by reference, so the original register code
+  cannot address p.x directly. }
+function NormalizeRect(p, q: TPoint): TRect;
+begin
+  if p.x <= q.x then begin Result.Left := p.x; Result.Right := q.x; end
+  else begin Result.Left := q.x; Result.Right := p.x; end;
+  if p.y <= q.y then begin Result.Top := p.y; Result.Bottom := q.y; end
+  else begin Result.Top := q.y; Result.Bottom := p.y; end;
+end;
+{$ELSE}
 function NormalizeRect(p, q: TPoint): TRect; assembler;
 asm
         MOV     AX,p.x
@@ -342,6 +354,7 @@ asm
         MOV     TRect(ES:[DI]).Right,CX
         MOV     TRect(ES:[DI]).Bottom,DX
 end;
+{$ENDIF}
 
 function TimeStampToDate(FileDate: Longint): TDateTime;
 begin

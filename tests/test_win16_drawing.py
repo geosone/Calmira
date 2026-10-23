@@ -27,7 +27,10 @@ class Win16DrawingTests(unittest.TestCase):
 
     def test_public_brush_factory_and_bitmap_snapshot_setter(self):
         source = (ROOT / 'src/win16/graphics.pas').read_text()
-        for text in ('TBrush = class(TGDIBrush)', 'property Bitmap: TBitmap write SetBitmap',
+        # The pattern is a snapshot; the getter only hands back the caller's
+        # unowned bitmap, as Delphi 1 does (Calmira frees IconMesh.Bitmap).
+        for text in ('TBrush = class(TGDIBrush)', 'property Bitmap: TBitmap read FBitmap write SetBitmap',
+                     'FBitmap := Value;', 'FBitmap := nil;',
                      'function TCanvas.CreateBrush: TGDIBrush', 'Result := TBrush.Create',
                      'property Brush: TBrush read GetBrush write SetBrush'):
             self.assertIn(text, source)

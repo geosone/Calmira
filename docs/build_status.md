@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 75 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons and combo boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 77 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons and combo boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1032,7 +1032,47 @@ Only 4 of 38 DFMs compile so far. The parser now accepts unnamed components
 (Delphi 1 streams notebook pages without names); the compiler still rejects
 them explicitly. Seven DFMs (filefind, fileprop, iconwin, opendlg, taskman,
 taskprop, wastebin) do not parse yet because `THeader.Sections` encodes each
-width as `#0width#0text`. Most frequent unsupported classes: TMenuItem (103),
+width as `#0width#0text`; those values now parse as a separate `nulstring`
+kind that only `header_sections()` accepts, so all 38 DFMs parse. Most frequent unsupported classes: TMenuItem (103),
 TBevel (31), TStyleSpeed (31), TPage (23), TComboBox (14), TRadioButton (13),
 TListBox (10), TNotebook/TTabPanel/TPanel/TSpinEdit (9 each), TPopupMenu and
 TOpenDialog (8 each).
+
+## Graphic-Control Mouse Routing, Drag and Drop, Speed Buttons
+
+The Delphi 1.02 install media are unpacked (outside git) into
+`build/reference/delphi1/` and serve as the reference for constants and
+signatures; this corrected `CM_BASE` to `$0F00` (`CM_ENABLEDCHANGED` +12,
+`CM_MOUSEENTER` +19, `CM_MOUSELEAVE` +20, `CM_BUTTONPRESSED` +24).
+
+`TCustomControl.WndProc` routes mouse messages to the topmost visible, enabled
+graphic child, holds that child as capture target between button down and up,
+and sends `CM_MOUSEENTER`/`CM_MOUSELEAVE` (a 100 ms timer detects leaving the
+window). `TGraphicControl` gained MouseDown/Up/Move, Click/DblClick and their
+events. `WindowFromPoint` is called through a packed `MakeLong(X, Y)` import
+because the stock POINT-by-value declaration fails on Win16.
+
+Drag and drop follows Delphi 1: `TControl.BeginDrag`/`EndDrag`, `DragMode`
+(`dmAutomatic` for windowed and graphic controls), `DragCursor`, OnDragOver,
+OnDragDrop and OnEndDrag (Target nil when not dropped), a 5 pixel delayed-drag
+threshold, and a hidden capture window owned by `TNativeDragManager`.
+`TControl.BoundsRect` and `TWinControl = TCustomControl` were added.
+
+`src/win16/native_speedbutton.pas` provides TSpeedButton (GroupIndex, Down,
+AllowAllUp via `CM_BUTTONPRESSED`, the checkered exclusive face, glyph frames);
+Buttons exports it with TButtonLayout/TButtonState. Also new: `TControlCanvas`
+(draws a graphic control through its parent DC with offset and clip),
+`TCanvas.PolyLine`, ExtCtrls `Frame3D`, `TBrush.Bitmap`, and the ExtCtrls
+aliases for TNotebook/TPage/THeader.
+
+Two RTL patches keep Delphi 1 call sites compiling: `fpc-win16-const-rects`
+makes the read-only RECT parameters of FillRect, FrameRect, IntersectRect and
+friends `constref` (Delphi 1 passed them as const), and the Delphi 1 strings
+patch now also declares `TFileName = ShortString` and a ShortString
+`DateTimeToString`. `vcl/miscutil.pas` needed two `{$IFDEF FPC}` edits
+(NormalizeRect, BOOL IntersectRect); the Calmira build now gets past MiscUtil
+and stops at the first `{$R *.DFM}` (about.pas).
+
+`make win16-speedbutton-runtime-test` and `make win16-drag-runtime-test` cover
+the slice; the full `make -j4 -k win16-fixed-regression` passed all 77 suites
+(`build/tests/drag-regression.log`, exit 0).

@@ -129,6 +129,7 @@ type
     destructor Destroy; override;
     procedure MoveTo(X, Y: SmallInt);
     procedure LineTo(X, Y: SmallInt);
+    procedure PolyLine(const Points: array of TPoint);
     procedure Rectangle(Left, Top, Right, Bottom: SmallInt);
     procedure Pie(Left, Top, Right, Bottom, StartX, StartY, EndX, EndY: SmallInt);
     procedure FloodFill(X, Y: SmallInt; Color: TColor; FillStyle: TFillStyle);
@@ -421,6 +422,19 @@ begin
     if not WinProcs.LineTo(FHandle, X, Y) then raise EGDIError.Create('Cannot draw line');
   finally EndDraw(State); end;
   WinProcs.MoveTo(FHandle, X, Y);
+  Changed;
+end;
+procedure TGDICanvas.PolyLine(const Points: array of TPoint);
+var State: SmallInt;
+begin
+  if High(Points) < 0 then Exit;
+  State := BeginDraw;
+  try
+    if SelectObject(FHandle, FPen.GetHandle) = 0 then raise EGDIError.Create('Cannot select pen');
+    SetROP2(FHandle, R2_COPYPEN);
+    if not WinProcs.Polyline(FHandle, @Points[0], High(Points) + 1) then
+      raise EGDIError.Create('Cannot draw polyline');
+  finally EndDraw(State); end;
   Changed;
 end;
 procedure TGDICanvas.Rectangle(Left, Top, Right, Bottom: SmallInt);

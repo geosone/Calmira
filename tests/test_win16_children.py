@@ -1,5 +1,6 @@
 """Mixed visual membership guards; actual dispatch and rollback run on Win3.11."""
 from pathlib import Path
+import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,8 +16,12 @@ class MixedChildrenTests(unittest.TestCase):
         self.assertIn('TGraphicControl = class(TControl)', controls)
         self.assertIn('TNativeWindow = class(TControl)', native)
         self.assertNotIn('HWND', base)
-        self.assertEqual(base.count('virtual;'), 1)
-        self.assertIn('virtual; abstract;', base)
+        virtuals = set(re.findall(r'(?:procedure|function) (\w+)(?:\([^)]*\))?[^;]*; virtual;', base))
+        # One view policy slot plus the bounds pair and the Delphi drag hooks.
+        self.assertEqual(virtuals, {'ControlOperation', 'GetControlBounds', 'SetControlBounds',
+                                    'DoEndDrag', 'DragOver', 'DragDrop',
+                                    'Start', 'Finish', 'Forget'})
+        self.assertIn('ControlOperation(Operation: TControlOperation; var Value: Boolean); virtual; abstract;', base)
         for name in ('Show', 'Hide', 'BringToFront', 'SendToBack', 'GetEnabled', 'SetEnabled',
                      'GetVisible', 'SetVisible'):
             self.assertIn(f'TControl.{name}', base)
