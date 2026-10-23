@@ -84,7 +84,7 @@ procedure DiskPropExecute(DriveChar: Char);
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Strings, Resource, Settings, Files, Environs, WinTypes, FileMan, MiscUtil, dialogs;
 

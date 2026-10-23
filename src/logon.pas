@@ -54,7 +54,7 @@ procedure CheckForLogon;
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Files, FileMan, MiscUtil, Profile, Password, Settings, Locale, IniFiles;
 

@@ -86,7 +86,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Graphics, ShellAPI, Strings, Settings, Start, WinProcs, WinTypes,
   MiscUtil, Tree, RefEdit, Locale, Resource, Referenc, Internet;

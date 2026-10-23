@@ -125,6 +125,8 @@ type
     procedure SetPen(Value: TGDIPen);
     procedure SetBrush(Value: TGDIBrush);
     procedure SetFont(Value: TGDIFont);
+    function GetPenPos: TPoint;
+    procedure SetPenPos(const Value: TPoint);
   protected
     function CreateBrush: TGDIBrush; virtual;
     { A device context for drawing while no Handle is assigned (outside
@@ -136,6 +138,8 @@ type
     destructor Destroy; override;
     procedure MoveTo(X, Y: SmallInt);
     procedure LineTo(X, Y: SmallInt);
+    { The GDI current position; a borrowed context forgets it when released. }
+    property PenPos: TPoint read GetPenPos write SetPenPos;
     procedure PolyLine(const Points: array of TPoint);
     procedure Rectangle(Left, Top, Right, Bottom: SmallInt);
     procedure Pie(Left, Top, Right, Bottom, StartX, StartY, EndX, EndY: SmallInt);
@@ -482,6 +486,15 @@ procedure TGDICanvas.EndDraw(State: SmallInt);
 begin if not RestoreDC(DC, State) then raise EGDIError.Create('Cannot restore GDI context'); end;
 procedure TGDICanvas.MoveTo(X, Y: SmallInt);
 begin RequireHandle; WinProcs.MoveTo(DC, X, Y); end;
+function TGDICanvas.GetPenPos: TPoint;
+var Position: LongInt;
+begin
+  RequireHandle;
+  Position := GetCurrentPosition(DC);
+  Result.X := SmallInt(LoWord(Position)); Result.Y := SmallInt(HiWord(Position));
+end;
+procedure TGDICanvas.SetPenPos(const Value: TPoint);
+begin MoveTo(Value.X, Value.Y); end;
 procedure TGDICanvas.LineTo(X, Y: SmallInt);
 var State: SmallInt;
 begin

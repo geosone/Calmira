@@ -55,7 +55,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses SysUtils, Settings, MiscUtil, Strings, Resource;
 

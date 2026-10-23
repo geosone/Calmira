@@ -56,7 +56,7 @@ type
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses SysUtils, MiscUtil, Settings, Desk, Task, IniFiles, Resource, Files,
   CompSys, Strings;

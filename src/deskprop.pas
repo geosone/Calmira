@@ -139,7 +139,7 @@ var
 }
 
 implementation
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses SysUtils, Desk, Environs, Start, MiscUtil, IniFiles,Files,
   AskDrop, Progress, OpenDlg,

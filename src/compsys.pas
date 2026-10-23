@@ -247,7 +247,7 @@ function ProvideLastIcon(Instance: Word): HIcon;
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Desk, Shorts, DiskProp, Directry, About, IconWin, WinProcs, Drives,
   FileFind, IniFiles, Resource, Strings, MiscUtil, Files, FileMan, Environs,

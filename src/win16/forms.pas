@@ -17,6 +17,8 @@ type
   TCloseEvent = TNativeCloseEvent;
   TCloseQueryEvent = TNativeCloseQueryEvent;
   TWindowState = native_form.TWindowState;
+  { Declared here in Delphi 1 (FORMS.INT); Controls holds the same type. }
+  TModalResult = Controls.TModalResult;
   TMessageEvent = procedure(var Msg: TMsg; var Handled: Boolean) of object;
   TExceptionEvent = TNativeExceptionEvent;
   TIdleEvent = TNativeIdleEvent;
@@ -317,10 +319,10 @@ var I: Integer;
 begin
   CreateNew(AOwner);
   if ClassType = TForm then Exit;
-  TComponentAccess(Self).Loading;
+  TComponentAccess(TComponent(Self)).Loading;
   if not RunLoaders(Self, ClassType) then
     raise EResNotFound.CreateFmt('Resource %s not found', [ClassName]);
-  TComponentAccess(Self).Loaded;
+  TComponentAccess(TComponent(Self)).Loaded;
   for I := 0 to ComponentCount - 1 do
     if csLoading in Components[I].ComponentState then
       TComponentAccess(Components[I]).Loaded;

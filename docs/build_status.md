@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 88 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 89 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1351,3 +1351,41 @@ The full regression passed (`build/tests/grids.log`, 87 suites, exit 0).
 Covered by `make win16-form-loader-runtime-test` and `tests/test_dfm_loader.py`.
 
 The full regression passed (`build/tests/form-loader.log`, 88 suites, exit 0).
+
+## Outline and Form Unit Compilation
+
+- New `src/win16/outline.pas` provides Delphi 1's `TOutlineNode`,
+  `TCustomOutline` and `TOutline` over the native `TCustomGrid`. Items are
+  indexed 1..n in pre-order over all nodes; grid rows show the expanded part.
+  It covers Add/AddChild/Insert (with objects), Delete, Clear, child
+  iteration (`-1` at the end, Delphi's `InvalidIndex`), Expand/Collapse with
+  `OnExpand`/`OnCollapse` (which may add children), FullExpand/FullCollapse,
+  `SelectedItem` (a hidden item selects its nearest visible parent), GetItem,
+  GetTextItem/GetDataItem, FullPath, MoveTo, ChangeLevelBy, tab-indented
+  `Lines` with load/save, owner draw (Index is the grid row, as in Delphi)
+  and double click, `+`, `-` and `*` to open and close items.
+- Not provided: tree lines (the tree styles draw like the picture styles),
+  built-in default pictures (Delphi's come from a Borland resource), and
+  streamed outline data other than empty. The DFM loader accepts only the
+  empty `Data` value (`1F`) that all three Calmira outlines use.
+- Calmira's `vcl/scrtree.pas` (TScrollTree) now compiles and is tested. It
+  needed `Canvas.PenPos`, now in `gdi_canvas`. Open question: TScrollTree's
+  thumb tracking scales the thumb position by `MaxInt`, but the grid (like
+  Delphi 2's) reports positions 0..127, so tracking stays near the top.
+- Every form unit now guards its resource as `{$IFNDEF FPC}{$R *.dfm}{$ENDIF}`
+  (FPC cannot link resources for Win16; the generated loaders replace it).
+  CRLF line endings are kept.
+- `Controls.TCaption` and `Forms.TModalResult` were added for the shell
+  units.
+- Calmira's `vcl/strings.pas` shares its name with FPC's RTL `strings` unit.
+  Builds must list `-Fuvcl` (and `-Fusrc`) before the RTL unit directory;
+  no RTL or port unit uses the RTL `strings` unit.
+- Compiling every generated form loader now stops at these blockers:
+  `TOpenDialog` (via `icondlg`, used by most forms), the `Tabs` unit (via
+  `tabpanel`), the `DdeMan` unit, `TPanel`, and the four forms that still
+  use TNativeForm (`askdrop`, `incsrch`, `password`, `select`).
+  `strtprop` (DDE `LinkInfo`) and `tips` (an icon picture) do not generate yet.
+
+Covered by `make win16-outline-runtime-test` and `tests/test_win16_outline.py`.
+
+The full regression passed (`build/tests/outline.log`, 89 suites, exit 0).

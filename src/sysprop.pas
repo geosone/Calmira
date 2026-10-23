@@ -131,7 +131,7 @@ implementation
 uses Drives, MiscUtil, CompSys, SysUtils, Strings, IconDlg, Locale, Embed,
   FileMan, Password, CalMsgs, Registry, Internet, Environs;
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 procedure TSysPropDlg.FormCreate(Sender: TObject);
 var

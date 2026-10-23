@@ -85,7 +85,7 @@ function ExtractIconIndex(const s: string): Integer;
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Graphics, ShellAPI, Strings, Settings, WinProcs, WinTypes,
   Resource, Tree, MiscUtil, Locale, Environs;

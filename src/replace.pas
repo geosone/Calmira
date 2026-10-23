@@ -58,7 +58,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Strings, MiscUtil, WinProcs, WinTypes, Desk;
 

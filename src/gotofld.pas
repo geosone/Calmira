@@ -56,7 +56,7 @@ implementation
 
 uses SysUtils, Environs, Files, MiscUtil, Resource, Locale, Settings;
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 var
   Changed: Boolean;

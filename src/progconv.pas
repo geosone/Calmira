@@ -66,7 +66,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Strings, IniFiles, Start, StrtProp, MiscUtil, Settings, Desk, Locale;
 

@@ -58,7 +58,7 @@ type
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses WinProcs, SysUtils, Settings, Start, MiscUtil, Strings;
 

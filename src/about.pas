@@ -70,7 +70,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Strings, SysUtils, Files, MiscUtil, Settings, Fileman,
   Dialogs, Locale, Desk, VerInfo;

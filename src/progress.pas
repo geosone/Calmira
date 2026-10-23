@@ -71,7 +71,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Settings, Strings, Desk, Replace, Locale, WinProcs, Resource, Files,
   MiscUtil;

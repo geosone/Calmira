@@ -93,7 +93,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Settings, Strings, Dialogs, SysUtils, Locale, MiscUtil;
 

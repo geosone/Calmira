@@ -69,12 +69,21 @@ class DfmLoaderTests(unittest.TestCase):
                 compile_loader(path.read_bytes(), source)
             except DfmError as error:
                 blocked[path.stem] = str(error)
-        # Outline data and icon pictures are not provided yet.
+        # DDE link data and icon pictures are not provided yet.
         self.assertEqual(blocked, {
-            'strtprop': 'Outline.Data: unsupported binary value',
-            'sysprop': 'Outline.Data: unsupported binary value',
-            'tips': 'Image1.Picture.Data: only TBitmap picture data is supported',
-            'tree': 'Outline.Data: unsupported binary value'})
+            'strtprop': 'Progman.LinkInfo: unsupported list value',
+            'tips': 'Image1.Picture.Data: only TBitmap picture data is supported'})
+
+    def test_outline_data_must_be_empty(self):
+        tree = lambda data: form([component('TScrollTree', 'T', [('Width', 1), ('Height', 1)])])
+        empty = form([component('TScrollTree', 'T', [('Width', 1), ('Height', 1)])])
+        # The fixture writer has no binary values; patch one in.
+        def with_data(payload):
+            marker = b'\x06Height\x02\x01'
+            return empty.replace(marker, marker + b'\x04Data\x0a' + len(payload).to_bytes(4, 'little') + payload)
+        self.assertNotIn('Data', compile_loader(with_data(b'\x1f'), UNIT)[0])
+        with self.assertRaisesRegex(DfmError, 'only empty outline data'):
+            compile_loader(with_data(b'A\x1f'), UNIT)
 
     def test_forms_runs_loaders_like_delphi_streaming(self):
         source = (ROOT / 'src/win16/forms.pas').read_text()

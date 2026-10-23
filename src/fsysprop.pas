@@ -112,7 +112,7 @@ implementation
 
 uses Strings, SysUtils, Tree, MiscUtil;
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 procedure TFileSysPropDlg.FormCreate(Sender: TObject);
 const

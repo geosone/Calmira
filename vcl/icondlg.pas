@@ -83,7 +83,7 @@ procedure Register;
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses MiscUtil, Environs, ShellAPI;
 

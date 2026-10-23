@@ -191,6 +191,10 @@ class Loader:
                 self.emit(f'{target}.Sections.Clear;')
                 for index, (width, text) in enumerate(sections):
                     self.emit(f'{target}.Sections.Add({literal(text)}); {target}.SectionWidth[{index}] := {width};')
+            elif key == 'data' and value.kind == 'binary':
+                # TOutline's DefineProperties data; 1F alone is an empty outline.
+                if value.data != b'\x1f':
+                    self.fail(node, spelled, 'only empty outline data is supported')
             elif key.endswith('.data') and value.kind == 'binary':
                 picture = key == 'picture.data'
                 try:

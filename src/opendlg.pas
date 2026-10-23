@@ -303,7 +303,7 @@ function OpenFileDlgEx(var FFileName,FDefaultDir:string;
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses ShellAPI, FileProp, DiskProp, Drives, Tree, Environs, Fileman,
   WasteBin, OpenFile, RunProg, Desk, FileFind, Filter, CompSys, Strings,

@@ -112,7 +112,7 @@ implementation
 uses ToolHelp, Task, Desk, Settings, MiscUtil, Locale, Resource, Embed,
   Strings, ShellAPI, CalMsgs, RunProg;
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 procedure OpenTaskManager;
 begin

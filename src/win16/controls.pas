@@ -13,6 +13,7 @@ type
   TMouseButton = native_input.TMouseButton;
   TShiftState = native_input.TShiftState;
   TModalResult = SmallInt;
+  TCaption = string[255];
   TControlViewAction = (cvaShow, cvaHide, cvaFront, cvaBack);
   TAlign = control_base.TAlign;
   TDragMode = control_base.TDragMode;

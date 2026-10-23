@@ -277,7 +277,7 @@ uses ShellAPI, ToolHelp, Strings, Settings, Files, Start, Desk, Compsys,
   Locale, Dialogs, Strtprop, TaskProp, FileMan, Taskman, ShutDown, Alias,
   Drives, WasteBin;
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 var
   YTop: Integer; { 2.2 }

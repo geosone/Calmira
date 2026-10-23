@@ -169,7 +169,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Strings, Desk, MiscUtil, Files, Resource, CompSys, Iconic, Drives,
   MultiGrd, Referenc, Locale, FileMan, Task, FileFind, DiskProp, Directry,

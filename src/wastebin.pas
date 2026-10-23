@@ -209,7 +209,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses IconWin, Desk, MultiGrd, Resource, Progress, FileFind, ShellAPI,
   IniFiles, Files, MiscUtil, Drives, Strings, CompSys, WinProcs,

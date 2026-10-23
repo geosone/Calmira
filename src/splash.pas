@@ -64,7 +64,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses CompSys, Desk, ShutDown, Settings, MiscUtil, WinTypes, WinProcs;
 

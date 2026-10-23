@@ -64,7 +64,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Files, WinProcs, WinTypes, MiscUtil, Resource, Environs,
   Strings, Fileman, Desk, Locale, Graphics;

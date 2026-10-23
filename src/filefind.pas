@@ -140,7 +140,7 @@ procedure FileFindExecute(const StartPath: string);
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses CompSys, Dialogs, Resource, Strings, MiscUtil, Tree, IconWin, OpenFile,
   Fileman, Drives, Desk, Files, Directry, Locale, Embed, Task;

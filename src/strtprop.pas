@@ -152,7 +152,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses Start, ProgConv, MenuEdit, MultiGrd, IconWin, Directry, Files,
   CompSys, MiscUtil, Dialogs, Strings, Desk, Resource, Locale, Task;

@@ -165,7 +165,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses SysUtils, Files, Drives, Strings, Resource, Settings, MiscUtil,
   FileMan, Alias, FourDOS, ShellAPI, Locale, VerInfo, Profile, Desk;

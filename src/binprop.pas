@@ -72,7 +72,7 @@ implementation
 
 uses WasteBin, MiscUtil, Settings;
 
-{$R *.dfm}
+{$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 procedure TBinPropDlg.rbCollectClick(Sender: TObject);
 begin
