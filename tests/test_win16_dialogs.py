@@ -48,15 +48,34 @@ class DialogsSubsetTests(unittest.TestCase):
                         'Help', 'Abort', 'Retry', 'Ignore', 'All'):
                 self.assertIn(f'TMessageForm.{key}.Caption', forms, code)
 
-    def test_common_dialogs_are_not_silently_aliased(self):
-        interface = SOURCE.read_text().split('unit Dialogs;', 1)[1].split('implementation', 1)[0]
-        for name in ('TOpenDialog', 'TSaveDialog', 'TFontDialog', 'TColorDialog'):
-            self.assertNotIn(name, interface)
+    def test_common_dialogs_run_commdlg_and_reject_missing_features(self):
+        source = SOURCE.read_text()
+        interface = source.split('unit Dialogs;', 1)[1].split('implementation', 1)[0]
+        for name in ('TOpenDialog = class(TCommonDialog)', 'TSaveDialog = class(TOpenDialog)',
+                     'TFontDialog = class(TCommonDialog)', 'TColorDialog = class(TCommonDialog)'):
+            self.assertIn(name, interface)
+        self.assertNotIn('OnApply', interface)
+        for text in ('if Save then Result := GetSaveFileName(Info) else Result := GetOpenFileName(Info);',
+                     "raise EInvalidOperation.Create('Combo-box file edits are not supported');",
+                     "raise EInvalidOperation.Create('Printer fonts are not supported');",
+                     "raise EInvalidOperation.CreateFmt('Common dialog error %d', [Code]);",
+                     '{ USER 3.1 returns "dir name name ..." for several files. }'):
+            self.assertIn(text, source)
+        bindings = (ROOT / 'src/win16/commdlg.pas').read_text()
+        for text in ('TOpenFilename = packed record', "function GetOpenFileName(var OpenFile: TOpenFilename): Bool; external 'COMMDLG';",
+                     'TChooseFont = packed record', 'OFN_NOTESTFILECREATE = $00010000;'):
+            self.assertIn(text, bindings)
+        probe = (ROOT / 'tests/pascal/test_win16_common_dialogs.pas').read_text()
+        for text in ('Execute returns the chosen file', 'the dialog shows Title and is modal to the active form',
+                     'TSaveDialog appends DefaultExt', 'custom colors go in and come back',
+                     'the font dialog starts at Font and returns it', 'printer fonts raise'):
+            self.assertIn(text, probe)
 
     def test_native_suites_are_part_of_fixed_regression(self):
         makefile = (ROOT / 'makefile').read_text()
         regression = makefile.split('win16-fixed-regression: fpc-win16-fixed-compiler', 1)[1].split('\n\n', 1)[0]
-        for target in ('win16-dialogs-runtime-test', 'win16-input-query-runtime-test'):
+        for target in ('win16-dialogs-runtime-test', 'win16-input-query-runtime-test',
+                       'win16-common-dialogs-runtime-test'):
             self.assertIn(target, regression)
 
 

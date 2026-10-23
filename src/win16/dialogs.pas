@@ -1,13 +1,14 @@
 { SPDX-License-Identifier: GPL-2.0-or-later
   Initial Dialogs subset: Delphi 1 style message and input dialogs built from
   the native form, label, edit and button controls. Captions are resolved
-  through the optional form-text provider. Common dialogs (TOpenDialog,
-  TFontDialog, TColorDialog) are not provided yet and must fail to compile. }
+  through the optional form-text provider. The open, save, color and font
+  common dialogs run COMMDLG.DLL without a hook: OnApply, help buttons,
+  Ctl3D, the combo-box file edit and printer fonts are not provided. }
 unit Dialogs;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This Dialogs subset requires Win16}{$ENDIF}
 interface
-uses Classes, WinTypes, Controls, Forms, Buttons;
+uses Classes, SysUtils, WinTypes, Graphics, Controls, Forms, Buttons;
 type
   TMsgDlgType = (mtWarning, mtError, mtInformation, mtConfirmation, mtCustom);
   TMsgDlgBtn = (mbYes, mbNo, mbOK, mbCancel, mbAbort, mbRetry, mbIgnore, mbAll, mbHelp);
@@ -30,8 +31,113 @@ const
   MsgDlgButtonStyle: TButtonStyle = bsAutoDetect;
   MsgDlgGlyphs: Boolean = True;
   MsgDlgBtnSize: TPoint = (X: 77; Y: 27);
+type
+  TCommonDialog = class(TComponent)
+  private
+    FCtl3D: Boolean;
+    FHelpContext: THelpContext;
+  protected
+    { The active window of the task, disabled while the dialog runs. }
+    function OwnerWindow: HWND;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    { Kept for DFM compatibility; dialogs use the system look. }
+    property Ctl3D: Boolean read FCtl3D write FCtl3D default True;
+    property HelpContext: THelpContext read FHelpContext write FHelpContext default 0;
+  end;
+  TOpenOption = (ofReadOnly, ofOverwritePrompt, ofHideReadOnly,
+    ofNoChangeDir, ofShowHelp, ofNoValidate, ofAllowMultiSelect,
+    ofExtensionDifferent, ofPathMustExist, ofFileMustExist, ofCreatePrompt,
+    ofShareAware, ofNoReadOnlyReturn, ofNoTestFileCreate);
+  TOpenOptions = set of TOpenOption;
+  TFileExt = string[3];
+  TFileEditStyle = (fsEdit, fsComboBox);
+  TOpenDialog = class(TCommonDialog)
+  private
+    FFiles, FHistoryList: TStrings;
+    FDefaultExt: TFileExt;
+    FFileEditStyle: TFileEditStyle;
+    FFileName: TFileName;
+    FFilter: string;
+    FFilterIndex: Integer;
+    FInitialDir: string;
+    FOptions: TOpenOptions;
+    FTitle: string;
+    procedure SetHistoryList(Value: TStrings);
+  protected
+    function Run(Save: Boolean): Boolean;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function Execute: Boolean; virtual;
+    property Files: TStrings read FFiles;
+  published
+    property DefaultExt: TFileExt read FDefaultExt write FDefaultExt;
+    { fsComboBox raises in Execute: it needs Delphi's dialog template. }
+    property FileEditStyle: TFileEditStyle read FFileEditStyle write FFileEditStyle default fsEdit;
+    property FileName: TFileName read FFileName write FFileName;
+    property Filter: string read FFilter write FFilter;
+    property FilterIndex: Integer read FFilterIndex write FFilterIndex default 1;
+    property InitialDir: string read FInitialDir write FInitialDir;
+    property HistoryList: TStrings read FHistoryList write SetHistoryList;
+    property Options: TOpenOptions read FOptions write FOptions default [];
+    property Title: string read FTitle write FTitle;
+  end;
+  TSaveDialog = class(TOpenDialog)
+  public
+    function Execute: Boolean; override;
+  end;
+  TColorDialogOption = (cdFullOpen, cdPreventFullOpen, cdShowHelp);
+  TColorDialogOptions = set of TColorDialogOption;
+const
+  MaxCustomColors = 16;
+type
+  TCustomColors = array[0..MaxCustomColors - 1] of LongInt;
+  TColorDialog = class(TCommonDialog)
+  private
+    FColor: TColor;
+    FCustomColors: TStrings;
+    FOptions: TColorDialogOptions;
+    procedure SetCustomColors(Value: TStrings);
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function Execute: Boolean;
+  published
+    property Color: TColor read FColor write FColor default clBlack;
+    property Ctl3D default False;
+    { ColorA=RRGGBB .. ColorP=RRGGBB, as Delphi stores them. }
+    property CustomColors: TStrings read FCustomColors write SetCustomColors;
+    property Options: TColorDialogOptions read FOptions write FOptions default [];
+  end;
+  TFontDialogOption = (fdAnsiOnly, fdTrueTypeOnly, fdEffects, fdFixedPitchOnly,
+    fdForceFontExist, fdNoFaceSel, fdNoOEMFonts, fdNoSimulations, fdNoSizeSel,
+    fdNoStyleSel,  fdNoVectorFonts, fdShowHelp, fdWysiwyg, fdLimitSize,
+    fdScalableOnly);
+  TFontDialogOptions = set of TFontDialogOption;
+  TFontDialogDevice = (fdScreen, fdPrinter, fdBoth);
+  { Name, height, style and color are taken over; there is no printer. }
+  TFontDialog = class(TCommonDialog)
+  private
+    FFont: TFont;
+    FDevice: TFontDialogDevice;
+    FMinFontSize, FMaxFontSize: Integer;
+    FOptions: TFontDialogOptions;
+    procedure SetFont(Value: TFont);
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function Execute: Boolean;
+  published
+    property Font: TFont read FFont write SetFont;
+    property Device: TFontDialogDevice read FDevice write FDevice default fdScreen;
+    property MinFontSize: Integer read FMinFontSize write FMinFontSize;
+    property MaxFontSize: Integer read FMaxFontSize write FMaxFontSize;
+    property Options: TFontDialogOptions read FOptions write FOptions default [fdEffects];
+  end;
 implementation
-uses SysUtils, WinProcs, Graphics, native_application, native_label, native_button, native_edit, form_text;
+uses WinProcs, CommDlg, native_application, native_label, native_button, native_edit, form_text;
 const
   DialogStyle = WS_POPUP or WS_CAPTION or WS_DLGFRAME or WS_SYSMENU;
   Margin = 12; IconSize = 32; ButtonGap = 6;
@@ -225,6 +331,204 @@ function InputBox(const ACaption, APrompt, ADefault: string): string;
 begin
   Result := ADefault;
   InputQuery(ACaption, APrompt, Result);
+end;
+{ Common dialogs }
+procedure CheckDialogError;
+var Code: LongInt;
+begin
+  Code := CommDlgExtendedError;
+  if Code <> 0 then raise EInvalidOperation.CreateFmt('Common dialog error %d', [Code]);
+end;
+constructor TCommonDialog.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FCtl3D := True;
+end;
+function TCommonDialog.OwnerWindow: HWND;
+begin
+  Result := GetActiveWindow;
+  if (Result = 0) and (Application <> nil) then Result := Application.Handle;
+end;
+constructor TOpenDialog.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FFiles := TStringList.Create;
+  FHistoryList := TStringList.Create;
+  FFilterIndex := 1;
+end;
+destructor TOpenDialog.Destroy;
+begin
+  FFiles.Free; FHistoryList.Free;
+  inherited Destroy;
+end;
+procedure TOpenDialog.SetHistoryList(Value: TStrings);
+begin FHistoryList.Assign(Value); end;
+const
+  OpenFlags: array[TOpenOption] of LongInt = (OFN_READONLY, OFN_OVERWRITEPROMPT,
+    OFN_HIDEREADONLY, OFN_NOCHANGEDIR, OFN_SHOWHELP, OFN_NOVALIDATE, OFN_ALLOWMULTISELECT,
+    OFN_EXTENSIONDIFFERENT, OFN_PATHMUSTEXIST, OFN_FILEMUSTEXIST, OFN_CREATEPROMPT,
+    OFN_SHAREAWARE, OFN_NOREADONLYRETURN, OFN_NOTESTFILECREATE);
+  { Room for a multiple selection: a directory and many 8.3 names. }
+  MultiFileSize = 2048;
+function TOpenDialog.Run(Save: Boolean): Boolean;
+var Info: TOpenFilename; Option: TOpenOption; FilterText: string;
+  FilterBuf: array[0..256] of Char; DirBuf, TitleBuf: array[0..79] of Char;
+  ExtBuf: array[0..3] of Char; Buffer: PChar; Size, I: Integer; Dir, Name: string; P: PChar;
+begin
+  if FFileEditStyle <> fsEdit then raise EInvalidOperation.Create('Combo-box file edits are not supported');
+  FillChar(Info, SizeOf(Info), 0);
+  Info.lStructSize := SizeOf(Info);
+  Info.hwndOwner := OwnerWindow;
+  for Option := Low(TOpenOption) to High(TOpenOption) do
+    if Option in FOptions then Info.Flags := Info.Flags or OpenFlags[Option];
+  { The help button would need a hook. }
+  Info.Flags := Info.Flags and not OFN_SHOWHELP;
+  if FFilter <> '' then
+  begin
+    { 'Text|*.TXT|All|*.*' becomes NUL-separated pairs ending in two NULs. }
+    FilterText := FFilter + '|';
+    for I := 1 to Length(FilterText) do
+      if FilterText[I] = '|' then FilterText[I] := #0;
+    FillChar(FilterBuf, SizeOf(FilterBuf), 0);
+    Move(FilterText[1], FilterBuf, Length(FilterText));
+    Info.lpstrFilter := FilterBuf;
+    Info.nFilterIndex := FFilterIndex;
+  end;
+  if FInitialDir <> '' then Info.lpstrInitialDir := StrPLCopy(DirBuf, FInitialDir, High(DirBuf));
+  if FTitle <> '' then Info.lpstrTitle := StrPLCopy(TitleBuf, FTitle, High(TitleBuf));
+  if FDefaultExt <> '' then Info.lpstrDefExt := StrPCopy(ExtBuf, FDefaultExt);
+  if ofAllowMultiSelect in FOptions then Size := MultiFileSize else Size := 256;
+  GetMem(Buffer, Size);
+  try
+    FillChar(Buffer^, Size, 0);
+    StrPLCopy(Buffer, FFileName, Size - 1);
+    Info.lpstrFile := Buffer;
+    Info.nMaxFile := Size;
+    if Save then Result := GetSaveFileName(Info) else Result := GetOpenFileName(Info);
+    if not Result then begin CheckDialogError; Exit; end;
+    FFiles.Clear;
+    if ofAllowMultiSelect in FOptions then
+    begin
+      { USER 3.1 returns "dir name name ..." for several files. }
+      P := Buffer; Dir := '';
+      while P^ <> #0 do
+      begin
+        Name := '';
+        while (P^ <> ' ') and (P^ <> #0) do begin Name := Name + P^; Inc(P); end;
+        while P^ = ' ' do Inc(P);
+        if Dir = '' then Dir := Name
+        else if Dir[Length(Dir)] = '\' then FFiles.Add(Dir + Name)
+        else FFiles.Add(Dir + '\' + Name);
+      end;
+      if FFiles.Count = 0 then FFiles.Add(Dir);
+      FFileName := FFiles[0];
+    end
+    else
+    begin
+      FFileName := StrPas(Buffer);
+      FFiles.Add(FFileName);
+    end;
+    FFilterIndex := Info.nFilterIndex;
+    if Info.Flags and OFN_READONLY <> 0 then Include(FOptions, ofReadOnly)
+    else Exclude(FOptions, ofReadOnly);
+    if Info.Flags and OFN_EXTENSIONDIFFERENT <> 0 then Include(FOptions, ofExtensionDifferent)
+    else Exclude(FOptions, ofExtensionDifferent);
+  finally FreeMem(Buffer, Size); end;
+end;
+function TOpenDialog.Execute: Boolean;
+begin Result := Run(False); end;
+function TSaveDialog.Execute: Boolean;
+begin Result := Run(True); end;
+constructor TColorDialog.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  Ctl3D := False;
+  FCustomColors := TStringList.Create;
+end;
+destructor TColorDialog.Destroy;
+begin
+  FCustomColors.Free;
+  inherited Destroy;
+end;
+procedure TColorDialog.SetCustomColors(Value: TStrings);
+begin FCustomColors.Assign(Value); end;
+function TColorDialog.Execute: Boolean;
+const ColorFlags: array[TColorDialogOption] of LongInt = (CC_FULLOPEN, CC_PREVENTFULLOPEN, CC_SHOWHELP);
+var Info: TChooseColor; Option: TColorDialogOption; Colors: TCustomColors; I: Integer; Text: string;
+begin
+  for I := 0 to MaxCustomColors - 1 do
+  begin
+    Text := FCustomColors.Values['Color' + Chr(Ord('A') + I)];
+    if Text = '' then Colors[I] := $FFFFFF else Colors[I] := StrToInt('$' + Text);
+  end;
+  FillChar(Info, SizeOf(Info), 0);
+  Info.lStructSize := SizeOf(Info);
+  Info.hwndOwner := OwnerWindow;
+  Info.rgbResult := ColorToRGB(FColor);
+  Info.lpCustColors := @Colors;
+  Info.Flags := CC_RGBINIT;
+  for Option := Low(TColorDialogOption) to High(TColorDialogOption) do
+    if Option in FOptions then Info.Flags := Info.Flags or ColorFlags[Option];
+  Info.Flags := Info.Flags and not CC_SHOWHELP;
+  Result := ChooseColor(Info);
+  if not Result then begin CheckDialogError; Exit; end;
+  FColor := TColor(Info.rgbResult);
+  FCustomColors.Clear;
+  for I := 0 to MaxCustomColors - 1 do
+    FCustomColors.Add('Color' + Chr(Ord('A') + I) + '=' + IntToHex(Colors[I], 6));
+end;
+constructor TFontDialog.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FFont := TFont.Create;
+  FOptions := [fdEffects];
+end;
+destructor TFontDialog.Destroy;
+begin
+  FFont.Free;
+  inherited Destroy;
+end;
+procedure TFontDialog.SetFont(Value: TFont);
+begin FFont.Assign(Value); end;
+function TFontDialog.Execute: Boolean;
+const FontFlags: array[TFontDialogOption] of LongInt = (CF_ANSIONLY, CF_TTONLY, CF_EFFECTS,
+  CF_FIXEDPITCHONLY, CF_FORCEFONTEXIST, CF_NOFACESEL, CF_NOOEMFONTS, CF_NOSIMULATIONS, CF_NOSIZESEL,
+  CF_NOSTYLESEL, CF_NOVECTORFONTS, CF_SHOWHELP, CF_WYSIWYG, CF_LIMITSIZE, CF_SCALABLEONLY);
+var Info: TChooseFont; LogFont: TLogFont; Option: TFontDialogOption; Style: TFontStyles;
+begin
+  if (FDevice <> fdScreen) or (fdWysiwyg in FOptions) then
+    raise EInvalidOperation.Create('Printer fonts are not supported');
+  FillChar(LogFont, SizeOf(LogFont), 0);
+  LogFont.lfHeight := FFont.Height;
+  if fsBold in FFont.Style then LogFont.lfWeight := FW_BOLD else LogFont.lfWeight := FW_NORMAL;
+  LogFont.lfItalic := Ord(fsItalic in FFont.Style);
+  LogFont.lfUnderline := Ord(fsUnderline in FFont.Style);
+  LogFont.lfStrikeOut := Ord(fsStrikeOut in FFont.Style);
+  StrPLCopy(LogFont.lfFaceName, FFont.Name, LF_FACESIZE - 1);
+  FillChar(Info, SizeOf(Info), 0);
+  Info.lStructSize := SizeOf(Info);
+  Info.hwndOwner := OwnerWindow;
+  Info.lpLogFont := @LogFont;
+  Info.rgbColors := ColorToRGB(FFont.Color);
+  Info.Flags := CF_SCREENFONTS or CF_INITTOLOGFONTSTRUCT;
+  for Option := Low(TFontDialogOption) to High(TFontDialogOption) do
+    if Option in FOptions then Info.Flags := Info.Flags or FontFlags[Option];
+  Info.Flags := Info.Flags and not CF_SHOWHELP;
+  { As in Delphi, a size range limits the sizes offered. }
+  if (FMinFontSize <> 0) or (FMaxFontSize <> 0) then Info.Flags := Info.Flags or CF_LIMITSIZE;
+  Info.nSizeMin := FMinFontSize;
+  Info.nSizeMax := FMaxFontSize;
+  Result := ChooseFont(Info);
+  if not Result then begin CheckDialogError; Exit; end;
+  Style := [];
+  if LogFont.lfWeight >= FW_BOLD then Include(Style, fsBold);
+  if LogFont.lfItalic <> 0 then Include(Style, fsItalic);
+  if LogFont.lfUnderline <> 0 then Include(Style, fsUnderline);
+  if LogFont.lfStrikeOut <> 0 then Include(Style, fsStrikeOut);
+  FFont.Name := StrPas(LogFont.lfFaceName);
+  FFont.Height := LogFont.lfHeight;
+  FFont.Style := Style;
+  FFont.Color := TColor(Info.rgbColors);
 end;
 finalization
   HelpDispatcher.Free; HelpDispatcher := nil;

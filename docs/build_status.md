@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 89 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 90 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1389,3 +1389,38 @@ The full regression passed (`build/tests/form-loader.log`, 88 suites, exit 0).
 Covered by `make win16-outline-runtime-test` and `tests/test_win16_outline.py`.
 
 The full regression passed (`build/tests/outline.log`, 89 suites, exit 0).
+
+## Common Dialogs
+
+- `Dialogs` now provides Delphi 1's `TCommonDialog`, `TOpenDialog`,
+  `TSaveDialog`, `TColorDialog` and `TFontDialog`. They run COMMDLG.DLL
+  through the new `src/win16/commdlg.pas` bindings (Win16 SDK record
+  layouts: `TOpenFilename`, `TChooseColor`, `TChooseFont`).
+- Open/save covers Filter (`|`-separated), FilterIndex, InitialDir, Title,
+  DefaultExt, FileName, all `TOpenOption` flags, and `Files`. A multiple
+  selection is split from USER 3.1's `dir name name ...` reply into full
+  paths. `ofReadOnly` and `ofExtensionDifferent` are read back.
+- The color dialog starts at `Color` and passes `CustomColors` in Delphi's
+  `ColorA=RRGGBB` form. The font dialog starts at `Font` and takes back its
+  name, height, style and color; `MinFontSize`/`MaxFontSize` limit the
+  sizes as in Delphi.
+- The dialog's owner is the active window of the task (else the
+  application window), so it is modal to the calling form, as the port's
+  `ShowModal` is.
+- Not provided, and raising `EInvalidOperation` where Calmira could hit
+  them: printer fonts (`fdPrinter`, `fdBoth`, `fdWysiwyg`) and the
+  combo-box file edit (`fsComboBox`). There is no dialog hook, so
+  `OnApply`, help buttons (`ofShowHelp`, `cdShowHelp`, `fdShowHelp` are
+  dropped) and `Ctl3D` styling are absent; `OnApply` is not declared. A
+  COMMDLG failure other than Cancel raises `EInvalidOperation` with
+  `CommDlgExtendedError`. The print, printer-setup, find and replace
+  dialogs are not provided.
+- Calmira's `vcl/icondlg.pas` now compiles. The form loaders now stop at
+  the missing `Tabs` unit (via `tabpanel`, used by most forms), `DdeMan`,
+  `TPanel` and the four TNativeForm-based forms.
+
+Covered by `make win16-common-dialogs-runtime-test`. The native test
+answers the real dialogs from a timer that the dialog's message loop
+dispatches.
+
+The full regression passed (`build/tests/common-dialogs.log`, 90 suites, exit 0).
