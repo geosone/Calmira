@@ -986,4 +986,20 @@ all 70 then-configured suites (`build/tests/huge-regression.log`, exit 0);
 Menus, system DLLs and Clipbrd were added afterwards and pass individually.
 
 `make calmira` now compiles with `-Sh-` (Delphi 1 short strings) and Calmira's
-directories ahead of the RTL, and stops at the next missing unit, `TabNotBk`.
+directories ahead of the RTL. `TabNotBk` is an intentionally empty unit:
+Calmira imports it but its DFMs page with ExtCtrls TNotebook/TPage, and no
+source uses TTabbedNotebook. The build now reaches `vcl/miscutil.pas`, which
+needs TRadioButton/TComboBox (StdCtrls), TSpeedButton (Buttons) and
+TNotebook/THeader (ExtCtrls). Remaining missing units: Grids, Spin, Outline,
+DdeMan, FileCtrl, Tabs.
+
+### DFM inventory
+
+Only 4 of 38 DFMs compile so far. The parser now accepts unnamed components
+(Delphi 1 streams notebook pages without names); the compiler still rejects
+them explicitly. Seven DFMs (filefind, fileprop, iconwin, opendlg, taskman,
+taskprop, wastebin) do not parse yet because `THeader.Sections` encodes each
+width as `#0width#0text`. Most frequent unsupported classes: TMenuItem (103),
+TBevel (31), TStyleSpeed (31), TPage (23), TComboBox (14), TRadioButton (13),
+TListBox (10), TNotebook/TTabPanel/TPanel/TSpinEdit (9 each), TPopupMenu and
+TOpenDialog (8 each).

@@ -153,10 +153,13 @@ class Reader:
         if depth > 32 or self.nodes > 256:
             raise DfmError('DFM component limit exceeded')
         cls = identifier(self.text())
-        name = identifier(self.text())
-        if name.casefold() in self.names:
-            raise DfmError(f'duplicate component name: {name}')
-        self.names.add(name.casefold())
+        name = self.text()
+        # Delphi 1 streams unnamed components, e.g. TTabbedNotebook pages.
+        if name:
+            identifier(name)
+            if name.casefold() in self.names:
+                raise DfmError(f'duplicate component name: {name}')
+            self.names.add(name.casefold())
         result = Component(cls, name)
         while True:
             prop = self.text()
@@ -255,6 +258,8 @@ class Compiler:
 
     def walk(self, parent):
         for node in parent.children:
+            if not node.name:
+                self.fail(node, 'Name', f'unnamed {node.cls} is not supported yet')
             if node.name.casefold() in self.components:
                 self.fail(node, 'Name', 'duplicate name')
             self.components[node.name.casefold()] = node

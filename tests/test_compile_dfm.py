@@ -172,6 +172,14 @@ class DfmCompilerTests(unittest.TestCase):
             with self.assertRaises(DfmError):
                 parse(b'TPF0' + data)
 
+    def test_unnamed_components_parse_but_do_not_compile_yet(self):
+        # Delphi 1 streams TTabbedNotebook/TNotebook pages without names.
+        root = parse(b'TPF0' + component(children=(component(name=''), component(name=''))))
+        self.assertEqual([child.name for child in root.children], ['', ''])
+        self.root.children[0].name = ''
+        with self.assertRaisesRegex(DfmError, 'unnamed .* is not supported yet'):
+            self.emit()
+
     def test_identifiers_cannot_inject_pascal_or_shadow_constructor(self):
         for name in ('Self', 'AOwner', 'AComponent', 'Operation', 'begin', 'DfmArea', 'x;halt', 'x.y', 'x' * 64):
             with self.subTest(name=name), self.assertRaises(DfmError):
