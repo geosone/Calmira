@@ -1,0 +1,35 @@
+--- a/rtl/win16/dos.pp
++++ b/rtl/win16/dos.pp
+@@ -77,10 +77,32 @@
+ uses
+   System.Strings, WinApi.WinProcs, WinApi.WinTypes;
+ {$ELSE FPC_DOTTEDUNITS}
++{$ifdef CALMIRA_WIN16_DOS_NO_STRINGS}
++{ Calmira's own unit is also named Strings; one program cannot contain both. }
++uses
++  winprocs, wintypes;
++{$else CALMIRA_WIN16_DOS_NO_STRINGS}
+ uses
+   strings, winprocs, wintypes;
++{$endif CALMIRA_WIN16_DOS_NO_STRINGS}
+ {$ENDIF FPC_DOTTEDUNITS}
+ 
++{$ifdef CALMIRA_WIN16_DOS_NO_STRINGS}
++function StrLen(P: PAnsiChar): SizeInt;
++begin
++  StrLen:=0;
++  while P[StrLen]<>#0 do
++    Inc(StrLen);
++end;
++
++function StrPCopy(Dest: PAnsiChar; const Source: ShortString): PAnsiChar;
++begin
++  Move(Source[1],Dest^,Length(Source));
++  Dest[Length(Source)]:=#0;
++  StrPCopy:=Dest;
++end;
++{$endif CALMIRA_WIN16_DOS_NO_STRINGS}
++
+ type
+   PFarByte = ^Byte;far;
+   PFarChar = ^AnsiChar;far;

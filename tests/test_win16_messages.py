@@ -60,6 +60,13 @@ class Win16MessageTests(unittest.TestCase):
             heap = source / 'rtl/win16/glbheap.inc'
             original_heap = (ROOT / 'vendor/reference/freepascal/rtl/win16/glbheap.inc').read_bytes()
             heap.write_bytes(original_heap)
+            extra = {}
+            for name in ('rtl/win16/dos.pp', 'rtl/win16/prt0comn.asm',
+                         'rtl/objpas/sysutils/sysstrh.inc', 'rtl/objpas/sysutils/sysstr.inc'):
+                target = source / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                extra[name] = (ROOT / 'vendor/reference/freepascal' / name).read_bytes()
+                target.write_bytes(extra[name])
             subprocess.run(['git', '-C', str(source), 'add', 'rtl'], check=True)
             subprocess.run(['git', '-C', str(source), '-c', 'user.name=Fixture',
                             '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Fixture'], check=True)
@@ -68,6 +75,13 @@ class Win16MessageTests(unittest.TestCase):
             self.assertEqual(path.read_text(), original)
             self.assertEqual(system.read_bytes(), original_system)
             self.assertEqual(heap.read_bytes(), original_heap)
+            for name, content in extra.items():
+                self.assertEqual((source / name).read_bytes(), content, name)
+            self.assertIn('CALMIRA_WIN16_DOS_NO_STRINGS', (first / 'rtl/win16/dos.pp').read_text(encoding='latin1'))
+            self.assertIn('set_unit_var __fpc_HInstance, 0, di', (first / 'rtl/win16/prt0comn.asm').read_text())
+            self.assertIn('PAutoDataSegHeader(Ptr(SSeg,0))', (first / 'rtl/win16/system.pp').read_text(encoding='latin1'))
+            self.assertIn('procedure AppendStr(var Dest: ShortString; const S: ShortString);',
+                          (first / 'rtl/objpas/sysutils/sysstr.inc').read_text(encoding='latin1'))
             patched_heap = (first / 'rtl/win16/glbheap.inc').read_text()
             self.assertIn('CALMIRA_WIN16_REALLOC_BOUNDS', patched_heap)
             self.assertIn('if CopySize>size then', patched_heap)

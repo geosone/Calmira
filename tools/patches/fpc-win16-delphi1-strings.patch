@@ -1,0 +1,29 @@
+--- a/rtl/objpas/sysutils/sysstrh.inc
++++ b/rtl/objpas/sysutils/sysstrh.inc
+@@ -70,6 +70,10 @@
+ procedure DisposeStr(S: PShortString); overload;
+ procedure AssignStr(var P: PString; const S: string); {$ifdef SYSUTILSINLINE}inline;{$endif}
+ procedure AppendStr(var Dest: String; const S: string);{$ifdef SYSUTILSINLINE}inline;{$endif}
++{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
++{ Delphi 1 declared these for short strings; var parameters must match exactly. }
++procedure AppendStr(var Dest: ShortString; const S: ShortString);
++{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
+ function UpperCase(const s: ansistring): ansistring; overload;
+ function UpperCase(const s: ansistring; LocaleOptions: TLocaleOptions): ansistring; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+ function LowerCase(const s: ansistring): ansistring; overload;
+--- a/rtl/objpas/sysutils/sysstr.inc
++++ b/rtl/objpas/sysutils/sysstr.inc
+@@ -84,6 +84,13 @@
+   Result:=C in LeadBytes;
+ end;
+ 
++{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
++procedure AppendStr(var Dest: ShortString; const S: ShortString);
++begin
++  Dest:=Dest+S;
++end;
++{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
++
+ function IsLeadChar(B: Byte): Boolean; inline;
+ 
+ 

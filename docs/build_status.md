@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 68 native suites pass with the corrected compiler/private RTL, including the initial Forms/Dialogs units, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 70 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles units, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -40,6 +40,11 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make win16-forms` | Initial `Forms` unit: global Application/Screen, typed TForm/MainForm/Screen views, deferred caFree/Release and unit finalization |
 | `make win16-dialogs` | Initial `Dialogs`: MessageDlg/ShowMessage with real native buttons, icons, Delphi default/cancel rules, wrapping and localized captions |
 | `make win16-input-query` | InputQuery/InputBox: selected initial text, typed accept, Escape cancel and resource cycles |
+| `make win16-shellapi` | SHELL.DLL imports: registration database round trip, icon extraction, associations, drag-acceptance style |
+| `make win16-inifiles` | TIniFile: strings, hex/long integers, booleans, sections, erase and disk flush |
+| `make win16-menus` | Menus: handle contents, in-place Checked/Enabled, rebuilds, dispatch, TrackPopupMenu, menu bar, resources |
+| `make win16-system-dlls` | ToolHelp TimerCount and VER.DLL version blocks of USER.EXE (fixed info, translation, strings) |
+| `make win16-clipbrd` | TClipboard: text round trip, application ownership, truncation, several formats per Open, enumeration, clear |
 | `make winfile16-core` | Original Microsoft filename, directory-memory and size-format modules |
 | `make drive-probe` | Separate `DRVPROBE.EXE` diagnostic, not a file manager |
 | `make win16-helpers` | FPC SHOWDESK, SCRNSAVE, EXPLORER and CTASKMAN executables |
@@ -925,14 +930,60 @@ yet. `make calmira` now stops at the next missing unit, `ShellAPI`.
 The complete `make -j4 win16-fixed-regression` passes with both suites added
 (`build/tests/dialogs-final-regression.log`, exit 0): all 68 configured suites.
 
-### DGROUP pressure
+### DGROUP pressure (resolved by the huge data model)
 
-Both dialog probes need a 1-KiB local heap instead of 2 KiB: at 65,376 bytes
-Windows 3.11 refused to start the message probe with "not enough memory",
-while 64,352/64,464 bytes start and pass. In these probes the FPC RTL alone
-(SysUtils, Classes, System, SysConst/RTLConsts resource strings) occupies more
-than 40 KiB of DGROUP, VMTs and RTTI another substantial share. Dialogs
-therefore avoids a TForm subclass and its own exception class. The full shell
-links far more classes; moving VMT/RTTI/resource strings out of DGROUP (or an
-equivalent RTL reduction) is required before CALMIRA.EXE can start, independent
-of the remaining missing units.
+In the large model both dialog probes needed a 1-KiB local heap: at 65,376
+bytes Windows 3.11 refused to start the message probe with "not enough
+memory". The FPC RTL alone (SysUtils, Classes, System, SysConst/RTLConsts
+resource strings) occupied more than 40 KiB of DGROUP, plus VMTs and RTTI.
+All GUI builds now use FPC's huge data model (see `docs/toolchains.md`): the
+dialog probe's DGROUP drops from 64,352 to 5,136 bytes and the probes are back
+to a 2-KiB heap. Two huge-model startup defects in the pinned RTL had to be
+patched first; before that, the startup values (HInstance and others) were
+written into DGROUP instead of the system unit's segment (window class, cursor
+and module-path suites failed) and the stack bounds pointed into foreign
+memory (text-file I/O faulted after the stack-guard fill). Expected trade-off,
+not yet exercised by a test: Windows 3.x runs a program with several writable
+data segments only once, so a second CALMIRA.EXE start is refused by Windows.
+
+## Initial ShellAPI, IniFiles and Menus Units
+
+`src/win16/shellapi.pas` imports SHELL.DLL with the Delphi 1 signatures
+(registration database, drag-and-drop, ExtractIcon, ShellExecute,
+FindExecutable). The registration-database ERROR_* values are SHELL's own
+results, not DOS error numbers; Calmira's `vcl/files.pas` keeps declaring its
+DOS codes locally. `make win16-shellapi-runtime-test` creates, queries,
+enumerates and deletes a registration key, counts and extracts PROGMAN.EXE
+icons, resolves the WIN.INI association and toggles WS_EX_ACCEPTFILES.
+
+`src/win16/inifiles.pas` provides Delphi 1 `TIniFile` over the private
+profile API (shared USER cache, `0x` hexadecimal integers, 8-KiB section key
+buffer). `make win16-inifiles-runtime-test` reads a prepared file, writes and
+rereads values, erases sections and checks the flushed file.
+
+`src/win16/menus.pas` provides TMenuItem, TMenu, TMainMenu, TPopupMenu, the
+shortcut conversions and the NewItem/NewLine/NewSubMenu/NewMenu/NewPopupMenu
+helpers. Handles are created on demand; Caption, Visible, Break, ShortCut and
+structural changes rebuild the parent's handle, while Checked and Enabled
+update it in place as in Delphi 1, so a handle customized with ModifyMenu
+(Calmira's owner-drawn start menu) survives them. Popup menus dispatch
+WM_COMMAND/WM_INITMENUPOPUP through one hidden window (`PopupListWindow`).
+`make win16-menus-runtime-test` checks real handle contents and flags,
+in-place updates, rebuilds, FindItem/DispatchCommand, a TrackPopupMenu choice
+by mnemonic, menu-bar attach/detach and USER resource release. Not provided
+yet: form Menu/PopupMenu properties, keyboard shortcut dispatch, hints, menu
+merging (GroupIndex) and menus in generated DFM code.
+
+`src/win16/toolhelp.pas` (TimerCount, TerminateApp) and `src/win16/ver.pas`
+(VER.DLL with the Delphi 1 signatures and VS_/VOS_/VFT_ constants) cover what
+Calmira imports; `make win16-system-dlls-runtime-test` reads the real version
+resource of USER.EXE. `src/win16/clipbrd.pas` provides TClipboard for text and
+raw handles, owned by `Application.Handle` as in Delphi 1; graphic/component
+formats are not provided yet. `make win16-clipbrd-runtime-test` covers it.
+
+The full `make -j4 win16-fixed-regression` under the huge data model passed
+all 70 then-configured suites (`build/tests/huge-regression.log`, exit 0);
+Menus, system DLLs and Clipbrd were added afterwards and pass individually.
+
+`make calmira` now compiles with `-Sh-` (Delphi 1 short strings) and Calmira's
+directories ahead of the RTL, and stops at the next missing unit, `TabNotBk`.

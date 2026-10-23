@@ -1,0 +1,76 @@
+--- a/rtl/win16/prt0comn.asm
++++ b/rtl/win16/prt0comn.asm
+@@ -85,19 +85,36 @@
+                 ; SI = instance handle for the previous application instance (if any)
+ 
+                 mov ax, es
+-                mov [__fpc_PrefixSeg], ax
+-                mov [__fpc_CmdLine+2], ax
+-                mov [__fpc_CmdLine], bx
+-                mov [__fpc_CmdShow], dx
+-                mov [__fpc_HInstance], di
+-                mov [__fpc_HPrevInst], si
++%ifdef __HUGE__
++                ; In the huge model the system unit's variables live in its
++                ; own data segment, not in DGROUP (DS = SS here).
++%macro set_unit_var 3
++                mov cx, seg %1
++                mov ds, cx
++                mov word [%1+%2], %3
++%endmacro
++%else
++%macro set_unit_var 3
++                mov word [%1+%2], %3
++%endmacro
++%endif
++                set_unit_var __fpc_PrefixSeg, 0, ax
++                set_unit_var __fpc_CmdLine, 2, ax
++                set_unit_var __fpc_CmdLine, 0, bx
++                set_unit_var __fpc_CmdShow, 0, dx
++                set_unit_var __fpc_HInstance, 0, di
++                set_unit_var __fpc_HPrevInst, 0, si
+ 
+                 ; the offset of the Win16 kernel function __AHIncr (by definition)
+                 ; gives us the value of SelectorInc. The function __AHIncr is
+                 ; otherwise useless (when called, it increments AH by one :) )
+                 ; The value of SelectorInc is usually 8 in most (all?) win16
+                 ; implementations, but it's good practice not to hardcode it.
+-                mov word [__fpc_SelectorInc], __AHIncr
++                set_unit_var __fpc_SelectorInc, 0, __AHIncr
++%ifdef __HUGE__
++                mov cx, ss
++                mov ds, cx
++%endif
+ 
+                 ; call WaitEvent(0) to clear the event that started this task
+                 ; Windows expects this call immediately after InitTask
+@@ -108,7 +125,11 @@
+                 ; call InitApp(hInstance) to initialize the queue and support
+                 ; routines for the app. Windows expects this to be the third
+                 ; call in the Win16 startup sequence.
++%ifdef __HUGE__
++                push di                 ; WaitEvent preserved the instance handle
++%else
+                 push word [__fpc_HInstance]
++%endif
+                 call far InitApp
+                 test ax, ax
+                 jz error
+--- a/rtl/win16/system.pp
++++ b/rtl/win16/system.pp
+@@ -620,7 +620,14 @@
+ end;
+ 
+ begin
+-{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
++{$if defined(FPC_X86_DATA_HUGE)}
++  { DS addresses this unit's own data segment; the task header is in DGROUP. }
++  with PAutoDataSegHeader(Ptr(SSeg,0))^ do
++    begin
++      StackBottom := Ptr(SSeg,pStackTop);
++      StackLength := pStackBot-pStackTop;
++    end;
++{$elseif defined(FPC_X86_DATA_FAR)}
+   with PAutoDataSegHeader(Ptr(DSeg,0))^ do
+     begin
+       StackBottom := Ptr(SSeg,pStackTop);

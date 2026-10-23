@@ -7,7 +7,12 @@ FPC_WIN16_ROOT ?= $(BUILD_DIR)/toolchains/fpc-win16
 FPC_WIN16_VERSION ?= 3.3.1
 FPC_WIN16 := $(FPC_WIN16_ROOT)/lib/fpc/$(FPC_WIN16_VERSION)/ppcross8086
 FPC_WIN16_UNITS := $(FPC_WIN16_ROOT)/lib/fpc/$(FPC_WIN16_VERSION)/units/win16/rtl
-FPC_WIN16_GUI_RTL := $(BUILD_DIR)/win16-rtl/units
+# Huge data model: each unit's initialized data, VMTs and RTTI live in FAR_DATA
+# segments, leaving DGROUP to the stack and local heap. Large-model PPUs are kept
+# in a separate directory and must never be mixed with huge-model ones.
+WIN16_MEMORY_MODEL ?= Huge
+WIN16_GUI_FLAGS := -Wh -Wm$(WIN16_MEMORY_MODEL)
+FPC_WIN16_GUI_RTL := $(BUILD_DIR)/win16-rtl/units-$(WIN16_MEMORY_MODEL)
 FPC_FIXED_ROOT ?= $(BUILD_DIR)/toolchains/fpc-class-pointer
 FPC_WIN16_FIXED := $(FPC_FIXED_ROOT)/ppcross8086
 DRIVE_PROBE_DIR := $(BUILD_DIR)/drive-probe
@@ -198,6 +203,8 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-identity-runtime-test \
 		win16-screen-runtime-test win16-screen-modal-runtime-test \
 		win16-forms-runtime-test win16-dialogs-runtime-test win16-input-query-runtime-test \
+		win16-shellapi-runtime-test win16-inifiles-runtime-test win16-menus-runtime-test \
+		win16-system-dlls-runtime-test win16-clipbrd-runtime-test \
 		win16-cursor-runtime-test win16-cursor-modal-runtime-test \
 		win16-form-activation-runtime-test win16-form-resize-runtime-test win16-form-state-runtime-test \
 		win16-ui-runtime-test win16-window-runtime-test win16-input-runtime-test \
@@ -209,7 +216,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 win16-class-pointer: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-class-pointer/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-FU$(BUILD_DIR)/tests/win16-class-pointer/units -FE$(BUILD_DIR)/tests/win16-class-pointer \
 		-oGDITEST.EXE tests/pascal/test_win16_class_pointer.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-class-pointer/GDITEST.EXE
@@ -221,7 +228,7 @@ win16-class-pointer-runtime-test: win16-class-pointer
 win16-application: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-application/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-application/units -FE$(BUILD_DIR)/tests/win16-application \
 		-oGDITEST.EXE tests/pascal/test_win16_application.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-application/GDITEST.EXE
@@ -232,7 +239,7 @@ win16-application-runtime-test: win16-application
 win16-application-dialog: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-application-dialog/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-application-dialog/units -FE$(BUILD_DIR)/tests/win16-application-dialog \
 		-oGDITEST.EXE tests/pascal/test_win16_application_dialog.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-application-dialog/GDITEST.EXE
@@ -244,7 +251,7 @@ win16-application-dialog-runtime-test: win16-application-dialog
 win16-application-factory: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-application-factory/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-application-factory/units -FE$(BUILD_DIR)/tests/win16-application-factory \
 		-oGDITEST.EXE tests/pascal/test_win16_application_factory.pas
@@ -257,7 +264,7 @@ win16-application-factory-runtime-test: win16-application-factory
 win16-application-original: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/incsrch_form.inc
 	mkdir -p $(BUILD_DIR)/tests/win16-application-original/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl \
 		-FU$(BUILD_DIR)/tests/win16-application-original/units -FE$(BUILD_DIR)/tests/win16-application-original \
 		-oGDITEST.EXE tests/pascal/test_win16_application_original.pas
@@ -270,12 +277,12 @@ win16-application-original-runtime-test: win16-application-original
 win16-application-window: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-application-window/units $(BUILD_DIR)/tests/win16-application-sender/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -Fusrc \
 		-FU$(BUILD_DIR)/tests/win16-application-window/units -FE$(BUILD_DIR)/tests/win16-application-window \
 		-oGDITEST.EXE tests/pascal/test_win16_application_window.pas
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc \
 		-FU$(BUILD_DIR)/tests/win16-application-sender/units -FE$(BUILD_DIR)/tests/win16-application-sender \
 		-oAPPSEND.EXE tests/pascal/application_sender.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-application-window/GDITEST.EXE
@@ -289,7 +296,7 @@ win16-application-window-runtime-test: win16-application-window
 win16-idle: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-idle/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-idle/units -FE$(BUILD_DIR)/tests/win16-idle \
 		-oGDITEST.EXE tests/pascal/test_win16_idle.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-idle/GDITEST.EXE
@@ -300,7 +307,7 @@ win16-idle-runtime-test: win16-idle
 win16-application-idle: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-application-idle/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-application-idle/units -FE$(BUILD_DIR)/tests/win16-application-idle \
 		-oGDITEST.EXE tests/pascal/test_win16_application_idle.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-application-idle/GDITEST.EXE
@@ -312,7 +319,7 @@ win16-application-idle-runtime-test: win16-application-idle
 win16-application-exception: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-application-exception/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-application-exception/units -FE$(BUILD_DIR)/tests/win16-application-exception \
 		-oGDITEST.EXE tests/pascal/test_win16_application_exception.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-application-exception/GDITEST.EXE
@@ -327,7 +334,7 @@ win16-application-exception-runtime-test: win16-application-exception
 win16-realloc: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-realloc/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-FU$(BUILD_DIR)/tests/win16-realloc/units -FE$(BUILD_DIR)/tests/win16-realloc \
 		-oGDITEST.EXE tests/pascal/test_win16_realloc.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-realloc/GDITEST.EXE
@@ -339,7 +346,7 @@ win16-realloc-runtime-test: win16-realloc
 win16-children: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-children/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-children/units -FE$(BUILD_DIR)/tests/win16-children \
 		-oGDITEST.EXE tests/pascal/test_win16_children.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-children/GDITEST.EXE
@@ -351,7 +358,7 @@ win16-children-runtime-test: win16-children
 win16-identity: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-identity/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-identity/units -FE$(BUILD_DIR)/tests/win16-identity \
 		-oGDITEST.EXE tests/pascal/test_win16_identity.pas
 	python3 tests/bitmap_fixtures.py $(BUILD_DIR)/tests/win16-identity
@@ -371,7 +378,7 @@ win16-identity-package-runtime-test: win16-identity upx
 win16-drain: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-drain/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-drain/units -FE$(BUILD_DIR)/tests/win16-drain \
 		-oGDITEST.EXE tests/pascal/test_win16_drain.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-drain/GDITEST.EXE
@@ -382,7 +389,7 @@ win16-drain-runtime-test: win16-drain
 win16-application-pump: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-application-pump/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-application-pump/units -FE$(BUILD_DIR)/tests/win16-application-pump \
 		-oGDITEST.EXE tests/pascal/test_win16_application_pump.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-application-pump/GDITEST.EXE
@@ -394,7 +401,7 @@ win16-application-pump-runtime-test: win16-application-pump
 win16-coordinates: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-coordinates/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-coordinates/units -FE$(BUILD_DIR)/tests/win16-coordinates \
 		-oGDITEST.EXE tests/pascal/test_win16_coordinates.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-coordinates/GDITEST.EXE
@@ -406,7 +413,7 @@ win16-coordinates-runtime-test: win16-coordinates
 win16-control-view: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-control-view/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-control-view/units -FE$(BUILD_DIR)/tests/win16-control-view \
 		-oGDITEST.EXE tests/pascal/test_win16_control_view.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-control-view/GDITEST.EXE
@@ -417,7 +424,7 @@ win16-control-view-runtime-test: win16-control-view
 win16-view-order: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-view-order/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-view-order/units -FE$(BUILD_DIR)/tests/win16-view-order \
 		-oGDITEST.EXE tests/pascal/test_win16_view_order.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-view-order/GDITEST.EXE
@@ -431,7 +438,7 @@ $(BUILD_DIR)/generated/forms/help_context_form.inc: tests/help_context_fixture.p
 win16-help-key: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/help_context_form.inc help
 	mkdir -p $(BUILD_DIR)/tests/win16-help-key/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-Fi$(BUILD_DIR)/generated/forms -FU$(BUILD_DIR)/tests/win16-help-key/units \
 		-FE$(BUILD_DIR)/tests/win16-help-key -oGDITEST.EXE tests/pascal/test_win16_help_key.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-help-key/GDITEST.EXE
@@ -443,7 +450,7 @@ win16-help-key-runtime-test: win16-help-key
 win16-application-help: fpc-win16-gui-rtl languages help
 	mkdir -p $(BUILD_DIR)/tests/win16-application-help/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-application-help/units -FE$(BUILD_DIR)/tests/win16-application-help \
 		-oGDITEST.EXE tests/pascal/test_win16_application_help.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-application-help/GDITEST.EXE
@@ -456,11 +463,11 @@ win16-application-help-runtime-test: win16-application-help
 win16-application-activation: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-application-activation/units $(BUILD_DIR)/tests/win16-activation-sender/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-application-activation/units -FE$(BUILD_DIR)/tests/win16-application-activation \
 		-oGDITEST.EXE tests/pascal/test_win16_application_activation.pas
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-FU$(BUILD_DIR)/tests/win16-activation-sender/units -FE$(BUILD_DIR)/tests/win16-activation-sender \
 		-oAPPSEND.EXE tests/pascal/activation_sender.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-application-activation/GDITEST.EXE
@@ -474,7 +481,7 @@ win16-application-activation-runtime-test: win16-application-activation
 win16-form-state: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-form-state/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-form-state/units -FE$(BUILD_DIR)/tests/win16-form-state \
 		-oGDITEST.EXE tests/pascal/test_win16_form_state.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-form-state/GDITEST.EXE
@@ -486,7 +493,7 @@ win16-form-state-runtime-test: win16-form-state
 win16-form-resize: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-form-resize/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-form-resize/units -FE$(BUILD_DIR)/tests/win16-form-resize \
 		-oGDITEST.EXE tests/pascal/test_win16_form_resize.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-form-resize/GDITEST.EXE
@@ -498,7 +505,7 @@ win16-form-resize-runtime-test: win16-form-resize
 win16-form-activation: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-form-activation/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-form-activation/units -FE$(BUILD_DIR)/tests/win16-form-activation \
 		-oGDITEST.EXE tests/pascal/test_win16_form_activation.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-form-activation/GDITEST.EXE
@@ -510,7 +517,7 @@ win16-form-activation-runtime-test: win16-form-activation
 win16-forms: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-forms/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-forms/units -FE$(BUILD_DIR)/tests/win16-forms \
 		-oGDITEST.EXE tests/pascal/test_win16_forms.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-forms/GDITEST.EXE
@@ -518,11 +525,71 @@ win16-forms: fpc-win16-gui-rtl
 win16-forms-runtime-test: win16-forms
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-forms/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
+.PHONY: win16-shellapi win16-shellapi-runtime-test
+win16-shellapi: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-shellapi/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-shellapi/units -FE$(BUILD_DIR)/tests/win16-shellapi \
+		-oGDITEST.EXE tests/pascal/test_win16_shellapi.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-shellapi/GDITEST.EXE
+
+win16-shellapi-runtime-test: win16-shellapi
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-shellapi/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-inifiles win16-inifiles-runtime-test
+win16-inifiles: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-inifiles/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-inifiles/units -FE$(BUILD_DIR)/tests/win16-inifiles \
+		-oGDITEST.EXE tests/pascal/test_win16_inifiles.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-inifiles/GDITEST.EXE
+
+win16-inifiles-runtime-test: win16-inifiles
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-inifiles/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-menus win16-menus-runtime-test
+win16-menus: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-menus/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-menus/units -FE$(BUILD_DIR)/tests/win16-menus \
+		-oGDITEST.EXE tests/pascal/test_win16_menus.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-menus/GDITEST.EXE
+
+win16-menus-runtime-test: win16-menus
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-menus/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-system-dlls win16-system-dlls-runtime-test
+win16-system-dlls: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-system-dlls/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-system-dlls/units -FE$(BUILD_DIR)/tests/win16-system-dlls \
+		-oGDITEST.EXE tests/pascal/test_win16_system_dlls.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-system-dlls/GDITEST.EXE
+
+win16-system-dlls-runtime-test: win16-system-dlls
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-system-dlls/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-clipbrd win16-clipbrd-runtime-test
+win16-clipbrd: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-clipbrd/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-clipbrd/units -FE$(BUILD_DIR)/tests/win16-clipbrd \
+		-oGDITEST.EXE tests/pascal/test_win16_clipbrd.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-clipbrd/GDITEST.EXE
+
+win16-clipbrd-runtime-test: win16-clipbrd
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-clipbrd/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
 .PHONY: win16-dialogs win16-dialogs-runtime-test
 win16-dialogs: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-dialogs/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-dialogs/units -FE$(BUILD_DIR)/tests/win16-dialogs \
 		-oGDITEST.EXE tests/pascal/test_win16_dialogs.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-dialogs/GDITEST.EXE
@@ -534,7 +601,7 @@ win16-dialogs-runtime-test: win16-dialogs
 win16-input-query: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-input-query/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-input-query/units -FE$(BUILD_DIR)/tests/win16-input-query \
 		-oGDITEST.EXE tests/pascal/test_win16_input_query.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-input-query/GDITEST.EXE
@@ -546,7 +613,7 @@ win16-input-query-runtime-test: win16-input-query
 win16-screen: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-screen/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-screen/units -FE$(BUILD_DIR)/tests/win16-screen \
 		-oGDITEST.EXE tests/pascal/test_win16_screen.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-screen/GDITEST.EXE
@@ -557,7 +624,7 @@ win16-screen-runtime-test: win16-screen
 win16-screen-modal: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-screen-modal/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-screen-modal/units -FE$(BUILD_DIR)/tests/win16-screen-modal \
 		-oGDITEST.EXE tests/pascal/test_win16_screen_modal.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-screen-modal/GDITEST.EXE
@@ -569,7 +636,7 @@ win16-screen-modal-runtime-test: win16-screen-modal
 win16-cursor: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-cursor/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-cursor/units -FE$(BUILD_DIR)/tests/win16-cursor \
 		-oGDITEST.EXE tests/pascal/test_win16_cursor.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-cursor/GDITEST.EXE
@@ -581,7 +648,7 @@ win16-cursor-runtime-test: win16-cursor
 win16-cursor-modal: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-cursor-modal/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-cursor-modal/units -FE$(BUILD_DIR)/tests/win16-cursor-modal \
 		-oGDITEST.EXE tests/pascal/test_win16_cursor_modal.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-cursor-modal/GDITEST.EXE
@@ -612,12 +679,12 @@ fpc-win16-smoke: fpc-win16-toolchain
 
 fpc-win16-gui-rtl: fpc-win16-toolchain
 	FPC_WIN16='$(abspath $(FPC_WIN16))' FPC_WIN16_RTL='$(abspath $(FPC_WIN16_GUI_RTL))' \
-		sh tools/build_win16_rtl.sh
+		WIN16_MEMORY_MODEL='$(WIN16_MEMORY_MODEL)' sh tools/build_win16_rtl.sh
 
 fpc-win16-classes-runtime-test: fpc-win16-gui-rtl languages
 	mkdir -p $(BUILD_DIR)/tests/win16-classes/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/portable -Fuvcl -FU$(BUILD_DIR)/tests/win16-classes/units \
 		-FE$(BUILD_DIR)/tests/win16-classes -oRTLTEST.EXE tests/pascal/test_win16_classes.pas
 	RTL_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-classes/RTLTEST.EXE)' \
@@ -627,7 +694,7 @@ fpc-win16-classes-runtime-test: fpc-win16-gui-rtl languages
 win16-messages: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-messages/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -FU$(BUILD_DIR)/tests/win16-messages/units \
 		-FE$(BUILD_DIR)/tests/win16-messages -oMSGTEST.EXE tests/pascal/test_win16_messages.pas
 
@@ -639,7 +706,7 @@ win16-messages-runtime-test: win16-messages
 win16-gdi: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-gdi/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-gdi/units \
 		-FE$(BUILD_DIR)/tests/win16-gdi -oGDITEST.EXE tests/pascal/test_win16_gdi.pas
 	python3 tests/bitmap_fixtures.py $(BUILD_DIR)/tests/win16-gdi
@@ -655,7 +722,7 @@ win16-gdi-runtime-test: win16-gdi
 win16-graphics: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-graphics/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -Fuvcl -FU$(BUILD_DIR)/tests/win16-graphics/units \
 		-FE$(BUILD_DIR)/tests/win16-graphics -oGDITEST.EXE tests/pascal/test_win16_graphics.pas
 	python3 tests/bitmap_fixtures.py $(BUILD_DIR)/tests/win16-graphics
@@ -671,7 +738,7 @@ win16-graphics-runtime-test: win16-graphics
 win16-handles: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-handles/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-handles/units \
 		-FE$(BUILD_DIR)/tests/win16-handles -oGDITEST.EXE tests/pascal/test_win16_handles.pas
 	python3 tests/bitmap_fixtures.py $(BUILD_DIR)/tests/win16-handles
@@ -687,7 +754,7 @@ win16-handles-runtime-test: win16-handles
 win16-picture: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-picture/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-picture/units \
 		-FE$(BUILD_DIR)/tests/win16-picture -oGDITEST.EXE tests/pascal/test_win16_picture.pas
 	python3 tests/bitmap_fixtures.py $(BUILD_DIR)/tests/win16-picture
@@ -703,7 +770,7 @@ win16-picture-runtime-test: win16-picture
 win16-drawing: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-drawing/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-drawing/units \
 		-FE$(BUILD_DIR)/tests/win16-drawing -oGDITEST.EXE tests/pascal/test_win16_drawing.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-drawing/GDITEST.EXE
@@ -716,7 +783,7 @@ win16-drawing-runtime-test: win16-drawing
 win16-window: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-window/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -FU$(BUILD_DIR)/tests/win16-window/units \
 		-FE$(BUILD_DIR)/tests/win16-window -oGDITEST.EXE tests/pascal/test_win16_window.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-window/GDITEST.EXE
@@ -729,7 +796,7 @@ win16-window-runtime-test: win16-window
 win16-paint: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-paint/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-paint/units \
 		-FE$(BUILD_DIR)/tests/win16-paint -oGDITEST.EXE tests/pascal/test_win16_paint.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-paint/GDITEST.EXE
@@ -742,7 +809,7 @@ win16-paint-runtime-test: win16-paint
 win16-input: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-input/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-input/units \
 		-FE$(BUILD_DIR)/tests/win16-input -oGDITEST.EXE tests/pascal/test_win16_input.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-input/GDITEST.EXE
@@ -755,7 +822,7 @@ win16-input-runtime-test: win16-input
 win16-draw: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-draw/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-draw/units \
 		-FE$(BUILD_DIR)/tests/win16-draw -oGDITEST.EXE tests/pascal/test_win16_draw.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-draw/GDITEST.EXE
@@ -768,7 +835,7 @@ win16-draw-runtime-test: win16-draw
 win16-slider: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-slider/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -Fuvcl -FU$(BUILD_DIR)/tests/win16-slider/units \
 		-FE$(BUILD_DIR)/tests/win16-slider -oGDITEST.EXE tests/pascal/test_win16_slider.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-slider/GDITEST.EXE
@@ -781,7 +848,7 @@ win16-slider-runtime-test: win16-slider
 win16-graphic: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-graphic/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -Fuvcl -FU$(BUILD_DIR)/tests/win16-graphic/units \
 		-FE$(BUILD_DIR)/tests/win16-graphic -oGDITEST.EXE tests/pascal/test_win16_graphic.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-graphic/GDITEST.EXE
@@ -794,7 +861,7 @@ win16-graphic-runtime-test: win16-graphic
 win16-hierarchy: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-hierarchy/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-hierarchy/units \
 		-FE$(BUILD_DIR)/tests/win16-hierarchy -oGDITEST.EXE tests/pascal/test_win16_hierarchy.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-hierarchy/GDITEST.EXE
@@ -807,7 +874,7 @@ win16-hierarchy-runtime-test: win16-hierarchy
 win16-loop: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-loop/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -FU$(BUILD_DIR)/tests/win16-loop/units \
 		-FE$(BUILD_DIR)/tests/win16-loop -oGDITEST.EXE tests/pascal/test_win16_loop.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-loop/GDITEST.EXE
@@ -820,7 +887,7 @@ win16-loop-runtime-test: win16-loop
 win16-form: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-form/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-form/units \
 		-FE$(BUILD_DIR)/tests/win16-form -oGDITEST.EXE tests/pascal/test_win16_form.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-form/GDITEST.EXE
@@ -833,7 +900,7 @@ win16-form-runtime-test: win16-form
 win16-gauge: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-gauge/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -Fuvcl -FU$(BUILD_DIR)/tests/win16-gauge/units \
 		-FE$(BUILD_DIR)/tests/win16-gauge -oGDITEST.EXE tests/pascal/test_win16_gauge.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-gauge/GDITEST.EXE
@@ -846,7 +913,7 @@ win16-gauge-runtime-test: win16-gauge
 win16-label: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-label/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-label/units \
 		-FE$(BUILD_DIR)/tests/win16-label -oGDITEST.EXE tests/pascal/test_win16_label.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-label/GDITEST.EXE
@@ -859,7 +926,7 @@ win16-label-runtime-test: win16-label
 win16-image: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-image/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-image/units \
 		-FE$(BUILD_DIR)/tests/win16-image -oGDITEST.EXE tests/pascal/test_win16_image.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-image/GDITEST.EXE
@@ -872,7 +939,7 @@ win16-image-runtime-test: win16-image
 win16-progress-ui: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-progress-ui/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -Fuvcl -FU$(BUILD_DIR)/tests/win16-progress-ui/units \
 		-FE$(BUILD_DIR)/tests/win16-progress-ui -oGDITEST.EXE tests/pascal/test_win16_progress_ui.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-progress-ui/GDITEST.EXE
@@ -885,7 +952,7 @@ win16-progress-ui-runtime-test: win16-progress-ui
 win16-button: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-button/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-button/units \
 		-FE$(BUILD_DIR)/tests/win16-button -oGDITEST.EXE tests/pascal/test_win16_button.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-button/GDITEST.EXE
@@ -898,7 +965,7 @@ win16-button-runtime-test: win16-button
 win16-bitbtn: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-bitbtn/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -Fuvcl -FU$(BUILD_DIR)/tests/win16-bitbtn/units \
 		-FE$(BUILD_DIR)/tests/win16-bitbtn -oGDITEST.EXE tests/pascal/test_win16_bitbtn.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-bitbtn/GDITEST.EXE
@@ -911,7 +978,7 @@ win16-bitbtn-runtime-test: win16-bitbtn
 win16-progress-button: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-progress-button/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -Fuvcl -FU$(BUILD_DIR)/tests/win16-progress-button/units \
 		-FE$(BUILD_DIR)/tests/win16-progress-button -oGDITEST.EXE tests/pascal/test_win16_progress_button.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-progress-button/GDITEST.EXE
@@ -924,7 +991,7 @@ win16-progress-button-runtime-test: win16-progress-button
 win16-dialog: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-dialog/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-dialog/units \
 		-FE$(BUILD_DIR)/tests/win16-dialog -oGDITEST.EXE tests/pascal/test_win16_dialog.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-dialog/GDITEST.EXE
@@ -937,7 +1004,7 @@ win16-dialog-runtime-test: win16-dialog
 win16-edit: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-edit/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-edit/units \
 		-FE$(BUILD_DIR)/tests/win16-edit -oGDITEST.EXE tests/pascal/test_win16_edit.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-edit/GDITEST.EXE
@@ -949,7 +1016,7 @@ win16-edit-runtime-test: win16-edit
 win16-checkbox: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-checkbox/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-checkbox/units \
 		-FE$(BUILD_DIR)/tests/win16-checkbox -oGDITEST.EXE tests/pascal/test_win16_checkbox.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-checkbox/GDITEST.EXE
@@ -962,7 +1029,7 @@ win16-checkbox-runtime-test: win16-checkbox
 win16-input-dialog: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-input-dialog/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-input-dialog/units \
 		-FE$(BUILD_DIR)/tests/win16-input-dialog -oGDITEST.EXE tests/pascal/test_win16_input_dialog.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-input-dialog/GDITEST.EXE
@@ -976,7 +1043,7 @@ win16-input-dialog-runtime-test: win16-input-dialog
 win16-gui-stdio: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-gui-stdio/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-FU$(BUILD_DIR)/tests/win16-gui-stdio/units -FE$(BUILD_DIR)/tests/win16-gui-stdio \
 		-oGDITEST.EXE tests/pascal/test_win16_gui_stdio.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-gui-stdio/GDITEST.EXE
@@ -991,7 +1058,7 @@ win16-gui-stdio-runtime-test: win16-gui-stdio
 win16-gui-buffer: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-gui-buffer/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Cr -Co -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Cr -Co -Fu$(FPC_WIN16_GUI_RTL) \
 		-FU$(BUILD_DIR)/tests/win16-gui-buffer/units -FE$(BUILD_DIR)/tests/win16-gui-buffer \
 		-oGDITEST.EXE tests/pascal/test_gui_error_buffer.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-gui-buffer/GDITEST.EXE
@@ -1003,7 +1070,7 @@ win16-gui-buffer-runtime-test: win16-gui-buffer
 win16-gui-diagnostics: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-gui-diagnostics/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-FU$(BUILD_DIR)/tests/win16-gui-diagnostics/units -FE$(BUILD_DIR)/tests/win16-gui-diagnostics \
 		-oGDITEST.EXE tests/pascal/test_win16_gui_diagnostics.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-gui-diagnostics/GDITEST.EXE
@@ -1028,7 +1095,7 @@ $(BUILD_DIR)/generated/forms/password_form.inc $(BUILD_DIR)/generated/forms/pass
 win16-password: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/password_form.inc $(BUILD_DIR)/generated/forms/password.res src/locale.res
 	mkdir -p $(BUILD_DIR)/tests/win16-password/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-password/units \
 		-FE$(BUILD_DIR)/tests/win16-password -oGDITEST.EXE tests/pascal/test_win16_password.pas
 	python3 tools/merge_res16.py src/locale.res $(BUILD_DIR)/generated/forms/password.res \
@@ -1043,7 +1110,7 @@ win16-password-runtime-test: win16-password
 win16-password-language: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/password_form.inc $(BUILD_DIR)/generated/forms/password.res src/locale.res
 	mkdir -p $(BUILD_DIR)/tests/win16-password-language/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-password-language/units \
 		-FE$(BUILD_DIR)/tests/win16-password-language -oGDITEST.EXE tests/pascal/test_win16_password_language.pas
 	python3 tools/merge_res16.py src/locale.res $(BUILD_DIR)/generated/forms/password.res \
@@ -1058,7 +1125,7 @@ win16-password-language-runtime-test: win16-password-language languages
 win16-resource-text: fpc-win16-gui-rtl src/locale.res
 	mkdir -p $(BUILD_DIR)/tests/win16-resource-text/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc -FU$(BUILD_DIR)/tests/win16-resource-text/units \
 		-FE$(BUILD_DIR)/tests/win16-resource-text -oGDITEST.EXE tests/pascal/test_win16_resource_text.pas
 	$(WATCOM_BIN)/wrc -q -bt=windows src/locale.res $(BUILD_DIR)/tests/win16-resource-text/GDITEST.EXE
@@ -1073,7 +1140,7 @@ win16-resource-text-runtime-test: win16-resource-text languages
 win16-mnemonic: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-mnemonic/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-mnemonic/units \
 		-FE$(BUILD_DIR)/tests/win16-mnemonic -oGDITEST.EXE tests/pascal/test_win16_mnemonic.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-mnemonic/GDITEST.EXE
@@ -1088,7 +1155,7 @@ $(BUILD_DIR)/generated/forms/select_form.inc $(BUILD_DIR)/generated/forms/select
 win16-select: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/select_form.inc $(BUILD_DIR)/generated/forms/select.res src/icons.res
 	mkdir -p $(BUILD_DIR)/tests/win16-select/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-select/units \
 		-FE$(BUILD_DIR)/tests/win16-select -oGDITEST.EXE tests/pascal/test_win16_select.pas
 	python3 tools/merge_res16.py src/icons.res $(BUILD_DIR)/generated/forms/select.res \
@@ -1104,7 +1171,7 @@ win16-select-runtime-test: win16-select
 win16-select-language: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/select_form.inc $(BUILD_DIR)/generated/forms/select.res src/icons.res
 	mkdir -p $(BUILD_DIR)/tests/win16-select-language/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-select-language/units \
 		-FE$(BUILD_DIR)/tests/win16-select-language -oGDITEST.EXE tests/pascal/test_win16_select_language.pas
 	python3 tools/merge_res16.py src/icons.res $(BUILD_DIR)/generated/forms/select.res \
@@ -1129,7 +1196,7 @@ $(BUILD_DIR)/generated/forms/askdrop_form.inc $(BUILD_DIR)/generated/forms/askdr
 win16-askdrop: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/askdrop_form.inc $(BUILD_DIR)/generated/forms/askdrop.res
 	mkdir -p $(BUILD_DIR)/tests/win16-askdrop/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-askdrop/units \
 		-FE$(BUILD_DIR)/tests/win16-askdrop -oGDITEST.EXE tests/pascal/test_win16_askdrop.pas
 	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/generated/forms/askdrop.res $(BUILD_DIR)/tests/win16-askdrop/GDITEST.EXE
@@ -1142,7 +1209,7 @@ win16-askdrop-runtime-test: win16-askdrop languages
 win16-askdrop-modal: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/askdrop_form.inc $(BUILD_DIR)/generated/forms/askdrop.res
 	mkdir -p $(BUILD_DIR)/tests/win16-askdrop-modal/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -dMODAL_PROBE -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -dMODAL_PROBE -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-askdrop-modal/units \
 		-FE$(BUILD_DIR)/tests/win16-askdrop-modal -oGDITEST.EXE tests/pascal/test_win16_askdrop.pas
 	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/generated/forms/askdrop.res $(BUILD_DIR)/tests/win16-askdrop-modal/GDITEST.EXE
@@ -1155,7 +1222,7 @@ win16-askdrop-modal-runtime-test: win16-askdrop-modal
 win16-askdrop-language: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/askdrop_form.inc $(BUILD_DIR)/generated/forms/askdrop.res
 	mkdir -p $(BUILD_DIR)/tests/win16-askdrop-language/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-askdrop-language/units \
 		-FE$(BUILD_DIR)/tests/win16-askdrop-language -oGDITEST.EXE tests/pascal/test_win16_askdrop_language.pas
 	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/generated/forms/askdrop.res $(BUILD_DIR)/tests/win16-askdrop-language/GDITEST.EXE
@@ -1168,7 +1235,7 @@ win16-askdrop-language-runtime-test: win16-askdrop-language languages
 win16-incsrch: fpc-win16-gui-rtl win16-form-resources
 	mkdir -p $(BUILD_DIR)/tests/win16-incsrch/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -FU$(BUILD_DIR)/tests/win16-incsrch/units \
 		-FE$(BUILD_DIR)/tests/win16-incsrch -oGDITEST.EXE tests/pascal/test_win16_incsrch.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-incsrch/GDITEST.EXE
@@ -1181,7 +1248,7 @@ win16-incsrch-runtime-test: win16-incsrch
 win16-form-text: fpc-win16-gui-rtl win16-form-resources
 	mkdir -p $(BUILD_DIR)/tests/win16-form-text/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -FU$(BUILD_DIR)/tests/win16-form-text/units \
 		-FE$(BUILD_DIR)/tests/win16-form-text -oGDITEST.EXE tests/pascal/test_win16_form_text.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-form-text/GDITEST.EXE
@@ -1195,7 +1262,7 @@ win16-form-text-runtime-test: win16-form-text languages
 win16-modal-loop: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-modal-loop/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-modal-loop/units \
 		-FE$(BUILD_DIR)/tests/win16-modal-loop -oGDITEST.EXE tests/pascal/test_win16_modal_loop.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-modal-loop/GDITEST.EXE
@@ -1207,7 +1274,7 @@ win16-modal-loop-runtime-test: win16-modal-loop
 win16-modal: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-modal/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fusrc/win16 -Fusrc/portable -FU$(BUILD_DIR)/tests/win16-modal/units \
 		-FE$(BUILD_DIR)/tests/win16-modal -oGDITEST.EXE tests/pascal/test_win16_modal.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-modal/GDITEST.EXE
@@ -1219,7 +1286,7 @@ win16-modal-runtime-test: win16-modal
 win16-incsrch-modal: fpc-win16-gui-rtl win16-form-resources
 	mkdir -p $(BUILD_DIR)/tests/win16-incsrch-modal/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
 		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -FU$(BUILD_DIR)/tests/win16-incsrch-modal/units \
 		-FE$(BUILD_DIR)/tests/win16-incsrch-modal -oGDITEST.EXE tests/pascal/test_win16_incsrch_modal.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-incsrch-modal/GDITEST.EXE
@@ -1240,11 +1307,14 @@ win16-ui-runtime-test: win16-image-runtime-test win16-progress-ui-runtime-test \
 	win16-edit-runtime-test win16-checkbox-runtime-test win16-input-dialog-runtime-test win16-incsrch-runtime-test \
 	win16-modal-runtime-test win16-incsrch-modal-runtime-test win16-form-text-runtime-test win16-askdrop-runtime-test win16-askdrop-modal-runtime-test win16-askdrop-language-runtime-test win16-mnemonic-runtime-test win16-select-runtime-test win16-select-language-runtime-test win16-password-runtime-test win16-password-language-runtime-test
 
+# Delphi 1 strings are short strings. Calmira units precede the RTL so that
+# vcl/strings.pas, not the RTL unit of the same name, satisfies "uses Strings".
 calmira: fpc-win16-gui-rtl languages win16-form-resources
 	mkdir -p $(BUILD_DIR)/calmira/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Wh -CX -Fu./$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fuvcl -Fusrc -Fusrc/portable -Fusrc/win16 -FU$(BUILD_DIR)/calmira/units \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX \
+		-Fi$(BUILD_DIR)/generated/forms -Fuvcl -Fusrc -Fusrc/portable -Fusrc/win16 \
+		-Fu./$(FPC_WIN16_GUI_RTL) -FU$(BUILD_DIR)/calmira/units \
 		-FE$(BUILD_DIR)/calmira -oCALMIRA.EXE src/calmira.dpr
 
 winfile16-core: omf-toolchain

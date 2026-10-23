@@ -1,5 +1,5 @@
 program DialogsTest;
-{$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,1024}
+{$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
 uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Controls, Forms, Dialogs, form_text;
 type
   TCatalog = class

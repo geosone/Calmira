@@ -65,7 +65,19 @@ object without producing a runnable program.
 For the GUI port, `make fpc-win16-gui-rtl` builds a separate complete RTL with
 `-Wh` (huge code per unit), not just a replacement Classes PPU. This prevents
 the Classes code from exceeding Win16's 64-KiB segment and avoids incompatible
-large-/huge-code unit mixtures. Output: `build/win16-rtl/units`. This GUI RTL
+large-/huge-code unit mixtures. The GUI RTL and every GUI program also use
+FPC's huge data model (`WIN16_MEMORY_MODEL ?= Huge`, i.e. `-WmHuge`): each
+unit's initialized data, VMTs and RTTI live in its own far data segment, so
+DGROUP keeps only the startup header, stack and local heap. Output:
+`build/win16-rtl/units-$(WIN16_MEMORY_MODEL)`; FPC also rejects PPUs of a
+different memory model. Two startup defects of the pinned huge model are
+patched by `fpc-win16-huge-startup.patch`: `prt0comn.asm` stored HInstance,
+HPrevInst, CmdLine, PrefixSeg and SelectorInc DS-relative into DGROUP instead
+of the system unit's segment, and `system.pp` read the task header (stack
+bounds) through DS instead of SS. The small/medium/large startup objects are
+byte-identical to the unpatched ones. A program with several writable data
+segments runs as a single instance under Windows 3.x; starting a second copy
+is refused by Windows rather than forwarded through HPrevInst. This GUI RTL
 uses the opt-in `CALMIRA_WIN16_MESSAGE_ABI` dispatch adaptation as well.
 It also enables `CALMIRA_WIN16_SJLJ_TAILCALL` for native exception round trips;
 this compatibility option requires far code/data and is not enabled in the
@@ -77,6 +89,12 @@ block, overwriting neighboring heap contents. `make win16-realloc-runtime-test`
 checks an adjacent live guard, prefix preservation, small/global resizing and
 nil/zero-size branches. This is a bounded-copy fix, not a redesign of allocation
 failure semantics.
+For Calmira's Delphi 1 sources the GUI RTL enables two further options.
+`CALMIRA_WIN16_DOS_NO_STRINGS` gives the `dos` unit private StrLen/StrPCopy
+instead of `uses strings`, because Calmira's own `Strings` unit has the same
+name and one program cannot contain both. `CALMIRA_WIN16_DELPHI1_STRINGS` adds
+the Delphi 1 short-string overload of `AppendStr`, whose var parameter must
+match exactly.
 Tracked RTL sources are fingerprinted and patched in private copies below
 `build/win16-rtl/sources/`, not in the pinned checkout. See
 [VCL port and native ABI tests](vcl_port.md).
