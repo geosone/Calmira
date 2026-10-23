@@ -73,6 +73,10 @@ type
     property OnExit: TNotifyEvent read FOnExit write FOnExit;
     property Cursor: TCursor read FCursor write SetCursor;
   end;
+var
+  { Called with the control first in every DoEnter, before OnEnter; Forms
+    uses it for Screen.OnActiveControlChange as Delphi's SetFocusedControl. }
+  EnterNotify: TNotifyEvent;
 implementation
 uses WinProcs, native_window;
 
@@ -184,7 +188,10 @@ begin if Assigned(FOnKeyUp) then FOnKeyUp(Self, Key, Shift); end;
 procedure TNativeInputWindow.KeyPress(var Key: Char);
 begin if Assigned(FOnKeyPress) then FOnKeyPress(Self, Key); end;
 procedure TNativeInputWindow.DoEnter;
-begin if Assigned(FOnEnter) then FOnEnter(Self); end;
+begin
+  if Assigned(EnterNotify) then EnterNotify(Self);
+  if Assigned(FOnEnter) then FOnEnter(Self);
+end;
 procedure TNativeInputWindow.DoExit;
 begin if Assigned(FOnExit) then FOnExit(Self); end;
 function TNativeInputWindow.GetFocused: Boolean;

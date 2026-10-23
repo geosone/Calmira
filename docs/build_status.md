@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 85 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 86 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1254,11 +1254,36 @@ after the update above.
 - `WinProcs.PtInRect` takes USER's packed POINT and gives wrong answers for a
   Pascal `TPoint`; use `Controls.PtInRect`.
 
-Covered by `make win16-hints-runtime-test`. `apholder` now compiles.
-However, its `with Application do OnMinimize := ...` still binds to
-TAppHolder's own properties, because `TApplication` has no
-`OnMinimize`/`OnRestore` and `TScreen` has no
-`OnActiveControlChange`/`OnActiveFormChange` yet. Those come next.
-`calvcl` needs the Grids unit.
+Covered by `make win16-hints-runtime-test`. `calvcl` still needs the Grids
+unit.
 
 The full regression passed (`build/tests/hints.log`, 85 suites, exit 0).
+
+## Minimize, Restore and Screen Events
+
+- `Application.Minimize` hides every visible form of the task, registered
+  through `CreateForm` or not, and shows the application window as a desktop
+  icon titled `Application.Title` and drawn with `Application.Icon`. In
+  Delphi 1 all forms are owned by the application window and USER hides
+  them; here forms are not owned, so the application hides them itself.
+- Opening the icon (double click, `SC_RESTORE`, `WM_QUERYOPEN`) or calling
+  `Restore` shows those forms again, skipping any freed meanwhile. It hides
+  the application window and reactivates the form that was active.
+  `OnMinimize`/`OnRestore` run once per change.
+- As in Delphi 1, `SC_MINIMIZE` on the main form minimizes the application.
+  Other forms minimize on their own.
+- One difference: while the application is minimized, a hidden form's
+  `Visible` reads False, because it follows `WS_VISIBLE`.
+- `Screen.OnActiveFormChange` runs when a different form is activated.
+  `Screen.OnActiveControlChange` runs when a different control gets the
+  focus, before that control's `OnEnter`, as Delphi's `SetFocusedControl`
+  does. Freed controls and forms are dropped through `FreeNotification`.
+- Before this, `vcl/apholder.pas` compiled even though these members were
+  missing: inside `with Application do`, FPC bound `OnMinimize := FOnMinimize`
+  to TAppHolder's own property. That made the assignment a silent no-op. The
+  native test now checks that TAppHolder's events reach Application and
+  Screen, and that freeing it clears them.
+
+Covered by `make win16-minimize-runtime-test`.
+
+The full regression passed (`build/tests/minimize.log`, 86 suites, exit 0).

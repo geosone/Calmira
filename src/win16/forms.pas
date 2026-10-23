@@ -54,12 +54,14 @@ type
     function IconHandle: HICON;
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure WMQueryDragIcon(var Message: TMessage); message WM_QUERYDRAGICON;
+    procedure WMSysCommand(var Message: TWMSysCommand); message WM_SYSCOMMAND;
     procedure SetBorderStyle(Value: TFormBorderStyle);
     procedure SetBorderIcons(Value: TBorderIcons);
     procedure SetPosition(Value: TPosition);
     procedure SetFormStyle(Value: TFormStyle);
   protected
     procedure DoClose(var Action: TCloseAction); override;
+    procedure DoActivate; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -97,6 +99,11 @@ type
     FHintCursorRect: TRect;
     FOnHint: TNotifyEvent;
     FOnShowHint: TShowHintEvent;
+    FMinimized, FMinimizeHooked: Boolean;
+    FHiddenForms: TList;
+    FRestoreWindow: HWND;
+    FOnMinimize, FOnRestore: TNotifyEvent;
+    function MinimizeHook(var Message: TMessage): Boolean;
     procedure SetHint(const Value: string);
     procedure SetShowHint(Value: Boolean);
     function HintHook(var Message: TMessage): Boolean;
@@ -131,12 +138,33 @@ type
     property HintPause: Integer read FHintPause write FHintPause;
     property OnHint: TNotifyEvent read FOnHint write FOnHint;
     property OnShowHint: TShowHintEvent read FOnShowHint write FOnShowHint;
+    { Hides the visible forms and shows the application as a desktop icon;
+      Restore (or opening the icon) shows them again. }
+    procedure Minimize;
+    procedure Restore;
+    property OnMinimize: TNotifyEvent read FOnMinimize write FOnMinimize;
+    property OnRestore: TNotifyEvent read FOnRestore write FOnRestore;
   end;
   TScreen = class(TNativeScreen)
   private
+    { The last control and form reported, kept by FreeNotification. }
+    FFocusedControl: TComponent;
+    FFocusedForm: TForm;
+    FOnActiveControlChange, FOnActiveFormChange: TNotifyEvent;
     function GetForm(Index: Integer): TForm;
     function GetActiveForm: TForm;
+    procedure ControlEntered(Sender: TObject);
+    procedure FormActivated(Form: TForm);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
+    destructor Destroy; override;
+    { Called as a control gets the focus (before its OnEnter) and as a form
+      is activated, when that differs from the last one reported. }
+    property OnActiveControlChange: TNotifyEvent read FOnActiveControlChange
+      write FOnActiveControlChange;
+    property OnActiveFormChange: TNotifyEvent read FOnActiveFormChange
+      write FOnActiveFormChange;
     { Registered forms that are not TForm descendants are rejected, not cast. }
     property Forms[Index: Integer]: TForm read GetForm;
     { A foreign active native form reads as nil, as no TForm is active. }
@@ -162,7 +190,7 @@ var
   Application: TApplication;
   Screen: TScreen;
 implementation
-uses WinProcs, native_window;
+uses WinProcs, native_window, native_input;
 var ReleaseMessage: Word;
 const
   HintTimer = $7E02;
@@ -244,6 +272,19 @@ begin
 end;
 procedure TForm.WMQueryDragIcon(var Message: TMessage);
 begin Message.Result := IconHandle; end;
+procedure TForm.WMSysCommand(var Message: TWMSysCommand);
+begin
+  { Delphi 1: minimizing the main form minimizes the application. }
+  if (Message.CmdType and $FFF0 = SC_MINIMIZE) and (Application <> nil) and
+    (Application.MainForm = Self) then
+  begin Message.Result := 0; Application.Minimize; end
+  else inherited;
+end;
+procedure TForm.DoActivate;
+begin
+  if Screen <> nil then Screen.FormActivated(Self);
+  inherited DoActivate;
+end;
 function TForm.Designer: TDesigner;
 begin Result := nil; end;
 function GetParentForm(Control: TControl): TForm;
@@ -341,6 +382,7 @@ begin
   Main := LoadIcon(HInstance, 'MAINICON');
   if Main <> 0 then FIcon.CopyFromHandle(Main);
   FHintColor := $80FFFF; FHintPause := 800;
+  FHiddenForms := TList.Create;
   { Always filtered: Hint and OnHint follow the mouse even without pop-ups. }
   TNativeApplication(Self).OnMessage := MessageFilter;
 end;
@@ -382,6 +424,83 @@ function HintControlAt(const P: TPoint): TControl;
 begin
   Result := FindDragTarget(P, True);
   while (Result <> nil) and not Result.ShowHint do Result := ControlParent(Result);
+end;
+procedure TApplication.Minimize;
+var I: Integer; Window: HWND;
+begin
+  if FMinimized then Exit;
+  if not FMinimizeHooked then begin HookMainWindow(MinimizeHook); FMinimizeHooked := True; end;
+  CancelHint;
+  FRestoreWindow := GetActiveWindow;
+  FHiddenForms.Clear;
+  { Every visible form of this task, registered or not; in Delphi they are
+    all owned by the application window and hidden with it. }
+  Window := GetTopWindow(0);
+  while Window <> 0 do
+  begin
+    if (GetWindowTask(Window) = GetCurrentTask) and IsWindowVisible(Window) and
+      (FindNativeWindow(Window) is TNativeForm) then FHiddenForms.Add(Pointer(Window));
+    Window := GetWindow(Window, GW_HWNDNEXT);
+  end;
+  FMinimized := True;
+  for I := 0 to FHiddenForms.Count - 1 do
+  begin
+    Window := HWND(FHiddenForms[I]);
+    ShowWindow(Window, SW_HIDE);
+  end;
+  ShowWindow(Handle, SW_MINIMIZE);
+  if Assigned(FOnMinimize) then FOnMinimize(Self);
+end;
+procedure TApplication.Restore;
+var I: Integer; Window: HWND;
+begin
+  if not FMinimized then Exit;
+  FMinimized := False;
+  { The application window is only the icon; it stays hidden otherwise. }
+  ShowWindow(Handle, SW_SHOWNOACTIVATE);
+  ShowWindow(Handle, SW_HIDE);
+  for I := 0 to FHiddenForms.Count - 1 do
+  begin
+    Window := HWND(FHiddenForms[I]);
+    { A form freed meanwhile leaves a stale handle behind. }
+    if IsWindow(Window) and (FindNativeWindow(Window) <> nil) then ShowWindow(Window, SW_SHOWNA);
+  end;
+  if (FRestoreWindow <> 0) and (FHiddenForms.IndexOf(Pointer(FRestoreWindow)) >= 0) and
+    IsWindowVisible(FRestoreWindow) then SetActiveWindow(FRestoreWindow)
+  else if (MainForm <> nil) and (MainForm.Handle <> 0) and IsWindowVisible(MainForm.Handle) then
+    SetActiveWindow(MainForm.Handle);
+  FHiddenForms.Clear; FRestoreWindow := 0;
+  if Assigned(FOnRestore) then FOnRestore(Self);
+end;
+function TApplication.MinimizeHook(var Message: TMessage): Boolean;
+var PS: TPaintStruct; DC: HDC; Icon: HICON;
+begin
+  Result := False;
+  Icon := FIcon.Handle;
+  if Icon = 0 then Icon := LoadIcon(0, IDI_APPLICATION);
+  case Message.Msg of
+    WM_SYSCOMMAND:
+      case Message.WParam and $FFF0 of
+        SC_MINIMIZE: begin Minimize; Result := True; end;
+        SC_RESTORE: if FMinimized then begin Restore; Result := True; end;
+      end;
+    WM_QUERYOPEN:
+      if FMinimized then
+      begin
+        { Opening the icon restores the forms, not this hidden window. }
+        PostMessage(Handle, WM_SYSCOMMAND, SC_RESTORE, 0);
+        Message.Result := 0; Result := True;
+      end;
+    WM_PAINT:
+      if IsIconic(Handle) then
+      begin
+        DC := BeginPaint(Handle, PS);
+        try DrawIcon(DC, 0, 0, Icon); finally EndPaint(Handle, PS); end;
+        Message.Result := 0; Result := True;
+      end;
+    WM_QUERYDRAGICON: begin Message.Result := Icon; Result := True; end;
+  end;
+  if Result and (Message.Msg = WM_SYSCOMMAND) then Message.Result := 0;
 end;
 procedure TApplication.SetHint(const Value: string);
 begin
@@ -534,6 +653,9 @@ begin
   if FHintHooked and Initialized and not ShuttingDown then
   begin KillTimer(Handle, HintTimer); UnhookMainWindow(HintHook); end;
   FHintHooked := False;
+  if FMinimizeHooked and Initialized and not ShuttingDown then UnhookMainWindow(MinimizeHook);
+  FMinimizeHooked := False;
+  FHiddenForms.Free; FHiddenForms := nil;
   TNativeApplication(Self).OnMessage := nil;
   FHintWindow.Free; FHintWindow := nil;
   FReleases.Free; FReleases := nil;
@@ -547,6 +669,39 @@ begin
   if not (Form is TForm) then raise ENativeScreenError.Create('Invalid screen form');
   Result := TForm(Form);
 end;
+procedure TScreen.ControlEntered(Sender: TObject);
+begin
+  if Sender = FFocusedControl then Exit;
+  if FFocusedControl <> nil then FFocusedControl.RemoveFreeNotification(Self);
+  FFocusedControl := nil;
+  if Sender is TComponent then
+  begin FFocusedControl := TComponent(Sender); FFocusedControl.FreeNotification(Self); end;
+  if Assigned(FOnActiveControlChange) then FOnActiveControlChange(Self);
+end;
+procedure TScreen.FormActivated(Form: TForm);
+begin
+  if Form = FFocusedForm then Exit;
+  if FFocusedForm <> nil then FFocusedForm.RemoveFreeNotification(Self);
+  FFocusedForm := Form; Form.FreeNotification(Self);
+  if Assigned(FOnActiveFormChange) then FOnActiveFormChange(Self);
+end;
+procedure TScreen.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  if Operation = opRemove then
+  begin
+    if AComponent = FFocusedControl then FFocusedControl := nil;
+    if AComponent = FFocusedForm then FFocusedForm := nil;
+  end;
+  inherited Notification(AComponent, Operation);
+end;
+destructor TScreen.Destroy;
+begin
+  if TMethod(EnterNotify).Data = Pointer(Self) then EnterNotify := nil;
+  if FFocusedControl <> nil then FFocusedControl.RemoveFreeNotification(Self);
+  if FFocusedForm <> nil then FFocusedForm.RemoveFreeNotification(Self);
+  FFocusedControl := nil; FFocusedForm := nil;
+  inherited Destroy;
+end;
 function TScreen.GetActiveForm: TForm;
 var Form: TNativeForm;
 begin
@@ -558,6 +713,7 @@ initialization
   UtilityWindows := TList.Create;
   Application := TApplication.Create(nil); Application.Initialize;
   Screen := TScreen.Create(nil); Screen.Application := Application;
+  EnterNotify := Screen.ControlEntered;
 finalization
   { Windows the program never deallocated go before the application. }
   while UtilityWindows.Count > 0 do

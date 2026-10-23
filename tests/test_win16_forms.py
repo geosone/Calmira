@@ -65,6 +65,28 @@ class FormsLayerTests(unittest.TestCase):
         task = (ROOT / 'src/task.pas').read_bytes()
         self.assertIn(b'{$IFDEF FPC}\r\n  DrawText(HintWindow.Canvas.ContextHandle', task)
 
+    def test_minimize_restore_and_screen_events(self):
+        source = SOURCE.read_text()
+        interface = source.split('unit Forms;', 1)[1].split('implementation', 1)[0]
+        # apholder assigns these inside "with Application do" / "with Screen do":
+        # without them FPC silently binds to TAppHolder's own properties.
+        for text in ('procedure Minimize;', 'procedure Restore;',
+                     'property OnMinimize: TNotifyEvent', 'property OnRestore: TNotifyEvent',
+                     'property OnActiveControlChange: TNotifyEvent', 'property OnActiveFormChange: TNotifyEvent'):
+            self.assertIn(text, interface)
+        self.assertIn('(FindNativeWindow(Window) is TNativeForm) then FHiddenForms.Add', source)
+        self.assertIn('PostMessage(Handle, WM_SYSCOMMAND, SC_RESTORE, 0);', source)
+        self.assertIn('(Application.MainForm = Self) then', source)
+        self.assertIn('EnterNotify := Screen.ControlEntered;', source)
+        native_input = (ROOT / 'src/win16/native_input.pas').read_text()
+        self.assertIn('if Assigned(EnterNotify) then EnterNotify(Self);\n  if Assigned(FOnEnter)', native_input)
+        test = (ROOT / 'tests/pascal/test_win16_minimize.pas').read_text()
+        for text in ('minimizing the main form minimizes the application',
+                     'TAppHolder hands its events to Application and Screen',
+                     'OnActiveControlChange runs before OnEnter'):
+            self.assertIn(text, test)
+        self.assertIn('win16-minimize-runtime-test', (ROOT / 'makefile').read_text())
+
     def test_native_suite_is_part_of_fixed_regression(self):
         makefile = (ROOT / 'makefile').read_text()
         regression = makefile.split('win16-fixed-regression: fpc-win16-fixed-compiler', 1)[1].split('\n\n', 1)[0]
