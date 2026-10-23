@@ -1,13 +1,14 @@
 { SPDX-License-Identifier: GPL-2.0-or-later
   Native COMBOBOX with Delphi 1 Items/Text/ItemIndex semantics. Items are
   kept in a TStringList (strings, objects, sorting) and mirrored into the
-  window, so they survive handle recreation. Owner-drawn styles and keyboard
+  window, so they survive handle recreation. Owner-drawn styles paint through
+  Canvas/DrawItem and size items through ItemHeight/MeasureItem. Keyboard
   events of the internal edit are not provided yet. }
 unit native_combobox;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This combo box requires Win16}{$ENDIF}
 interface
-uses Classes, WinTypes, Messages, Graphics, Controls;
+uses Classes, WinTypes, Messages, Graphics, Controls, native_listbox;
 type
   TComboBoxStyle = (csDropDown, csSimple, csDropDownList, csOwnerDrawFixed,
     csOwnerDrawVariable);
@@ -42,7 +43,13 @@ type
     FDropDownCount: Integer;
     FSorted: Boolean;
     FNotifying: Boolean;
-    FOnChange, FOnClick, FOnDropDown: TNotifyEvent;
+    FDrawing: Boolean;
+    FItemHeight: Integer;
+    FOnChange, FOnClick, FOnDblClick, FOnDropDown: TNotifyEvent;
+    FOnDrawItem: TDrawItemEvent;
+    FOnMeasureItem: TMeasureItemEvent;
+    function GetItemHeight: Integer;
+    procedure SetItemHeight(Value: Integer);
     function GetItems: TStrings;
     procedure SetItems(Value: TStrings);
     function GetItemIndex: Integer;
@@ -69,6 +76,16 @@ type
     procedure Change; virtual;
     procedure Click; virtual;
     procedure DropDown; virtual;
+    { CBN_DBLCLK; USER sends it only for csSimple. }
+    procedure DblClick; virtual;
+    property OnDblClick: TNotifyEvent read FOnDblClick write FOnDblClick;
+    function ControlDrawItem(var Item: TDrawItemStruct): Boolean; override;
+    function ControlMeasureItem(var Item: TMeasureItemStruct): Boolean; override;
+    procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); virtual;
+    procedure MeasureItem(Index: Integer; var Height: Integer); virtual;
+    property ItemHeight: Integer read GetItemHeight write SetItemHeight;
+    property OnDrawItem: TDrawItemEvent read FOnDrawItem write FOnDrawItem;
+    property OnMeasureItem: TMeasureItemEvent read FOnMeasureItem write FOnMeasureItem;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -100,6 +117,10 @@ type
     property MaxLength;
     property DropDownCount;
     property Sorted;
+    property ItemHeight;
+    property OnDrawItem;
+    property OnMeasureItem;
+    property OnDblClick;
     property Font;
     property OnChange;
     property OnClick;
@@ -203,6 +224,7 @@ begin
   FItems := TComboBoxStrings.Create(Self);
   FItemIndex := -1;
   FDropDownCount := 8;
+  FItemHeight := 16;
   TabStop := True;
   Color := clWindow; ParentColor := False;
   SetBounds(0, 0, 145, 21);
@@ -265,8 +287,6 @@ const Styles: array[TComboBoxStyle] of DWORD = (CBS_DROPDOWN, CBS_SIMPLE,
 var Buffer: array[0..255] of Char;
 begin
   if (Parent = 0) or (Style and WS_CHILD = 0) then Fail('Combo box requires a child window');
-  if FStyle in [csOwnerDrawFixed, csOwnerDrawVariable] then
-    Fail('Owner-drawn combo boxes are not provided yet');
   Style := (Style and not DWORD($FFFF or WS_TABSTOP)) or Styles[FStyle] or
     WS_VSCROLL or CBS_AUTOHSCROLL;
   if TabStop then Style := Style or WS_TABSTOP;
@@ -289,6 +309,70 @@ begin
   if (Handle <> 0) and (FStyle <> csSimple) then
     SetWindowPos(Handle, 0, 0, 0, AWidth, AHeight + ListHeight,
       SWP_NOMOVE or SWP_NOZORDER or SWP_NOACTIVATE);
+end;
+function TCustomComboBox.GetItemHeight: Integer;
+begin
+  if (FStyle in [csOwnerDrawFixed, csOwnerDrawVariable]) or (Handle = 0) then
+    Result := FItemHeight
+  else Result := Perform(CB_GETITEMHEIGHT, 0, 0);
+end;
+procedure TCustomComboBox.SetItemHeight(Value: Integer);
+begin
+  { Like Delphi 1, the height reaches USER only when the window is created. }
+  if Value > 0 then FItemHeight := Value;
+end;
+function TCustomComboBox.ControlMeasureItem(var Item: TMeasureItemStruct): Boolean;
+var Height: Integer;
+begin
+  Result := Item.CtlType = ODT_COMBOBOX;
+  if not Result then Exit;
+  Height := FItemHeight;
+  if FStyle = csOwnerDrawVariable then MeasureItem(Integer(Item.itemID), Height);
+  Item.itemHeight := Height;
+end;
+function TCustomComboBox.ControlDrawItem(var Item: TDrawItemStruct): Boolean;
+var State: TOwnerDrawState; Saved: SmallInt; Previous: HDC; TextColor: TColor;
+begin
+  Result := Item.CtlType = ODT_COMBOBOX;
+  if not Result or FDrawing then Exit;
+  if Item.hDC = 0 then Fail('Missing combo box draw DC');
+  State := TOwnerDrawState(Byte(Lo(Item.itemState)));
+  Saved := SaveDC(Item.hDC);
+  if Saved = 0 then Fail('Cannot save combo box DC');
+  Previous := Canvas.Handle; FDrawing := True;
+  try
+    Canvas.Handle := Item.hDC;
+    Canvas.Brush.Style := bsSolid;
+    Canvas.Brush.Color := Color;
+    { The highlight colour is for this item only. }
+    TextColor := Canvas.Font.Color;
+    try
+      if (Integer(Item.itemID) >= 0) and (odSelected in State) then
+      begin
+        Canvas.Brush.Color := clHighlight;
+        Canvas.Font.Color := clHighlightText;
+      end;
+      if (Integer(Item.itemID) >= 0) and (Integer(Item.itemID) < FItems.Count) then
+        DrawItem(Item.itemID, Item.rcItem, State)
+      else Canvas.FillRect(Item.rcItem);
+      if odFocused in State then DrawFocusRect(Item.hDC, Item.rcItem);
+    finally Canvas.Font.Color := TextColor; end;
+  finally
+    Canvas.Handle := Previous; FDrawing := False; RestoreDC(Item.hDC, Saved);
+  end;
+end;
+procedure TCustomComboBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
+begin
+  if Assigned(FOnDrawItem) then FOnDrawItem(Self, Index, Rect, State)
+  else
+  begin
+    Canvas.FillRect(Rect);
+    Canvas.TextOut(Rect.Left + 2, Rect.Top, FItems[Index]);
+  end;
+end;
+procedure TCustomComboBox.MeasureItem(Index: Integer; var Height: Integer);
+begin
+  if Assigned(FOnMeasureItem) then FOnMeasureItem(Self, Index, Height);
 end;
 function TCustomComboBox.GetItems: TStrings;
 begin Result := FItems; end;
@@ -389,6 +473,8 @@ procedure TCustomComboBox.Click;
 begin Notify(FOnClick); end;
 procedure TCustomComboBox.DropDown;
 begin Notify(FOnDropDown); end;
+procedure TCustomComboBox.DblClick;
+begin Notify(FOnDblClick); end;
 function TCustomComboBox.ControlCommand(Code: Word): Boolean;
 var Index: Integer; Buffer: array[0..255] of Char;
 begin
@@ -405,6 +491,7 @@ begin
         Change;
       end;
     CBN_DROPDOWN: DropDown;
+    CBN_DBLCLK: DblClick;
     CBN_SETFOCUS: DoEnter;
     CBN_KILLFOCUS: DoExit;
   else Result := False;

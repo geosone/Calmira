@@ -1,7 +1,13 @@
 program TestWin16Parent;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Messages, Classes, SysUtils, Graphics, Controls, StdCtrls, native_window;
-var Root, Panel: TCustomControl; Text: TLabel; Button: TButton; Edit: TEdit;
+uses WinTypes, WinProcs, Messages, Classes, SysUtils, Graphics, Controls, StdCtrls, Menus, native_window;
+type
+  TSink = class
+    Clicked: TObject; MouseUps: Integer;
+    procedure Click(Sender: TObject);
+    procedure MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+  end;
+var Root, Panel: TCustomControl; Sink: TSink; Text: TLabel; Button: TButton; Edit: TEdit;
   Failed: Boolean;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
@@ -16,8 +22,47 @@ begin
   if Okay then LogLine('PASS ' + Text)
   else begin Failed := True; LogLine('FAIL ' + Text); end;
 end;
+procedure TSink.Click(Sender: TObject);
+begin Clicked := Sender; end;
+procedure TSink.MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin Inc(MouseUps); end;
+procedure Pump;
+var Msg: TMsg;
+begin
+  while PeekMessage(Msg, 0, 0, 0, PM_REMOVE) do
+  begin TranslateMessage(Msg); DispatchMessage(Msg); end;
+end;
+procedure RightClick(Window: HWND; Menu: TPopupMenu);
+begin
+  { Queue the key first; TrackPopupMenu's own loop consumes it. }
+  Menu.Items.Handle;
+  PostMessage(PopupListWindow, WM_CHAR, Ord('s'), 0);
+  SendMessage(Window, WM_RBUTTONUP, 0, MakeLong(5, 5));
+  Pump;
+end;
+procedure PopupMenus;
+var Menu: TPopupMenu;
+begin
+  Menu := NewPopupMenu(nil, 'Context', paLeft, True, [
+    NewItem('&First', 0, False, True, Sink.Click, 0, ''),
+    NewItem('&Second', 0, False, True, Sink.Click, 0, '')]);
+  Panel.PopupMenu := Menu; Panel.OnMouseUp := Sink.MouseUp;
+  RightClick(Panel.Handle, Menu);
+  Check((Sink.Clicked = Menu.Items[1]) and (Menu.PopupComponent = Panel) and (Sink.MouseUps = 0),
+    'a right-button release opens PopupMenu instead of MouseUp');
+  Menu.AutoPopup := False; Sink.Clicked := nil;
+  SendMessage(Panel.Handle, WM_RBUTTONUP, 0, MakeLong(5, 5)); Pump;
+  Check((Sink.Clicked = nil) and (Sink.MouseUps = 1), 'without AutoPopup MouseUp is reported');
+  Menu.AutoPopup := True; Sink.Clicked := nil;
+  Text.SetBounds(0, 0, 60, 20); Text.PopupMenu := Menu;
+  RightClick(Root.Handle, Menu);
+  Check((Sink.Clicked = Menu.Items[1]) and (Menu.PopupComponent = Text), 'graphic controls open PopupMenu too');
+  Menu.Free;
+  Check((Panel.PopupMenu = nil) and (Text.PopupMenu = nil), 'a freed menu is cleared from its controls');
+end;
 begin
   LogLine('STEP parent properties');
+  Sink := TSink.Create;
   try
     Root := TCustomControl.Create(nil);
     Root.CreateHandle(0, 'Parent properties', WS_POPUP or WS_VISIBLE, 10, 10, 300, 200);
@@ -54,8 +99,9 @@ begin
     Check(Text.ShowHint and Text.ParentShowHint and (Text.Hint = 'Tip'), 'ShowHint follows ParentShowHint');
     Text.Parent := nil; Root.Font.Height := -11; Text.Parent := Root;
     Check(Text.Font.Height = -11, 'reparenting re-reads the new parent');
+    PopupMenus;
     Check((Root.CallbackErrors = 0) and (Panel.CallbackErrors = 0), 'no native callback errors');
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
-  Edit.Free; Button.Free; Text.Free; Panel.Free; Root.Free;
+  Edit.Free; Button.Free; Text.Free; Panel.Free; Root.Free; Sink.Free;
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');
 end.

@@ -13,7 +13,7 @@ class Win16WindowTests(unittest.TestCase):
                      'SetWindowLong(Window, ObjectOffset, LongInt(Pointer(Instance)))',
                      'TNativeWindow(Pointer(GetWindowLong(Window, ObjectOffset)))',
                      'GetClassWord(Window, GCW_CBWNDEXTRA) - SizeOf(Pointer)',
-                     'Parent, 0, HInstance, Pointer(Self)'):
+                     'Parent, HMENU(Id), HInstance, Pointer(Self)'):
             self.assertIn(text, source)
         self.assertNotIn('SetWindowWord', source)
 

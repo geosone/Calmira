@@ -26,7 +26,8 @@ class Win16ButtonTests(unittest.TestCase):
                      'WinProcs.GetParent(Window) <> Handle',
                      'TCustomControl(FWindows[I]).Handle = Window',
                      'M.ItemID = Word(GetDlgCtrlID(M.Ctl))', 'Child.ControlCommand(M.NotifyCode)',
-                     'M.DrawItemStruct^.hwndItem', 'Child.ControlDrawItem(M.DrawItemStruct^)',
+                     'M.DrawItemStruct^.hwndItem', 'Reflect(Child, CN_DRAWITEM, M.Ctl, LongInt(M.DrawItemStruct))',
+                     'M.Result := Ord(ControlDrawItem(M.DrawItemStruct^))',
                      'finally FCompositing := Previous'):
             self.assertIn(text, source)
 

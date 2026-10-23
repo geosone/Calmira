@@ -41,6 +41,8 @@ implementation
 uses WinProcs, native_cursors;
 const WindowClassName = 'CalmiraNativeWindow';
 var ClassRegistered: Boolean;
+  { Child control IDs; WM_MEASUREITEM names a control only by its ID. }
+  NextChildId: Word;
 
 function NativeWindowProc(Window: HWND; Id: UINT; WP: WPARAM;
   LP: LPARAM): LRESULT; export;
@@ -203,7 +205,7 @@ begin
 end;
 procedure TNativeWindow.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
   X, Y, Width, Height: SmallInt);
-var Buffer: array[0..255] of Char; Created: HWND; ClassName: PChar;
+var Buffer: array[0..255] of Char; Created: HWND; ClassName: PChar; Id: Word;
 begin
   if FCreating or FDestroying or (FHandle <> 0) then
     raise ENativeWindowError.Create('Window already exists or is changing');
@@ -213,10 +215,18 @@ begin
     (((Style and WS_CHILD) <> 0) and (Parent = 0)) then
     raise ENativeWindowError.Create('Invalid native parent window');
   ClassName := NativeClassName;
+  Id := 0;
+  if Style and WS_CHILD <> 0 then
+  begin
+    { Above the dialog IDs IDOK..IDNO; unique among live siblings in practice. }
+    if (NextChildId < $100) or (NextChildId >= $7FFF) then NextChildId := $100
+    else Inc(NextChildId);
+    Id := NextChildId;
+  end;
   StrPCopy(Buffer, Caption); FCreating := True;
   try
     Created := CreateWindow(ClassName, Buffer, Style, X, Y, Width, Height,
-      Parent, 0, HInstance, Pointer(Self));
+      Parent, HMENU(Id), HInstance, Pointer(Self));
   finally FCreating := False; end;
   if Created = 0 then
   begin

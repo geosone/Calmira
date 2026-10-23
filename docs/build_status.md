@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 82 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 83 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1170,3 +1170,37 @@ TEdit reported a stray `Canvas.Handle`). Only the `win16-fixed-regression`
 builds (`build/class-pointer/...`, `fpc-class-pointer`) are authoritative.
 
 The full regression passed (`build/tests/parent-regression.log`, 82 suites, exit 0).
+
+## Owner Draw, Popup Menus and Window Hooks
+
+- Child windows get distinct control IDs (from `$100`), so a parent can route
+  `WM_MEASUREITEM`, which names a control only by its ID. The parent reflects
+  `WM_DRAWITEM`/`WM_MEASUREITEM` to the child as `CN_DRAWITEM`/`CN_MEASUREITEM`,
+  as in Delphi. Controls declares the Delphi 1 `CN_*` constants (`CN_BASE = $2000`).
+  The default handlers call `ControlDrawItem`/`ControlMeasureItem`, so Calmira's
+  `TPathComboBox` can intercept and call `inherited`.
+- `lbOwnerDrawVariable` list boxes ask `OnMeasureItem` for each item.
+  `TComboBox` supports `csOwnerDrawFixed`/`csOwnerDrawVariable` with
+  `ItemHeight` (default 16), `OnDrawItem`, `OnMeasureItem` and default
+  text drawing, plus `OnDblClick` (`CBN_DBLCLK`).
+- `PopupMenu` on TCustomControl and TGraphicControl: releasing the right button
+  opens an `AutoPopup` menu at the cursor with `PopupComponent` set, instead
+  of reporting MouseUp. A freed menu is cleared from its controls.
+- `CreateWnd`/`DestroyWnd` are virtual hooks around the native window:
+  CreateWnd runs after a child window and its native state (for example list
+  items) exist, and DestroyWnd runs at `WM_DESTROY` or when the control is
+  freed. Unlike Delphi, they do not create the window themselves.
+- `TEdit.AutoSelect` (default True) selects all text when the edit is entered
+  other than by mouse. `TEdit.BorderStyle` (`bsSingle`/`bsNone`) cannot change
+  after the window is created.
+  The DFM compiler now emits `AutoSelect` (IncSearch's edit sets it to False).
+  The parent hands `CN_*` messages straight to the child's WndProc, as Delphi's
+  `Perform` does, so an owner-draw failure is still recorded by the parent.
+
+Covered by `make win16-ownerdraw-runtime-test` and the PopupMenu checks in
+`make win16-parent-runtime-test`. `chklist`, `labelsel` and `pathcmbo` now
+compile, so 29 of the 34 VCL units compile standalone. The remaining ones
+need TApplication events (`apholder`, `calvcl`) and the Grids, Tabs and
+DdeMan units.
+
+The full regression passed (`build/tests/ownerdraw2-regression.log`, 83 suites, exit 0).

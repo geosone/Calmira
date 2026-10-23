@@ -4,7 +4,7 @@ unit Controls;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This Controls adapter requires Win16}{$ENDIF}
 interface
-uses Classes, WinTypes, Messages, Graphics, native_input, native_cursors, control_base;
+uses Classes, WinTypes, Messages, Graphics, Menus, native_input, native_cursors, control_base;
 type
   TControl = control_base.TControl;
   TPoint = WinTypes.TPoint;
@@ -29,6 +29,24 @@ const
   CM_MOUSEENTER = CM_BASE + 19;
   CM_MOUSELEAVE = CM_BASE + 20;
   CM_BUTTONPRESSED = CM_BASE + 24;
+  { Delphi 1 notifications reflected from a parent to the child they concern. }
+  CN_BASE = $2000;
+  CN_CHARTOITEM = CN_BASE + WM_CHARTOITEM;
+  CN_COMMAND = CN_BASE + WM_COMMAND;
+  CN_COMPAREITEM = CN_BASE + WM_COMPAREITEM;
+  CN_CTLCOLOR = CN_BASE + WM_CTLCOLOR;
+  CN_DELETEITEM = CN_BASE + WM_DELETEITEM;
+  CN_DRAWITEM = CN_BASE + WM_DRAWITEM;
+  CN_HSCROLL = CN_BASE + WM_HSCROLL;
+  CN_MEASUREITEM = CN_BASE + WM_MEASUREITEM;
+  CN_PARENTNOTIFY = CN_BASE + WM_PARENTNOTIFY;
+  CN_VKEYTOITEM = CN_BASE + WM_VKEYTOITEM;
+  CN_VSCROLL = CN_BASE + WM_VSCROLL;
+  CN_KEYDOWN = CN_BASE + WM_KEYDOWN;
+  CN_KEYUP = CN_BASE + WM_KEYUP;
+  CN_CHAR = CN_BASE + WM_CHAR;
+  CN_SYSKEYDOWN = CN_BASE + WM_SYSKEYDOWN;
+  CN_SYSCHAR = CN_BASE + WM_SYSCHAR;
   alNone = control_base.alNone; alTop = control_base.alTop; alBottom = control_base.alBottom;
   alLeft = control_base.alLeft; alRight = control_base.alRight; alClient = control_base.alClient;
   dmManual = control_base.dmManual; dmAutomatic = control_base.dmAutomatic;
@@ -52,6 +70,8 @@ type
     FCtl3D, FParentCtl3D: Boolean;
     FAligning, FAlignPending: Boolean;
     FMouseControl, FCaptureControl: TGraphicControl;
+    FPopupMenu: TPopupMenu;
+    procedure SetPopupMenu(Value: TPopupMenu);
     procedure SetHelpContext(Value: LongInt);
     function GraphicAt(X, Y: Integer): TGraphicControl;
     procedure SetMouseControl(Value: TGraphicControl);
@@ -96,6 +116,15 @@ type
     function ControlMnemonic(Key: Char): Boolean; virtual;
     function ControlCommand(Code: Word): Boolean; virtual;
     function ControlDrawItem(var Item: TDrawItemStruct): Boolean; virtual;
+    function ControlMeasureItem(var Item: TMeasureItemStruct): Boolean; virtual;
+    { As in Delphi, the parent reflects WM_DRAWITEM/WM_MEASUREITEM to the child
+      as CN_*; these defaults call ControlDrawItem/ControlMeasureItem. }
+    procedure CNDrawItem(var M: TWMDrawItem); message CN_DRAWITEM;
+    procedure CNMeasureItem(var M: TWMMeasureItem); message CN_MEASUREITEM;
+    procedure WMMeasureItem(var M: TWMMeasureItem); message WM_MEASUREITEM;
+    { Delivers a CN_* message straight to Child's WndProc, as Delphi's
+      Perform does, so a failure unwinds into the parent's handler. }
+    function Reflect(Child: TCustomControl; Msg, WParam: Word; LParam: LongInt): LongInt;
     { True for internal USER children (e.g. a combo box's edit) that act as Self. }
     function OwnsNativeChild(Window: HWND): Boolean; virtual;
     { Delphi 1 layout: alTop, alBottom, alLeft, alRight, then alClient, each
@@ -106,6 +135,14 @@ type
     procedure NotifyChildren; override;
     procedure ApplyFont; override;
     procedure FontChanged; override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    { Delphi's window hooks. Here they surround the native window instead of
+      creating it: CreateWnd runs once the window and its native state exist
+      (for children created through CreateControl), DestroyWnd at WM_DESTROY
+      or when the control is freed, while the window and its contents still
+      exist. }
+    procedure CreateWnd; virtual;
+    procedure DestroyWnd; virtual;
     { Ctl3D is kept and inherited as in Delphi; no CTL3D.DLL drawing yet. }
     procedure Ctl3DChanged; virtual;
     procedure SetCtl3D(Value: Boolean);
@@ -144,6 +181,8 @@ type
     function DispatchDialogKey(Key: Word): Boolean;
     function DispatchMnemonic(Key: Char): Boolean;
     procedure ApplyModalResult(Value: TModalResult); virtual;
+    { Opened at the cursor on a right-button release when AutoPopup is set. }
+    property PopupMenu: TPopupMenu read FPopupMenu write SetPopupMenu;
     property TabStop: Boolean read FTabStop write SetTabStop;
     property HelpContext: LongInt read FHelpContext write SetHelpContext;
     property TabOrder: Integer read GetTabOrder write SetTabOrder;
@@ -173,6 +212,8 @@ type
     FOnClick, FOnDblClick: TNotifyEvent;
     FOnMouseDown, FOnMouseUp: TMouseEvent;
     FOnMouseMove: TMouseMoveEvent;
+    FPopupMenu: TPopupMenu;
+    procedure SetPopupMenu(Value: TPopupMenu);
     procedure SetParent(Value: TCustomControl);
     procedure MouseMessage(Msg, Keys: Word; X, Y: Integer);
     procedure SetLeft(Value: Integer);
@@ -196,6 +237,7 @@ type
     procedure ApplyFont; override;
     procedure FontChanged; override;
     procedure ColorChanged; override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure Paint; virtual;
     function GetControlBounds: TRect; override;
     procedure SetControlBounds(const Value: TRect); override;
@@ -226,6 +268,7 @@ type
     function ScreenToClient(const Position: TPoint): TPoint;
     property Parent: TCustomControl read FParent write SetParent;
     property Canvas: TCanvas read FCanvas;
+    property PopupMenu: TPopupMenu read FPopupMenu write SetPopupMenu;
     property Left: Integer read FLeft write SetLeft;
     property Top: Integer read FTop write SetTop;
     property Width: Integer read FWidth write SetWidth;
@@ -275,6 +318,40 @@ var
   NewStyleControls: Boolean;
 implementation
 uses WinProcs, native_window;
+
+{ Delphi 1: releasing the right button over a control whose PopupMenu has
+  AutoPopup opens the menu at the cursor instead of reporting MouseUp. }
+function PopupAt(Control: TControl; Menu: TPopupMenu; const Position: TPoint): Boolean;
+begin
+  Result := (Menu <> nil) and Menu.AutoPopup;
+  if not Result then Exit;
+  Menu.PopupComponent := Control;
+  Menu.Popup(Position.X, Position.Y);
+end;
+procedure TCustomControl.SetPopupMenu(Value: TPopupMenu);
+begin
+  if Value = FPopupMenu then Exit;
+  if FPopupMenu <> nil then FPopupMenu.RemoveFreeNotification(Self);
+  FPopupMenu := Value;
+  if Value <> nil then Value.FreeNotification(Self);
+end;
+procedure TCustomControl.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if (Operation = opRemove) and (AComponent = FPopupMenu) then FPopupMenu := nil;
+end;
+procedure TGraphicControl.SetPopupMenu(Value: TPopupMenu);
+begin
+  if Value = FPopupMenu then Exit;
+  if FPopupMenu <> nil then FPopupMenu.RemoveFreeNotification(Self);
+  FPopupMenu := Value;
+  if Value <> nil then Value.FreeNotification(Self);
+end;
+procedure TGraphicControl.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if (Operation = opRemove) and (AComponent = FPopupMenu) then FPopupMenu := nil;
+end;
 function TranslatePosition(const Position, Origin: TPoint; Inverse: Boolean): TPoint;
 var X, Y: LongInt;
 begin
@@ -490,6 +567,8 @@ begin
 end;
 destructor TCustomControl.Destroy;
 begin
+  { WM_DESTROY no longer reaches WndProc once the object is being destroyed. }
+  if Handle <> 0 then DestroyWnd;
   if FParent <> nil then
   begin FParent.FWindows.Remove(Self); FParent.FControls.Remove(Self); end;
   FParent := nil;
@@ -573,6 +652,38 @@ function TCustomControl.ControlCommand(Code: Word): Boolean;
 begin Result := False; end;
 function TCustomControl.ControlDrawItem(var Item: TDrawItemStruct): Boolean;
 begin Result := False; end;
+function TCustomControl.ControlMeasureItem(var Item: TMeasureItemStruct): Boolean;
+begin Result := False; end;
+procedure TCustomControl.CNDrawItem(var M: TWMDrawItem);
+begin M.Result := Ord(ControlDrawItem(M.DrawItemStruct^)); end;
+procedure TCustomControl.CNMeasureItem(var M: TWMMeasureItem);
+begin M.Result := Ord(ControlMeasureItem(M.MeasureItemStruct^)); end;
+function TCustomControl.Reflect(Child: TCustomControl; Msg, WParam: Word; LParam: LongInt): LongInt;
+var Message: TMessage;
+begin
+  Message.Msg := Msg; Message.WParam := WParam; Message.LParam := LParam; Message.Result := 0;
+  Child.WndProc(Message);
+  Result := Message.Result;
+end;
+procedure TCustomControl.WMMeasureItem(var M: TWMMeasureItem);
+var I: Integer; Child: TCustomControl;
+begin
+  { Sent while the child is still inside CreateWindow, before it is known by
+    handle, so the control ID identifies it. }
+  if (M.MeasureItemStruct <> nil) and (FWindows <> nil) then
+    for I := 0 to FWindows.Count - 1 do
+    begin
+      Child := TCustomControl(FWindows[I]);
+      if (Child.Handle <> 0) and
+        (Word(GetWindowWord(Child.Handle, GWW_ID)) = M.MeasureItemStruct^.CtlID) then
+      begin
+        Reflect(Child, CN_MEASUREITEM, M.IDCtl, LongInt(M.MeasureItemStruct));
+        M.Result := 1;
+        Exit;
+      end;
+    end;
+  DefaultHandler(M);
+end;
 procedure TCustomControl.WMCommand(var M: TWMCommand);
 var Child: TCustomControl;
 begin
@@ -590,7 +701,7 @@ begin
     if Child <> nil then
     begin
       Previous := FCompositing; FCompositing := True;
-      try Handled := Child.ControlDrawItem(M.DrawItemStruct^);
+      try Handled := Reflect(Child, CN_DRAWITEM, M.Ctl, LongInt(M.DrawItemStruct)) <> 0;
       finally FCompositing := Previous; end;
       if Handled then begin M.Result := 1; Exit; end;
     end;
@@ -605,7 +716,12 @@ begin
   if FVisible then Style := Style or WS_VISIBLE;
   if not FEnabled then Style := Style or WS_DISABLED;
   CreateHandle(ParentWindow, '', Style, FLeft, FTop, FWidth, FHeight);
+  CreateWnd;
 end;
+procedure TCustomControl.CreateWnd;
+begin end;
+procedure TCustomControl.DestroyWnd;
+begin end;
 procedure TCustomControl.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
   X, Y, Width, Height: SmallInt);
 var I: Integer;
@@ -953,17 +1069,26 @@ begin Result := GetBoundsRect; end;
 procedure TGraphicControl.SetControlBounds(const Value: TRect);
 begin SetBoundsRect(Value); end;
 procedure TCustomControl.WndProc(var Message: TMessage);
+var Position: TPoint;
 begin
   case Message.Msg of
     WM_MOUSEMOVE..WM_MBUTTONDBLCLK:
       begin
         if RouteGraphicMouse(Message) then Exit;
+        if Message.Msg = WM_RBUTTONUP then
+        begin
+          Position.X := SmallInt(LoWord(Message.LParam));
+          Position.Y := SmallInt(HiWord(Message.LParam));
+          if PopupAt(Self, FPopupMenu, ClientToScreen(Position)) then
+          begin Message.Result := 0; Exit; end;
+        end;
         if (Message.Msg = WM_LBUTTONDOWN) and (DragMode = dmAutomatic) and Enabled then
         begin BeginDrag(False); Message.Result := 0; Exit; end;
       end;
     WM_TIMER:
       if Message.WParam = MouseLeaveTimer then
       begin CheckMouseControl; Message.Result := 0; Exit; end;
+    WM_DESTROY: DestroyWnd;
   end;
   inherited WndProc(Message);
 end;
@@ -1087,8 +1212,13 @@ begin
   Result := Message.Result;
 end;
 procedure TGraphicControl.MouseMessage(Msg, Keys: Word; X, Y: Integer);
-var Shift: TShiftState; Button: TMouseButton;
+var Shift: TShiftState; Button: TMouseButton; Position: TPoint;
 begin
+  if Msg = WM_RBUTTONUP then
+  begin
+    Position.X := X; Position.Y := Y;
+    if PopupAt(Self, FPopupMenu, ClientToScreen(Position)) then Exit;
+  end;
   Shift := [];
   if Keys and MK_SHIFT <> 0 then Include(Shift, ssShift);
   if Keys and MK_CONTROL <> 0 then Include(Shift, ssCtrl);

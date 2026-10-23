@@ -2,8 +2,8 @@
   Native LISTBOX with Delphi 1 TCustomListBox semantics. Items are kept in a
   TStringList (strings, objects, sorting) and mirrored into the window, so
   they survive handle recreation together with ItemIndex, TopIndex and a
-  multi-selection. Owner-draw fixed lists paint through Canvas/DrawItem as in
-  Delphi; lbOwnerDrawVariable is not provided yet and raises. }
+  multi-selection. Owner-draw lists paint through Canvas/DrawItem and size
+  items through ItemHeight/MeasureItem as in Delphi. }
 unit native_listbox;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This list box requires Win16}{$ENDIF}
@@ -80,6 +80,7 @@ type
     procedure WndProc(var M: TMessage); override;
     function ControlCommand(Code: Word): Boolean; override;
     function ControlDrawItem(var Item: TDrawItemStruct): Boolean; override;
+    function ControlMeasureItem(var Item: TMeasureItemStruct): Boolean; override;
     procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); virtual;
     procedure MeasureItem(Index: Integer; var Height: Integer); virtual;
     procedure Click; virtual;
@@ -283,7 +284,6 @@ const
 var I: Integer;
 begin
   if (Parent = 0) or (Style and WS_CHILD = 0) then Fail('List box requires a child window');
-  if FStyle = lbOwnerDrawVariable then Fail('Variable owner-draw list boxes are not provided yet');
   Style := (Style and not DWORD($FFFF or WS_TABSTOP)) or WS_VSCROLL or WS_HSCROLL or
     LBS_HASSTRINGS or LBS_NOTIFY or Styles[FStyle];
   if FSorted then Style := Style or LBS_SORT;
@@ -527,6 +527,15 @@ begin
   finally
     Canvas.Handle := Previous; FDrawing := False; RestoreDC(Item.hDC, Saved);
   end;
+end;
+function TCustomListBox.ControlMeasureItem(var Item: TMeasureItemStruct): Boolean;
+var Height: Integer;
+begin
+  Result := Item.CtlType = ODT_LISTBOX;
+  if not Result then Exit;
+  Height := FItemHeight;
+  if FStyle = lbOwnerDrawVariable then MeasureItem(Item.itemID, Height);
+  Item.itemHeight := Height;
 end;
 procedure TCustomListBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
 begin

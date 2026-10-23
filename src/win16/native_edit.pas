@@ -4,7 +4,7 @@ unit native_edit;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This edit control requires Win16}{$ENDIF}
 interface
-uses Classes, WinTypes, Messages, Graphics, Controls;
+uses Classes, WinTypes, Messages, Graphics, Controls, control_base;
 type
   TEditCharCase = (ecNormal, ecUpperCase, ecLowerCase);
   TEdit = class(TCustomControl)
@@ -14,7 +14,10 @@ type
     FPasswordChar: Char;
     FCharCase: TEditCharCase;
     FReadOnly, FModified, FInitializing, FNotifying: Boolean;
+    FAutoSelect: Boolean;
+    FBorderStyle: TBorderStyle;
     FOnChange: TNotifyEvent;
+    procedure SetBorderStyle(Value: TBorderStyle);
     function GetText: string;
     procedure SetText(const Value: string);
     procedure ReadText;
@@ -40,6 +43,8 @@ type
     procedure WndProc(var M: TMessage); override;
     function ControlCommand(Code: Word): Boolean; override;
     procedure Change; virtual;
+    { AutoSelect: entering the edit other than by mouse selects all text. }
+    procedure DoEnter; override;
     { Extra ES_* bits for descendants (TSpinEdit needs ES_MULTILINE). }
     function ExtraStyle: DWORD; virtual;
   public
@@ -65,6 +70,9 @@ type
     property ReadOnly: Boolean read FReadOnly write SetReadOnly default False;
     property PasswordChar: Char read FPasswordChar write SetPasswordChar;
     property CharCase: TEditCharCase read FCharCase write SetCharCase default ecNormal;
+    property AutoSelect: Boolean read FAutoSelect write FAutoSelect default True;
+    { Fixed once the window exists. }
+    property BorderStyle: TBorderStyle read FBorderStyle write SetBorderStyle default bsSingle;
     property Font;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property Enabled;
@@ -80,6 +88,7 @@ constructor TEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner); TabStop := True;
   Color := clWindow; ParentColor := False;
+  FAutoSelect := True; FBorderStyle := bsSingle;
   SetBounds(0, 0, 121, 23);
 end;
 function TEdit.NativeClassName: PChar;
@@ -94,7 +103,8 @@ procedure TEdit.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
 begin
   if (Parent = 0) or (Style and WS_CHILD = 0) then
     raise ENativeWindowError.Create('Edit requires a child window');
-  Style := (Style and not DWORD($FFFF or WS_TABSTOP)) or WS_BORDER or ES_AUTOHSCROLL or ExtraStyle;
+  Style := (Style and not DWORD($FFFF or WS_TABSTOP or WS_BORDER)) or ES_AUTOHSCROLL or ExtraStyle;
+  if FBorderStyle = bsSingle then Style := Style or WS_BORDER;
   if TabStop then Style := Style or WS_TABSTOP;
   if FReadOnly then Style := Style or ES_READONLY;
   if FCharCase = ecUpperCase then Style := Style or ES_UPPERCASE;
@@ -108,6 +118,17 @@ begin
       FontChanged; WriteSelection; SetModified(FModified);
     except DestroyHandle; raise; end;
   finally FInitializing := False; end;
+end;
+procedure TEdit.SetBorderStyle(Value: TBorderStyle);
+begin
+  if Value = FBorderStyle then Exit;
+  if Handle <> 0 then raise ENativeWindowError.Create('Edit border cannot change after creation');
+  FBorderStyle := Value;
+end;
+procedure TEdit.DoEnter;
+begin
+  if FAutoSelect and (GetKeyState(VK_LBUTTON) >= 0) then SelectAll;
+  inherited DoEnter;
 end;
 function TEdit.ExtraStyle: DWORD;
 begin Result := 0; end;

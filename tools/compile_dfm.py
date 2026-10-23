@@ -255,7 +255,8 @@ PROP_NAMES = {p.casefold(): p for p in (
     'Color', 'Visible', 'Enabled', 'TabStop', 'TabOrder', 'HelpContext', 'OnShow', 'OnHide', 'OnClose',
     'OnCloseQuery', 'OnClick', 'OnChange', 'OnKeyDown', 'OnKeyUp', 'OnKeyPress', 'OnEnter', 'OnExit',
     'Stretch', 'Center', 'AutoSize', 'Margin', 'Spacing', 'NumGlyphs', 'Layout',
-    'ParentFont', 'ParentColor', 'Ctl3D', 'ParentCtl3D', 'ShowHint', 'ParentShowHint', 'Hint')}
+    'ParentFont', 'ParentColor', 'Ctl3D', 'ParentCtl3D', 'ShowHint', 'ParentShowHint', 'Hint',
+    'AutoSelect')}
 COLORS = frozenset(('clBlack clMaroon clGreen clOlive clNavy clPurple clTeal clGray clSilver clRed '
                     'clLime clYellow clBlue clFuchsia clAqua clWhite clWindow clWindowText '
                     'clBtnFace clBtnText clGrayText clHighlight clHighlightText').split())
@@ -341,7 +342,8 @@ class Compiler:
             return identifier(value.data)
         if prop in ('visible', 'enabled', 'tabstop', 'readonly', 'default', 'cancel', 'checked',
                     'allowgrayed', 'wordwrap', 'showaccelchar', 'stretch', 'center', 'autosize',
-                    'parentfont', 'parentcolor', 'ctl3d', 'parentctl3d', 'showhint', 'parentshowhint'):
+                    'parentfont', 'parentcolor', 'ctl3d', 'parentctl3d', 'showhint', 'parentshowhint',
+                    'autoselect'):
             if value.kind != 'boolean':
                 self.fail(node, prop, 'expected Boolean')
             return 'True' if value.data else 'False'
@@ -374,8 +376,6 @@ class Compiler:
             for prop in node.properties:
                 if prop not in allowed:
                     self.fail(node, prop)
-            if self.typed(node, 'autoselect', 'boolean', False):
-                self.fail(node, 'AutoSelect', 'automatic selection is not implemented')
             if node.cls.casefold() in ('tbitbtn', 'tpicbtn'):
                 if self.typed(node, 'kind', 'ident', 'bkCustom') not in ('bkCustom', 'bkCancel'):
                     self.fail(node, 'Kind', 'only bkCustom and bkCancel are implemented')
@@ -470,7 +470,7 @@ class Compiler:
                 self.emit(f"{target}.Glyph.LoadFromResourceName(HInstance, '{name}');")
             # Values precede event assignment: construction must not fire user changes.
             for prop in sorted(node.properties):
-                if prop in {'left', 'top', 'width', 'height', 'autoselect', 'taborder', 'kind', 'style', 'iscontrol', 'glyph.data', 'picture.data', 'numglyphs', 'autosize', 'focuscontrol'} or prop.startswith(('font.', 'on')):
+                if prop in {'left', 'top', 'width', 'height', 'taborder', 'kind', 'style', 'iscontrol', 'glyph.data', 'picture.data', 'numglyphs', 'autosize', 'focuscontrol'} or prop.startswith(('font.', 'on')):
                     continue
                 if prop == 'caption':
                     self.caption(target + '.', node, node.properties[prop])

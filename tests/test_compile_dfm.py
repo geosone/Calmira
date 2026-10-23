@@ -238,7 +238,7 @@ class DfmCompilerTests(unittest.TestCase):
     def test_child_bounds_and_auto_selection_are_explicit(self):
         for prop, value in [('width', Value('integer', -1)),
                             ('left', Value('integer', 32767)),
-                            ('autoselect', Value('boolean', True)),
+                            ('autoselect', Value('integer', 1)),
                             ('readonly', Value('integer', 1)),
                             ('charcase', Value('ident', 'unknown'))]:
             root = copy.deepcopy(self.root)
@@ -248,6 +248,10 @@ class DfmCompilerTests(unittest.TestCase):
         self.root.children[1].properties.pop('width')
         with self.assertRaises(DfmError):
             self.emit()
+        root = copy.deepcopy(self.root)
+        root.children[1].properties['width'] = Value('integer', 120)
+        root.children[1].properties['autoselect'] = Value('boolean', False)
+        self.assertIn('Edit.AutoSelect := False;', self.emit(root))
 
     def test_button_and_checkbox_values_are_typed_before_notifications(self):
         self.root.children = [
