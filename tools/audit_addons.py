@@ -8,7 +8,7 @@ from zipfile import ZipFile
 
 
 def audit(directory):
-    manifest = Path(__file__).resolve().parents[1] / 'docs/addons/SHA256SUMS'
+    manifest = Path(__file__).resolve().parents[1] / 'docs/addons/sha256sums'
     for line in manifest.read_text().splitlines():
         digest, name = line.split()
         path = directory / name

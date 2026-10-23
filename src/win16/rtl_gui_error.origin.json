@@ -1,0 +1,14 @@
+{
+  "repository": "https://gitlab.com/freepascal.org/fpc/source.git",
+  "revision": "25d18a56b13a2ae1a2760ade7c5960847811f622",
+  "source": "rtl/win16/system.pp",
+  "upstream_sha256": "28ec7583adb0cde223bb8c4963f3a00058345e446186b701e592ad4e022ef424",
+  "license": "LGPL-2.0-or-later with FPC RTL linking exception",
+  "local_changes": [
+    "Keep the full 1024-byte diagnostic buffer in a separately owned Windows global-memory block",
+    "Use bounded stack output when GlobalAlloc or GlobalLock fails, without the Pascal heap",
+    "Advance the source pointer when one TextRec write crosses the diagnostic-buffer boundary",
+    "Honor NoErrMsg for both full and partial diagnostic messages",
+    "Treat the private GUI output as a custom text device so Close invokes ErrorClose"
+  ]
+}

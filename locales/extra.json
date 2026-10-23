@@ -1,0 +1,126 @@
+{
+  "en": {
+    "Forms": {"TStandardButtons.Cancel.Caption": "Cancel"},
+    "Help": {
+      "Title": "Calmira Reloaded Help",
+      "Missing": "The help file was not found. Restore it from the matching installation package.",
+      "CannotOpen": "Windows could not open the help. Check WinHelp and the matching installation files."
+    },
+    "DriveProbe": {"Title": "Calmira Drive Probe"},
+    "TaskManager": {
+      "Title": "Calmira Task Manager",
+      "Unavailable": "Calmira stopped unexpectedly.\n\nAbort: shut down Windows (recommended).\nRetry: restart Calmira.\nIgnore: start Windows Task Manager."
+    },
+    "FileManager": {
+      "Title": "Calmira File Manager",
+      "Refresh": "Refresh",
+      "Scanning": "Scanning drives...",
+      "Refreshed": "Drive list refreshed",
+      "OneDrive": "1 drive detected",
+      "Removable": "Removable",
+      "Fixed": "Fixed disk",
+      "Network": "Network",
+      "Other": "Other"
+    },
+    "Menu": {
+      "&Programs": "&Programs", "F&avorites": "F&avorites",
+      "&Documents": "&Documents", "&Settings": "&Settings",
+      "&Find": "&Find", "&Help": "&Help", "&Run...": "&Run...",
+      "Sh&ut Down...": "Sh&ut Down...",
+      "Sync Program Manager Groups": "Sync Program Manager Groups"
+    },
+    "Messages": {
+      "SyncGroups": "Sync Program Manager Groups",
+      "GroupsRejected": "%d Program Manager group(s) could not be read.",
+      "GroupsSynchronized": "%d Program Manager group(s) synchronized.",
+      "NoProgman": "PROGMAN.INI was not found."
+    }
+  },
+  "de": {
+    "Strings": {
+      "1201": "Neuen Benutzer anlegen",
+      "1202": "Benutzername:",
+      "1203": "Kennwort eingeben:",
+      "1204": "Kennwort bestätigen:",
+      "1205": "Kennwort ändern",
+      "1206": "Altes Kennwort eingeben:",
+      "1207": "Neues Kennwort eingeben:",
+      "1208": "Neues Kennwort bestätigen:",
+      "1209": "Der Benutzername ist ungültig. Er muss aus 1 bis 8 Buchstaben oder Ziffern bestehen.",
+      "1210": "Die neuen Kennwörter stimmen nicht überein. Bitte erneut eingeben.",
+      "1212": "Das eingegebene alte Kennwort ist falsch."
+    },
+    "Forms": {"TStandardButtons.Cancel.Caption": "Abbrechen"},
+    "Help": {
+      "Title": "Calmira Reloaded Hilfe",
+      "Missing": "Die Hilfedatei wurde nicht gefunden. Stelle sie aus dem passenden Installationspaket wieder her.",
+      "CannotOpen": "Windows konnte die Hilfe nicht öffnen. Prüfe WinHelp und die passenden Installationsdateien."
+    },
+    "DriveProbe": {"Title": "Calmira Laufwerkstest"},
+    "TaskManager": {
+      "Title": "Calmira Task-Manager",
+      "Unavailable": "Calmira wurde unerwartet beendet.\n\nAbbrechen: Windows beenden (empfohlen).\nWiederholen: Calmira neu starten.\nIgnorieren: Windows Task-Manager starten."
+    },
+    "FileManager": {
+      "Title": "Calmira Dateimanager",
+      "Refresh": "Aktualisieren",
+      "Scanning": "Laufwerke werden gesucht...",
+      "Refreshed": "Laufwerksliste aktualisiert",
+      "OneDrive": "1 Laufwerk gefunden",
+      "Removable": "Wechselmedium",
+      "Fixed": "Festplatte",
+      "Network": "Netzwerk",
+      "Other": "Andere"
+    },
+    "Menu": {
+      "&Programs": "&Programme", "F&avorites": "F&avoriten",
+      "&Documents": "&Dokumente", "&Settings": "&Einstellungen",
+      "&Find": "&Suchen", "&Help": "&Hilfe", "&Run...": "&Ausführen...",
+      "Sh&ut Down...": "&Beenden...",
+      "Sync Program Manager Groups": "Programmgruppen abgleichen"
+    },
+    "Messages": {
+      "SyncGroups": "Programm-Manager-Gruppen abgleichen",
+      "GroupsRejected": "%d Programmgruppe(n) konnten nicht gelesen werden.",
+      "GroupsSynchronized": "%d Programmgruppe(n) abgeglichen.",
+      "NoProgman": "PROGMAN.INI wurde nicht gefunden."
+    }
+  },
+  "fr": {
+    "Forms": {"TStandardButtons.Cancel.Caption": "Annuler"},
+    "Help": {
+      "Title": "Aide Calmira Reloaded",
+      "Missing": "Le fichier d'aide est introuvable. Restaurez-le depuis le paquet d'installation correspondant.",
+      "CannotOpen": "Windows n'a pas pu ouvrir l'aide. Vérifiez WinHelp et les fichiers d'installation correspondants."
+    },
+    "DriveProbe": {"Title": "Test des lecteurs Calmira"},
+    "TaskManager": {
+      "Title": "Gestionnaire des tâches Calmira",
+      "Unavailable": "Calmira s'est arrêté.\n\nAbandonner : quitter Windows (recommandé).\nRéessayer : relancer Calmira.\nIgnorer : lancer le Gestionnaire des tâches Windows."
+    },
+    "FileManager": {
+      "Title": "Gestionnaire de fichiers Calmira",
+      "Refresh": "Actualiser",
+      "Scanning": "Recherche des lecteurs...",
+      "Refreshed": "Liste des lecteurs actualisée",
+      "OneDrive": "1 lecteur détecté",
+      "Removable": "Amovible",
+      "Fixed": "Disque fixe",
+      "Network": "Réseau",
+      "Other": "Autre"
+    },
+    "Menu": {
+      "&Programs": "&Programmes", "F&avorites": "F&avoris",
+      "&Documents": "&Documents", "&Settings": "&Paramètres",
+      "&Find": "&Rechercher", "&Help": "&Aide", "&Run...": "&Exécuter...",
+      "Sh&ut Down...": "&Arrêter...",
+      "Sync Program Manager Groups": "Synchroniser les groupes"
+    },
+    "Messages": {
+      "SyncGroups": "Synchroniser les groupes du Gestionnaire de programmes",
+      "GroupsRejected": "%d groupe(s) n'ont pas pu être lus.",
+      "GroupsSynchronized": "%d groupe(s) synchronisés.",
+      "NoProgman": "PROGMAN.INI est introuvable."
+    }
+  }
+}

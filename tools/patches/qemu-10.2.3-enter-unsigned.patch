@@ -1,0 +1,9 @@
+--- a/target/i386/tcg/emit.c.inc
++++ b/target/i386/tcg/emit.c.inc
+@@ -2009,5 +2009,5 @@
+ static void gen_ENTER(DisasContext *s, X86DecodedInsn *decode)
+ {
+-   gen_enter(s, decode->op[1].imm, decode->op[2].imm);
++   gen_enter(s, (uint16_t)decode->op[1].imm, decode->op[2].imm);
+ }
+ 

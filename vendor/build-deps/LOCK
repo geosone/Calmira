@@ -15,3 +15,10 @@ url = https://github.com/geosone/Open386MAX.git
 branch = v9
 commit = 82d33fc5861e5c4ff8b21d480e8730f11b312379
 paths = CTL3D/CTL3D.C CTL3D/CTL3DV2.DEF INCLUDE/CTL3D.H LICENSE
+
+[open386max-whc]
+url = https://github.com/geosone/Open386MAX.git
+branch = v9
+commit = 82d33fc5861e5c4ff8b21d480e8730f11b312379
+paths = linux/tools/whc.py LICENSE
+local_changes = native Word RTF table support; see open386max-whc/origin.json

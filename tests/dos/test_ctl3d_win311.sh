@@ -30,7 +30,7 @@ mcopy -o -i "$partition" "$root/build/win16/ctl3d/CTL3DV2.DLL" ::/WINDOWS/SYSTEM
     echo "screendump $work/dialog-2.ppm"
     sleep 20
     echo quit
-} | qemu-system-i386 -machine pc -accel "${QEMU_ACCEL:-kvm}" -m 32 \
+} | qemu-system-i386 -machine pc -accel "${QEMU_ACCEL:-tcg}" -m 32 \
     -display none -vga std -monitor stdio -nic none \
     -drive "if=ide,index=0,format=raw,file=$work/test.img" \
     -serial "file:$work/serial.log" > "$work/monitor.log" 2>&1

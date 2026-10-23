@@ -1,0 +1,16 @@
+--- a/compiler/i8086/n8086add.pas
++++ b/compiler/i8086/n8086add.pas
+@@ -962,7 +962,12 @@
+       begin
+         if is_farpointer(left.resultdef) then
+           second_cmpfarpointer
+-        else if is_32bit(left.resultdef) or is_hugepointer(left.resultdef) or is_farprocvar(left.resultdef) then
++        else if is_32bit(left.resultdef) or is_hugepointer(left.resultdef) or is_farprocvar(left.resultdef) or
++          { Class instances and class references are implicit data pointers.
++            In far-data models their segment must participate in = and <>;
++            a valid GlobalAlloc object commonly has offset zero. }
++          ((is_implicit_pointer_object_type(left.resultdef) or
++            (left.resultdef.typ=classrefdef)) and (left.resultdef.size=4)) then
+           second_cmp32bit
+         else
+           inherited second_cmpordinal;

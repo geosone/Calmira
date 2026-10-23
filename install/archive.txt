@@ -1,0 +1,48 @@
+OPENLFN LOADER AND ZIP PREVIEW - EXPERIMENTAL
+
+Installation and removal
+------------------------
+Run INSTALL.EXE and choose a new, dedicated target directory.
+In Windows, run OLFNLOAD.EXE there to enable the global file-dialog hook.
+Do not add it to automatic startup yet. No Windows file is replaced.
+Close the loader to stop the hook; finish pending saves first. Close all
+viewer windows too. Then run INSTALL.EXE /U in the installed directory.
+Do not uninstall or replace files while the hook or viewer is running.
+
+ZIP contents
+------------
+In a supported Open/Save dialog, select an existing ZIP, press Alt+Space
+and choose "View ZIP contents (read-only)". The original dialog stays open.
+Alternatively run OLFNVIEW.EXE, or OLFNVIEW.EXE C:\PATH\FILE.ZIP.
+Use ASCII 8.3 paths and a writable DOS TEMP directory for this first build.
+
+Only ZIP listing is implemented. Nothing is extracted, edited or executed;
+listing does not verify member-data CRCs. Non-ASCII/control bytes are shown
+as visible escapes. Limit: 128 entries, 240 name bytes, 64 MiB input.
+The parser has allocation/read/time budgets. Some valid ZIPs are rejected.
+
+Tested GUI profile: enhanced Windows 3.1x on DOS 6.22, 386 or newer.
+Windows on DOS 7.x is blocked before starting the helper because the tested
+profile faults at DOS-session startup. Standalone DOS 7.1 listing works:
+OLFNLIST INPUT.ZIP NEW.IDX. NEW.IDX is a binary index, not a text listing.
+No native 7z/TAR/gzip or Windows 9x acceptance is included.
+
+Long-name Save precautions
+--------------------------
+This is not a filesystem LFN driver. Names are mapped using DESCRIPT.ION
+and reserved DOS aliases. Keep OLFNLOAD running until saves finish; closing
+the document may be necessary before a mapping can be committed.
+New typed long names in Word/Excel require Enter in the filename edit.
+Automatic crash recovery is not implemented. Keep backups. Interrupted
+transactions can leave CLFN.SAV/BAK/NEW recovery files; do not delete them
+blindly. A timed-out archive helper retains its private temporary files.
+
+Notices
+-------
+This product uses DOS/32 Advanced DOS Extender technology.
+Retain all files under LICENSES. New hook/viewer code is GPL-3.0-or-later;
+the selected 7-Zip sources retain their LGPL/public-domain notices.
+The package is independent of any desktop shell. It does not need a shell
+replacement and is not a DOSLFN filesystem driver. Existing CLFN.* recovery
+filenames are retained for metadata compatibility; do not rename sidecars.
+Stop any previous file-dialog hook before starting this version.

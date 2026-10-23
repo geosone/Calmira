@@ -1,0 +1,75 @@
+--- a/CPP/7zip/Archive/Zip/ZipIn.cpp
++++ b/CPP/7zip/Archive/Zip/ZipIn.cpp
+@@ -3168,7 +3168,7 @@
+       item.FromCentral = cdItem.FromCentral;
+       // 22.02: we force utf8 flag, if central header has utf8 flag
+       if (cdItem.Flags & NFileHeader::NFlags::kUtf8)
+-        item.Flags |= NFileHeader::NFlags::kUtf8;
++        item.Flags = (UInt16)(item.Flags | NFileHeader::NFlags::kUtf8);
+     }
+ 
+     FOR_VECTOR (k, items2)
+--- a/C/7zTypes.h
++++ b/C/7zTypes.h
+@@ -52,6 +52,11 @@
+   #else
+     #define MY_ALIGN(n)
+   #endif
++#elif defined(__WATCOMC__)
++  /* Scalar-only DOS port: Watcom has no declaration alignment extension.
++     Runtime aligned buffers still use z7_AlignedAlloc. No SIMD is linked. */
++  #define MY_ALIGN(n)
++  #define MY_ALIGN_IN_STRUCT(n)
+ #else
+   /*
+   // C11/C++11:
+--- a/C/Alloc.c
++++ b/C/Alloc.c
+@@ -7,6 +7,9 @@
+ #include "7zWindows.h"
+ #endif
+ #include <stdlib.h>
++#ifdef __WATCOMC__
++#include <stdint.h>
++#endif
+ 
+ #include "Alloc.h"
+ 
+@@ -371,6 +374,10 @@
+ #endif
+ #endif
+ 
++#ifdef CALMIRA_BOUNDED_ALLOC
++#undef USE_posix_memalign
++#endif
++
+ #ifndef USE_posix_memalign
+ #define MY_ALIGN_PTR_UP_PLUS(p, align) MY_ALIGN_PTR_DOWN(((char *)(p) + (align) + ADJUST_ALLOC_SIZE), align)
+ #endif
+--- a/CPP/Common/MyWindows.cpp
++++ b/CPP/Common/MyWindows.cpp
+@@ -209,7 +209,7 @@
+ 
+ DWORD WINAPI GetTickCount(VOID)
+ {
+-  #ifndef _WIN32
++  #if !defined(_WIN32) && !defined(__WATCOMC__)
+   // gettimeofday() doesn't work in some MINGWs by unknown reason
+   timeval tv;
+   if (gettimeofday(&tv, NULL) == 0)
+--- a/C/CpuArch.h
++++ b/C/CpuArch.h
+@@ -482,6 +482,13 @@
+ #endif
+ 
+ 
++/* The scalar Calmira reader uses the upstream byte-wise fallbacks rather
++   than casts to potentially unaligned integer pointers (also checked by UBSan). */
++#ifdef CALMIRA_PORTABLE_LOADS
++#undef MY_CPU_LE_UNALIGN
++#undef MY_CPU_LE_UNALIGN_64
++#endif
++
+ #ifdef MY_CPU_LE_UNALIGN
+ 
+ #define GetUi16(p) (*(const UInt16 *)(const void *)(p))

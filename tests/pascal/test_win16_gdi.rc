@@ -1,0 +1,4 @@
+101 BITMAP "bmp/bin.bmp"
+PROBE BITMAP "bmp/banner.bmp"
+201 ICON "icontest.ico"
+ICONPROBE ICON "icontest.ico"

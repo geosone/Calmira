@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/geosone/Open386MAX",
+  "revision": "82d33fc5861e5c4ff8b21d480e8730f11b312379",
+  "source": "linux/tools/whc.py",
+  "upstream_sha256": "9f314012234b25bbf4639bc71a52333af858f8a236783ecc37b806b33154bb95",
+  "license": "GPL-3.0",
+  "local_changes": [
+    "Preserve Word RTF rows, cells, gaps and empty paragraphs",
+    "Emit native WinHelp 0x23 table records with cell text offsets and format sizes",
+    "Decode and validate compressed paragraph text offsets",
+    "Close file handles deterministically through pathlib read/write helpers"
+  ]
+}

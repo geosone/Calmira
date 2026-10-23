@@ -1,0 +1,36 @@
+--- a/rtl/i8086/setjump.inc
++++ b/rtl/i8086/setjump.inc
+@@ -15,6 +15,25 @@
+ 
+ {$ifdef WIN16}
+ 
++{$ifdef CALMIRA_WIN16_SJLJ_TAILCALL}
++{$if defined(FPC_X86_DATA_NEAR) or defined(FPC_X86_CODE_NEAR)}
++{$fatal CALMIRA_WIN16_SJLJ_TAILCALL requires far code and far data}
++{$endif}
++{ Catch must capture its caller, not a temporary Pascal wrapper frame. }
++Function fpc_SetJmp (Var S : Jmp_buf) : smallint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP']; compilerproc;
++asm
++  db $EA
++  dw offset Catch
++  dw seg Catch
++end;
++
++Procedure fpc_longJmp (Var S : Jmp_buf; value : smallint);assembler;nostackframe;[Public, alias : 'FPC_LONGJMP']; compilerproc;
++asm
++  db $EA
++  dw offset Throw
++  dw seg Throw
++end;
++{$else CALMIRA_WIN16_SJLJ_TAILCALL}
+ Function fpc_SetJmp (Var S : Jmp_buf) : smallint;[Public, alias : 'FPC_SETJMP']; compilerproc;
+ begin
+ {$ifdef FPC_X86_DATA_NEAR}
+@@ -32,6 +51,7 @@
+   Throw(@CATCHBUF(S.catch_buf),value);
+ {$endif FPC_X86_DATA_NEAR}
+ end;
++{$endif CALMIRA_WIN16_SJLJ_TAILCALL}
+ 
+ {$else WIN16}
+ 

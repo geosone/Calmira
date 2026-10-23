@@ -22,7 +22,7 @@ class TrayAliasTests(unittest.TestCase):
             MODULE.normalize(b'\x04CMSR' + bytes(6) + b'\xff')
 
     def test_bundled_aliases_have_no_removed_icon_dependency(self):
-        for path in (ROOT / 'src/TRAY').glob('*.ALS'):
+        for path in (ROOT / 'src/tray').glob('*.als'):
             data = path.read_bytes()
             self.assertEqual(MODULE.normalize(data), data, path.name)
 

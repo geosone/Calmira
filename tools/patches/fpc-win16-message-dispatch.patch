@@ -1,0 +1,16 @@
+--- a/rtl/inc/objpas.inc
++++ b/rtl/inc/objpas.inc
+@@ -920,7 +920,13 @@
+            msghandler : tmessagehandler;
+ 
+         begin
++{$if defined(WIN16) and defined(CALMIRA_WIN16_MESSAGE_ABI)}
++           { Win16 VCL messages start with a 16-bit Msg followed by WPARAM.
++             Reading a dword combines the message number with its parameter. }
++           index:=word(message);
++{$else}
+            index:=dword(message);
++{$endif}
+            ovmt := PVmt(ClassType);
+            while assigned(ovmt) do
+              begin

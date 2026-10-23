@@ -1,0 +1,25 @@
+--- a/rtl/win16/glbheap.inc
++++ b/rtl/win16/glbheap.inc
+@@ -350,6 +350,9 @@
+     function SysGlobalReAllocMem(var p: FarPointer; size: ptruint):FarPointer;
+       var
+         hglob: HGLOBAL;
++{$ifdef CALMIRA_WIN16_REALLOC_BOUNDS}
++        CopySize: ptruint;
++{$endif CALMIRA_WIN16_REALLOC_BOUNDS}
+       begin
+         if size=0 then
+           begin
+@@ -385,5 +388,12 @@
+               { todo: do it in a more optimal way? }
+               result:=SysGlobalAllocMem(size);
++{$ifdef CALMIRA_WIN16_REALLOC_BOUNDS}
++              CopySize:=SysGlobalMemSize(p);
++              if CopySize>size then
++                CopySize:=size;
++              Move(p^,result^,CopySize);
++{$else CALMIRA_WIN16_REALLOC_BOUNDS}
+               Move(p^,result^,SysGlobalMemSize(p));
++{$endif CALMIRA_WIN16_REALLOC_BOUNDS}
+               SysGlobalFreeMem(p);
+             end;

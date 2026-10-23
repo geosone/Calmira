@@ -30,3 +30,6 @@
 	path = vendor/build-deps/upx
 	url = https://github.com/geosone/upx.git
 	branch = win16-ne
+[submodule "vendor/reference/7zip"]
+	path = vendor/reference/7zip
+	url = https://github.com/ip7z/7zip.git

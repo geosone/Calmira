@@ -33,7 +33,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', type=Path)
     args = parser.parse_args()
-    for path in sorted(args.directory.glob('*.ALS')):
+    for path in sorted(path for path in args.directory.iterdir() if path.suffix.lower() == '.als'):
         before = path.read_bytes()
         after = normalize(before)
         if after != before:

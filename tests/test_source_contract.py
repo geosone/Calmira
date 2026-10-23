@@ -1,4 +1,5 @@
 from pathlib import Path
+import subprocess
 import unittest
 
 
@@ -6,6 +7,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SourceContractTests(unittest.TestCase):
+    def test_archive_source_is_pinned_to_7zip_release(self):
+        modules = (ROOT / ".gitmodules").read_text()
+        self.assertIn("https://github.com/ip7z/7zip.git", modules)
+        reference = ROOT / "vendor/reference/7zip"
+        revision = subprocess.check_output(
+            ["git", "-C", str(reference), "rev-parse", "HEAD"], text=True).strip()
+        self.assertEqual(revision, "9128b80e3a471108678e2b3ec3c985861c8d7b0f")
+        self.assertTrue((reference / "DOC/License.txt").is_file())
+
     def test_patched_omf_sources_are_vendored(self):
         lock = (ROOT / "vendor/build-deps/LOCK").read_text(encoding="utf-8")
         self.assertIn("e9462f17b86dbe04a27ecdd4e56329096ba9831e", lock)
@@ -20,15 +30,19 @@ class SourceContractTests(unittest.TestCase):
         self.assertIn("https://github.com/geosone/winfile.git", modules)
         self.assertIn("branch = calmira-hotplug", modules)
 
-    def test_native_winfile16_has_drive_polling(self):
-        source = (ROOT / "src/win16/winfile16.pas").read_text(encoding="utf-8")
+    def test_drive_probe_is_separate_from_original_winfile_port(self):
+        source = (ROOT / "src/win16/drive_probe.pas").read_text(encoding="utf-8")
         self.assertIn("GetDriveType", source)
         self.assertIn("WM_TIMER", source)
         self.assertIn("PollIntervalMs", source)
+        makefile = (ROOT / "makefile").read_text()
+        self.assertIn('-oDRVPROBE.EXE', makefile)
+        self.assertIn('winfile16: winfile16-core', makefile)
+        self.assertIn("application", makefile)
 
     def test_no_inno_setup_in_active_package(self):
         self.assertFalse((ROOT / "CALMIRA.ISS").exists())
-        descriptor = (ROOT / "install" / "INSTALL.INI").read_text()
+        descriptor = (ROOT / "install" / "install.ini").read_text()
         self.assertNotIn("Inno", descriptor)
 
     def test_generic_media_logic_has_no_gui_dependency(self):
@@ -45,7 +59,7 @@ class SourceContractTests(unittest.TestCase):
 
     def test_doslfn_driver_is_verified_and_installer_managed(self):
         fetch = (ROOT / "tools" / "fetch_doslfn.sh").read_text()
-        descriptor = (ROOT / "install" / "INSTALL.INI").read_text()
+        descriptor = (ROOT / "install" / "install.ini").read_text()
         modules = (ROOT / ".gitmodules").read_text()
         self.assertIn("7e630d35db1d9ff41ef6407e0829c52330e5058e951fa53208a7a1d8379bbeeb", fetch)
         self.assertIn("https://github.com/geosone/doslfn.git", modules)

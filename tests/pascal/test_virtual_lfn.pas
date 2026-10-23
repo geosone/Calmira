@@ -17,6 +17,7 @@ end;
 var
   Entry, RoundTrip: TVirtualLFNEntry;
   Line: string;
+  Fixture: Text;
 begin
   Check(IsDos83Name('README.TXT'), 'ordinary 8.3 name');
   Check(not IsDos83Name('My Report.txt'), 'spaces require an alias');
@@ -38,6 +39,24 @@ begin
   Check(RoundTrip.Metadata = Entry.Metadata, 'Ctrl-D metadata round trip');
   Check(not ParseDescriptionLine('not-a-mapping', RoundTrip),
     'a line without a display name is rejected');
+
+  { Independently generated document mapping from the IFA 4.00 native test.
+    This fixture contains no third-party executable or document data. }
+  Assign(Fixture, 'tests/fixtures/ifa400_descript.ion');
+  Reset(Fixture);
+  ReadLn(Fixture, Line);
+  Check(ParseDescriptionLine(Line, RoundTrip),
+    'IFA describes DESCRIPT.ION using an ordinary mapping entry');
+  Check(RoundTrip.AliasName = 'DESCRIPT.ION', 'IFA self-description alias');
+  ReadLn(Fixture, Line);
+  Close(Fixture);
+  Check(ParseDescriptionLine(Line, RoundTrip), 'native IFA document mapping parses');
+  Check(RoundTrip.LongName = 'calmira langer dateiname.cwk',
+    'native IFA display name is preserved');
+  Check(RoundTrip.AliasName = MakeDosAlias(RoundTrip.LongName, 1),
+    'portable alias generation matches observed IFA alias');
+  Check(ComposeDescriptionLine(RoundTrip) = Line,
+    'native IFA document mapping round trips without changes');
 
   WriteLn('virtual LFN tests: OK');
 end.

@@ -20,7 +20,7 @@ set +e
 {
 	sleep 8
 	echo quit
-} | qemu-system-i386 -machine pc -accel kvm -m 16 -display none \
+} | qemu-system-i386 -machine pc -accel "${QEMU_ACCEL:-tcg}" -m 16 -display none \
 	-monitor stdio -drive if=floppy,format=raw,file="$work_dir/boot.img" \
 	-boot a -nic none -serial file:"$work_dir/serial.log" \
 	-device isa-debug-exit,iobase=0x501,iosize=0x02 > "$work_dir/monitor.log" 2>&1

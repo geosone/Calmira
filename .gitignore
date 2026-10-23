@@ -7,3 +7,9 @@
 *~
 __pycache__/
 *.pyc
+# Stray toolchain/probe output in the repository root
+/*.err
+/config.log
+/config-temp/
+/link*.res
+/ppas.sh

@@ -38,7 +38,7 @@ run_driver_test()
 	{
 		sleep 8
 		echo quit
-	} | qemu-system-i386 -machine pc -accel kvm -m 16 -display none \
+	} | qemu-system-i386 -machine pc -accel "${QEMU_ACCEL:-tcg}" -m 16 -display none \
 		-monitor stdio -drive if=floppy,format=raw,file="$image" \
 		-boot a -nic none -serial file:"$serial" \
 		-device isa-debug-exit,iobase=0x501,iosize=0x02 \

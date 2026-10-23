@@ -1,0 +1,13 @@
+{
+  "repository": "https://gitlab.com/freepascal.org/fpc/source.git",
+  "revision": "25d18a56b13a2ae1a2760ade7c5960847811f622",
+  "source": "rtl/win/wininc/messages.inc",
+  "upstream_sha256": "5fd76a7525602473d6cccf987d88c584824f3baa4e04c28b8fa3b9550000147a",
+  "license": "LGPL-2.0-or-later with FPC RTL linking exception",
+  "local_changes": [
+    "Select the message records used by Calmira and its maintained VCL components",
+    "Adapt WPARAM, handles, far pointers and parameter word order to Windows 3.x",
+    "Keep signed 16-bit coordinates and a 32-bit message result",
+    "Reject non-Win16 targets rather than silently using an incompatible ABI"
+  ]
+}
