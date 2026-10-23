@@ -1712,7 +1712,11 @@ begin
   { 3.11 hint positioning redone to accomodate multi-line hints,
     now calculates the width of the hint based on HintStr and MaxWidth. }
   rect := Bounds(0, 0, Screen.Width, 0);
+{$IFDEF FPC}
+  DrawText(HintWindow.Canvas.ContextHandle, StrPCopy(buf, HintStr), -1, rect,
+{$ELSE}
   DrawText(HintWindow.Canvas.Handle, StrPCopy(buf, HintStr), -1, rect,
+{$ENDIF}
     DT_CALCRECT or DT_LEFT or DT_WORDBREAK or DT_NOPREFIX);
   { 2.2 }
   if TopTaskbar then

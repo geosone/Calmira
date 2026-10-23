@@ -37,9 +37,33 @@ class FormsLayerTests(unittest.TestCase):
     def test_unsupported_services_are_not_silently_aliased(self):
         source = SOURCE.read_text()
         interface = source.split('unit Forms;', 1)[1].split('implementation', 1)[0]
-        for name in ('property Menu', 'HintColor', 'KeyPreview'):
+        for name in ('property Menu', 'KeyPreview'):
             self.assertNotIn(name, interface)
         self.assertIn("raise ENativeScreenError.Create('Invalid screen form')", source)
+
+    def test_application_hints(self):
+        source = SOURCE.read_text()
+        interface = source.split('unit Forms;', 1)[1].split('implementation', 1)[0]
+        for text in ('property HintColor: TColor', 'property HintPause: Integer',
+                     'property OnShowHint: TShowHintEvent', 'property OnHint: TNotifyEvent',
+                     'HintWindowClass: THintWindowClass = THintWindow;', 'THintInfo = record',
+                     'TWindowHook = TNativeWindowHook;', 'procedure CancelHint;'):
+            self.assertIn(text, interface)
+        # WinProcs.PtInRect takes USER's packed POINT; Controls' version is correct.
+        self.assertIn('not Controls.PtInRect(FHintCursorRect', source)
+        self.assertIn('FHintWindow.Canvas.ContextHandle', source)
+        controls = (ROOT / 'src/win16/controls.pas').read_text()
+        for text in ('THintWindow = class(TCustomControl)', 'function IsHintMsg(var Msg: TMsg): Boolean; virtual;',
+                     'function FindDragTarget(const Pos: TPoint; AllowDisabled: Boolean): TControl;',
+                     'function GetShortHint(const Hint: string): string;', 'function HandleAllocated: Boolean;'):
+            self.assertIn(text, controls)
+        test = (ROOT / 'tests/pascal/test_win16_hints.pas').read_text()
+        for text in ('the short hint pops up after HintPause', 'OnShowHint can refuse a hint',
+                     'moves inside the control do not restart the hint', 'a key press cancels the hint'):
+            self.assertIn(text, test)
+        self.assertIn('win16-hints-runtime-test', (ROOT / 'makefile').read_text())
+        task = (ROOT / 'src/task.pas').read_bytes()
+        self.assertIn(b'{$IFDEF FPC}\r\n  DrawText(HintWindow.Canvas.ContextHandle', task)
 
     def test_native_suite_is_part_of_fixed_regression(self):
         makefile = (ROOT / 'makefile').read_text()

@@ -73,7 +73,7 @@ class Win16DrawingTests(unittest.TestCase):
                      'the message loop releases contexts before idle'):
             self.assertIn(text, test)
         makefile = (ROOT / 'makefile').read_text()
-        self.assertIn('win16-canvas-context-runtime-test \\', makefile)
+        self.assertIn('win16-canvas-context-runtime-test', makefile.split('win16-fixed-regression:', 1)[1].split('\n\n', 1)[0])
 
     def test_fill_enum_exports_and_native_order(self):
         core = (ROOT / 'src/win16/gdi_canvas.pas').read_text()

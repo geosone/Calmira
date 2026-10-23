@@ -27,6 +27,10 @@ type
   protected
     procedure Paint; virtual;
     procedure PaintOverlay; virtual;
+    { Called when the canvas needs a DC but there is no window yet. Delphi's
+      HandleNeeded creates it; by default a window here is created only by
+      its owner, so the canvas stays without a DC. }
+    procedure HandleNeeded; virtual;
     procedure ColorChanged; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -55,6 +59,8 @@ constructor TWindowCanvas.Create(Owner: TNativeWindow);
 begin inherited Create; FOwner := Owner; end;
 function TWindowCanvas.AcquireContext: HDC;
 begin
+  if (FOwner.Handle = 0) and (FOwner is TNativePaintWindow) then
+    TNativePaintWindow(FOwner).HandleNeeded;
   Result := 0; FWindow := FOwner.Handle;
   if FWindow = 0 then Exit;
   Result := GetDC(FWindow);
@@ -62,6 +68,8 @@ begin
 end;
 procedure TWindowCanvas.ReleaseContext(Context: HDC);
 begin ReleaseDC(FWindow, Context); FWindow := 0; end;
+procedure TNativePaintWindow.HandleNeeded;
+begin end;
 procedure TNativePaintWindow.ColorChanged;
 begin if Handle <> 0 then Invalidate; end;
 procedure TNativePaintWindow.Paint;

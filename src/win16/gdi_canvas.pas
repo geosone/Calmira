@@ -158,6 +158,10 @@ type
     procedure RefreshSystemColors;
     { Gives back the context from AcquireContext, if any. }
     procedure FreeContext;
+    { What Delphi's Canvas.Handle returns: Handle, or a borrowed context
+      outside painting, with Font and its color selected for direct API
+      text calls such as DrawText. }
+    function ContextHandle: HDC;
     { The DC handed in by the owner (painting, owner draw), or 0. Drawing
       without one uses AcquireContext, which leaves Handle at 0. }
     property Handle: HDC read FHandle write SetHandle;
@@ -454,6 +458,12 @@ begin
     end;
   end;
   Result := FContext;
+end;
+function TGDICanvas.ContextHandle: HDC;
+begin
+  RequireHandle; Result := DC;
+  if SelectObject(Result, FFont.GetHandle) = 0 then raise EGDIError.Create('Cannot select font');
+  SetTextColor(Result, ColorToRGB(FFont.Color));
 end;
 procedure TGDICanvas.SetPen(Value: TGDIPen);
 begin FPen.Assign(Value); end;

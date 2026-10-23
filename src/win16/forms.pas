@@ -1,21 +1,34 @@
 { SPDX-License-Identifier: GPL-2.0-or-later
   Initial Forms compatibility layer over the tested native application, screen
   and modal-form foundations. It supplies the global Application/Screen pair,
-  typed TForm access and deferred Release; it is not the complete Delphi Forms
-  unit. Runtime DFM streaming, menus, hints, Icon and form styles
-  are absent and must fail to compile rather than be silently aliased. }
+  typed TForm access, deferred Release and application hints; it is not the
+  complete Delphi Forms unit. Runtime DFM streaming and form menus are absent
+  and must fail to compile rather than be silently aliased. }
 unit Forms;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This Forms layer requires Win16}{$ENDIF}
 interface
 uses Classes, SysUtils, WinTypes, Messages, Graphics, Controls, control_base, native_form, native_modal,
-  native_application, native_screen;
+  native_application, native_application_window, native_screen, native_loop;
 type
   TCloseAction = TNativeCloseAction;
   TCloseEvent = TNativeCloseEvent;
   TCloseQueryEvent = TNativeCloseQueryEvent;
   TWindowState = native_form.TWindowState;
   TMessageEvent = procedure(var Msg: TMsg; var Handled: Boolean) of object;
+  TExceptionEvent = TNativeExceptionEvent;
+  TIdleEvent = TNativeIdleEvent;
+  TWindowHook = TNativeWindowHook;
+  THintInfo = record
+    HintControl: TControl;
+    HintPos: TPoint;
+    HintMaxWidth: Integer;
+    HintColor: TColor;
+    CursorRect: TRect;
+    CursorPos: TPoint;
+  end;
+  TShowHintEvent = procedure(var HintStr: string; var CanShow: Boolean;
+    var HintInfo: THintInfo) of object;
   TFormBorderStyle = control_base.TFormBorderStyle;
   TBorderStyle = control_base.TBorderStyle;
   TBorderIcon = (biSystemMenu, biMinimize, biMaximize);
@@ -74,6 +87,22 @@ type
     FReleaseHooked: Boolean;
     FOnMessage: TMessageEvent;
     FIcon: TIcon;
+    FHint: string;
+    FShowHint, FHintActive, FHintHooked: Boolean;
+    FHintColor: TColor;
+    FHintPause: Integer;
+    FHintWindow: THintWindow;
+    { Compared by address only; the live control is found again at the cursor. }
+    FHintControl, FMouseControl: TControl;
+    FHintCursorRect: TRect;
+    FOnHint: TNotifyEvent;
+    FOnShowHint: TShowHintEvent;
+    procedure SetHint(const Value: string);
+    procedure SetShowHint(Value: Boolean);
+    function HintHook(var Message: TMessage): Boolean;
+    procedure HintMouseMove;
+    procedure StartHintTimer(Pause: Integer);
+    procedure ShowHintNow;
     procedure SetIcon(Value: TIcon);
     function ReleaseHook(var Message: TMessage): Boolean;
     procedure FreeReleases;
@@ -93,6 +122,15 @@ type
     property OnMessage: TMessageEvent read FOnMessage write SetOnMessage;
     { Delphi 1 loads the MAINICON resource; empty if the program has none. }
     property Icon: TIcon read FIcon write SetIcon;
+    procedure CancelHint;
+    { The long hint of the control under the mouse; setting it calls OnHint. }
+    property Hint: string read FHint write SetHint;
+    { Pop-up hints for controls whose ShowHint is True; off by default. }
+    property ShowHint: Boolean read FShowHint write SetShowHint;
+    property HintColor: TColor read FHintColor write FHintColor;
+    property HintPause: Integer read FHintPause write FHintPause;
+    property OnHint: TNotifyEvent read FOnHint write FOnHint;
+    property OnShowHint: TShowHintEvent read FOnShowHint write FOnShowHint;
   end;
   TScreen = class(TNativeScreen)
   private
@@ -118,12 +156,17 @@ function AllocateHWnd(Method: TWndMethod): HWND;
 procedure DeallocateHWnd(Wnd: HWND);
 { The TForm that (indirectly) contains Control, or nil. }
 function GetParentForm(Control: TControl): TForm;
+const
+  HintWindowClass: THintWindowClass = THintWindow;
 var
   Application: TApplication;
   Screen: TScreen;
 implementation
 uses WinProcs, native_window;
 var ReleaseMessage: Word;
+const
+  HintTimer = $7E02;
+  HintShortPause = 50;
 type
   TUtilityWindow = class(TNativeWindow)
   private
@@ -297,6 +340,139 @@ begin
   FIcon := TIcon.Create;
   Main := LoadIcon(HInstance, 'MAINICON');
   if Main <> 0 then FIcon.CopyFromHandle(Main);
+  FHintColor := $80FFFF; FHintPause := 800;
+  { Always filtered: Hint and OnHint follow the mouse even without pop-ups. }
+  TNativeApplication(Self).OnMessage := MessageFilter;
+end;
+function ControlParent(Control: TControl): TControl;
+begin
+  if Control is TCustomControl then Result := TCustomControl(Control).Parent
+  else if Control is TGraphicControl then Result := TGraphicControl(Control).Parent
+  else Result := nil;
+end;
+function ControlToScreen(Control: TControl; const P: TPoint): TPoint;
+begin
+  if Control is TCustomControl then Result := TCustomControl(Control).ClientToScreen(P)
+  else Result := TGraphicControl(Control).ClientToScreen(P);
+end;
+function ScreenToControl(Control: TControl; const P: TPoint): TPoint;
+begin
+  if Control is TCustomControl then Result := TCustomControl(Control).ScreenToClient(P)
+  else Result := TGraphicControl(Control).ScreenToClient(P);
+end;
+function ControlClientRect(Control: TControl): TRect;
+begin
+  if Control is TCustomControl then Result := TCustomControl(Control).ClientRect
+  else Result := TGraphicControl(Control).ClientRect;
+end;
+function ControlHeight(Control: TControl): Integer;
+begin
+  if Control is TCustomControl then Result := TCustomControl(Control).Height
+  else Result := TGraphicControl(Control).Height;
+end;
+{ The control's own hint, or its nearest parent's. }
+function ControlHint(Control: TControl): string;
+begin
+  Result := '';
+  while (Control <> nil) and (Result = '') do
+  begin Result := Control.Hint; Control := ControlParent(Control); end;
+end;
+{ The control that shows a pop-up hint at P: the nearest with ShowHint. }
+function HintControlAt(const P: TPoint): TControl;
+begin
+  Result := FindDragTarget(P, True);
+  while (Result <> nil) and not Result.ShowHint do Result := ControlParent(Result);
+end;
+procedure TApplication.SetHint(const Value: string);
+begin
+  if FHint = Value then Exit;
+  FHint := Value;
+  if Assigned(FOnHint) then FOnHint(Self);
+end;
+procedure TApplication.SetShowHint(Value: Boolean);
+begin
+  if FShowHint = Value then Exit;
+  FShowHint := Value;
+  if Value then FHintWindow := HintWindowClass.Create(Self)
+  else begin CancelHint; FHintWindow.Free; FHintWindow := nil; end;
+end;
+procedure TApplication.CancelHint;
+begin
+  if FHintHooked and (Handle <> 0) then KillTimer(Handle, HintTimer);
+  if (FHintWindow <> nil) and (FHintWindow.Handle <> 0) then
+    ShowWindow(FHintWindow.Handle, SW_HIDE);
+  FHintActive := False; FHintControl := nil;
+end;
+procedure TApplication.StartHintTimer(Pause: Integer);
+begin
+  if not FHintHooked then begin HookMainWindow(HintHook); FHintHooked := True; end;
+  KillTimer(Handle, HintTimer);
+  if SetTimer(Handle, HintTimer, Pause, nil) = 0 then CancelHint;
+end;
+function TApplication.HintHook(var Message: TMessage): Boolean;
+begin
+  Result := (Message.Msg = WM_TIMER) and (Message.WParam = HintTimer);
+  if not Result then Exit;
+  Message.Result := 0;
+  KillTimer(Handle, HintTimer);
+  ShowHintNow;
+end;
+procedure TApplication.HintMouseMove;
+var P: TPoint; Control: TControl;
+begin
+  GetCursorPos(P);
+  Control := FindDragTarget(P, True);
+  if Control <> FMouseControl then
+  begin
+    FMouseControl := Control;
+    Hint := GetLongHint(ControlHint(Control));
+  end;
+  if not FShowHint then Exit;
+  Control := HintControlAt(P);
+  if Control = nil then CancelHint
+  else if (Control <> FHintControl) or
+    not Controls.PtInRect(FHintCursorRect, ScreenToControl(Control, P)) then
+  begin
+    FHintControl := Control;
+    { Further moves inside the control do not restart the pause. }
+    FHintCursorRect := ControlClientRect(Control);
+    { Moving on while a hint shows replaces it almost at once. }
+    if FHintActive then StartHintTimer(HintShortPause) else StartHintTimer(FHintPause);
+  end;
+end;
+procedure TApplication.ShowHintNow;
+var P: TPoint; Control: TControl; Info: THintInfo; HintStr: string; CanShow: Boolean;
+  R: TRect; Text: array[0..255] of Char;
+begin
+  GetCursorPos(P);
+  Control := HintControlAt(P);
+  { The control may have gone since the timer started. }
+  if (FHintWindow = nil) or (Control = nil) or (Control <> FHintControl) then
+  begin CancelHint; Exit; end;
+  Info.HintControl := Control;
+  Info.HintPos := ControlToScreen(Control, Point(0, ControlHeight(Control)));
+  Info.HintMaxWidth := Screen.Width;
+  Info.HintColor := FHintColor;
+  Info.CursorRect := ControlClientRect(Control);
+  Info.CursorPos := ScreenToControl(Control, P);
+  HintStr := GetShortHint(ControlHint(Control));
+  CanShow := True;
+  if Assigned(FOnShowHint) then FOnShowHint(HintStr, CanShow, Info);
+  if not CanShow or (HintStr = '') then
+  begin
+    { Keep the control but let the next move ask again (Calmira's file grid
+      shows a hint only over a file). }
+    CancelHint; FHintControl := Control; SetRectEmpty(FHintCursorRect); Exit;
+  end;
+  FHintCursorRect := Info.CursorRect;
+  R := Rect(0, 0, Info.HintMaxWidth, 0);
+  DrawText(FHintWindow.Canvas.ContextHandle, StrPCopy(Text, HintStr), -1, R,
+    DT_CALCRECT or DT_LEFT or DT_WORDBREAK or DT_NOPREFIX);
+  OffsetRect(R, Info.HintPos.X, Info.HintPos.Y);
+  Inc(R.Right, 6); Inc(R.Bottom, 2);
+  FHintWindow.Color := Info.HintColor;
+  FHintWindow.ActivateHint(R, HintStr);
+  FHintActive := True;
 end;
 procedure TApplication.SetIcon(Value: TIcon);
 begin FIcon.Assign(Value); end;
@@ -336,14 +512,13 @@ end;
 function TApplication.MessageFilter(var Message: TMsg): Boolean;
 begin
   Result := False;
+  if not ShuttingDown then
+    if FHintActive and FHintWindow.IsHintMsg(Message) then CancelHint
+    else if Message.Message = WM_MOUSEMOVE then HintMouseMove;
   if Assigned(FOnMessage) then FOnMessage(Message, Result);
 end;
 procedure TApplication.SetOnMessage(Value: TMessageEvent);
-begin
-  FOnMessage := Value;
-  if Assigned(Value) then TNativeApplication(Self).OnMessage := MessageFilter
-  else TNativeApplication(Self).OnMessage := nil;
-end;
+begin FOnMessage := Value; end;
 function TApplication.GetMainForm: TForm;
 begin Result := TNativeApplication(Self).MainForm as TForm; end;
 procedure TApplication.SetMainForm(Value: TForm);
@@ -356,6 +531,11 @@ begin
   if FReleaseHooked and Initialized and not ShuttingDown then
     UnhookMainWindow(ReleaseHook);
   FReleaseHooked := False;
+  if FHintHooked and Initialized and not ShuttingDown then
+  begin KillTimer(Handle, HintTimer); UnhookMainWindow(HintHook); end;
+  FHintHooked := False;
+  TNativeApplication(Self).OnMessage := nil;
+  FHintWindow.Free; FHintWindow := nil;
   FReleases.Free; FReleases := nil;
   inherited Destroy;
   FIcon.Free; FIcon := nil;

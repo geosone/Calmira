@@ -73,7 +73,7 @@ type
     FPopupMenu: TPopupMenu;
     procedure SetPopupMenu(Value: TPopupMenu);
     procedure SetHelpContext(Value: LongInt);
-    function GraphicAt(X, Y: Integer): TGraphicControl;
+    function GraphicAt(X, Y: Integer; AllowDisabled: Boolean = False): TGraphicControl;
     procedure SetMouseControl(Value: TGraphicControl);
     procedure CheckMouseControl;
     procedure ForgetGraphic(Control: TGraphicControl);
@@ -176,6 +176,7 @@ type
     function ClientToScreen(const Position: TPoint): TPoint;
     function ScreenToClient(const Position: TPoint): TPoint;
     function FindControl(Window: HWND): TCustomControl;
+    function HandleAllocated: Boolean;
     function ResolveHelpContext: LongInt;
     function FocusNext(Forward: Boolean): Boolean;
     function DispatchDialogKey(Key: Word): Boolean;
@@ -295,6 +296,25 @@ type
     destructor Destroy; override;
     property Control: TControl read FControl write SetControl;
   end;
+  { Delphi 1's hint popup: a bordered WS_POPUP showing Caption, created by
+    the first ActivateHint and kept until ReleaseHandle. }
+  THintWindow = class(TCustomControl)
+  private
+    FCaption: string;
+    procedure SetCaption(const Value: string);
+  protected
+    procedure Paint; override;
+    procedure HandleNeeded; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure ActivateHint(Rect: TRect; const AHint: string); virtual;
+    function IsHintMsg(var Msg: TMsg): Boolean; virtual;
+    procedure ReleaseHandle;
+    property Caption: string read FCaption write SetCaption;
+    property Color;
+    property Canvas;
+  end;
+  THintWindowClass = class of THintWindow;
 const
   crDefault = native_cursors.crDefault; crNone = native_cursors.crNone;
   crArrow = native_cursors.crArrow; crCross = native_cursors.crCross;
@@ -312,12 +332,19 @@ const
   ssLeft = native_input.ssLeft; ssRight = native_input.ssRight;
   ssMiddle = native_input.ssMiddle; ssDouble = native_input.ssDouble;
 function Point(X, Y: Integer): TPoint;
+{ The control under the screen point Pos: a windowed control, or the graphic
+  child of one at that point. Disabled graphic controls count only with
+  AllowDisabled; USER never reports disabled windows. }
+function FindDragTarget(const Pos: TPoint; AllowDisabled: Boolean): TControl;
+{ The parts of a hint before and after its first '|'. }
+function GetShortHint(const Hint: string): string;
+function GetLongHint(const Hint: string): string;
 function PtInRect(const Area: TRect; const Position: TPoint): Boolean;
 var
   { Delphi 1: True only on Windows 4.x, where controls get the new look. }
   NewStyleControls: Boolean;
 implementation
-uses WinProcs, native_window, gdi_canvas;
+uses SysUtils, WinProcs, Win31, native_window, gdi_canvas;
 
 type
   { Outside painting a graphic control draws on its parent's window DC,
@@ -1006,7 +1033,7 @@ const
   MouseLeaveInterval = 100;
 { USER's four-byte POINT by value; see native_cursors. }
 function PackedWindowFromPoint(Value: LongInt): HWND; external 'USER' name 'WINDOWFROMPOINT';
-function TCustomControl.GraphicAt(X, Y: Integer): TGraphicControl;
+function TCustomControl.GraphicAt(X, Y: Integer; AllowDisabled: Boolean): TGraphicControl;
 var I: Integer; Graphic: TGraphicControl;
 begin
   Result := nil;
@@ -1015,7 +1042,7 @@ begin
   for I := FGraphics.Count - 1 downto 0 do
   begin
     Graphic := TGraphicControl(FGraphics[I]);
-    if Graphic.FVisible and Graphic.FEnabled and (X >= Graphic.FLeft) and (Y >= Graphic.FTop) and
+    if Graphic.FVisible and (Graphic.FEnabled or AllowDisabled) and (X >= Graphic.FLeft) and (Y >= Graphic.FTop) and
       (X < Graphic.FLeft + Graphic.FWidth) and (Y < Graphic.FTop + Graphic.FHeight) then
     begin Result := Graphic; Exit; end;
   end;
@@ -1486,6 +1513,96 @@ begin
     finally Surface.Free; end;
   finally RestoreDC(DC, State); end;
 end;
+function FindDragTarget(const Pos: TPoint; AllowDisabled: Boolean): TControl;
+var Window: HWND; Native: TNativeWindow; Local: TPoint; Graphic: TGraphicControl;
+begin
+  Result := nil;
+  Window := PackedWindowFromPoint(MakeLong(Pos.X, Pos.Y));
+  { Unmanaged USER children (a combo box's edit) belong to their managed parent. }
+  while Window <> 0 do
+  begin
+    Native := FindNativeWindow(Window);
+    if Native is TCustomControl then Break;
+    Window := GetParent(Window);
+  end;
+  if Window = 0 then Exit;
+  Result := TCustomControl(Native);
+  Local := TCustomControl(Native).ScreenToClient(Pos);
+  Graphic := TCustomControl(Native).GraphicAt(Local.X, Local.Y, AllowDisabled);
+  if Graphic <> nil then Result := Graphic;
+end;
+function GetShortHint(const Hint: string): string;
+var I: Integer;
+begin
+  I := Pos('|', Hint);
+  if I = 0 then Result := Hint else Result := Copy(Hint, 1, I - 1);
+end;
+function GetLongHint(const Hint: string): string;
+var I: Integer;
+begin
+  I := Pos('|', Hint);
+  if I = 0 then Result := Hint else Result := Copy(Hint, I + 1, 255);
+end;
+function TCustomControl.HandleAllocated: Boolean;
+begin Result := Handle <> 0; end;
+
+{ THintWindow }
+constructor THintWindow.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  Color := $80FFFF;
+  Font.Name := 'MS Sans Serif'; Font.Size := 8;
+  { Callers measure hint text on Canvas before the first paint. }
+  Canvas.Font := Font;
+end;
+procedure THintWindow.SetCaption(const Value: string);
+begin
+  if Value = FCaption then Exit;
+  FCaption := Value;
+  if Handle <> 0 then Invalidate;
+end;
+procedure THintWindow.Paint;
+var R: TRect; Text: array[0..255] of Char;
+begin
+  R := ClientRect; Inc(R.Left, 1);
+  Canvas.Brush.Color := Color; Canvas.FillRect(ClientRect);
+  Canvas.Font := Font; Canvas.Font.Color := clWindowText;
+  SetBkMode(Canvas.ContextHandle, TRANSPARENT);
+  DrawText(Canvas.ContextHandle, StrPCopy(Text, FCaption), -1, R,
+    DT_LEFT or DT_NOPREFIX or DT_WORDBREAK);
+end;
+procedure THintWindow.ActivateHint(Rect: TRect; const AHint: string);
+var W, H, ScreenW, ScreenH: Integer;
+begin
+  Caption := AHint;
+  W := Rect.Right - Rect.Left; H := Rect.Bottom - Rect.Top;
+  ScreenW := GetSystemMetrics(SM_CXSCREEN); ScreenH := GetSystemMetrics(SM_CYSCREEN);
+  if Rect.Left + W > ScreenW then Rect.Left := ScreenW - W;
+  if Rect.Top + H > ScreenH then Rect.Top := ScreenH - H;
+  if Rect.Left < 0 then Rect.Left := 0;
+  if Rect.Top < 0 then Rect.Top := 0;
+  HandleNeeded;
+  SetWindowPos(Handle, HWND_TOPMOST, Rect.Left, Rect.Top, W, H,
+    SWP_SHOWWINDOW or SWP_NOACTIVATE);
+  Invalidate;
+end;
+function THintWindow.IsHintMsg(var Msg: TMsg): Boolean;
+begin
+  with Msg do
+    Result := ((Message >= WM_KEYFIRST) and (Message <= WM_KEYLAST)) or
+      (Message = WM_COMMAND) or (Message = WM_ACTIVATEAPP) or
+      ((Message > WM_MOUSEMOVE) and (Message <= WM_MOUSELAST)) or
+      (Message = WM_NCMOUSEMOVE);
+end;
+procedure THintWindow.HandleNeeded;
+begin
+  { Hidden until ActivateHint; measuring text on Canvas creates it. }
+  if Handle = 0 then CreateHandle(0, '', WS_POPUP or WS_BORDER, 0, 0, 0, 0);
+end;
+procedure THintWindow.ReleaseHandle;
+begin
+  if Handle <> 0 then DestroyHandle;
+end;
 destructor TControlCanvas.Destroy;
 begin FreeContext; inherited Destroy; end;
 procedure TControlCanvas.FreeContext;
@@ -1566,23 +1683,7 @@ begin
   inherited Destroy;
 end;
 function TNativeDragManager.FindTarget(const Position: TPoint): TControl;
-var Window: HWND; Native: TNativeWindow; Local: TPoint; Graphic: TGraphicControl;
-begin
-  Result := nil;
-  Window := PackedWindowFromPoint(MakeLong(Position.X, Position.Y));
-  { Unmanaged USER children (a combo box's edit) belong to their managed parent. }
-  while Window <> 0 do
-  begin
-    Native := FindNativeWindow(Window);
-    if Native is TCustomControl then Break;
-    Window := GetParent(Window);
-  end;
-  if Window = 0 then Exit;
-  Result := TCustomControl(Native);
-  Local := TCustomControl(Native).ScreenToClient(Position);
-  Graphic := TCustomControl(Native).GraphicAt(Local.X, Local.Y);
-  if Graphic <> nil then Result := Graphic;
-end;
+begin Result := FindDragTarget(Position, False); end;
 function TNativeDragManager.TargetPoint(Target: TControl; const Position: TPoint): TPoint;
 begin
   if Target is TCustomControl then Result := TCustomControl(Target).ScreenToClient(Position)

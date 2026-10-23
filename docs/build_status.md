@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 84 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 85 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1229,3 +1229,36 @@ DC instead of raising.
 The full regression ran with 84 suites (`build/tests/canvas-context.log`); the
 only failure was the old paint check for the previous behaviour, which passes
 after the update above.
+
+## Application Hints
+
+- Controls has Delphi 1's `THintWindow` (`ActivateHint`, `IsHintMsg`,
+  `ReleaseHandle`, `Caption`, `Color`, `Canvas`), `THintWindowClass`,
+  `FindDragTarget`, `GetShortHint`/`GetLongHint` and
+  `TCustomControl.HandleAllocated`. Measuring text on a hint window's canvas
+  creates its (hidden) window, as Delphi's `HandleNeeded` does.
+- `TCanvas.ContextHandle` is what Delphi's `Canvas.Handle` returns: the DC,
+  borrowed outside painting, with the font selected. `Handle` itself stays
+  raw, so `Handle <> 0` still means "painting". Calmira's taskbar measures
+  hint text this way (one `{$IFDEF FPC}` line in `task.pas`).
+- `TApplication` has `Hint`/`OnHint` (the long hint of the control under
+  the mouse, or of its nearest parent with a hint), `ShowHint` (off by
+  default), `HintColor` (`$80FFFF`), `HintPause` (800 ms), `OnShowHint` with
+  `THintInfo`, `CancelHint` and `HintWindowClass`. A hint pops up below the
+  control after `HintPause`. Moving to another control while a hint shows
+  replaces it after 50 ms. Keys, clicks and commands hide it. When
+  `OnShowHint` refuses a hint, the next mouse move asks again, which
+  Calmira's file grid needs to show hints only over files.
+- Forms declares `TExceptionEvent`, `TIdleEvent` and `TWindowHook` as Delphi
+  1 does, over the matching native types.
+- `WinProcs.PtInRect` takes USER's packed POINT and gives wrong answers for a
+  Pascal `TPoint`; use `Controls.PtInRect`.
+
+Covered by `make win16-hints-runtime-test`. `apholder` now compiles.
+However, its `with Application do OnMinimize := ...` still binds to
+TAppHolder's own properties, because `TApplication` has no
+`OnMinimize`/`OnRestore` and `TScreen` has no
+`OnActiveControlChange`/`OnActiveFormChange` yet. Those come next.
+`calvcl` needs the Grids unit.
+
+The full regression passed (`build/tests/hints.log`, 85 suites, exit 0).
