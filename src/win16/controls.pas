@@ -66,6 +66,8 @@ type
     function ControlMnemonic(Key: Char): Boolean; virtual;
     function ControlCommand(Code: Word): Boolean; virtual;
     function ControlDrawItem(var Item: TDrawItemStruct): Boolean; virtual;
+    { True for internal USER children (e.g. a combo box's edit) that act as Self. }
+    function OwnsNativeChild(Window: HWND): Boolean; virtual;
     procedure WMCommand(var M: TWMCommand); message WM_COMMAND;
     procedure WMDrawItem(var M: TWMDrawItem); message WM_DRAWITEM;
     procedure WMGetDlgCode(var M: TWMGetDlgCode); message WM_GETDLGCODE;
@@ -250,12 +252,14 @@ begin
   if Value then Style := Style or LongInt(WS_TABSTOP);
   SetWindowLong(Handle, GWL_STYLE, Style);
 end;
+function TCustomControl.OwnsNativeChild(Window: HWND): Boolean;
+begin Result := False; end;
 function TCustomControl.FindControl(Window: HWND): TCustomControl;
 var I: Integer; Child: TCustomControl;
 begin
   Result := nil;
   if (Handle = 0) or (Window = 0) then Exit;
-  if Window = Handle then begin Result := Self; Exit; end;
+  if (Window = Handle) or OwnsNativeChild(Window) then begin Result := Self; Exit; end;
   if FWindows = nil then Exit;
   for I := 0 to FWindows.Count - 1 do
   begin

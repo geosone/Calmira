@@ -204,7 +204,8 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-screen-runtime-test win16-screen-modal-runtime-test \
 		win16-forms-runtime-test win16-dialogs-runtime-test win16-input-query-runtime-test \
 		win16-shellapi-runtime-test win16-inifiles-runtime-test win16-menus-runtime-test \
-		win16-system-dlls-runtime-test win16-clipbrd-runtime-test \
+		win16-system-dlls-runtime-test win16-clipbrd-runtime-test win16-radio-runtime-test \
+		win16-combobox-runtime-test win16-notebook-runtime-test \
 		win16-cursor-runtime-test win16-cursor-modal-runtime-test \
 		win16-form-activation-runtime-test win16-form-resize-runtime-test win16-form-state-runtime-test \
 		win16-ui-runtime-test win16-window-runtime-test win16-input-runtime-test \
@@ -584,6 +585,42 @@ win16-clipbrd: fpc-win16-gui-rtl
 
 win16-clipbrd-runtime-test: win16-clipbrd
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-clipbrd/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-radio win16-radio-runtime-test
+win16-radio: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-radio/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-radio/units -FE$(BUILD_DIR)/tests/win16-radio \
+		-oGDITEST.EXE tests/pascal/test_win16_radio.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-radio/GDITEST.EXE
+
+win16-radio-runtime-test: win16-radio
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-radio/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-combobox win16-combobox-runtime-test
+win16-combobox: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-combobox/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-combobox/units -FE$(BUILD_DIR)/tests/win16-combobox \
+		-oGDITEST.EXE tests/pascal/test_win16_combobox.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-combobox/GDITEST.EXE
+
+win16-combobox-runtime-test: win16-combobox
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-combobox/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-notebook win16-notebook-runtime-test
+win16-notebook: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-notebook/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-FU$(BUILD_DIR)/tests/win16-notebook/units -FE$(BUILD_DIR)/tests/win16-notebook \
+		-oGDITEST.EXE tests/pascal/test_win16_notebook.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-notebook/GDITEST.EXE
+
+win16-notebook-runtime-test: win16-notebook
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-notebook/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-dialogs win16-dialogs-runtime-test
 win16-dialogs: fpc-win16-gui-rtl

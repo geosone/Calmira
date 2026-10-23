@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 70 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles units, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 75 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons and combo boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -992,6 +992,39 @@ source uses TTabbedNotebook. The build now reaches `vcl/miscutil.pas`, which
 needs TRadioButton/TComboBox (StdCtrls), TSpeedButton (Buttons) and
 TNotebook/THeader (ExtCtrls). Remaining missing units: Grids, Spin, Outline,
 DdeMan, FileCtrl, Tabs.
+
+## Radio Buttons, Combo Boxes, Notebook and Header
+
+`src/win16/native_radio.pas` provides Delphi 1 TRadioButton on a private
+BUTTON superclass with BS_RADIOBUTTON: the sibling grouping (checking one
+unchecks the other radio buttons of the same parent), tab stop on the checked
+button only, OnClick when a button becomes checked, Alignment and mnemonics.
+Arrow-key movement within a group is not provided yet.
+`make win16-radio-runtime-test` covers it.
+
+`src/win16/native_combobox.pas` provides TComboBox for csDropDown, csSimple
+and csDropDownList (owner-draw styles raise): Items mirrored into the native
+list (sorted insertion, recreation with the edit text restored), ItemIndex,
+Text, DroppedDown, DropDownCount (the native height includes the list),
+MaxLength, SelectAll and OnChange/OnClick/OnDropDown/OnEnter/OnExit. Focus
+rests on the internal edit, so TCustomControl gained `OwnsNativeChild` (used by
+FindControl) and the input layer's `GetFocused` became virtual.
+`make win16-combobox-runtime-test` covers it.
+
+`src/win16/native_notebook.pas` provides TNotebook/TPage: Pages as a TStrings
+whose Objects are the TPage controls (Delphi starts with a `Default` page),
+PageIndex, ActivePage by caption and OnPageChanged. Pages fill the client area
+on resize; a page whose handle Calmira freed (`FreePageHandles`) is recreated
+with its children when shown. `src/win16/native_header.pas` provides THeader
+with Sections (widths in Sections.Objects, default 64), SectionWidth[],
+AllowResize and live divider dragging (OnSizing per move, OnSized at release)
+instead of Delphi's XOR track line. `make win16-notebook-runtime-test` covers
+both. They are not yet exported through ExtCtrls.
+
+The full `make -j4 win16-fixed-regression` passed all 75 configured suites
+(`build/tests/controls-regression.log`, exit 0) with the radio/combo box
+changes to the shared Controls layer; the notebook/header suite was added
+afterwards and passes individually.
 
 ### DFM inventory
 

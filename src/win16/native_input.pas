@@ -24,7 +24,6 @@ type
     FChangingCursor: Boolean;
     procedure SetCursor(Value: TCursor);
     procedure WMSetCursor(var M: TMessage); message WM_SETCURSOR;
-    function GetFocused: Boolean;
     function GetMouseCapture: Boolean;
     procedure SetMouseCapture(Value: Boolean);
     procedure MouseMessage(var M: TWMMouse);
@@ -49,6 +48,8 @@ type
     procedure WMSetFocus(var M: TMessage); message WM_SETFOCUS;
     procedure WMKillFocus(var M: TMessage); message WM_KILLFOCUS;
   protected
+    { Overridden by controls whose focus rests on an internal USER child. }
+    function GetFocused: Boolean; virtual;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); virtual;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); virtual;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); virtual;
