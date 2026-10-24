@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 93 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 94 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1522,3 +1522,37 @@ PROGMAN, the shell of the test image. With `SERVE`, the helper is a
 server that `ServiceApplication` starts and that exits on `[Quit]`.
 
 The full regression passed (`build/tests/dde.log`, 93 suites, exit 0).
+
+## Group Boxes and Radio Groups
+
+- `StdCtrls` now provides Delphi 1's self-drawn `TCustomGroupBox` and
+  `TGroupBox`. It draws a 3-D frame (or a single `clWindowFrame` line
+  without `Ctl3D`) with the caption in the top edge. Aligned children
+  stay inside the frame and below the caption. The caption height comes
+  from the screen DC, because the control canvas has no DC outside
+  `Paint`. A mnemonic in the caption does not move the focus.
+- `ExtCtrls` now provides `TCustomRadioGroup` and `TRadioGroup`:
+  - one radio button per `Items` line, laid out in `Columns` (1..16)
+    with Delphi's arithmetic;
+  - setting `ItemIndex` (clamped to the items) checks a button without
+    `OnClick`; a click by the user sets `ItemIndex` and fires `OnClick`;
+  - item changes rebuild the buttons, and `Enabled` reaches the buttons;
+  - a streamed `ItemIndex` applies once `Items` are loaded.
+  - Arrow keys do not move between the buttons.
+- `src/resource.pas` takes `CopyIcon` from FPC's `Win31` unit
+  (`{$IFDEF FPC}, Win31{$ENDIF}`, as in other Calmira units).
+- `vcl/picbtn.pas` now has `PicBtnGlyphsChanged`. It sets
+  `MsgDlgGlyphs` and the dialog button height in `MsgDlgBtnSize`. Only the
+  size has an effect: message-dialog buttons are native and have no
+  glyphs.
+- Fixes a Python guard that the previous change broke: a comment in
+  `forms.pas` named the window-creation API, which the Forms layer must
+  not call directly.
+- The form loaders now get past `Settings`, `Resource`, `FSysProp` and
+  `DeskProp`. Most of them stop at the missing `FileCtrl` unit (via
+  `opendlg`); `fileprop` needs `TMemo`; the four TNativeForm-based forms
+  are unchanged.
+
+Covered by `make win16-radio-group-runtime-test`.
+
+The full regression passed (`build/tests/radio-group.log`, 94 suites, exit 0).

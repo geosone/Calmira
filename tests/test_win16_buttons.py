@@ -56,7 +56,7 @@ class Win16ButtonTests(unittest.TestCase):
                      'LongInt(R.Right) - FMargin - GroupW', 'LongInt(R.Bottom) - FMargin - GroupH'):
             self.assertIn(text, source)
 
-    def test_original_picbtn_keeps_loading_policy_without_fake_dialog_globals(self):
+    def test_original_picbtn_keeps_loading_policy_and_dialog_button_size(self):
         fpc = active_source('vcl/picbtn.pas')
         old = active_source('vcl/picbtn.pas', False)
         for text in ('TPicBtn = class(TBitBtn)', 'procedure TPicBtn.Loaded',
@@ -64,9 +64,11 @@ class Win16ButtonTests(unittest.TestCase):
                      'Margin := 4', 'Spacing := -1'):
             self.assertIn(text, fpc)
             self.assertIn(text, old)
-        self.assertNotIn('MsgDlgGlyphs', fpc)
-        self.assertNotIn('procedure PicBtnGlyphsChanged', fpc)
-        self.assertIn('MsgDlgGlyphs := PicBtnGlyphs', old)
+        # Dialogs keeps MsgDlgGlyphs for source compatibility and uses MsgDlgBtnSize.
+        for text in ('procedure PicBtnGlyphsChanged', 'MsgDlgGlyphs := PicBtnGlyphs',
+                     'if MsgDlgGlyphs then MsgDlgBtnSize.Y := 25 else MsgDlgBtnSize.Y := 23'):
+            self.assertIn(text, fpc)
+            self.assertIn(text, old)
 
     def test_native_button_probe_covers_clicks_keyboard_routing_and_lifetime(self):
         source = (ROOT / 'tests/pascal/test_win16_button.pas').read_text()

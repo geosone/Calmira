@@ -1,10 +1,11 @@
 { SPDX-License-Identifier: GPL-2.0-or-later
-  Image, timer, panel, notebook and header subset; not the complete Delphi ExtCtrls framework. }
+  Image, timer, panel, radio group, notebook and header subset; not the complete Delphi ExtCtrls framework. }
 unit ExtCtrls;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This ExtCtrls subset requires Win16}{$ENDIF}
 interface
-uses Classes, WinTypes, Messages, Graphics, Controls, control_base, native_notebook, native_header, native_bevel;
+uses Classes, WinTypes, Messages, Graphics, Controls, control_base, StdCtrls, native_notebook, native_header,
+  native_bevel;
 type
   TBevel = native_bevel.TBevel;
   TBevelStyle = native_bevel.TBevelStyle;
@@ -59,6 +60,63 @@ type
     property Enabled: Boolean read FEnabled write SetEnabled default True;
     property Interval: Word read FInterval write SetInterval default 1000;
     property OnTimer: TNotifyEvent read FOnTimer write SetOnTimer;
+  end;
+  { Delphi 1 radio group: one radio button per Items line, laid out in
+    Columns; ItemIndex is the checked one. OnClick fires when the user
+    checks a button, not when ItemIndex is set. Arrow keys do not move
+    between the buttons. }
+  TCustomRadioGroup = class(TCustomGroupBox)
+  private
+    FButtons: TList;
+    FItems: TStrings;
+    FItemIndex: Integer;
+    FColumns: Integer;
+    FUpdating: Boolean;
+    FOnClick: TNotifyEvent;
+    procedure ArrangeButtons;
+    procedure ButtonClick(Sender: TObject);
+    procedure ItemsChange(Sender: TObject);
+    procedure SetButtonCount(Value: Integer);
+    procedure SetColumns(Value: Integer);
+    procedure SetItemIndex(Value: Integer);
+    procedure SetItems(Value: TStrings);
+    procedure UpdateButtons;
+    procedure WMSize(var Message: TMessage); message WM_SIZE;
+    procedure WMEnable(var Message: TMessage); message WM_ENABLE;
+  protected
+    procedure Loaded; override;
+    procedure FontChanged; override;
+    function CanModify: Boolean; virtual;
+    procedure Click; virtual;
+    property Columns: Integer read FColumns write SetColumns default 1;
+    property ItemIndex: Integer read FItemIndex write SetItemIndex default -1;
+    property Items: TStrings read FItems write SetItems;
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  end;
+  TRadioGroup = class(TCustomRadioGroup)
+  published
+    property Align;
+    property Caption;
+    property Color;
+    property Columns;
+    property Ctl3D;
+    property Enabled;
+    property Font;
+    property ItemIndex;
+    property Items;
+    property ParentColor;
+    property ParentCtl3D;
+    property ParentFont;
+    property ParentShowHint;
+    property PopupMenu;
+    property ShowHint;
+    property TabOrder;
+    property TabStop;
+    property Visible;
+    property OnClick;
   end;
   TPanelBevel = (bvNone, bvLowered, bvRaised);
   TBevelWidth = 1..MaxInt;
@@ -280,6 +338,139 @@ begin
 end;
 procedure TTimer.Timer;
 begin if Assigned(FOnTimer) then FOnTimer(Self); end;
+{ TCustomRadioGroup }
+type
+  { A radio button that belongs to its radio group. }
+  TGroupButton = class(TRadioButton)
+  public
+    constructor InternalCreate(Group: TCustomRadioGroup);
+  end;
+constructor TGroupButton.InternalCreate(Group: TCustomRadioGroup);
+begin
+  inherited Create(Group);
+  Group.FButtons.Add(Self);
+  Visible := False;
+  Enabled := Group.Enabled;
+  OnClick := Group.ButtonClick;
+  Parent := Group;
+end;
+constructor TCustomRadioGroup.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FButtons := TList.Create;
+  FItems := TStringList.Create;
+  TStringList(FItems).OnChange := ItemsChange;
+  FItemIndex := -1;
+  FColumns := 1;
+end;
+destructor TCustomRadioGroup.Destroy;
+begin
+  SetButtonCount(0);
+  TStringList(FItems).OnChange := nil;
+  FItems.Free;
+  FButtons.Free;
+  inherited Destroy;
+end;
+procedure TCustomRadioGroup.ArrangeButtons;
+var ButtonsPerCol, ButtonWidth, ButtonHeight, TopMargin, Rest, I: Integer;
+begin
+  if (FButtons.Count = 0) or (csLoading in ComponentState) then Exit;
+  ButtonsPerCol := (FButtons.Count + FColumns - 1) div FColumns;
+  ButtonWidth := (Width - 10) div FColumns;
+  Rest := Height - CaptionHeight - 5;
+  ButtonHeight := Rest div ButtonsPerCol;
+  TopMargin := CaptionHeight + 1 + (Rest mod ButtonsPerCol) div 2;
+  for I := 0 to FButtons.Count - 1 do
+    with TGroupButton(FButtons[I]) do
+    begin
+      SetBounds((I div ButtonsPerCol) * ButtonWidth + 8, (I mod ButtonsPerCol) * ButtonHeight + TopMargin,
+        ButtonWidth, ButtonHeight);
+      Visible := True;
+    end;
+end;
+procedure TCustomRadioGroup.ButtonClick(Sender: TObject);
+begin
+  if FUpdating then Exit;
+  FItemIndex := FButtons.IndexOf(Sender);
+  Click;
+end;
+procedure TCustomRadioGroup.Click;
+begin if Assigned(FOnClick) then FOnClick(Self); end;
+function TCustomRadioGroup.CanModify: Boolean;
+begin Result := True; end;
+procedure TCustomRadioGroup.ItemsChange(Sender: TObject);
+begin
+  if csLoading in ComponentState then Exit;
+  if FItemIndex >= FItems.Count then FItemIndex := FItems.Count - 1;
+  UpdateButtons;
+end;
+procedure TCustomRadioGroup.Loaded;
+begin
+  inherited Loaded;
+  if FItemIndex >= FItems.Count then FItemIndex := FItems.Count - 1;
+  UpdateButtons;
+end;
+procedure TCustomRadioGroup.FontChanged;
+begin
+  inherited FontChanged;
+  ArrangeButtons;
+end;
+procedure TCustomRadioGroup.SetButtonCount(Value: Integer);
+begin
+  while FButtons.Count < Value do TGroupButton.InternalCreate(Self);
+  while FButtons.Count > Value do
+  begin
+    TGroupButton(FButtons.Last).Free;
+    FButtons.Delete(FButtons.Count - 1);
+  end;
+end;
+procedure TCustomRadioGroup.SetColumns(Value: Integer);
+begin
+  if Value < 1 then Value := 1;
+  if Value > 16 then Value := 16;
+  if Value <> FColumns then begin FColumns := Value; ArrangeButtons; Invalidate; end;
+end;
+procedure TCustomRadioGroup.SetItemIndex(Value: Integer);
+begin
+  if csLoading in ComponentState then begin FItemIndex := Value; Exit; end;
+  if Value < -1 then Value := -1;
+  if Value >= FButtons.Count then Value := FButtons.Count - 1;
+  if Value = FItemIndex then Exit;
+  FUpdating := True;
+  try
+    if FItemIndex >= 0 then TGroupButton(FButtons[FItemIndex]).Checked := False;
+    FItemIndex := Value;
+    if FItemIndex >= 0 then TGroupButton(FButtons[FItemIndex]).Checked := True;
+  finally FUpdating := False; end;
+end;
+procedure TCustomRadioGroup.SetItems(Value: TStrings);
+begin FItems.Assign(Value); end;
+procedure TCustomRadioGroup.UpdateButtons;
+var I: Integer;
+begin
+  SetButtonCount(FItems.Count);
+  FUpdating := True;
+  try
+    for I := 0 to FButtons.Count - 1 do
+      with TGroupButton(FButtons[I]) do
+      begin
+        Caption := FItems[I];
+        Checked := I = FItemIndex;
+      end;
+  finally FUpdating := False; end;
+  ArrangeButtons;
+end;
+procedure TCustomRadioGroup.WMSize(var Message: TMessage);
+begin
+  inherited;
+  ArrangeButtons;
+end;
+procedure TCustomRadioGroup.WMEnable(var Message: TMessage);
+var I: Integer;
+begin
+  inherited;
+  for I := 0 to FButtons.Count - 1 do TGroupButton(FButtons[I]).Enabled := Message.WParam <> 0;
+end;
 { TCustomPanel }
 constructor TCustomPanel.Create(AOwner: TComponent);
 begin

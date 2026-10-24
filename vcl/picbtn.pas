@@ -14,6 +14,8 @@ uses
   SysUtils, WinTypes, WinProcs, Messages, Classes, Graphics, Controls,
 {$IFNDEF FPC}
   Forms, Dialogs, StdCtrls,
+{$ELSE}
+  Dialogs,
 {$ENDIF}
   Buttons;
 
@@ -40,9 +42,7 @@ const
   PicBtnGlyphs: Boolean = False;
   PicBtnHeightDelta: Integer = 2;
 
-{$IFNDEF FPC}
 procedure PicBtnGlyphsChanged;
-{$ENDIF}
 procedure Register;
 
 implementation
@@ -74,13 +74,11 @@ begin
 end;
 {$ENDIF}
 
-{$IFNDEF FPC}
 procedure PicBtnGlyphsChanged;
 begin
   MsgDlgGlyphs := PicBtnGlyphs;
   if MsgDlgGlyphs then MsgDlgBtnSize.Y := 25 else MsgDlgBtnSize.Y := 23;
 end;
-{$ENDIF}
 
 procedure Register;
 begin

@@ -494,7 +494,7 @@ end;
 procedure TForm.CreateParams(var Params: TCreateParams);
 begin end;
 { Fills FCreation; kept out of CreateHandle so that its frame is gone
-  before CreateWindow sends the creation messages. }
+  before the native window sends its creation messages. }
 procedure TForm.PrepareCreation(Parent: HWND; const Caption: string; Style: DWORD;
   X, Y, Width, Height: SmallInt);
 begin

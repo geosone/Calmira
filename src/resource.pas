@@ -143,7 +143,7 @@ implementation
 {$IFNDEF FPC}{$R cursors.res}{$ENDIF}
 
 uses SysUtils, WinProcs, ShellAPI, IniFiles, Forms, Controls,
-  Locale, Files, MiscUtil, Settings, Environs, Registry;
+  Locale, Files, MiscUtil, Settings, Environs, Registry{$IFDEF FPC}, Win31{$ENDIF};
 
 { TIconList }
 
