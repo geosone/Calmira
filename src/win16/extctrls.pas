@@ -1,5 +1,5 @@
 { SPDX-License-Identifier: GPL-2.0-or-later
-  Image, panel, notebook and header subset; not the complete Delphi ExtCtrls framework. }
+  Image, timer, panel, notebook and header subset; not the complete Delphi ExtCtrls framework. }
 unit ExtCtrls;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This ExtCtrls subset requires Win16}{$ENDIF}
@@ -36,6 +36,29 @@ type
     property AutoSize: Boolean read FAutoSize write SetAutoSize default False;
     property Color;
     property Visible;
+  end;
+  { Delphi 1 timer: a WM_TIMER on a utility window, running while Enabled,
+    Interval <> 0 and OnTimer is assigned. }
+  TTimer = class(TComponent)
+  private
+    FEnabled: Boolean;
+    FInterval: Word;
+    FOnTimer: TNotifyEvent;
+    FWindow: HWND;
+    procedure SetEnabled(Value: Boolean);
+    procedure SetInterval(Value: Word);
+    procedure SetOnTimer(Value: TNotifyEvent);
+    procedure UpdateTimer;
+    procedure WndProc(var Msg: TMessage);
+  protected
+    procedure Timer; virtual;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property Enabled: Boolean read FEnabled write SetEnabled default True;
+    property Interval: Word read FInterval write SetInterval default 1000;
+    property OnTimer: TNotifyEvent read FOnTimer write SetOnTimer;
   end;
   TPanelBevel = (bvNone, bvLowered, bvRaised);
   TBevelWidth = 1..MaxInt;
@@ -129,7 +152,7 @@ const
 procedure Frame3D(Canvas: TCanvas; var Rect: TRect; TopColor, BottomColor: TColor;
   Width: Integer);
 implementation
-uses SysUtils, WinProcs, native_window;
+uses SysUtils, WinProcs, native_window, Forms;
 constructor TImage.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -217,6 +240,46 @@ begin
   end;
   Inc(Rect.Bottom); Inc(Rect.Right);
 end;
+{ TTimer }
+constructor TTimer.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FEnabled := True;
+  FInterval := 1000;
+  FWindow := AllocateHWnd(WndProc);
+end;
+destructor TTimer.Destroy;
+begin
+  FEnabled := False;
+  UpdateTimer;
+  DeallocateHWnd(FWindow);
+  inherited Destroy;
+end;
+procedure TTimer.UpdateTimer;
+begin
+  KillTimer(FWindow, 1);
+  if (FInterval <> 0) and FEnabled and Assigned(FOnTimer) then
+    if SetTimer(FWindow, 1, FInterval, nil) = 0 then
+      raise EOutOfResources.Create('Not enough timers available');
+end;
+procedure TTimer.SetEnabled(Value: Boolean);
+begin if Value <> FEnabled then begin FEnabled := Value; UpdateTimer; end; end;
+procedure TTimer.SetInterval(Value: Word);
+begin if Value <> FInterval then begin FInterval := Value; UpdateTimer; end; end;
+procedure TTimer.SetOnTimer(Value: TNotifyEvent);
+begin FOnTimer := Value; UpdateTimer; end;
+procedure TTimer.WndProc(var Msg: TMessage);
+begin
+  if Msg.Msg = WM_TIMER then
+  begin
+    { As in Delphi, a failing handler is reported and the timer goes on. }
+    try Timer; except Application.HandleException(Self); end;
+    Msg.Result := 0;
+  end
+  else Msg.Result := DefWindowProc(FWindow, Msg.Msg, Msg.WParam, Msg.LParam);
+end;
+procedure TTimer.Timer;
+begin if Assigned(FOnTimer) then FOnTimer(Self); end;
 { TCustomPanel }
 constructor TCustomPanel.Create(AOwner: TComponent);
 begin

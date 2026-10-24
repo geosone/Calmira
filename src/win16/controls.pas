@@ -285,6 +285,18 @@ type
   end;
   { Delphi 1 TCustomControl descends from TWinControl; here they are one class. }
   TWinControl = TCustomControl;
+  { Delphi 1 window creation parameters; see TForm.CreateParams. }
+  TCreateParams = record
+    Caption: PChar;
+    Style: LongInt;
+    ExStyle: LongInt;
+    X, Y: Integer;
+    Width, Height: Integer;
+    WndParent: HWND;
+    Param: Pointer;
+    WindowClass: TWndClass;
+    WinClassName: array[0..63] of Char;
+  end;
   { Sent to every windowed control of a form when its focused control changes. }
   TCMFocusChanged = record
     Msg: Word;

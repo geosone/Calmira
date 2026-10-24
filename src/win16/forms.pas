@@ -56,7 +56,11 @@ type
     { Client size requested before the window exists, or -1. }
     FDesignClientWidth, FDesignClientHeight: Integer;
     FVisibleAfterCreate: Boolean;
+    { CreateParams work area while the window is created. }
+    FCreation: Pointer;
     procedure ApplyClientSize;
+    procedure PrepareCreation(Parent: HWND; const Caption: string; Style: DWORD;
+      X, Y, Width, Height: SmallInt);
     function GetFormClientWidth: Integer;
     function GetFormClientHeight: Integer;
     procedure SetClientWidth(Value: Integer);
@@ -75,6 +79,11 @@ type
   protected
     procedure DoClose(var Action: TCloseAction); override;
     procedure DoActivate; override;
+    { Called before the window is created. Caption, Style, the bounds and
+      WndParent are honoured; WndParent may only be 0 or the desktop window,
+      which both leave the form unowned. Changing ExStyle, Param or the
+      window class raises ENativeWindowError. }
+    procedure CreateParams(var Params: TCreateParams); virtual;
   public
     { Runs the loaders registered for this class and its ancestors, as Delphi
       reads the form's DFM resources, then OnCreate. EResNotFound if the
@@ -224,6 +233,16 @@ var
   Screen: TScreen;
 implementation
 uses WinProcs, native_window, native_input;
+type
+  { Kept off the stack: forms are created deep in small (4 KB) task stacks. }
+  PFormCreation = ^TFormCreation;
+  TFormCreation = record
+    Params: TCreateParams;
+    OriginalClass: TWndClass;
+    Text: array[0..255] of Char;
+    Title: string;
+    Length: Word;
+  end;
 var ReleaseMessage: Word;
 const
   HintTimer = $7E02;
@@ -346,6 +365,7 @@ begin
     except if Application <> nil then Application.HandleException(Self); end;
   inherited Destroy;
   FIcon.Free;
+  if FCreation <> nil then FreeMem(FCreation, SizeOf(TFormCreation));
 end;
 procedure TForm.ApplyClientSize;
 var Area: TRect;
@@ -471,21 +491,56 @@ begin
     if biMaximize in Icons then Result := Result or WS_MAXIMIZEBOX;
   end;
 end;
+procedure TForm.CreateParams(var Params: TCreateParams);
+begin end;
+{ Fills FCreation; kept out of CreateHandle so that its frame is gone
+  before CreateWindow sends the creation messages. }
+procedure TForm.PrepareCreation(Parent: HWND; const Caption: string; Style: DWORD;
+  X, Y, Width, Height: SmallInt);
+begin
+  { No exception frame here: a failure leaves FCreation to Destroy. }
+  if FCreation = nil then GetMem(FCreation, SizeOf(TFormCreation));
+  with PFormCreation(FCreation)^ do
+  begin
+    FillChar(Params, SizeOf(Params), 0);
+    Params.Caption := StrPCopy(Text, Caption);
+    Params.Style := LongInt((Style and not DWORD(WS_OVERLAPPEDWINDOW or WS_DLGFRAME or WS_BORDER or WS_POPUP)) or
+      FrameStyle);
+    Params.X := X; Params.Y := Y; Params.Width := Width; Params.Height := Height;
+    Params.WndParent := Parent;
+    StrPLCopy(Params.WinClassName, NativeClassName, High(Params.WinClassName));
+    GetClassInfo(HInstance, NativeClassName, Params.WindowClass);
+    OriginalClass := Params.WindowClass;
+    CreateParams(Params);
+    if (Params.ExStyle <> 0) or (Params.Param <> nil) or
+      (StrComp(Params.WinClassName, NativeClassName) <> 0) or
+      not CompareMem(@OriginalClass, @Params.WindowClass, SizeOf(OriginalClass)) then
+      raise ENativeWindowError.Create('Only Caption, Style, bounds and WndParent can change in CreateParams');
+    if Params.WndParent = GetDesktopWindow then Params.WndParent := 0;
+    if Params.WndParent <> 0 then raise ENativeWindowError.Create('Owned forms are not provided');
+    Length := StrLen(Params.Caption);
+    if Length > 255 then Length := 255;
+    Move(Params.Caption^, Title[1], Length);
+    Title[0] := Chr(Length);
+    case FPosition of
+      poDesigned: ;
+      poScreenCenter:
+        begin
+          Params.X := (GetSystemMetrics(SM_CXSCREEN) - Params.Width) div 2;
+          Params.Y := (GetSystemMetrics(SM_CYSCREEN) - Params.Height) div 2;
+        end;
+    else raise ENativeWindowError.Create('Only poDesigned and poScreenCenter are provided');
+    end;
+  end;
+end;
 procedure TForm.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
   X, Y, Width, Height: SmallInt);
 begin
-  case FPosition of
-    poDesigned: ;
-    poScreenCenter:
-      begin
-        X := (GetSystemMetrics(SM_CXSCREEN) - Width) div 2;
-        Y := (GetSystemMetrics(SM_CYSCREEN) - Height) div 2;
-      end;
-  else raise ENativeWindowError.Create('Only poDesigned and poScreenCenter are provided');
-  end;
-  inherited CreateHandle(Parent, Caption,
-    (Style and not DWORD(WS_OVERLAPPEDWINDOW or WS_DLGFRAME or WS_BORDER or WS_POPUP)) or FrameStyle,
-    X, Y, Width, Height);
+  PrepareCreation(Parent, Caption, Style, X, Y, Width, Height);
+  inherited CreateHandle(0, PFormCreation(FCreation)^.Title, DWORD(PFormCreation(FCreation)^.Params.Style),
+    PFormCreation(FCreation)^.Params.X, PFormCreation(FCreation)^.Params.Y,
+    PFormCreation(FCreation)^.Params.Width, PFormCreation(FCreation)^.Params.Height);
+  FreeMem(FCreation, SizeOf(TFormCreation)); FCreation := nil;
   if FFormStyle = fsStayOnTop then
     SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
 end;

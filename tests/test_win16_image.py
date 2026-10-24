@@ -25,7 +25,6 @@ class Win16ImageTests(unittest.TestCase):
                      'if not (FPicture.Graphic is TBitmap) then',
                      'Painter := TGraphicControl(Self).Canvas'):
             self.assertIn(text, source)
-        self.assertNotIn('TTimer =', source)
 
     def test_auto_size_center_and_icon_scaling_are_explicit(self):
         source = (ROOT / 'src/win16/extctrls.pas').read_text()

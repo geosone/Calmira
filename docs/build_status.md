@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 91 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 93 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1454,3 +1454,71 @@ The full regression passed (`build/tests/common-dialogs.log`, 90 suites, exit 0)
 Covered by `make win16-tab-panel-runtime-test`.
 
 The full regression passed (`build/tests/tab-panel.log`, 91 suites, exit 0).
+
+## Timers and Form CreateParams
+
+- `ExtCtrls` now provides Delphi 1's `TTimer`: `Enabled` (default True),
+  `Interval` (default 1000) and `OnTimer`. As in Delphi, the timer runs
+  only while it is enabled, the interval is non-zero and `OnTimer` is
+  assigned. It uses a WM_TIMER on an `AllocateHWnd` window, and raises
+  `EOutOfResources` when USER has no timer left. An exception in
+  `OnTimer` goes to `Application.HandleException` and the timer keeps
+  running.
+- `Controls` declares `TCreateParams`, and `TForm` calls the virtual
+  `CreateParams` before creating its window. Caption, Style, the bounds
+  and `WndParent` are honoured. `WndParent` may be 0 or the desktop
+  window, which on Win16 both leave the form unowned: that is what
+  Calmira's `TCalForm` and `TTaskbar` ask for. Owner windows, `ExStyle`,
+  `Param` and window-class changes raise `ENativeWindowError`.
+  `CreateParams` is only on forms, not on every windowed control.
+- The creation parameters live on the heap, and are prepared in a
+  separate method before `CreateWindow` runs. The creation messages
+  recurse deep into small task stacks, and keeping them in the
+  `CreateHandle` frame overran the 4 KB stack of the input-query suite.
+- Calmira's `src/task.pas` now compiles.
+
+Covered by `make win16-timer-runtime-test`.
+
+## DDE
+
+- The new `src/win16/ddeml.pas` binds DDEML.DLL. It was written from the
+  Windows 3.1 SDK and covers instances, string and data handles,
+  conversations, client transactions and name service.
+- The new `DdeMan` provides Delphi 1's `DdeMgr` (`AppName`, which
+  defaults to the module name, registers the DDE service), plus
+  `TDdeClientConv` and `TDdeServerConv`. The DDEML callback goes through
+  `MakeProcInstance`. A failure inside it goes to
+  `Application.HandleException`.
+- `TDdeClientConv`:
+  - Provides `DdeService`, `DdeTopic`, `ServiceApplication`,
+    `ConnectMode`, `SetLink`, `OpenLink`, `CloseLink`, `RequestData` (a
+    `StrAlloc` buffer or nil), `ExecuteMacro`, `ExecuteMacroLines`,
+    `OnOpen`/`OnClose`, `Conv`, `DdeFmt` and `WaitStat`.
+  - If no server answers, `OpenLink` starts `ServiceApplication` once
+    and retries the connection for up to 2 s.
+  - In `ddeAutomatic` mode, `SetLink` and `Loaded` open the link.
+  - When the server ends the conversation, the link closes with
+    `OnClose`.
+  - Transactions are synchronous with a 10 s timeout, also when
+    `WaitFlg` is False. `FormatChars` is kept for DFMs only.
+- `TDdeServerConv` answers connections to `AppName` whose topic is its
+  `Name`. `OnExecuteMacro` gets the command split at line breaks;
+  `OnOpen`/`OnClose` follow the conversation.
+- Not provided: client and server items (`TDdeClientItem`,
+  `TDdeServerItem`), advise loops, pokes, paste links, and form captions
+  as server topics. Requests to a server conversation return nothing.
+- The form loader translates a client conversation's DFM `LinkInfo`
+  (`Service X`, `Topic Y`) into `DdeService`/`DdeTopic`. This means
+  `strtprop` now generates; only `tips` (an icon picture) is still
+  blocked.
+- Calmira's `vcl/internet.pas`, `src/progconv.pas` and the `DdeMan` uses
+  in `compsys`/`strtprop` now get past DdeMan. Most form loaders now stop
+  at `CopyIcon` (via `resource.pas`) or `TRadioGroup` (via `fsysprop`).
+  The four TNativeForm-based forms are unchanged.
+
+Covered by `make win16-dde-runtime-test`. The test task is a DDE server
+for a second task (`tests/pascal/dde_sender.pas`), and a client of
+PROGMAN, the shell of the test image. With `SERVE`, the helper is a
+server that `ServiceApplication` starts and that exits on `[Quit]`.
+
+The full regression passed (`build/tests/dde.log`, 93 suites, exit 0).

@@ -191,6 +191,15 @@ class Loader:
                 self.emit(f'{target}.Sections.Clear;')
                 for index, (width, text) in enumerate(sections):
                     self.emit(f'{target}.Sections.Add({literal(text)}); {target}.SectionWidth[{index}] := {width};')
+            elif key == 'linkinfo':
+                # TDdeClientConv's DefineProperties list: 'Service X', 'Topic Y'.
+                if value.kind != 'list' or any(item.kind != 'string' for item in value.data):
+                    self.fail(node, spelled, 'expected a string list')
+                for item in value.data:
+                    field, _, text = item.data.partition(' ')
+                    if field not in ('Service', 'Topic'):
+                        self.fail(node, spelled, f'unsupported link entry {item.data!r}')
+                    self.emit(f'{target}.Dde{field} := {literal(text)};')
             elif key == 'data' and value.kind == 'binary':
                 # TOutline's DefineProperties data; 1F alone is an empty outline.
                 if value.data != b'\x1f':

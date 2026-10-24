@@ -205,7 +205,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-forms-runtime-test win16-dialogs-runtime-test win16-input-query-runtime-test \
 		win16-shellapi-runtime-test win16-inifiles-runtime-test win16-menus-runtime-test \
 		win16-system-dlls-runtime-test win16-clipbrd-runtime-test win16-radio-runtime-test \
-		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test win16-spin-runtime-test win16-bevel-runtime-test win16-listbox-runtime-test win16-align-runtime-test win16-parent-runtime-test win16-ownerdraw-runtime-test win16-canvas-context-runtime-test win16-hints-runtime-test win16-minimize-runtime-test win16-grids-runtime-test win16-form-loader-runtime-test win16-outline-runtime-test win16-common-dialogs-runtime-test win16-tab-panel-runtime-test \
+		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test win16-spin-runtime-test win16-bevel-runtime-test win16-listbox-runtime-test win16-align-runtime-test win16-parent-runtime-test win16-ownerdraw-runtime-test win16-canvas-context-runtime-test win16-hints-runtime-test win16-minimize-runtime-test win16-grids-runtime-test win16-form-loader-runtime-test win16-outline-runtime-test win16-common-dialogs-runtime-test win16-tab-panel-runtime-test win16-timer-runtime-test win16-dde-runtime-test \
 		win16-cursor-runtime-test win16-cursor-modal-runtime-test \
 		win16-form-activation-runtime-test win16-form-resize-runtime-test win16-form-state-runtime-test \
 		win16-ui-runtime-test win16-window-runtime-test win16-input-runtime-test \
@@ -766,6 +766,36 @@ win16-tab-panel: fpc-win16-gui-rtl
 
 win16-tab-panel-runtime-test: win16-tab-panel
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-tab-panel/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-timer win16-timer-runtime-test
+win16-timer: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-timer/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fuvcl -Fusrc/win16 -Fusrc/portable -Fu$(FPC_WIN16_GUI_RTL) \
+		-FU$(BUILD_DIR)/tests/win16-timer/units -FE$(BUILD_DIR)/tests/win16-timer \
+		-oGDITEST.EXE tests/pascal/test_win16_timer.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-timer/GDITEST.EXE
+
+win16-timer-runtime-test: win16-timer
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-timer/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-dde win16-dde-runtime-test
+win16-dde: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-dde/units $(BUILD_DIR)/tests/win16-dde-sender/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fuvcl -Fusrc/win16 -Fusrc/portable -Fu$(FPC_WIN16_GUI_RTL) \
+		-FU$(BUILD_DIR)/tests/win16-dde/units -FE$(BUILD_DIR)/tests/win16-dde \
+		-oGDITEST.EXE tests/pascal/test_win16_dde.pas
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fusrc/win16 -Fusrc/portable -Fu$(FPC_WIN16_GUI_RTL) \
+		-FU$(BUILD_DIR)/tests/win16-dde-sender/units -FE$(BUILD_DIR)/tests/win16-dde-sender \
+		-oAPPSEND.EXE tests/pascal/dde_sender.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-dde/GDITEST.EXE
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-dde-sender/APPSEND.EXE
+
+win16-dde-runtime-test: win16-dde
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-dde/GDITEST.EXE)' \
+		GDI_HELPER_EXE='$(abspath $(BUILD_DIR)/tests/win16-dde-sender/APPSEND.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-ownerdraw win16-ownerdraw-runtime-test
 win16-ownerdraw: fpc-win16-gui-rtl

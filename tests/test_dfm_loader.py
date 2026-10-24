@@ -69,10 +69,17 @@ class DfmLoaderTests(unittest.TestCase):
                 compile_loader(path.read_bytes(), source)
             except DfmError as error:
                 blocked[path.stem] = str(error)
-        # DDE link data and icon pictures are not provided yet.
+        # Icon pictures are not provided yet.
         self.assertEqual(blocked, {
-            'strtprop': 'Progman.LinkInfo: unsupported list value',
             'tips': 'Image1.Picture.Data: only TBitmap picture data is supported'})
+
+    def test_dde_link_info_sets_service_and_topic(self):
+        link = lambda *entries: form([component('TDdeClientConv', 'Link', [('LinkInfo', list(entries))])])
+        text = compile_loader(link('Service PROGMAN', 'Topic PROGMAN'), UNIT)[0]
+        self.assertIn("F.Link.DdeService := 'PROGMAN';", text)
+        self.assertIn("F.Link.DdeTopic := 'PROGMAN';", text)
+        with self.assertRaisesRegex(DfmError, 'unsupported link entry'):
+            compile_loader(link('Item Groups'), UNIT)
 
     def test_outline_data_must_be_empty(self):
         tree = lambda data: form([component('TScrollTree', 'T', [('Width', 1), ('Height', 1)])])
