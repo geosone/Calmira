@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 90 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 91 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1424,3 +1424,33 @@ answers the real dialogs from a timer that the dialog's message loop
 dispatches.
 
 The full regression passed (`build/tests/common-dialogs.log`, 90 suites, exit 0).
+
+## Panels and Tab Panels
+
+- `ExtCtrls` now provides Delphi 1's `TCustomPanel` and `TPanel`:
+  `BevelOuter`, `BevelInner`, `BevelWidth`, `BorderWidth`, `BorderStyle`
+  (`bsSingle` adds `WS_BORDER` and cannot change on a live window),
+  `Alignment`, `Caption`, `Locked` (kept for DFMs) and `OnResize`. Paint
+  draws the outer bevel, the border gap and the inner bevel, then the
+  single-line caption. Aligned children stay inside all three, as in
+  Delphi's `AlignControls`.
+- Panels fire `OnClick` when a left press is released inside `ClientRect`,
+  plus `OnDblClick`; the mouse events are published. The hit test does
+  not use `WinProcs.PtInRect`, whose POINT-by-value call fails on Win16.
+- `Controls` declares `CM_FOCUSCHANGED` and `TCMFocusChanged`. When a
+  control gains focus, `Screen` sends `CM_FOCUSCHANGED` to every
+  windowed control of its form, as Delphi's `SetFocusedControl` does.
+- The new `Tabs` unit declares Delphi 1's tab types (`TTabChangeEvent`,
+  `TTabStyle`, the measure/draw events). `TTabSet` itself is not
+  provided.
+- Calmira's `vcl/tabpanel.pas` now compiles; only its design-time
+  `ControlStyle` line is under `{$IFNDEF FPC}`. Tabs follow the linked
+  notebook, `OnChange` can refuse a tab, the arrow keys and `SelectNext`
+  cycle through the tabs, and the tab strip repaints on focus changes.
+- No form loader stops at `Tabs` or `TPanel` any more. Most forms now stop
+  at `DdeMan` (via `internet` and `compsys`); `task` needs `TTimer`; the
+  four TNativeForm-based forms are unchanged.
+
+Covered by `make win16-tab-panel-runtime-test`.
+
+The full regression passed (`build/tests/tab-panel.log`, 91 suites, exit 0).

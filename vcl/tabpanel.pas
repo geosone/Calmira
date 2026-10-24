@@ -99,7 +99,9 @@ begin
  {Font.Name := 'MS Sans Serif';
   Font.Size := 8;
   Font.Style := [];}
+  {$IFNDEF FPC}
   ControlStyle := ControlStyle + [csDesignInteractive, csOpaque];
+  {$ENDIF}
   FTabs := TStringList.Create;
   FTabs.Add('General');
   FTabHeight := 20;

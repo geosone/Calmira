@@ -26,6 +26,7 @@ type
 const
   { Delphi 1 component messages that Calmira's own controls handle. }
   CM_BASE = $0F00;
+  CM_FOCUSCHANGED = CM_BASE + 7;
   CM_ENABLEDCHANGED = CM_BASE + 12;
   CM_MOUSEENTER = CM_BASE + 19;
   CM_MOUSELEAVE = CM_BASE + 20;
@@ -284,6 +285,13 @@ type
   end;
   { Delphi 1 TCustomControl descends from TWinControl; here they are one class. }
   TWinControl = TCustomControl;
+  { Sent to every windowed control of a form when its focused control changes. }
+  TCMFocusChanged = record
+    Msg: Word;
+    Unused: Word;
+    Sender: TWinControl;
+    Result: LongInt;
+  end;
   { A canvas on a control outside its Paint: the window's DC, or the parent's
     clipped to the bounds of a graphic control. }
   TControlCanvas = class(TCanvas)

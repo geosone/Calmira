@@ -796,9 +796,25 @@ begin
   if not (Form is TForm) then raise ENativeScreenError.Create('Invalid screen form');
   Result := TForm(Form);
 end;
+procedure BroadcastFocusChanged(Control, Focused: TCustomControl);
+var I: Integer;
+begin
+  Control.Perform(CM_FOCUSCHANGED, 0, LongInt(Focused));
+  for I := 0 to Control.ControlCount - 1 do
+    if Control.Controls[I] is TCustomControl then
+      BroadcastFocusChanged(TCustomControl(Control.Controls[I]), Focused);
+end;
 procedure TScreen.ControlEntered(Sender: TObject);
+var Form: TForm;
 begin
   if Sender = FFocusedControl then Exit;
+  { Delphi's SetFocusedControl tells the whole form, e.g. to move a default
+    button frame or repaint a focus rectangle. }
+  if Sender is TCustomControl then
+  begin
+    Form := GetParentForm(TCustomControl(Sender));
+    if Form <> nil then BroadcastFocusChanged(Form, TCustomControl(Sender));
+  end;
   if FFocusedControl <> nil then FFocusedControl.RemoveFreeNotification(Self);
   FFocusedControl := nil;
   if Sender is TComponent then
