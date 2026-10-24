@@ -1,6 +1,6 @@
 --- a/rtl/win16/wintypes.inc
 +++ b/rtl/win16/wintypes.inc
-@@ -346,9 +346,19 @@
+@@ -346,9 +346,22 @@
    HPALETTE = THandle;
    HFONT    = THandle;
  
@@ -13,17 +13,20 @@
 +{$ifdef CALMIRA_WIN16_DELPHI1_TYPES}
 +  { Delphi 1 WinTypes declares only TRect/TPoint. Type names RECT and POINT
 +    would hide Classes.Rect/Point in units that use WinTypes after Classes. }
++  TPoint = record
++    x: SmallInt;
++    y: SmallInt;
++  end;
 +  TRect = record
-+    left: SmallInt;
-+    top: SmallInt;
-+    right: SmallInt;
-+    bottom: SmallInt;
++    case SmallInt of
++      0: (left, top, right, bottom: SmallInt);
++      1: (TopLeft, BottomRight: TPoint);
 +  end;
 +{$else CALMIRA_WIN16_DELPHI1_TYPES}
    RECT = record
      left: SmallInt;
      top: SmallInt;
-@@ -356,17 +366,25 @@
+@@ -356,17 +369,20 @@
      bottom: SmallInt;
    end;
    TRect = RECT;
@@ -35,12 +38,7 @@
 +  PPOINT = ^TPoint;
 +  NPPOINT = ^TPoint; near;
 +  LPPOINT = ^TPoint; far;
-+{$ifdef CALMIRA_WIN16_DELPHI1_TYPES}
-+  TPoint = record
-+    x: SmallInt;
-+    y: SmallInt;
-+  end;
-+{$else CALMIRA_WIN16_DELPHI1_TYPES}
++{$ifndef CALMIRA_WIN16_DELPHI1_TYPES}
    POINT = record
      x: SmallInt;
      y: SmallInt;
@@ -53,7 +51,7 @@
  
  { Device Capabilities }
  const
-@@ -554,7 +572,7 @@
+@@ -554,7 +570,7 @@
    LPLOGPEN = ^LOGPEN; far;
    LOGPEN = record
      lopnStyle: UINT;
@@ -62,7 +60,7 @@
      lopnColor: COLORREF;
    end;
    TLogPen = LOGPEN;
-@@ -1316,7 +1334,7 @@
+@@ -1316,7 +1332,7 @@
      wParam: WPARAM;
      lParam: LPARAM;
      time: DWORD;
@@ -71,7 +69,7 @@
    end;
    TMsg = MSG;
  
-@@ -1610,11 +1628,11 @@
+@@ -1610,11 +1626,11 @@
    PMINMAXINFO = ^MINMAXINFO;
    LPMINMAXINFO = ^MINMAXINFO; far;
    MINMAXINFO = record
@@ -88,7 +86,7 @@
    end;
    TMinMaxInfo = MINMAXINFO;
  
-@@ -1652,7 +1670,7 @@
+@@ -1652,7 +1668,7 @@
    PAINTSTRUCT = record
      hdc: HDC;
      fErase: BOOL;
@@ -97,7 +95,7 @@
      fRestore: BOOL;
      fIncUpdate: BOOL;
      rgbReserved: array [0..15] of BYTE;
-@@ -1688,7 +1706,7 @@
+@@ -1688,7 +1704,7 @@
    PNCCALCSIZE_PARAMS = ^NCCALCSIZE_PARAMS;
    LPNCCALCSIZE_PARAMS = ^NCCALCSIZE_PARAMS; far;
    NCCALCSIZE_PARAMS = record
@@ -106,7 +104,7 @@
    end;
    TNCCalcSize_Params = NCCALCSIZE_PARAMS;
  
-@@ -1902,7 +1920,7 @@
+@@ -1902,7 +1918,7 @@
    PMOUSEHOOKSTRUCT = ^MOUSEHOOKSTRUCT;
    LPMOUSEHOOKSTRUCT = ^MOUSEHOOKSTRUCT; far;
    MOUSEHOOKSTRUCT = record
@@ -115,7 +113,7 @@
      hwnd: HWND;
      wHitTestCode: UINT;
      dwExtraInfo: DWORD;
-@@ -2324,7 +2342,7 @@
+@@ -2324,7 +2340,7 @@
      itemState: UINT;
      hwndItem: HWND;
      hDC: HDC;

@@ -305,7 +305,7 @@ implementation
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses ShellAPI, FileProp, DiskProp, Drives, Tree, Environs, Fileman,
+uses {$IFDEF FPC}Win31, {$ENDIF}ShellAPI, FileProp, DiskProp, Drives, Tree, Environs, Fileman,
   WasteBin, OpenFile, RunProg, Desk, FileFind, Filter, CompSys, Strings,
   MiscUtil, Files, WinProcs, Alias, FSysProp, Select, Clipbrd, Referenc,
   Locale, Embed, Iconic, Task, IncSrch, FourDOS, GotoFld, Tips, About,

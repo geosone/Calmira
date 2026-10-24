@@ -272,7 +272,7 @@ function IsProperTaskWindow(Wnd: HWND): Boolean;
 
 implementation
 
-uses ShellAPI, ToolHelp, Strings, Settings, Files, Start, Desk, Compsys,
+uses {$IFDEF FPC}Win31, {$ENDIF}ShellAPI, ToolHelp, Strings, Settings, Files, Start, Desk, Compsys,
   MiscUtil, IconWin, Tree, Resource, MultiGrd, FileFind, Environs, Streamer,
   Locale, Dialogs, Strtprop, TaskProp, FileMan, Taskman, ShutDown, Alias,
   Drives, WasteBin;

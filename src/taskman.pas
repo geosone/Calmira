@@ -109,7 +109,7 @@ procedure OpenTaskManager;
 
 implementation
 
-uses ToolHelp, Task, Desk, Settings, MiscUtil, Locale, Resource, Embed,
+uses {$IFDEF FPC}Win31, {$ENDIF}ToolHelp, Task, Desk, Settings, MiscUtil, Locale, Resource, Embed,
   Strings, ShellAPI, CalMsgs, RunProg;
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}

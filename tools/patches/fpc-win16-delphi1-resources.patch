@@ -1,0 +1,91 @@
+--- a/rtl/objpas/sysutils/sysstrh.inc
++++ b/rtl/objpas/sysutils/sysstrh.inc
+@@ -155,7 +155,11 @@
+ function StrToQWordDef(const S: string; Default: QWord): QWord;
+ function StrToUInt64Def(const S: string; Default: UInt64): UInt64; inline;
+ function LoadStr(Ident: integer): string;{$ifdef SYSUTILSINLINE}inline;{$ENDIF}
++{$ifdef CALMIRA_WIN16_DELPHI1_RESOURCES}
++function FmtLoadStr(Ident: integer; const Args: array of const): string;
++{$else CALMIRA_WIN16_DELPHI1_RESOURCES}
+ // function FmtLoadStr(Ident: integer; const Args: array of const): string;
++{$endif CALMIRA_WIN16_DELPHI1_RESOURCES}
+ Function Format (Const Fmt : AnsiString; const Args : Array of const) : AnsiString;
+ Function Format (Const Fmt : Ansistring; const Args: array of const; const FormatSettings: TFormatSettings): Ansistring;
+ Function FormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const) : Cardinal;
+--- a/rtl/objpas/sysutils/sysstr.inc
++++ b/rtl/objpas/sysutils/sysstr.inc
+@@ -1148,16 +1148,33 @@
+ {   LoadStr returns the string resource Ident.   }
+ 
+ function LoadStr(Ident: integer): string;
++{$ifdef CALMIRA_WIN16_DELPHI1_RESOURCES}
++var
++  Buffer: array[0..255] of Char;
++  Len: SmallInt;
++begin
++  { Delphi 1 loads the string from the module's string table. }
++  Len:=LoadString(HInstance,Word(Ident),@Buffer[0],SizeOf(Buffer));
++  if Len<0 then
++    Len:=0;
++  SetString(result,@Buffer[0],Len);
++end;
++{$else CALMIRA_WIN16_DELPHI1_RESOURCES}
+ begin
+   result:='';
+ end;
++{$endif CALMIRA_WIN16_DELPHI1_RESOURCES}
+ 
+ {   FmtLoadStr returns the string resource Ident and formats it accordingly   }
+ 
+ 
+ function FmtLoadStr(Ident: integer; const Args: array of const): string;
+ begin
++{$ifdef CALMIRA_WIN16_DELPHI1_RESOURCES}
++  result:=Format(LoadStr(Ident),Args);
++{$else CALMIRA_WIN16_DELPHI1_RESOURCES}
+   result:='';
++{$endif CALMIRA_WIN16_DELPHI1_RESOURCES}
+ end;
+ 
+ Const
+--- a/rtl/objpas/sysutils/sysutilh.inc
++++ b/rtl/objpas/sysutils/sysutilh.inc
+@@ -118,6 +118,11 @@
+       constructor CreateFmt(const msg : string; const args : array of const);
+       constructor CreateRes(ResString: PResStringRec);
+       constructor CreateResFmt(ResString: PResStringRec; const Args: array of const);
++{$ifdef CALMIRA_WIN16_DELPHI1_RESOURCES}
++      { Delphi 1 code raises with string-table identifiers. }
++      constructor CreateRes(Ident: Word);
++      constructor CreateResFmt(Ident: Word; const Args: array of const);
++{$endif CALMIRA_WIN16_DELPHI1_RESOURCES}
+       constructor CreateHelp(const Msg: string; AHelpContext: Longint);
+       constructor CreateFmtHelp(const Msg: string; const Args: array of const;
+         AHelpContext: Longint);
+--- a/rtl/objpas/sysutils/sysutils.inc
++++ b/rtl/objpas/sysutils/sysutils.inc
+@@ -227,6 +227,24 @@
+       end;
+ 
+ 
++{$ifdef CALMIRA_WIN16_DELPHI1_RESOURCES}
++    constructor Exception.CreateRes(Ident: Word);
++
++      begin
++         inherited create;
++         fmessage:=LoadStr(Ident);
++      end;
++
++
++    constructor Exception.CreateResFmt(Ident: Word; const Args: array of const);
++
++      begin
++         inherited create;
++         fmessage:=Format(LoadStr(Ident),args);
++      end;
++{$endif CALMIRA_WIN16_DELPHI1_RESOURCES}
++
++
+     constructor Exception.CreateHelp(const Msg: string; AHelpContext: Longint);
+ 
+       begin

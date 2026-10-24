@@ -125,10 +125,15 @@ type
     property Sorted;
     property Style;
     property Font;
+    property DragCursor;
+    property DragMode;
     property OnClick;
     property OnDblClick;
     property OnDrawItem;
     property OnMeasureItem;
+    property OnDragDrop;
+    property OnDragOver;
+    property OnEndDrag;
     property Enabled;
     property Visible;
     property TabStop;

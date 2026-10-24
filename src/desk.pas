@@ -135,7 +135,7 @@ var
 
 implementation
 
-uses Directry, WinProcs, Shorts, WasteBin, CompSys, Settings, Resource,
+uses {$IFDEF FPC}Win31, {$ENDIF}Directry, WinProcs, Shorts, WasteBin, CompSys, Settings, Resource,
   Strings, Locale, FileFind, Files, MiscUtil, Drives, Tree, Progress,
   Replace, CalForm, Start, ExtForm, FileMan, Dialogs, Task;
 

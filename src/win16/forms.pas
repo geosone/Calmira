@@ -219,6 +219,8 @@ function AllocateHWnd(Method: TWndMethod): HWND;
 procedure DeallocateHWnd(Wnd: HWND);
 { The TForm that (indirectly) contains Control, or nil. }
 function GetParentForm(Control: TControl): TForm;
+{ True when Str's mnemonic (the character after a single &) is VK, ignoring case. }
+function IsAccel(VK: Word; const Str: string): Boolean;
 procedure RegisterFormLoader(FormClass: TFormClass; Loader: TFormLoader);
 { Loader helpers: mark a new component csLoading until the form is loaded,
   and show the form once OnCreate has run (a DFM Visible = True). }
@@ -232,7 +234,7 @@ var
   Application: TApplication;
   Screen: TScreen;
 implementation
-uses WinProcs, native_window, native_input;
+uses WinProcs, native_window, native_input, native_mnemonic;
 type
   { Kept off the stack: forms are created deep in small (4 KB) task stacks. }
   PFormCreation = ^TFormCreation;
@@ -434,6 +436,10 @@ begin
 end;
 function TForm.Designer: TDesigner;
 begin Result := nil; end;
+function IsAccel(VK: Word; const Str: string): Boolean;
+begin
+  Result := (VK <= 255) and CaptionMatches(Str, Chr(VK));
+end;
 function GetParentForm(Control: TControl): TForm;
 var Current: TCustomControl;
 begin

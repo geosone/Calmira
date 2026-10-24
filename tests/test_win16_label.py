@@ -54,7 +54,7 @@ class Win16LabelTests(unittest.TestCase):
 
     def test_font_notifications_suppress_recursion_not_state_changes(self):
         source = (ROOT / 'src/win16/gdi_canvas.pas').read_text()
-        for text in ('procedure TGDIFont.Changed',
+        for text in ('procedure TGDIResource.Changed',
                      'if FNotifying or not Assigned(FOnChange) then Exit',
                      'try FOnChange(Self); finally FNotifying := False',
                      'property Color: TColor read FColor write SetColor',

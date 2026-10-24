@@ -58,7 +58,7 @@ implementation
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses SysUtils, MiscUtil, Settings, Desk, Task, IniFiles, Resource, Files,
+uses {$IFDEF FPC}Win31, {$ENDIF}SysUtils, MiscUtil, Settings, Desk, Task, IniFiles, Resource, Files,
   CompSys, Strings;
 
 {

@@ -179,6 +179,8 @@ type
     function ScreenToClient(const Position: TPoint): TPoint;
     function FindControl(Window: HWND): TCustomControl;
     function HandleAllocated: Boolean;
+    { True while the window and all its parents are visible. }
+    function Showing: Boolean;
     function ResolveHelpContext: LongInt;
     function FocusNext(Forward: Boolean): Boolean;
     function DispatchDialogKey(Key: Word): Boolean;
@@ -356,6 +358,10 @@ function Point(X, Y: Integer): TPoint;
 { The control under the screen point Pos: a windowed control, or the graphic
   child of one at that point. Disabled graphic controls count only with
   AllowDisabled; USER never reports disabled windows. }
+{ The control whose window is Handle, or nil for foreign windows. }
+function FindControl(Handle: HWND): TWinControl;
+{ The control holding the mouse capture, or nil. }
+function GetCaptureControl: TControl;
 function FindDragTarget(const Pos: TPoint; AllowDisabled: Boolean): TControl;
 { The parts of a hint before and after its first '|'. }
 function GetShortHint(const Hint: string): string;
@@ -1534,6 +1540,20 @@ begin
     finally Surface.Free; end;
   finally RestoreDC(DC, State); end;
 end;
+function FindControl(Handle: HWND): TWinControl;
+var Native: TNativeWindow;
+begin
+  Native := FindNativeWindow(Handle);
+  if Native is TCustomControl then Result := TCustomControl(Native) else Result := nil;
+end;
+function GetCaptureControl: TControl;
+var Window: TWinControl;
+begin
+  Result := nil;
+  Window := FindControl(GetCapture);
+  if Window = nil then Exit;
+  if Window.FCaptureControl <> nil then Result := Window.FCaptureControl else Result := Window;
+end;
 function FindDragTarget(const Pos: TPoint; AllowDisabled: Boolean): TControl;
 var Window: HWND; Native: TNativeWindow; Local: TPoint; Graphic: TGraphicControl;
 begin
@@ -1566,6 +1586,8 @@ begin
 end;
 function TCustomControl.HandleAllocated: Boolean;
 begin Result := Handle <> 0; end;
+function TCustomControl.Showing: Boolean;
+begin Result := (Handle <> 0) and IsWindowVisible(Handle); end;
 
 { THintWindow }
 constructor THintWindow.Create(AOwner: TComponent);

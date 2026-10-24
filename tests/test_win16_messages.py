@@ -63,7 +63,8 @@ class Win16MessageTests(unittest.TestCase):
             extra = {}
             for name in ('rtl/win16/dos.pp', 'rtl/win16/prt0comn.asm',
                          'rtl/objpas/sysutils/sysstrh.inc', 'rtl/objpas/sysutils/sysstr.inc',
-                         'rtl/objpas/sysutils/sysutilh.inc', 'rtl/objpas/sysutils/datih.inc',
+                         'rtl/objpas/sysutils/sysutilh.inc', 'rtl/objpas/sysutils/sysutils.inc',
+                         'rtl/objpas/sysutils/datih.inc',
                          'rtl/objpas/sysutils/dati.inc', 'rtl/win16/winprocsh.inc', 'rtl/win16/win31.pp',
                          'rtl/win16/wintypes.inc'):
                 target = source / name

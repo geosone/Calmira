@@ -34,11 +34,15 @@ type
   private
     FHandle: HGDIOBJ;
     FOwned: Boolean;
+    FOnChange: TNotifyEvent;
+    FNotifying: Boolean;
   protected
     procedure ReleaseHandle;
+    procedure Changed;
   public
     destructor Destroy; override;
     procedure Invalidate;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
   TGDIPen = class(TGDIResource)
   private
@@ -78,8 +82,6 @@ type
   end;
   TGDIFont = class(TGDIResource)
   private
-    FOnChange: TNotifyEvent;
-    FNotifying: Boolean;
     FName: string;
     FHeight: SmallInt;
     FColor: TColor;
@@ -89,7 +91,6 @@ type
     procedure SetHeight(Value: SmallInt);
     procedure SetStyle(Value: TFontStyles);
     procedure SetColor(Value: TColor);
-    procedure Changed;
     function GetHandle: HFONT;
     function GetSize: SmallInt;
     procedure SetSize(Value: SmallInt);
@@ -103,7 +104,6 @@ type
     property Size: SmallInt read GetSize write SetSize;
     property PixelsPerInch: SmallInt read FPixelsPerInch;
     property Handle: HFONT read GetHandle;
-    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
   TGDICanvas = class
   private
@@ -239,14 +239,14 @@ begin ReleaseHandle; inherited Destroy; end;
 constructor TGDIPen.Create;
 begin inherited Create; FWidth := 1; end;
 procedure TGDIPen.SetColor(Value: TColor);
-begin if Value <> FColor then begin ReleaseHandle; FColor := Value; end; end;
+begin if Value <> FColor then begin ReleaseHandle; FColor := Value; Changed; end; end;
 procedure TGDIPen.SetWidth(Value: SmallInt);
 begin
   if Value < 0 then raise EGDIError.Create('Pen width must not be negative');
-  if Value <> FWidth then begin ReleaseHandle; FWidth := Value; end;
+  if Value <> FWidth then begin ReleaseHandle; FWidth := Value; Changed; end;
 end;
 procedure TGDIPen.SetStyle(Value: TPenStyle);
-begin if Value <> FStyle then begin ReleaseHandle; FStyle := Value; end; end;
+begin if Value <> FStyle then begin ReleaseHandle; FStyle := Value; Changed; end; end;
 function TGDIPen.GetHandle: HPEN;
 begin
   if FHandle = 0 then
@@ -262,7 +262,7 @@ begin
   if Source = Self then Exit;
   if Source is TGDIPen then
   begin ReleaseHandle; FColor := TGDIPen(Source).FColor; FWidth := TGDIPen(Source).FWidth;
-    FStyle := TGDIPen(Source).FStyle; end
+    FStyle := TGDIPen(Source).FStyle; Changed; end
   else inherited Assign(Source);
 end;
 constructor TGDIBrush.Create;
@@ -276,22 +276,23 @@ begin
 end;
 procedure TGDIBrush.SetPattern(Source: HDC; Width, Height: SmallInt);
 begin
-  if Source = 0 then begin ReplacePattern(0); Exit; end;
+  if Source = 0 then begin ReplacePattern(0); Changed; Exit; end;
   if (Width <> 8) or (Height <> 8) then raise EGDIError.Create('Pattern bitmap must be 8 by 8');
   ReplacePattern(CopyPattern(Source));
+  Changed;
 end;
 destructor TGDIBrush.Destroy;
 begin ReplacePattern(0); inherited Destroy; end;
 procedure TGDIBrush.SetColor(Value: TColor);
 begin
   { Even assigning the existing color must leave bitmap-pattern mode. }
-  if FPattern <> 0 then ReplacePattern(0);
-  if Value <> FColor then begin ReleaseHandle; FColor := Value; end;
+  if FPattern <> 0 then begin ReplacePattern(0); Changed; end;
+  if Value <> FColor then begin ReleaseHandle; FColor := Value; Changed; end;
 end;
 procedure TGDIBrush.SetStyle(Value: TBrushStyle);
 begin
-  if FPattern <> 0 then ReplacePattern(0);
-  if Value <> FStyle then begin ReleaseHandle; FStyle := Value; end;
+  if FPattern <> 0 then begin ReplacePattern(0); Changed; end;
+  if Value <> FStyle then begin ReleaseHandle; FStyle := Value; Changed; end;
 end;
 function TGDIBrush.GetHandle: HBRUSH;
 begin
@@ -331,6 +332,7 @@ begin
       end;
     end;
     ReplacePattern(Copy); FColor := TGDIBrush(Source).FColor; FStyle := TGDIBrush(Source).FStyle;
+    Changed;
   end
   else inherited Assign(Source);
 end;
@@ -372,7 +374,7 @@ procedure TGDIFont.SetStyle(Value: TFontStyles);
 begin if Value <> FStyle then begin ReleaseHandle; FStyle := Value; Changed; end; end;
 procedure TGDIFont.SetColor(Value: TColor);
 begin if Value <> FColor then begin FColor := Value; Changed; end; end;
-procedure TGDIFont.Changed;
+procedure TGDIResource.Changed;
 begin
   if FNotifying or not Assigned(FOnChange) then Exit;
   FNotifying := True;

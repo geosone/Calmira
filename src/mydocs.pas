@@ -78,7 +78,7 @@ implementation
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses Desk, Resource, IconWin, ShellAPI, FileMan, MultiGrd, WasteBin, FileFind,
+uses {$IFDEF FPC}Win31, {$ENDIF}Desk, Resource, IconWin, ShellAPI, FileMan, MultiGrd, WasteBin, FileFind,
   Drives, Files, Strings, MiscUtil, CompSys, Graphics, Locale, ShutDown, Environs;
 
 const

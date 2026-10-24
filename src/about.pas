@@ -72,7 +72,7 @@ implementation
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses Strings, SysUtils, Files, MiscUtil, Settings, Fileman,
+uses {$IFDEF FPC}Win31, {$ENDIF}Strings, SysUtils, Files, MiscUtil, Settings, Fileman,
   Dialogs, Locale, Desk, VerInfo;
 
 procedure TAboutBox.LicenseBtnClick(Sender: TObject);

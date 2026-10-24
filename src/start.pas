@@ -183,7 +183,7 @@ implementation
 
 uses Strings, IniFiles, Desk, Files, Directry, Dialogs, FileMan, Environs,
   Controls, MiscUtil, WinProcs, CompSys, Referenc, Settings, Resource,
-  Streamer, Hooks, Internet, ShutDown;
+  Streamer, Hooks, Internet, ShutDown{$IFDEF FPC}, Win31{$ENDIF};
 
 { TStartMenu and its items need to share some graphics objects, so they
   are global rather than parameters }
@@ -303,6 +303,9 @@ var
   y: Integer;
   text: TLfnFileName;
   Focus: TRect;
+{$IFDEF FPC}
+  LabelRect: TRect;
+{$ENDIF}
 begin
   { grab the DC that Windows provides }
   with Canvas, Rect do
@@ -388,9 +391,15 @@ begin
     begin
       text := Caption;
       if text[1] = '*' then System.Delete(text, 1, 2); { 3.0 }
+{$IFDEF FPC}
+      { FPC passes no function result to DrawText's var rectangle. }
+      LabelRect := Bounds(Left + TextLeft, Top + (HeightOf(Rect) - MenuFontHeight) div 2, 1, 1);
+      DrawText(Canvas.Handle, @text[1], Ord(text[0]), LabelRect, DT_LEFT or DT_NOCLIP);
+{$ELSE}
       DrawText(Canvas.Handle, @text[1], Ord(text[0]),
         Bounds(Left + TextLeft, Top + (HeightOf(Rect) - MenuFontHeight) div 2, 1, 1),
         DT_LEFT or DT_NOCLIP);
+{$ENDIF}
     end;
     PaintIcon(Canvas, Rect, State);
   end;

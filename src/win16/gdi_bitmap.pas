@@ -37,6 +37,11 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure SetSize(NewWidth, NewHeight: SmallInt);
     procedure LoadFromFile(const FileName: string);
+    { Writes an uncompressed 24-bit BMP that LoadFromFile reads back. }
+    procedure SaveToFile(const FileName: string);
+    { Delphi frees its cached DIB copy here; this bitmap keeps only the
+      device bitmap, so there is nothing to free. }
+    procedure FreeImage;
     procedure LoadFromResource(Instance: HINST; Name: PChar);
     procedure DrawTo(Destination: HDC; X, Y: SmallInt); override;
     procedure StretchTo(Destination: HDC; const Area: TRect); override;
@@ -242,6 +247,46 @@ begin
   AdoptBitmap(Value);
   Changed;
 end;
+procedure TGDIBitmap.SaveToFile(const FileName: string);
+var Stream: TFileStream; Header: array[0..53] of Byte; RowBytes: Word; Row: Pointer;
+  Display: HDC; Y: Word; ImageSize: LongInt; Deselected: Boolean;
+  procedure Put(Offset: Integer; Value: LongInt; Size: Integer);
+  begin Move(Value, Header[Offset], Size); end;
+begin
+  if (FHandle = 0) or (FWidth <= 0) or (FHeight <= 0) then raise EGDIError.Create('Cannot save an empty bitmap');
+  RowBytes := (LongInt(FWidth) * 3 + 3) and not 3;
+  ImageSize := LongInt(RowBytes) * FHeight;
+  FillChar(Header, SizeOf(Header), 0);
+  Header[0] := Ord('B'); Header[1] := Ord('M');
+  Put(2, SizeOf(Header) + ImageSize, 4);
+  Put(10, SizeOf(Header), 4);
+  Put(14, 40, 4); Put(18, FWidth, 4); Put(22, FHeight, 4);
+  Put(26, 1, 2); Put(28, 24, 2); Put(34, ImageSize, 4);
+  Row := nil; Display := 0; Deselected := False;
+  Stream := TFileStream.Create(FileName, fmCreate);
+  try
+    Stream.WriteBuffer(Header, SizeOf(Header));
+    GetMem(Row, RowBytes);
+    Display := GetDC(0);
+    if Display = 0 then raise EGDIError.Create('Cannot acquire display DC');
+    { GetDIBits needs the bitmap outside any device context. }
+    if SelectObject(FDC, FOldBitmap) = 0 then raise EGDIError.Create('Cannot release bitmap for saving');
+    Deselected := True;
+    for Y := 0 to FHeight - 1 do
+    begin
+      if GetDIBits(Display, FHandle, Y, 1, Row, LPBITMAPINFO(@Header[14]), DIB_RGB_COLORS) <> 1 then
+        raise EGDIError.Create('Cannot read bitmap scan line');
+      Stream.WriteBuffer(Row^, RowBytes);
+    end;
+  finally
+    if Deselected then SelectObject(FDC, FHandle);
+    if Display <> 0 then ReleaseDC(0, Display);
+    if Row <> nil then FreeMem(Row, RowBytes);
+    Stream.Free;
+  end;
+end;
+procedure TGDIBitmap.FreeImage;
+begin end;
 procedure TGDIBitmap.LoadFromFile(const FileName: string);
 var Stream: TFileStream; Header: array[0..53] of Byte;
   Info: array[0..1063] of Byte; Layout: TBMPLayout; ErrorText: string;

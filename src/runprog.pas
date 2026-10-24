@@ -66,7 +66,7 @@ implementation
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses Files, WinProcs, WinTypes, MiscUtil, Resource, Environs,
+uses {$IFDEF FPC}Win31, {$ENDIF}Files, WinProcs, WinTypes, MiscUtil, Resource, Environs,
   Strings, Fileman, Desk, Locale, Graphics;
 
 procedure RunExecute(const command: string; const Dir: TLfnFilename);

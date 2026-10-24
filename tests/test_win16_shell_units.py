@@ -14,15 +14,23 @@ class HugeModelTests(unittest.TestCase):
         script = (ROOT / 'tools/build_win16_rtl.sh').read_text()
         self.assertIn('-Wm$model', script)
         for define in ('CALMIRA_WIN16_DOS_NO_STRINGS', 'CALMIRA_WIN16_DELPHI1_STRINGS',
-                       'CALMIRA_WIN16_DELPHI1_TYPES'):
+                       'CALMIRA_WIN16_DELPHI1_TYPES', 'CALMIRA_WIN16_DELPHI1_RESOURCES'):
             self.assertIn(define, script)
 
     def test_rtl_patches_are_staged(self):
         prepare = (ROOT / 'tools/prepare_win16_rtl.py').read_text()
         for name in ('fpc-win16-huge-startup.patch', 'fpc-win16-dos-no-strings.patch',
-                     'fpc-win16-delphi1-strings.patch', 'fpc-win16-delphi1-types.patch'):
+                     'fpc-win16-delphi1-strings.patch', 'fpc-win16-delphi1-types.patch',
+                     'fpc-win16-delphi1-resources.patch'):
             self.assertIn(name, prepare)
             self.assertTrue((ROOT / 'tools/patches' / name).is_file(), name)
+
+    def test_delphi1_resources_load_the_string_table(self):
+        patch = (ROOT / 'tools/patches/fpc-win16-delphi1-resources.patch').read_text()
+        self.assertIn('+      constructor CreateRes(Ident: Word);', patch)
+        self.assertIn('+      constructor CreateResFmt(Ident: Word; const Args: array of const);', patch)
+        self.assertIn('LoadString(HInstance,Word(Ident),@Buffer[0],SizeOf(Buffer))', patch)
+        self.assertIn('result:=Format(LoadStr(Ident),Args);', patch)
 
     def test_huge_startup_writes_system_segment(self):
         patch = (ROOT / 'tools/patches/fpc-win16-huge-startup.patch').read_text()

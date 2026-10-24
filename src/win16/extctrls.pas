@@ -38,6 +38,53 @@ type
     property Color;
     property Visible;
   end;
+  { A graphic control whose OnPaint draws on Canvas. }
+  TPaintBox = class(TGraphicControl)
+  private
+    FOnPaint: TNotifyEvent;
+  protected
+    procedure Paint; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property Align;
+    property Color;
+    property Font;
+    property ParentColor;
+    property ParentFont;
+    property Visible;
+    property OnClick;
+    property OnDblClick;
+    property OnDragDrop;
+    property OnDragOver;
+    property OnMouseDown;
+    property OnMouseMove;
+    property OnMouseUp;
+    property OnPaint: TNotifyEvent read FOnPaint write FOnPaint;
+  end;
+  TShapeType = (stRectangle, stSquare, stRoundRect, stRoundSquare, stEllipse, stCircle);
+  { A rectangle, rounded rectangle or ellipse outlined with Pen and filled
+    with Brush; the square and circle variants use the shorter side. }
+  TShape = class(TGraphicControl)
+  private
+    FPen: TPen;
+    FBrush: TBrush;
+    FShape: TShapeType;
+    procedure SetPen(Value: TPen);
+    procedure SetBrush(Value: TBrush);
+    procedure SetShape(Value: TShapeType);
+  protected
+    procedure Paint; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure StyleChanged(Sender: TObject);
+  published
+    property Brush: TBrush read FBrush write SetBrush;
+    property Pen: TPen read FPen write SetPen;
+    property Shape: TShapeType read FShape write SetShape default stRectangle;
+    property Visible;
+  end;
   { Delphi 1 timer: a WM_TIMER on a utility window, running while Enabled,
     Interval <> 0 and OnTimer is assigned. }
   TTimer = class(TComponent)
@@ -211,6 +258,68 @@ procedure Frame3D(Canvas: TCanvas; var Rect: TRect; TopColor, BottomColor: TColo
   Width: Integer);
 implementation
 uses SysUtils, WinProcs, native_window, Forms;
+constructor TPaintBox.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  SetBounds(0, 0, 105, 105);
+end;
+procedure TPaintBox.Paint;
+var Painter: TCanvas;
+begin
+  Painter := TGraphicControl(Self).Canvas;
+  if Painter.Handle = 0 then begin Invalidate; Exit; end;
+  Painter.Font := Font;
+  Painter.Brush.Color := Color;
+  if Assigned(FOnPaint) then FOnPaint(Self);
+end;
+constructor TShape.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  SetBounds(0, 0, 65, 65);
+  FPen := TPen.Create; FPen.OnChange := StyleChanged;
+  FBrush := TBrush.Create; FBrush.OnChange := StyleChanged;
+end;
+destructor TShape.Destroy;
+begin
+  if FPen <> nil then begin FPen.OnChange := nil; FPen.Free; end;
+  if FBrush <> nil then begin FBrush.OnChange := nil; FBrush.Free; end;
+  inherited Destroy;
+end;
+procedure TShape.StyleChanged(Sender: TObject);
+begin Invalidate; end;
+procedure TShape.SetPen(Value: TPen);
+begin FPen.Assign(Value); end;
+procedure TShape.SetBrush(Value: TBrush);
+begin FBrush.Assign(Value); end;
+procedure TShape.SetShape(Value: TShapeType);
+begin if Value <> FShape then begin FShape := Value; Invalidate; end; end;
+procedure TShape.Paint;
+var X, Y, W, H, S: Integer; Painter: TCanvas; DC: HDC;
+begin
+  Painter := TGraphicControl(Self).Canvas;
+  if Painter.Handle = 0 then begin Invalidate; Exit; end;
+  Painter.Pen.Assign(FPen); Painter.Brush.Assign(FBrush);
+  { The pen is centred on the outline, so keep it inside the control. }
+  X := FPen.Width div 2; Y := X;
+  W := Width - FPen.Width + 1; H := Height - FPen.Width + 1;
+  if FPen.Width = 0 then begin Dec(W); Dec(H); end;
+  if W < H then S := W else S := H;
+  if FShape in [stSquare, stRoundSquare, stCircle] then
+  begin
+    Inc(X, (W - S) div 2); Inc(Y, (H - S) div 2);
+    W := S; H := S;
+  end;
+  case FShape of
+    stRectangle, stSquare: Painter.Rectangle(X, Y, X + W, Y + H);
+  else
+    DC := Painter.Handle;
+    if (SelectObject(DC, Painter.Pen.Handle) = 0) or (SelectObject(DC, Painter.Brush.Handle) = 0) then
+      raise ENativeWindowError.Create('Cannot select shape drawing objects');
+    if FShape in [stRoundRect, stRoundSquare] then
+      WinProcs.RoundRect(DC, X, Y, X + W, Y + H, S div 4, S div 4)
+    else WinProcs.Ellipse(DC, X, Y, X + W, Y + H);
+  end;
+end;
 constructor TImage.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);

@@ -171,7 +171,7 @@ implementation
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses Strings, Desk, MiscUtil, Files, Resource, CompSys, Iconic, Drives,
+uses {$IFDEF FPC}Win31, {$ENDIF}Strings, Desk, MiscUtil, Files, Resource, CompSys, Iconic, Drives,
   MultiGrd, Referenc, Locale, FileMan, Task, FileFind, DiskProp, Directry,
   FileProp, SysProp;
 

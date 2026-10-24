@@ -141,7 +141,7 @@ var
 implementation
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses SysUtils, Desk, Environs, Start, MiscUtil, IniFiles,Files,
+uses {$IFDEF FPC}Win31, {$ENDIF}SysUtils, Desk, Environs, Start, MiscUtil, IniFiles,Files,
   AskDrop, Progress, OpenDlg,
   Strings, Drives, CompSys, Replace, Internet,
   FourDOS, Registry, CalMsgs,RefEdit, ShellApi;

@@ -125,7 +125,7 @@ implementation
 uses Controls, IconWin, Desk, Files, RefEdit, Strings, FileFind, MiscUtil,
   WinTypes, ShellAPI, Resource, Drives, WasteBin, FileMan, MultiGrd, Settings,
   FourDOS, TabNotBk, Environs, Clipbrd, Dialogs, CompSys, Internet,
-  WinProcs, Locale;
+  WinProcs, Locale{$IFDEF FPC}, LangUI{$ENDIF};
 
 constructor TReference.Create;
 var

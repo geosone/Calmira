@@ -1,0 +1,5 @@
+STRINGTABLE
+BEGIN
+  1089, "Cannot copy %s to itself"
+  1090, "Plain resource text"
+END

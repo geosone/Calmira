@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 94 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 96 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1556,3 +1556,54 @@ The full regression passed (`build/tests/dde.log`, 93 suites, exit 0).
 Covered by `make win16-radio-group-runtime-test`.
 
 The full regression passed (`build/tests/radio-group.log`, 94 suites, exit 0).
+
+## FileCtrl, String-Table Exceptions and Shapes
+
+- New `FileCtrl` subset with only `TFilterComboBox`. It parses
+  `'Description|Mask|…'` filters (a description without a mask is its own
+  mask), defaults to `All files (*.*)|*.*`, and `Mask` returns the selected
+  pattern (`*.*` when nothing is selected). The file, directory and drive
+  list controls are not provided.
+- `TBitmap.SaveToFile` writes an uncompressed 24-bit BMP that
+  `LoadFromFile` reads back. `FreeImage` does nothing: there is no cached
+  DIB to free.
+- `Forms.IsAccel` matches a caption's mnemonic.
+- New RTL patch `fpc-win16-delphi1-resources.patch`, enabled with
+  `CALMIRA_WIN16_DELPHI1_RESOURCES`:
+  - adds Delphi 1's `Exception.CreateRes(Ident: Word)` and
+    `CreateResFmt(Ident, Args)`;
+  - `LoadStr` now reads the module's string table;
+  - declares and implements `FmtLoadStr`.
+
+  Calmira raises about 20 of these from string-table identifiers.
+- The `TRect` in `fpc-win16-delphi1-types.patch` is now Delphi 1's variant
+  record, with `TopLeft`/`BottomRight` over the coordinates.
+- `Controls` changes:
+  - adds `FindControl(Handle)` and `GetCaptureControl`;
+  - adds a `Showing` method on windowed controls (the window and all its
+    parents are visible);
+  - `TListBox` now publishes `DragCursor`, `DragMode` and the drag
+    events.
+- `ExtCtrls` adds:
+  - `TPaintBox`, which paints through `OnPaint`;
+  - `TShape`, which draws a rectangle, square, rounded rectangle or
+    square, ellipse or circle and repaints when its pen or brush changes.
+
+  Pens and brushes now report changes through `OnChange`; the font's
+  notification moved into the shared `TGDIResource`.
+- Calmira sources, with minimal `{$IFDEF FPC}` imports and CRLF kept:
+  - `Win31` first in the implementation uses, so that `Settings.WindowPos`
+    still hides Win31's `WINDOWPOS`: about, desk, deskprop, iconwin,
+    mydocs, opendlg, runprog, shorts, shutdown, task, taskman, tree;
+  - `Win31` appended in start.pas, which also gets a `DrawText` rectangle
+    variable;
+  - `LangUI` (for `LocalLoadStr`) in referenc and filefind.
+- The form loaders now get through `fileman`, `wastebin`, `referenc`,
+  `desk`, `mydocs`, `shorts`, `filefind`, `shutdown`, `about` and
+  `deskprop`. They stop in `compsys`, which needs `TForm.Menu`,
+  `KeyDataToShiftState` and `CM_APPSYSCOMMAND`.
+
+Covered by `make win16-file-filter-runtime-test` and
+`make win16-shape-runtime-test`.
+
+The full regression passed (`build/tests/file-filter.log`, 96 suites, exit 0).
