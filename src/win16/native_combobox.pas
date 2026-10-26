@@ -74,10 +74,10 @@ type
     function OwnsNativeChild(Window: HWND): Boolean; override;
     function GetFocused: Boolean; override;
     procedure Change; virtual;
-    procedure Click; virtual;
+    procedure Click; override;
     procedure DropDown; virtual;
     { CBN_DBLCLK; USER sends it only for csSimple. }
-    procedure DblClick; virtual;
+    procedure DblClick; override;
     property OnDblClick: TNotifyEvent read FOnDblClick write FOnDblClick;
     function ControlDrawItem(var Item: TDrawItemStruct): Boolean; override;
     function ControlMeasureItem(var Item: TMeasureItemStruct): Boolean; override;

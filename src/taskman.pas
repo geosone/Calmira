@@ -306,7 +306,7 @@ begin
     Brush.Color := Color;
     Font.Color := clWindowText;
     with Rect do
-      FillRect(Classes.Rect(Header.SectionWidth[0], Top, Right, Bottom));
+      FillRect({$IFDEF FPC}Graphics{$ELSE}Classes{$ENDIF}.Rect(Header.SectionWidth[0], Top, Right, Bottom));
     TextOut(Header.SectionWidth[0] + 2, Rect.Top + 1,
       LowerCase(ExtractFilename(StrPas(Task.Module))));
     Glyph.Free;

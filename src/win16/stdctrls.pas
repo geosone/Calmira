@@ -6,7 +6,7 @@ unit StdCtrls;
 {$IFNDEF WIN16}{$FATAL This StdCtrls subset requires Win16}{$ENDIF}
 interface
 uses Classes, WinTypes, Graphics, Controls, native_label, native_button, native_edit,
-  native_checkbox, native_radio, native_combobox, native_listbox;
+  native_checkbox, native_radio, native_combobox, native_listbox, native_memo;
 type
   TLabel = native_label.TLabel;
   TButton = native_button.TButton;
@@ -24,7 +24,8 @@ type
   TMeasureItemEvent = native_listbox.TMeasureItemEvent;
   TCustomListBox = native_listbox.TCustomListBox;
   TListBox = native_listbox.TListBox;
-  TScrollStyle = (ssNone, ssHorizontal, ssVertical, ssBoth);
+  TScrollStyle = native_memo.TScrollStyle;
+  TMemo = native_memo.TMemo;
   { Delphi 1 group box: a frame with the caption in its top edge, drawn by the
     control itself; aligned children stay inside the frame. A mnemonic in the
     caption is drawn but does not move the focus. }
@@ -76,6 +77,11 @@ const
   odSelected = native_listbox.odSelected; odGrayed = native_listbox.odGrayed;
   odDisabled = native_listbox.odDisabled; odChecked = native_listbox.odChecked;
   odFocused = native_listbox.odFocused;
+const
+  ssNone = native_memo.ssNone;
+  ssHorizontal = native_memo.ssHorizontal;
+  ssVertical = native_memo.ssVertical;
+  ssBoth = native_memo.ssBoth;
 implementation
 uses SysUtils, WinProcs;
 constructor TCustomGroupBox.Create(AOwner: TComponent);

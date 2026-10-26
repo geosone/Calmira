@@ -9,6 +9,10 @@ type
   TButtonLayout = native_speedbutton.TButtonLayout;
   { Delphi 1 BitBtn/MessageDlg look; only the new 3D look is drawn. }
   TButtonStyle = (bsAutoDetect, bsWin31, bsNew);
+  { Standard buttons: Kind sets the caption, ModalResult and Default or
+    Cancel. Delphi's stock glyphs are not provided. }
+  TBitBtnKind = (bkCustom, bkOK, bkCancel, bkHelp, bkYes, bkNo, bkClose,
+    bkAbort, bkRetry, bkIgnore, bkAll);
   TButtonState = native_speedbutton.TButtonState;
   TSpeedButton = native_speedbutton.TSpeedButton;
 const
@@ -22,6 +26,9 @@ type
     FGlyph: Graphics.TBitmap;
     FMargin, FSpacing, FNumGlyphs: Integer;
     FLayout: TButtonLayout;
+    FKind: TBitBtnKind;
+    FStyle: TButtonStyle;
+    procedure SetKind(Value: TBitBtnKind);
     procedure SetGlyph(Value: Graphics.TBitmap);
     procedure GlyphChanged(Sender: TObject);
     procedure SetMargin(Value: Integer);
@@ -34,7 +41,12 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    { bkClose closes the parent form; bkHelp shows the nearest help context. }
+    procedure Click; override;
   published
+    property Kind: TBitBtnKind read FKind write SetKind default bkCustom;
+    { Stored only: the new 3D look is always drawn. }
+    property Style: TButtonStyle read FStyle write FStyle default bsAutoDetect;
     property Glyph: Graphics.TBitmap read FGlyph write SetGlyph;
     property Margin: Integer read FMargin write SetMargin default -1;
     property Spacing: Integer read FSpacing write SetSpacing default 4;
@@ -42,7 +54,40 @@ type
     property Layout: TButtonLayout read FLayout write SetLayout default blGlyphLeft;
   end;
 implementation
-uses SysUtils, WinProcs, native_window;
+uses SysUtils, WinProcs, Controls, Forms, native_window;
+const
+  KindCaptions: array[TBitBtnKind] of string[7] = ('', 'OK', 'Cancel', '&Help',
+    '&Yes', '&No', '&Close', 'Abort', '&Retry', '&Ignore', '&All');
+  KindResults: array[TBitBtnKind] of TModalResult = (mrNone, mrOK, mrCancel, mrNone,
+    mrYes, mrNo, mrNone, mrAbort, mrRetry, mrIgnore, mrAll);
+procedure TBitBtn.SetKind(Value: TBitBtnKind);
+begin
+  if Value = FKind then Exit;
+  FKind := Value;
+  if Value = bkCustom then Exit;
+  Default := Value in [bkOK, bkYes];
+  Cancel := Value in [bkCancel, bkNo];
+  { A streamed custom caption is kept. }
+  if not (csLoading in ComponentState) or (Caption = '') then Caption := KindCaptions[Value];
+  ModalResult := KindResults[Value];
+end;
+procedure TBitBtn.Click;
+var Form: TForm; Context: LongInt;
+begin
+  case FKind of
+    bkClose:
+      begin
+        Form := GetParentForm(Self);
+        if Form <> nil then begin Form.Close; Exit; end;
+      end;
+    bkHelp:
+      begin
+        Context := ResolveHelpContext;
+        if (Context <> 0) and (Application <> nil) then begin Application.HelpContext(Context); Exit; end;
+      end;
+  end;
+  inherited Click;
+end;
 constructor TBitBtn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);

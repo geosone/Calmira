@@ -30,7 +30,7 @@ type
     procedure DefaultHandler(var Message); override;
     procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt); override;
-    procedure Click; virtual;
+    procedure Click; override;
   published
     property Alignment: TAlignment read FAlignment write SetAlignment default taRightJustify;
     property Caption: string read FCaption write SetCaption;

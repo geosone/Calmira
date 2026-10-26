@@ -83,8 +83,8 @@ type
     function ControlMeasureItem(var Item: TMeasureItemStruct): Boolean; override;
     procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); virtual;
     procedure MeasureItem(Index: Integer; var Height: Integer); virtual;
-    procedure Click; virtual;
-    procedure DblClick; virtual;
+    procedure Click; override;
+    procedure DblClick; override;
     property BorderStyle: TBorderStyle read FBorderStyle write SetBorderStyle default bsSingle;
     property Columns: Integer read FColumns write SetColumns default 0;
     property ExtendedSelect: Boolean read FExtendedSelect write SetExtendedSelect default True;

@@ -137,7 +137,7 @@ begin
   GetWindowRect(FHandle, Result);
   Parent := GetParent(FHandle);
   if Parent = 0 then Exit;
-  Corner.X := Result.Left; Corner.Y := Result.Top; ScreenToClient(Parent, Corner);
+  Corner.X := Result.Left; Corner.Y := Result.Top; WinProcs.ScreenToClient(Parent, Corner);
   OffsetRect(Result, Corner.X - Result.Left, Corner.Y - Result.Top);
 end;
 procedure TNativeWindow.SetControlBounds(const Value: TRect);

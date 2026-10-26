@@ -18,6 +18,7 @@ def checkout(directory):
     source.mkdir()
     subprocess.run(['git', 'init', '-q', str(source)], check=True)
     files = {'compiler/i8086/n8086add.pas': (UPSTREAM / 'compiler/i8086/n8086add.pas').read_bytes(),
+             'compiler/i8086/n8086ld.pas': (UPSTREAM / 'compiler/i8086/n8086ld.pas').read_bytes(),
              'compiler/Makefile': b'# fixture\n', 'rtl/Makefile': b'# fixture\n',
              'Makefile': b'# fixture\n', 'Makefile.fpc': b'# fixture\n',
              'LICENSE': b'fixture license\n'}
@@ -46,10 +47,15 @@ class CompilerPointerTests(unittest.TestCase):
             self.assertIn('is_implicit_pointer_object_type(left.resultdef)', code)
             self.assertIn('(left.resultdef.typ=classrefdef)) and (left.resultdef.size=4)', code)
             self.assertIn('if is_farpointer(left.resultdef) then\n          second_cmpfarpointer', code)
+            load = (target / 'compiler/i8086/n8086ld.pas').read_text()
+            self.assertIn('(tconstsym(symtableentry).consttyp in [constresourcestring,constwresourcestring]) and\n'
+                          '                 (current_settings.x86memorymodel=mm_huge)', load)
+            self.assertIn('segref.refaddr:=addr_seg;\n                  cg.a_load_ref_reg', load)
             manifest = json.loads((target / 'calmira-compiler.json').read_text())
-            self.assertEqual(manifest['schema'], 1)
+            self.assertEqual(manifest['schema'], 2)
             self.assertEqual(manifest['build_id'], 'test-bootstrap')
-            self.assertEqual(manifest['patch_sha256'], hashlib.sha256(stage.PATCH.read_bytes()).hexdigest())
+            self.assertEqual(manifest['patches'], {patch.name: hashlib.sha256(patch.read_bytes()).hexdigest()
+                                                   for patch in stage.PATCHES})
             self.assertEqual((target / 'LICENSE').read_bytes(), files['LICENSE'])
 
     def test_build_identity_builder_and_tracked_source_invalidate_cache(self):
@@ -89,7 +95,7 @@ class CompilerPointerTests(unittest.TestCase):
             bad.write_text('--- a/compiler/i8086/n8086add.pas\n+++ b/compiler/i8086/n8086add.pas\n'
                            '@@ -1 +1 @@\n-not present in source\n+changed\n')
             output = Path(directory) / 'staged'
-            with patch.object(stage, 'PATCH', bad), self.assertRaises(subprocess.CalledProcessError):
+            with patch.object(stage, 'PATCHES', (bad,)), self.assertRaises(subprocess.CalledProcessError):
                 stage.prepare(source, output, 'test')
             self.assertEqual(list(output.iterdir()), [])
             self.assertEqual((source / 'compiler/i8086/n8086add.pas').read_bytes(),

@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 96 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 97 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1607,3 +1607,45 @@ Covered by `make win16-file-filter-runtime-test` and
 `make win16-shape-runtime-test`.
 
 The full regression passed (`build/tests/file-filter.log`, 96 suites, exit 0).
+
+## Form Menus, Memos and the Huge-Model Resource-String Fix
+
+- Compiler patch `fpc-i8086-huge-resourcestrings.patch`. In the huge model a
+  resource string is now loaded through its own table segment instead of DS.
+  The linker had placed SysConst's `RESSTR` table in a different segment from
+  `SYSUTILS_DATA`, so `InitExceptions` passed a garbage `SOutOfMemory` to
+  `Exception.Create`, and the program crashed before its first statement once
+  the data segment filled up. `prepare_fpc_compiler.py` now applies a list of
+  patches; the compiler fingerprint, and with it the regression tree, changed.
+- `Forms`:
+  - `TForm.Menu` attaches a `TMainMenu`. `WM_COMMAND` from the menu
+    reaches the item and `WM_INITMENUPOPUP` fires the submenu's `OnClick`.
+  - Menu shortcuts are checked before the dialog keys. An item fires only
+    when it and all its parents are enabled.
+  - Adds `OnPaint`, `OnDragDrop`, `OnDragOver` and `KeyDataToShiftState`.
+- `Menus.TMenu.IsShortCut(TWMKey)`, plus `TWMKey` and its aliases in
+  `Messages`.
+- New `TMemo` in `native_memo`, re-exported by `StdCtrls`:
+  - `Lines` holds the CR/LF-separated lines of `Text`, up to 255 bytes.
+  - `ScrollBars` and `WordWrap` are fixed once the window exists.
+  - `WantReturns` and `WantTabs` are supported.
+- `TEdit.OEMConvert`.
+- `Controls` changes:
+  - `InsertControl` and `ControlAtPos`;
+  - `CM_APPSYSCOMMAND`;
+  - `Click`/`DblClick` are virtual from `TCustomControl` down;
+  - `ClientToScreen`/`ScreenToClient` are virtual on `TControl`;
+  - the mouse events moved to `TControl`.
+- `TBitBtn.Kind` (sets the caption, `Default`/`Cancel` and `ModalResult`;
+  `bkClose` closes the form, `bkHelp` opens help) and `Style`.
+- `TIcon` `LoadFromStream`/`SaveToStream` and the matching file methods.
+  Loading goes through a temporary `.ICO` file and `ExtractIcon`. Saving
+  writes a 16-colour 32×32 icon whose mask comes from drawing over white and
+  black.
+- `fpc-win16-delphi1-types.patch`: `PtInRect` also takes a const `TRect`.
+- Calmira sources:
+  - deskprop and taskman qualify `Graphics.Rect`;
+  - iconwin and opendlg import `Win31` first in their interface uses.
+
+Covered by `make win16-form-menu-runtime-test`.
+

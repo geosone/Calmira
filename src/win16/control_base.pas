@@ -18,6 +18,11 @@ type
   TDragOverEvent = procedure(Sender, Source: TObject; X, Y: Integer;
     State: TDragState; var Accept: Boolean) of object;
   TEndDragEvent = procedure(Sender, Target: TObject; X, Y: Integer) of object;
+  TMouseButton = (mbLeft, mbRight, mbMiddle);
+  TShiftState = set of (ssShift, ssAlt, ssCtrl, ssLeft, ssRight, ssMiddle, ssDouble);
+  TMouseEvent = procedure(Sender: TObject; Button: TMouseButton;
+    Shift: TShiftState; X, Y: Integer) of object;
+  TMouseMoveEvent = procedure(Sender: TObject; Shift: TShiftState; X, Y: Integer) of object;
   TControl = class;
   { Implemented by Controls, which knows windows, graphic children and capture. }
   TDragManager = class
@@ -39,6 +44,8 @@ type
     FOnDragDrop: TDragDropEvent;
     FOnDragOver: TDragOverEvent;
     FOnEndDrag: TEndDragEvent;
+    FOnMouseDown, FOnMouseUp: TMouseEvent;
+    FOnMouseMove: TMouseMoveEvent;
     function GetDragging: Boolean;
     function GetEnabled: Boolean;
     procedure SetEnabled(Value: Boolean);
@@ -79,7 +86,14 @@ type
     property OnDragDrop: TDragDropEvent read FOnDragDrop write FOnDragDrop;
     property OnDragOver: TDragOverEvent read FOnDragOver write FOnDragOver;
     property OnEndDrag: TEndDragEvent read FOnEndDrag write FOnEndDrag;
+    property OnMouseDown: TMouseEvent read FOnMouseDown write FOnMouseDown;
+    property OnMouseUp: TMouseEvent read FOnMouseUp write FOnMouseUp;
+    property OnMouseMove: TMouseMoveEvent read FOnMouseMove write FOnMouseMove;
   public
+    { Without a parent window the point is unchanged; windowed and graphic
+      controls map through their parents. }
+    function ClientToScreen(const Position: TPoint): TPoint; virtual;
+    function ScreenToClient(const Position: TPoint): TPoint; virtual;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure BeginDrag(Immediate: Boolean);
@@ -249,4 +263,8 @@ begin Value := False; ControlOperation(coFront, Value); end;
 procedure TControl.SendToBack;
 var Value: Boolean;
 begin Value := False; ControlOperation(coBack, Value); end;
+function TControl.ClientToScreen(const Position: TPoint): TPoint;
+begin Result := Position; end;
+function TControl.ScreenToClient(const Position: TPoint): TPoint;
+begin Result := Position; end;
 end.

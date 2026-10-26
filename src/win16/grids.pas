@@ -120,8 +120,8 @@ type
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure DoEnter; override;
     procedure DoExit; override;
-    procedure Click; virtual;
-    procedure DblClick; virtual;
+    procedure Click; override;
+    procedure DblClick; override;
     function BoxRect(ALeft, ATop, ARight, ABottom: Longint): TRect;
     function CellRect(ACol, ARow: Longint): TRect;
     function CanGridAcceptKey(Key: Word; Shift: TShiftState): Boolean; virtual;

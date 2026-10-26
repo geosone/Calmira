@@ -10,7 +10,7 @@ unit Forms;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This Forms layer requires Win16}{$ENDIF}
 interface
-uses Classes, SysUtils, WinTypes, Messages, Graphics, Controls, control_base, native_form, native_modal,
+uses Classes, SysUtils, WinTypes, Messages, Graphics, Controls, Menus, control_base, native_form, native_modal,
   native_application, native_application_window, native_screen, native_loop;
 type
   TCloseAction = TNativeCloseAction;
@@ -52,7 +52,8 @@ type
     FPosition: TPosition;
     FFormStyle: TFormStyle;
     FIcon: TIcon;
-    FOnCreate, FOnDestroy: TNotifyEvent;
+    FMenu: TMainMenu;
+    FOnCreate, FOnDestroy, FOnPaint: TNotifyEvent;
     { Client size requested before the window exists, or -1. }
     FDesignClientWidth, FDesignClientHeight: Integer;
     FVisibleAfterCreate: Boolean;
@@ -72,6 +73,9 @@ type
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure WMQueryDragIcon(var Message: TMessage); message WM_QUERYDRAGICON;
     procedure WMSysCommand(var Message: TWMSysCommand); message WM_SYSCOMMAND;
+    procedure WMCommand(var Message: TWMCommand); message WM_COMMAND;
+    procedure WMInitMenuPopup(var Message: TMessage); message WM_INITMENUPOPUP;
+    procedure SetMenu(Value: TMainMenu);
     procedure SetBorderStyle(Value: TFormBorderStyle);
     procedure SetBorderIcons(Value: TBorderIcons);
     procedure SetPosition(Value: TPosition);
@@ -84,7 +88,11 @@ type
       which both leave the form unowned. Changing ExStyle, Param or the
       window class raises ENativeWindowError. }
     procedure CreateParams(var Params: TCreateParams); virtual;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure Paint; override;
   public
+    { Menu shortcuts come before the dialog keys. }
+    function ProcessDialogMessage(var Message: TMsg): Boolean; override;
     { Runs the loaders registered for this class and its ancestors, as Delphi
       reads the form's DFM resources, then OnCreate. EResNotFound if the
       class has none. }
@@ -99,8 +107,14 @@ type
     property ClientHeight: Integer read GetFormClientHeight write SetClientHeight;
     property OnCreate: TNotifyEvent read FOnCreate write FOnCreate;
     property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
+    { Called after the background is painted, with Canvas ready. }
+    property OnPaint: TNotifyEvent read FOnPaint write FOnPaint;
+    property OnDragDrop;
+    property OnDragOver;
     { Drawn while minimized; an empty Icon falls back to Application.Icon. }
     property Icon: TIcon read FIcon write SetIcon;
+    { The form's menu bar; its commands, popups and shortcuts reach the items. }
+    property Menu: TMainMenu read FMenu write SetMenu;
     { Always nil: forms are never edited by a designer at run time. }
     function Designer: TDesigner;
     { The WS_* frame bits that BorderStyle and BorderIcons select. }
@@ -219,6 +233,8 @@ function AllocateHWnd(Method: TWndMethod): HWND;
 procedure DeallocateHWnd(Wnd: HWND);
 { The TForm that (indirectly) contains Control, or nil. }
 function GetParentForm(Control: TControl): TForm;
+{ Shift, Ctrl (from the keyboard state) and Alt (from KeyData bit 29). }
+function KeyDataToShiftState(KeyData: LongInt): TShiftState;
 { True when Str's mnemonic (the character after a single &) is VK, ignoring case. }
 function IsAccel(VK: Word; const Str: string): Boolean;
 procedure RegisterFormLoader(FormClass: TFormClass; Loader: TFormLoader);
@@ -365,6 +381,8 @@ begin
   if Assigned(FOnDestroy) then
     try FOnDestroy(Self);
     except if Application <> nil then Application.HandleException(Self); end;
+  { Detach first: destroying the window would destroy the menu handle. }
+  SetMenu(nil);
   inherited Destroy;
   FIcon.Free;
   if FCreation <> nil then FreeMem(FCreation, SizeOf(TFormCreation));
@@ -419,6 +437,11 @@ begin
   finally EndPaint(Handle, PS); end;
   Message.Result := 0;
 end;
+procedure TForm.Paint;
+begin
+  inherited Paint;
+  if Assigned(FOnPaint) then FOnPaint(Self);
+end;
 procedure TForm.WMQueryDragIcon(var Message: TMessage);
 begin Message.Result := IconHandle; end;
 procedure TForm.WMSysCommand(var Message: TWMSysCommand);
@@ -436,6 +459,13 @@ begin
 end;
 function TForm.Designer: TDesigner;
 begin Result := nil; end;
+function KeyDataToShiftState(KeyData: LongInt): TShiftState;
+begin
+  Result := [];
+  if GetKeyState(VK_SHIFT) < 0 then Include(Result, ssShift);
+  if GetKeyState(VK_CONTROL) < 0 then Include(Result, ssCtrl);
+  if KeyData and $20000000 <> 0 then Include(Result, ssAlt);
+end;
 function IsAccel(VK: Word; const Str: string): Boolean;
 begin
   Result := (VK <= 255) and CaptionMatches(Str, Chr(VK));
@@ -547,8 +577,50 @@ begin
     PFormCreation(FCreation)^.Params.X, PFormCreation(FCreation)^.Params.Y,
     PFormCreation(FCreation)^.Params.Width, PFormCreation(FCreation)^.Params.Height);
   FreeMem(FCreation, SizeOf(TFormCreation)); FCreation := nil;
+  if FMenu <> nil then FMenu.WindowHandle := Handle;
   if FFormStyle = fsStayOnTop then
     SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+end;
+procedure TForm.SetMenu(Value: TMainMenu);
+begin
+  if Value = FMenu then Exit;
+  if FMenu <> nil then
+  begin
+    FMenu.WindowHandle := 0;
+    FMenu.RemoveFreeNotification(Self);
+  end;
+  FMenu := Value;
+  if Value = nil then Exit;
+  Value.FreeNotification(Self);
+  if Handle <> 0 then Value.WindowHandle := Handle;
+end;
+procedure TForm.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  if (Operation = opRemove) and (AComponent = FMenu) then FMenu := nil;
+  inherited Notification(AComponent, Operation);
+end;
+procedure TForm.WMCommand(var Message: TWMCommand);
+begin
+  { Menu commands have no control window. }
+  if (Message.Ctl = 0) and (FMenu <> nil) and FMenu.DispatchCommand(Message.ItemID) then
+    Message.Result := 0
+  else inherited;
+end;
+procedure TForm.WMInitMenuPopup(var Message: TMessage);
+begin
+  if FMenu <> nil then FMenu.DispatchPopup(Message.WParam);
+  inherited;
+end;
+function TForm.ProcessDialogMessage(var Message: TMsg): Boolean;
+var Key: TWMKey;
+begin
+  if (FMenu <> nil) and ((Message.message = WM_KEYDOWN) or (Message.message = WM_SYSKEYDOWN)) then
+  begin
+    Key.Msg := Message.message; Key.CharCode := Message.wParam;
+    Key.KeyData := Message.lParam; Key.Result := 0;
+    if FMenu.IsShortCut(Key) then begin Result := True; Exit; end;
+  end;
+  Result := inherited ProcessDialogMessage(Message);
 end;
 procedure TForm.DoClose(var Action: TCloseAction);
 begin

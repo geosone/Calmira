@@ -559,7 +559,7 @@ procedure TDeskPropDlg.lstWallpapersDrawItem(Control: TWinControl;
 var
  r: Trect;
 begin
-r := Classes.Rect(rect.Left, Rect.Top, Rect.Left+16, Rect.Top+16);
+r := {$IFDEF FPC}Graphics{$ELSE}Classes{$ENDIF}.Rect(rect.Left, Rect.Top, Rect.Left+16, Rect.Top+16);
 lstWallpapers.Canvas.FillRect(rect);
 if UpperCase(lstWallpapers.Items.Strings[Index])='(NONE)' then
   begin
@@ -568,7 +568,7 @@ if UpperCase(lstWallpapers.Items.Strings[Index])='(NONE)' then
   lstWallpapers.Canvas.Font.Color := clGrayText;
   end
 else
-  lstWallpapers.Canvas.BrushCopy(r,bmpico.Picture.Bitmap,Classes.Rect(0,0,16,16),bmpico.Picture.Bitmap.Canvas.Pixels[0,0]);
+  lstWallpapers.Canvas.BrushCopy(r,bmpico.Picture.Bitmap,{$IFDEF FPC}Graphics{$ELSE}Classes{$ENDIF}.Rect(0,0,16,16),bmpico.Picture.Bitmap.Canvas.Pixels[0,0]);
 lstWallpapers.Canvas.TextOut(r.Left + 18, r.Top+2, ExtractFileName(lstWallpapers.Items.Strings[Index]));
 end;
 

@@ -1,0 +1,28 @@
+--- a/compiler/i8086/n8086ld.pas
++++ b/compiler/i8086/n8086ld.pas
+@@ -246,6 +246,25 @@
+                  (location.loc=LOC_REFERENCE) then
+                 location.loc:=LOC_CREFERENCE;
+             end;
++          constsym:
++            begin
++              inherited pass_generate_code;
++              { The huge model gives every resource string table its own
++                RESSTR section, which the linker may place in a different
++                segment from the unit's data; DS is not a valid frame. }
++              if (tconstsym(symtableentry).consttyp in [constresourcestring,constwresourcestring]) and
++                 (current_settings.x86memorymodel=mm_huge) and
++                 (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
++                 assigned(location.reference.symbol) and
++                 (location.reference.segment=NR_NO) then
++                begin
++                  segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
++                  reference_reset_symbol(segref,location.reference.symbol,0,0,[]);
++                  segref.refaddr:=addr_seg;
++                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,segreg);
++                  location.reference.segment:=segreg;
++                end;
++            end;
+           procsym:
+             begin
+               inherited pass_generate_code;

@@ -38,6 +38,15 @@ type
     DC: HDC;
     Unused, Result: LongInt;
   end;
+  TWMKey = record
+    Msg, CharCode: Word;
+    KeyData, Result: LongInt;
+  end;
+  TWMKeyDown = TWMKey;
+  TWMKeyUp = TWMKey;
+  TWMChar = TWMKey;
+  TWMSysKeyDown = TWMKey;
+  TWMSysChar = TWMKey;
   TWMCommand = record
     Msg, ItemID: Word;
     Ctl: HWND;

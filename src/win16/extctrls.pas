@@ -134,7 +134,7 @@ type
     procedure Loaded; override;
     procedure FontChanged; override;
     function CanModify: Boolean; virtual;
-    procedure Click; virtual;
+    procedure Click; override;
     property Columns: Integer read FColumns write SetColumns default 1;
     property ItemIndex: Integer read FItemIndex write SetItemIndex default -1;
     property Items: TStrings read FItems write SetItems;
@@ -196,8 +196,8 @@ type
     { As Delphi's csClickEvents: a left press released inside ClientRect. }
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
-    procedure Click; virtual;
-    procedure DblClick; virtual;
+    procedure Click; override;
+    procedure DblClick; override;
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
     property OnDblClick: TNotifyEvent read FOnDblClick write FOnDblClick;
     property Alignment: TAlignment read FAlignment write SetAlignment default taCenter;

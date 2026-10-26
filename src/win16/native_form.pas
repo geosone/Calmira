@@ -73,7 +73,7 @@ type
     function TryClose: Boolean;
     property LifecycleHost: TNativeFormHost read FHost;
     { Assign to TNativeMessageLoop.OnMessage; no implicit task-global hook. }
-    function ProcessDialogMessage(var Message: TMsg): Boolean;
+    function ProcessDialogMessage(var Message: TMsg): Boolean; virtual;
     property Caption: string read FCaption write SetCaption;
     property OnShow: TNotifyEvent read FOnShow write FOnShow;
     property OnHide: TNotifyEvent read FOnHide write FOnHide;
@@ -154,7 +154,8 @@ begin
   if (Current = nil) or not Current.CanFocus then Exit;
   Code := Word(SendMessage(Message.hwnd, WM_GETDLGCODE, Message.wParam,
     LongInt(Pointer(@Message))));
-  if Code and DLGC_WANTALLKEYS <> 0 then Exit;
+  { As in Delphi, Tab stays in a control only with DLGC_WANTTAB. }
+  if (Message.wParam <> VK_TAB) and (Code and DLGC_WANTALLKEYS <> 0) then Exit;
   if Message.wParam = VK_F1 then
   begin
     { Only the live focused target gets plain first-press F1 help. Never keep

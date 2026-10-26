@@ -13,7 +13,8 @@ class Win16GridsTests(unittest.TestCase):
                      'EInvalidGridOperation'):
             self.assertIn(text, source)
         self.assertIn('TScrollStyle = (ssNone, ssHorizontal, ssVertical, ssBoth);',
-                      (ROOT / 'src/win16/stdctrls.pas').read_text())
+                      (ROOT / 'src/win16/native_memo.pas').read_text())
+        self.assertIn('TScrollStyle = native_memo.TScrollStyle;', (ROOT / 'src/win16/stdctrls.pas').read_text())
 
     def test_unsupported_features_raise_instead_of_silently_failing(self):
         source = (ROOT / 'src/win16/grids.pas').read_text()

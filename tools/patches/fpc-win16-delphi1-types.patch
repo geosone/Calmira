@@ -199,12 +199,18 @@
  {$endif}
  
  function GrayString(hdc: HDC; hbr: HBRUSH; gsprc: GRAYSTRINGPROC; lParam: LPARAM; cch, x, y, cx, cy: SmallInt): BOOL; external 'USER';
-@@ -725,25 +725,25 @@
+@@ -725,25 +725,36 @@
  procedure OffsetRect(lprc: LPRECT; x, y: SmallInt); external 'USER';
  procedure InflateRect(lprc: LPRECT; xAmt, yAmt: SmallInt); external 'USER';
  
 -function PtInRect(lprc: LPRECT; pt: POINT): BOOL; external 'USER';
++{$if defined(CALMIRA_WIN16_DELPHI1_TYPES) and not defined(SYSTEMUNIT)}
++{ Computed here: USER takes POINT as one by-value dword, which FPC does not
++  pass for a TPoint record. }
++function PtInRect(lprc: LPRECT; pt: TPoint): BOOL;
++{$else}
 +function PtInRect(lprc: LPRECT; pt: TPoint): BOOL; external 'USER';
++{$endif}
  
  {$ifdef VAR_PARAMS_ARE_FAR}
 -procedure SetRect(var rc: RECT; nLeft, nTop, nRight, nBottom: SmallInt); external 'USER';
@@ -232,11 +238,16 @@
 +procedure InflateRect(var rc: TRect; xAmt, yAmt: SmallInt); external 'USER';
  
 -function PtInRect(var rc: RECT; pt: POINT): BOOL; external 'USER';
++{$if defined(CALMIRA_WIN16_DELPHI1_TYPES) and not defined(SYSTEMUNIT)}
++{ Delphi 1 takes a const rectangle, so function results may be passed. }
++function PtInRect(const rc: TRect; pt: TPoint): BOOL;
++{$else}
 +function PtInRect(var rc: TRect; pt: TPoint): BOOL; external 'USER';
++{$endif}
  {$endif}
  
  { Window message support }
-@@ -854,8 +854,8 @@
+@@ -854,8 +865,8 @@
  procedure GetClientRect(hwnd: HWND; lprc: LPRECT); external 'USER';
  procedure GetWindowRect(hwnd: HWND; lprc: LPRECT); external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -247,7 +258,7 @@
  {$endif}
  
  function SetWindowPos(hwnd, hwndInsertAfter: HWND; x, y, cx, cy: SmallInt; fuFlags: UINT): BOOL; external 'USER';
-@@ -879,8 +879,8 @@
+@@ -879,8 +890,8 @@
  procedure AdjustWindowRect(lprc: LPRECT; dwStyle: DWORD; fMenu: BOOL); external 'USER';
  procedure AdjustWindowRectEx(lprc: LPRECT; dwStyle: DWORD; fMenu: BOOL; dwExStyle: DWORD); external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -258,7 +269,7 @@
  {$endif}
  
  function FlashWindow(hwnd: HWND; fInvert: BOOL): BOOL; external 'USER';
-@@ -899,12 +899,12 @@
+@@ -899,12 +910,12 @@
  procedure ClientToScreen(hwnd: HWND; lppt: LPPOINT); external 'USER';
  procedure ScreenToClient(hwnd: HWND; lppt: LPPOINT); external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -275,7 +286,7 @@
  
  { Window query and enumeration }
  
-@@ -955,7 +955,7 @@
+@@ -955,7 +966,7 @@
  
  function GetUpdateRect(hwnd: HWND; lprc: LPRECT; fErase: BOOL): BOOL; external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -284,7 +295,7 @@
  {$endif}
  function GetUpdateRgn(hwnd: HWND; hrgn: HRGN; fErase: BOOL): SmallInt; external 'USER';
  
-@@ -970,7 +970,7 @@
+@@ -970,7 +981,7 @@
  procedure ScrollWindow(hwnd: HWND; dx, dy: SmallInt; lprcScroll, lprcClip: LPRECT); external 'USER';
  function ScrollDC(hdc: HDC; dx, dy: SmallInt; lprcScroll, lprcClip: LPRECT; hrgnUpdate: HRGN; lprcUpdate: LPRECT): BOOL; external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -293,7 +304,7 @@
  {$endif}
  
  { Window activation }
-@@ -1112,7 +1112,7 @@
+@@ -1112,7 +1123,7 @@
  procedure SetCursorPos(x, y: SmallInt); external 'USER';
  procedure GetCursorPos(lppt: LPPOINT); external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -302,7 +313,7 @@
  {$endif}
  
  function SetCursor(hcur: HCURSOR): HCURSOR; external 'USER';
-@@ -1140,7 +1140,7 @@
+@@ -1140,7 +1151,7 @@
  procedure SetCaretPos(x, y: SmallInt); external 'USER';
  procedure GetCaretPos(lppt: LPPOINT); external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -311,7 +322,7 @@
  {$endif}
  
  procedure HideCaret(hwnd: HWND); external 'USER';
-@@ -1209,7 +1209,7 @@
+@@ -1209,7 +1220,7 @@
  
  procedure MapDialogRect(hwndDlg: HWND; lprc: LPRECT); external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -320,6 +331,28 @@
  {$endif}
  function GetDialogBaseUnits: DWORD; external 'USER';
  
+--- a/rtl/win16/winprocs.inc
++++ b/rtl/win16/winprocs.inc
+@@ -103,3 +103,19 @@
+ begin
+   PALETTEINDEX := COLORREF(DWORD($01000000) or DWORD(wPaletteIndex));
+ end;
++
++{$if defined(CALMIRA_WIN16_DELPHI1_TYPES) and not defined(SYSTEMUNIT)}
++function PtInRect(lprc: LPRECT; pt: TPoint): BOOL;
++begin
++  PtInRect := (pt.x >= lprc^.left) and (pt.x < lprc^.right) and
++    (pt.y >= lprc^.top) and (pt.y < lprc^.bottom);
++end;
++
++{$ifdef VAR_PARAMS_ARE_FAR}
++function PtInRect(const rc: TRect; pt: TPoint): BOOL;
++begin
++  PtInRect := (pt.x >= rc.left) and (pt.x < rc.right) and
++    (pt.y >= rc.top) and (pt.y < rc.bottom);
++end;
++{$endif VAR_PARAMS_ARE_FAR}
++{$endif}
 --- a/rtl/win16/win31.pp
 +++ b/rtl/win16/win31.pp
 @@ -247,15 +247,15 @@

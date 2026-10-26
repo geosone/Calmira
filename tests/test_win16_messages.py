@@ -65,7 +65,8 @@ class Win16MessageTests(unittest.TestCase):
                          'rtl/objpas/sysutils/sysstrh.inc', 'rtl/objpas/sysutils/sysstr.inc',
                          'rtl/objpas/sysutils/sysutilh.inc', 'rtl/objpas/sysutils/sysutils.inc',
                          'rtl/objpas/sysutils/datih.inc',
-                         'rtl/objpas/sysutils/dati.inc', 'rtl/win16/winprocsh.inc', 'rtl/win16/win31.pp',
+                         'rtl/objpas/sysutils/dati.inc', 'rtl/win16/winprocsh.inc',
+                         'rtl/win16/winprocs.inc', 'rtl/win16/win31.pp',
                          'rtl/win16/wintypes.inc'):
                 target = source / name
                 target.parent.mkdir(parents=True, exist_ok=True)

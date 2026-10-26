@@ -1433,9 +1433,17 @@ constructor entry, AfterConstruction and TObject.Free. Explicit far-pointer
 ordering and the two-byte near-data path are left unchanged. DOS near-data models
 are not qualified by the Win16 runtime tests.
 
+A second patch, `fpc-i8086-huge-resourcestrings.patch`, loads the segment of
+a resource string's table entry in the huge model. FPC places each unit's
+`RESSTR` tables in their own sections, so the linker may put them in a
+different physical segment from the referencing unit's data. The unpatched
+code addressed them through DS, which only worked when both happened to share
+a segment. Otherwise `SysUtils.InitExceptions` read a garbage
+`SOutOfMemory` and crashed before the program's first statement.
+
 `prepare_fpc_compiler.py` stages only tracked compiler/bootstrap-RTL sources and
-licenses outside the pinned checkout, applies the patch with zero fuzz, and
-records revision, patch/builder hashes and bootstrap identity. Source, patch,
+licenses outside the pinned checkout, applies the patches in order with zero
+fuzz, and records revision, per-patch/builder hashes and bootstrap identity. Source, patch,
 build-script and bootstrap-identity changes produce separate cache trees. The
 installed stock compiler is not overwritten. The builder was tested on Gentoo
 with host Free Pascal 3.2.2; it does not need a Windows build host.

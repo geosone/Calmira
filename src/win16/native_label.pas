@@ -35,6 +35,11 @@ type
     property Font;
     property Color;
     property Visible;
+    property OnClick;
+    property OnDblClick;
+    property OnMouseDown;
+    property OnMouseMove;
+    property OnMouseUp;
   end;
 implementation
 uses SysUtils, WinTypes, WinProcs, native_window, native_mnemonic;

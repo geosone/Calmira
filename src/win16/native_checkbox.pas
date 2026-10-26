@@ -29,7 +29,7 @@ type
     procedure DefaultHandler(var Message); override;
     procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt); override;
-    procedure Click; virtual;
+    procedure Click; override;
   published
     property Caption: string read FCaption write SetCaption;
     property Checked: Boolean read GetChecked write SetChecked;

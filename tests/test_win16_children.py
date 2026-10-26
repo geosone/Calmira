@@ -18,12 +18,12 @@ class MixedChildrenTests(unittest.TestCase):
         self.assertNotIn('HWND', base)
         virtuals = set(re.findall(r'(?:procedure|function) (\w+)(?:\([^)]*\))?[^;]*; virtual;', base))
         # One view policy slot, the bounds pair, the Delphi drag hooks and the
-        # Align/ParentFont/ParentColor notifications.
+        # Align/ParentFont/ParentColor notifications and the coordinate pair.
         self.assertEqual(virtuals, {'ControlOperation', 'GetControlBounds', 'SetControlBounds',
                                     'DoEndDrag', 'DragOver', 'DragDrop',
                                     'Start', 'Finish', 'Forget', 'RequestAlign', 'ParentControl',
                                     'NotifyChildren', 'ApplyFont', 'FontChanged', 'ColorChanged',
-                                    'ParentPropertiesChanged'})
+                                    'ParentPropertiesChanged', 'ClientToScreen', 'ScreenToClient'})
         self.assertIn('ControlOperation(Operation: TControlOperation; var Value: Boolean); virtual; abstract;', base)
         for name in ('Show', 'Hide', 'BringToFront', 'SendToBack', 'GetEnabled', 'SetEnabled',
                      'GetVisible', 'SetVisible'):

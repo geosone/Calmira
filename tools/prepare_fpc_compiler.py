@@ -9,7 +9,8 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-PATCH = ROOT / 'tools/patches/fpc-i8086-class-pointer-compare.patch'
+PATCHES = (ROOT / 'tools/patches/fpc-i8086-class-pointer-compare.patch',
+           ROOT / 'tools/patches/fpc-i8086-huge-resourcestrings.patch')
 BUILDER = ROOT / 'tools/build_fpc_class_pointer.sh'
 
 
@@ -21,12 +22,14 @@ def prepare(source, output, build_id):
         'git', '-C', str(source), 'ls-files', '-z', '--',
         'compiler', 'rtl', 'Makefile', 'Makefile.fpc', 'LICENSE']).split(b'\0')
     paths = [Path(name.decode()) for name in names if name]
-    for required in ('compiler/i8086/n8086add.pas', 'compiler/Makefile',
+    for required in ('compiler/i8086/n8086add.pas', 'compiler/i8086/n8086ld.pas', 'compiler/Makefile',
                      'rtl/Makefile', 'Makefile', 'LICENSE'):
         if Path(required) not in paths:
             raise ValueError('incomplete tracked Free Pascal source checkout')
-    digest = hashlib.sha256(b'calmira-fpc-compiler-stage-1\0')
-    digest.update(build_id.encode() + b'\0' + PATCH.read_bytes() + BUILDER.read_bytes())
+    digest = hashlib.sha256(b'calmira-fpc-compiler-stage-2\0')
+    digest.update(build_id.encode() + b'\0' + BUILDER.read_bytes())
+    for patch in PATCHES:
+        digest.update(b'\0' + patch.name.encode() + b'\0' + patch.read_bytes())
     for path in paths:
         digest.update(str(path).encode() + b'\0' + (source / path).read_bytes())
     fingerprint = digest.hexdigest()
@@ -45,13 +48,14 @@ def prepare(source, output, build_id):
             destination = stage / path
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source / path, destination)
-        subprocess.run(['patch', '--batch', '--fuzz=0', '-p1', '-i', str(PATCH)],
-                       cwd=stage, check=True, stdout=subprocess.DEVNULL)
+        for patch in PATCHES:
+            subprocess.run(['patch', '--batch', '--fuzz=0', '-p1', '-i', str(patch)],
+                           cwd=stage, check=True, stdout=subprocess.DEVNULL)
         revision = subprocess.check_output(
             ['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip()
         (stage / marker.name).write_text(json.dumps(dict(
-            schema=1, fingerprint=fingerprint, revision=revision, build_id=build_id,
-            patch=PATCH.name, patch_sha256=hashlib.sha256(PATCH.read_bytes()).hexdigest(),
+            schema=2, fingerprint=fingerprint, revision=revision, build_id=build_id,
+            patches={patch.name: hashlib.sha256(patch.read_bytes()).hexdigest() for patch in PATCHES},
             builder_sha256=hashlib.sha256(BUILDER.read_bytes()).hexdigest()), indent=2) + '\n')
         stage.rename(target)
     return target

@@ -4,19 +4,16 @@ unit native_input;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This input adapter requires Win16}{$ENDIF}
 interface
-uses Classes, WinTypes, Messages, native_paint, native_cursors;
+uses Classes, WinTypes, Messages, control_base, native_paint, native_cursors;
 type
-  TMouseButton = (mbLeft, mbRight, mbMiddle);
-  TShiftState = set of (ssShift, ssAlt, ssCtrl, ssLeft, ssRight, ssMiddle, ssDouble);
-  TMouseEvent = procedure(Sender: TObject; Button: TMouseButton;
-    Shift: TShiftState; X, Y: Integer) of object;
-  TMouseMoveEvent = procedure(Sender: TObject; Shift: TShiftState; X, Y: Integer) of object;
+  TMouseButton = control_base.TMouseButton;
+  TShiftState = control_base.TShiftState;
+  TMouseEvent = control_base.TMouseEvent;
+  TMouseMoveEvent = control_base.TMouseMoveEvent;
   TKeyEvent = procedure(Sender: TObject; var Key: Word; Shift: TShiftState) of object;
   TKeyPressEvent = procedure(Sender: TObject; var Key: Char) of object;
   TNativeInputWindow = class(TNativePaintWindow)
   private
-    FOnMouseDown, FOnMouseUp: TMouseEvent;
-    FOnMouseMove: TMouseMoveEvent;
     FOnKeyDown, FOnKeyUp: TKeyEvent;
     FOnKeyPress: TKeyPressEvent;
     FOnEnter, FOnExit: TNotifyEvent;
@@ -63,9 +60,9 @@ type
     procedure SetFocus;
     property Focused: Boolean read GetFocused;
     property MouseCapture: Boolean read GetMouseCapture write SetMouseCapture;
-    property OnMouseDown: TMouseEvent read FOnMouseDown write FOnMouseDown;
-    property OnMouseUp: TMouseEvent read FOnMouseUp write FOnMouseUp;
-    property OnMouseMove: TMouseMoveEvent read FOnMouseMove write FOnMouseMove;
+    property OnMouseDown;
+    property OnMouseUp;
+    property OnMouseMove;
     property OnKeyDown: TKeyEvent read FOnKeyDown write FOnKeyDown;
     property OnKeyUp: TKeyEvent read FOnKeyUp write FOnKeyUp;
     property OnKeyPress: TKeyPressEvent read FOnKeyPress write FOnKeyPress;
@@ -77,6 +74,11 @@ var
   { Called with the control first in every DoEnter, before OnEnter; Forms
     uses it for Screen.OnActiveControlChange as Delphi's SetFocusedControl. }
   EnterNotify: TNotifyEvent;
+const
+  mbLeft = control_base.mbLeft; mbRight = control_base.mbRight; mbMiddle = control_base.mbMiddle;
+  ssShift = control_base.ssShift; ssAlt = control_base.ssAlt; ssCtrl = control_base.ssCtrl;
+  ssLeft = control_base.ssLeft; ssRight = control_base.ssRight;
+  ssMiddle = control_base.ssMiddle; ssDouble = control_base.ssDouble;
 implementation
 uses WinProcs, native_window;
 
@@ -176,11 +178,11 @@ begin DefaultHandler(M); DoEnter; end;
 procedure TNativeInputWindow.WMKillFocus(var M: TMessage);
 begin DefaultHandler(M); DoExit; end;
 procedure TNativeInputWindow.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin if Assigned(FOnMouseDown) then FOnMouseDown(Self, Button, Shift, X, Y); end;
+begin if Assigned(OnMouseDown) then OnMouseDown(Self, Button, Shift, X, Y); end;
 procedure TNativeInputWindow.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin if Assigned(FOnMouseUp) then FOnMouseUp(Self, Button, Shift, X, Y); end;
+begin if Assigned(OnMouseUp) then OnMouseUp(Self, Button, Shift, X, Y); end;
 procedure TNativeInputWindow.MouseMove(Shift: TShiftState; X, Y: Integer);
-begin if Assigned(FOnMouseMove) then FOnMouseMove(Self, Shift, X, Y); end;
+begin if Assigned(OnMouseMove) then OnMouseMove(Self, Shift, X, Y); end;
 procedure TNativeInputWindow.KeyDown(var Key: Word; Shift: TShiftState);
 begin if Assigned(FOnKeyDown) then FOnKeyDown(Self, Key, Shift); end;
 procedure TNativeInputWindow.KeyUp(var Key: Word; Shift: TShiftState);

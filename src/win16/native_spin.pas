@@ -182,7 +182,7 @@ end;
 function TSpinEdit.ExtraStyle: DWORD;
 begin
   { EM_SETRECTNP, which keeps text clear of the button, needs a multiline edit. }
-  Result := ES_MULTILINE;
+  Result := inherited ExtraStyle or ES_MULTILINE;
 end;
 procedure TSpinEdit.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
   X, Y, Width, Height: SmallInt);

@@ -30,6 +30,9 @@ const
   CM_ENABLEDCHANGED = CM_BASE + 12;
   CM_MOUSEENTER = CM_BASE + 19;
   CM_MOUSELEAVE = CM_BASE + 20;
+  { Delphi 1 sends this when a form without a menu bar gets Alt; here every
+    form owns its native menu bar, so it is declared but never sent. }
+  CM_APPSYSCOMMAND = CM_BASE + 23;
   CM_BUTTONPRESSED = CM_BASE + 24;
   { Delphi 1 notifications reflected from a parent to the child they concern. }
   CN_BASE = $2000;
@@ -111,6 +114,9 @@ type
   protected
     procedure ControlOperation(Operation: TControlOperation; var Value: Boolean); override;
     function GetClientRect: TRect; virtual;
+    { Delphi's TControl click hooks; descendants with click events override them. }
+    procedure Click; virtual;
+    procedure DblClick; virtual;
     procedure ChangeView(Action: TControlViewAction); virtual;
     { Model-only teardown restoration; never moves a live HWND. }
     procedure StoreBounds(const Area: TRect);
@@ -175,10 +181,15 @@ type
     procedure Hide;
     procedure BringToFront;
     procedure SendToBack;
-    function ClientToScreen(const Position: TPoint): TPoint;
-    function ScreenToClient(const Position: TPoint): TPoint;
+    function ClientToScreen(const Position: TPoint): TPoint; override;
+    function ScreenToClient(const Position: TPoint): TPoint; override;
     function FindControl(Window: HWND): TCustomControl;
     function HandleAllocated: Boolean;
+    { Makes AControl a child of this control. }
+    procedure InsertControl(AControl: TControl);
+    { The topmost visible child at the client point Pos; disabled children
+      count only with AllowDisabled. }
+    function ControlAtPos(const Pos: TPoint; AllowDisabled: Boolean): TControl;
     { True while the window and all its parents are visible. }
     function Showing: Boolean;
     function ResolveHelpContext: LongInt;
@@ -215,8 +226,6 @@ type
     FLeft, FTop, FWidth, FHeight: Integer;
     FVisible, FEnabled: Boolean;
     FOnClick, FOnDblClick: TNotifyEvent;
-    FOnMouseDown, FOnMouseUp: TMouseEvent;
-    FOnMouseMove: TMouseMoveEvent;
     FPopupMenu: TPopupMenu;
     procedure SetPopupMenu(Value: TPopupMenu);
     procedure SetParent(Value: TCustomControl);
@@ -253,9 +262,9 @@ type
     procedure DblClick; virtual;
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
     property OnDblClick: TNotifyEvent read FOnDblClick write FOnDblClick;
-    property OnMouseDown: TMouseEvent read FOnMouseDown write FOnMouseDown;
-    property OnMouseUp: TMouseEvent read FOnMouseUp write FOnMouseUp;
-    property OnMouseMove: TMouseMoveEvent read FOnMouseMove write FOnMouseMove;
+    property OnMouseDown;
+    property OnMouseUp;
+    property OnMouseMove;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -269,8 +278,8 @@ type
     procedure Repaint;
     procedure BringToFront;
     procedure SendToBack;
-    function ClientToScreen(const Position: TPoint): TPoint;
-    function ScreenToClient(const Position: TPoint): TPoint;
+    function ClientToScreen(const Position: TPoint): TPoint; override;
+    function ScreenToClient(const Position: TPoint): TPoint; override;
     property Parent: TCustomControl read FParent write SetParent;
     property Canvas: TCanvas read FCanvas;
     property PopupMenu: TPopupMenu read FPopupMenu write SetPopupMenu;
@@ -1333,11 +1342,11 @@ begin
   end;
 end;
 procedure TGraphicControl.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin if Assigned(FOnMouseDown) then FOnMouseDown(Self, Button, Shift, X, Y); end;
+begin if Assigned(OnMouseDown) then OnMouseDown(Self, Button, Shift, X, Y); end;
 procedure TGraphicControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin if Assigned(FOnMouseUp) then FOnMouseUp(Self, Button, Shift, X, Y); end;
+begin if Assigned(OnMouseUp) then OnMouseUp(Self, Button, Shift, X, Y); end;
 procedure TGraphicControl.MouseMove(Shift: TShiftState; X, Y: Integer);
-begin if Assigned(FOnMouseMove) then FOnMouseMove(Self, Shift, X, Y); end;
+begin if Assigned(OnMouseMove) then OnMouseMove(Self, Shift, X, Y); end;
 procedure TGraphicControl.Click;
 begin if Assigned(FOnClick) then FOnClick(Self); end;
 procedure TGraphicControl.DblClick;
@@ -1584,6 +1593,10 @@ begin
   I := Pos('|', Hint);
   if I = 0 then Result := Hint else Result := Copy(Hint, I + 1, 255);
 end;
+procedure TCustomControl.Click;
+begin end;
+procedure TCustomControl.DblClick;
+begin end;
 function TCustomControl.HandleAllocated: Boolean;
 begin Result := Handle <> 0; end;
 function TCustomControl.Showing: Boolean;
@@ -1823,6 +1836,31 @@ begin
     DragSource := nil; FTarget := nil; FAccepted := False;
     if (FCapture <> nil) and (GetCapture = FCapture.Handle) then ReleaseCapture;
   end;
+end;
+procedure TCustomControl.InsertControl(AControl: TControl);
+begin
+  if AControl is TCustomControl then TCustomControl(AControl).Parent := Self
+  else if AControl is TGraphicControl then TGraphicControl(AControl).Parent := Self
+  else raise ENativeWindowError.Create('Cannot insert this control');
+end;
+function TCustomControl.ControlAtPos(const Pos: TPoint; AllowDisabled: Boolean): TControl;
+var I: Integer; Child: TControl; Area: TRect; Flag: Boolean;
+begin
+  for I := ControlCount - 1 downto 0 do
+  begin
+    Result := Controls[I];
+    Child := Result;
+    TDragAccess(Child).ControlOperation(coReadVisible, Flag);
+    if not Flag then Continue;
+    if not AllowDisabled then
+    begin
+      TDragAccess(Child).ControlOperation(coReadEnabled, Flag);
+      if not Flag then Continue;
+    end;
+    Area := TDragAccess(Child).GetControlBounds;
+    if (Pos.X >= Area.Left) and (Pos.X < Area.Right) and (Pos.Y >= Area.Top) and (Pos.Y < Area.Bottom) then Exit;
+  end;
+  Result := nil;
 end;
 initialization
   NewStyleControls := Lo(LoWord(GetVersion)) >= 4;

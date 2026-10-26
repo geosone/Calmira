@@ -55,7 +55,7 @@ unit IconWin;
 
 interface
 
-uses LangUI,
+uses {$IFDEF FPC}Win31, {$ENDIF}LangUI,
   SysUtils, WinTypes, Classes, Controls, Forms, Dialogs, Graphics, StdCtrls,
   ExtCtrls, Directry, Menus, MultiGrd, Dropclnt, DropServ, DragDrop, Settings,
   Grids, Messages, Progress, Resource, CalForm, ExtForm, StylSped, DynaMenu,
@@ -351,7 +351,7 @@ implementation
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses {$IFDEF FPC}Win31, {$ENDIF}ShellAPI, FileProp, DiskProp, Drives, Tree, Environs, Fileman,
+uses ShellAPI, FileProp, DiskProp, Drives, Tree, Environs, Fileman,
   WasteBin, OpenFile, RunProg, Desk, FileFind, Filter, CompSys, Strings,
   MiscUtil, Files, WinProcs, Alias, FSysProp, Select, Clipbrd, Referenc,
   Locale, Embed, Iconic, Task, IncSrch, FourDOS, GotoFld, Tips, About,

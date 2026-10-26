@@ -89,6 +89,8 @@ type
     destructor Destroy; override;
     function DispatchCommand(ACommand: Word): Boolean;
     function DispatchPopup(AHandle: HMENU): Boolean;
+    { Clicks the enabled item whose ShortCut matches the key message. }
+    function IsShortCut(var Message: TWMKey): Boolean;
     function FindItem(Value: Word; Kind: TFindItemKind): TMenuItem;
     property Handle: HMENU read GetHandle;
     { The window that owns this menu bar; set by the form that shows it. }
@@ -458,6 +460,25 @@ begin
   Item := FindItem(AHandle, fkHandle);
   Result := Item <> nil;
   if Result then Item.Click;
+end;
+function TMenu.IsShortCut(var Message: TWMKey): Boolean;
+var Shift: TShiftState; Item, Parent: TMenuItem;
+begin
+  Result := False;
+  Shift := [];
+  if GetKeyState(VK_SHIFT) < 0 then Include(Shift, ssShift);
+  if GetKeyState(VK_CONTROL) < 0 then Include(Shift, ssCtrl);
+  if Message.KeyData and $20000000 <> 0 then Include(Shift, ssAlt);
+  Item := FindItem(ShortCut(Message.CharCode, Shift), fkShortCut);
+  if Item = nil then Exit;
+  Parent := Item;
+  while Parent <> nil do
+  begin
+    if not Parent.Enabled then Exit;
+    Parent := Parent.Parent;
+  end;
+  Item.Click;
+  Result := True;
 end;
 { TMainMenu }
 function TMainMenu.MenuBar: Boolean;
