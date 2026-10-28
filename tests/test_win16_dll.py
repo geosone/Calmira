@@ -37,7 +37,7 @@ class Win16DllTests(unittest.TestCase):
 
     def test_native_suites_are_in_the_regression(self):
         make = read('makefile')
-        self.assertIn('win16-dll-runtime-test win16-lfnfuncs-runtime-test \\', make)
+        self.assertIn('win16-dll-runtime-test win16-lfnfuncs-runtime-test', make)
         self.assertIn('-o$$name.DLL tests/pascal/dll_probe.pas', make)
         native = read('tests/pascal/test_win16_dll.pas')
         for check in ("the library''s units were initialized", 'IsLibrary is set in the library',

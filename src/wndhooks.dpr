@@ -52,7 +52,7 @@ library WndHooks;
 
 {$C FIXED}
 
-uses WinProcs, WinTypes, Messages, CalMsgs;
+uses {$IFDEF FPC}Win31, {$ENDIF}WinProcs, WinTypes, Messages, CalMsgs;
 
 const
   MaxEnabled: Boolean = False;

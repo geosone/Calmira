@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 102 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 103 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1842,4 +1842,24 @@ headers and entry code.
   through `vcl/lfnutils.pas`. It covers `NextItem`, `NextItemStr`, `SetLFN`,
   `IsProgExt`, `LFindFirst`/`LFindNext` and `LFileOpen` without long file
   names. The long-filename path waits for a working DOSLFN.
+
+## WNDHOOKS.DLL
+
+- `make wndhooks` builds `WNDHOOKS.DLL` from the original
+  `src/wndhooks.dpr`. Its only change is `Win31` in the uses clause under
+  FPC: Delphi 1's WinTypes/WinProcs contain the Windows 3.1 API, while
+  Free Pascal has it in `Win31`.
+  - Its export table matches the Delphi build exactly: the same 21 names
+    and ordinals, and `WEP` at 22.
+  - `{$C FIXED}` only gives a warning. Fixed code segments mattered only
+    for real-mode Windows 3.0.
+- `make win16-wndhooks-runtime-test` loads it by name, as `src/hooks.pas`
+  does, and triggers each hook through Windows:
+  - `IsHotKey` with keyboard states;
+  - the shell hook for creating and destroying a top-level window;
+  - the window-procedure hook for an activation, and for a maximized
+    window that stops at `YLimit`;
+  - the desktop subclassing and its release;
+  - the KERNEL file-change notification for creating and deleting a file.
+  The mouse and keyboard hooks need real input and are not covered.
 
