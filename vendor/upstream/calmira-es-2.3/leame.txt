@@ -1,0 +1,162 @@
+{**************************************************************************}
+{    Calmira shell para Microsoft® Windows(TM) 3.1x                        }
+{    Versión Español 2.3+                                                  }
+{    Mejorada Por Ramon Valbuena (Filipinas) y Mauricio Zapata (Colombia)  }
+{    Copyright (C) 1997-1998 Li-Hsin Huang                                 }
+{                                                                          }
+{    Este programa es gratuito; lo puede redistribuir y/o modificar bajo   }
+{    los términos del GNU General Public License publicado por             }
+{    the Free Software Foundation; la versión 2 de la Licecia, o una       }
+{    (en su defecto) cualquiera posterior.                                 }
+{                                                                          }
+{    This program is distributed in the hope that it will be useful,       }
+{    but WITHOUT ANY WARRANTY; without even the implied warranty of        }
+{    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         }
+{    GNU General Public License for more details.                          }
+{                                                                          }
+{    You should have received a copy of the GNU General Public License     }
+{    along with this program; if not, write to the Free Software           }
+{    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.             }
+{**************************************************************************}
+
+Instalación
+------------
+
+Las instrucciones completas de instalación están contenidas en 
+el archivo de ayuda.
+Para comenzar, descomprima todo el archivo ZIP que recivió dentro 
+de un directorio que ha de nombrar  Calmira en su disco duro, y 
+ejecute el archivo de ayuda CALMIRA.HLP desde le Administrador de 
+archivos o con Ejecutar.
+
+
+Calmira es una interface de usuario estilo Windows 95 para Windows 3.1.
+Es un entorno completamente integrado para administrar sus archivos y programas,
+y está diseñada para ejecutarse excelentemente en computadoras 386 y 486.
+
+Calmira inculle:
+
+o  Un explorador con iconos para manejar sus archivos en ventanas flotantes
+o  Soporte para descripciones 4DOS en reemplazo de nombres de archivo largos
+o  Accesos directos de escritorio y archivo para cualquier objeto o URL
+o  Árbol del Explorer que le permite navegar rapidamente por sus discos
+o  Barra de tareas con un Menú de Inicio, configurable en cualquier nivel
+o  Papelera de reciclaje para almacenar archivos y carpetas borradas
+o  Cientos de opciones y configuraciones facilmente accesibles
+o  Manual de 94 páginas conteniendo toda la ayuda que requiere
+
+La Versión 2.3 contiene una barra de tareas mejorada, un administrador de tareas
+propio y operaciones de cortar-y-pegar, junto con muchisimas adiciones.
+
+Luego de que la ponga a funcionar y sienta como se ve y se comorta su Windows 3.1,
+Ud. nunca querrá regresarse...
+
+
+Requerimientos del Sistema
+-------------------
+
+o  Procesador 386 o superior
+o  Microsoft Windows 3.1 o Windows para Trabajo en Grupos 3.11
+o  Mínimo 4 megabytes (MB) de memoria, 8MB recomendado
+o  Monitor VGA o mejor
+o  Un mouse (ratón)
+
+
+Contactos
+--------
+
+Autor : Li-Hsin Huang
+        59 Bromefield
+        Stanmore
+        Middlesex HA7 1AG
+        England, UK
+
+Post  : Calmira Tips
+	Consejos sobre Calmira y Windows 3.1x 
+Email : calmira_tips@world.std.com
+Web   : http://www.calmira.org/
+ftp   : ftp://ftp.calmira.org/pub/espanol  (sin ñ, es la carpeta en Castellano)
+
+============================================================================
+                 Last minute notes (in English, sorry!)
+============================================================================
+
+
+Tip color -- you can change this by setting HintColor in the [Calmira]
+section.  The default is the hexadecimal number $00F0FBFF.
+
+Desktop activation -- in previous versions, all Calmira windows are
+brought forward if you do a left+right click on the desktop.  Now, if
+the "Treat Calmira windows as separate tasks" checkbox is turned on
+in the Desktop Properties dialog, then only shortcut icons are exposed.
+You can now also double click on the taskbar panel to activate the desktop.
+
+Bitmaps -- some of the graphics have been updated.  They are stored
+in the RES files with the source, but I can send you copies of the
+bitmaps by email if you don't have a suitable extraction tool.
+
+Volume labels -- if your volume label has more than 8 characters and
+does not contain a dot ".", Calmira will not display it correctly.
+For example, "ABCDEFGH_123" could be shown as "ABCDEFGH._12".
+
+Windows 95 colours -- when you first run Calmira, it installs a new
+colour scheme called "Windows 95 Standard" into your Control Panel.
+You can choose this scheme in the usual way.
+
+Restricting access to settings -- if you use Calmira in a school or
+other multi-user environment, you can now prevent the options,
+shortcuts, and Start Menu from being changed.  In the [Calmira]
+section of CALMIRA.INI, add CanEditingSettings=0.  This causes the
+OK button and tab pages to be disabled in property sheets, and
+does not allow shortcuts to be created, edited or removed.
+
+Alt+Tab side effects -- all grid and tree components used by Calmira
+are affected by task switching with Alt+Tab.  The focus moves to the
+next item along, which causes the Explorer tree to change directory.
+
+Switching between Explorer tree and file pane -- press Alt+W.
+
+Toggling selections with the keyboard -- press the Spacebar.
+
+Changes since 2.3 -- mainly minor bug fixes 
+(all fixes by Ramon Valbuena)
+
+     Explorer (tree.pas, explorer.dpr)
+     * Explorer can be opened to specified directory from command line 
+       "explorer c:\dos" willl launch explorer in C:\DOS directory
+     * Changed bitmaps to more Win95-style
+     * Now draws focus rectangle around name of selected folder
+     
+     Computer Window
+     * Enabled drag and drop to drive icons for file copy/move from Icon 
+     Windows, Bin, and Find Dialog
+     * Drag & drop creation of aliases for Computer window items
+     * "Status panel" along Computer window's lower edge                   
+     
+     General
+     * Functional (if crude) word-wrapped TCheckList component
+     
+     Drive Properties
+     * Drive labels - '.' is now properly stripped out
+     
+     TaskBar Properties
+     * Exclusion and Applet list items can be dragged to change sort order
+     * Can modify existing entries via "Modify Button" or double-click on 
+     item
+
+Hiding the Computer and Bin icons -- assign empty captions to these
+objects, and they will not appear the next time you run Calmira.
+The trick of giving negative icon positions does not seem to work
+any more.
+
+Source code changes -- there is a summary in the help file, but it
+might be incomplete due to last minute fixes.  Do a grep on { 2.3 }
+or Ramon Valbuena or { mzo } to make sure.
+
+Thanks for using Spanish Calmira.
+---------------------------------
+Nota: Si desea tener una apariencia exacta de todos los iconos de Windows 95 
+o 98 busque en el servidor ftp de calmira el tema de escritorio para calmira 
+en Español. Este tema le dará todos los iconos del menú de inicio y de los 
+diálogos de Ejecutar, Buscar, Mi PC, Papelera, etc iguales a los de W95. 
+Busque el archivo ftp://ftp.calmira.org/pub/espanol/w95tema.zip

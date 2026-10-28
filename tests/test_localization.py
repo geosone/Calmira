@@ -48,12 +48,21 @@ class LocalizationTests(unittest.TestCase):
                 self.assertGreater(report[code]['entries'], 900)
                 self.assertTrue(all(len(line) <= 250 for line in data.split(b'\r\n')))
             self.assertTrue(any('format mismatch' in item for item in report['fr']['omitted']))
+            # Translations taken from the resources of translated releases.
+            for code, minimum in (('nl', 900), ('pl', 900), ('it', 900), ('es', 700)):
+                self.assertGreater(report[code]['entries'], minimum)
+            self.assertIn(b'CodePage=1250\r\n', (output / 'pl.LNG').read_bytes())
+            self.assertIn('1027=Przeniesienie %s do kosza jest niemo\u017cliwe\r\n'.encode('cp1250'),
+                          (output / 'pl.LNG').read_bytes())
+            self.assertIn(b'1026=Willkommen\r\n', (output / 'de.LNG').read_bytes())
+            self.assertIn(b'1026=Welkom\r\n', (output / 'nl.LNG').read_bytes())
 
     def test_installer_uses_one_payload_and_persists_language(self):
         descriptor = (ROOT / 'install/install.ini').read_text()
         self.assertIn('Config=CALMIRA.INI|Language|Selected', descriptor)
-        for code in ('en', 'de', 'fr'):
+        for code in ('en', 'de', 'fr', 'nl', 'it', 'es', 'pl'):
             self.assertIn(f'LANG\\{code}.LNG', descriptor)
+            self.assertIn(f'Choice={code}|', descriptor)
 
 
 if __name__ == '__main__':

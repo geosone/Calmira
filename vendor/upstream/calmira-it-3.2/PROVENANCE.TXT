@@ -1,0 +1,8 @@
+Source: http://www.calmira.de/downloads/files/italian/cal32it.zip
+Archive SHA-256: 3dd022de4132995eef8f063314562278d74e18f0a49e4b9b3c517b410a3041a6
+Extracted with unzip/innoextract; files unchanged:
+  CALMIRA.EXE 8cca13289f6427b3c647dec08d8217b2e77b276569794124e516b6143457e1ec
+  CALMIRA.HLP 2bbf0577e1a6db653ba5b1765f71fef3d311b51cb36bfae3c1a71139c2f9b107
+  LICENSE.TXT 61b65d8be67f0acb3a370ce0826c073b7c54a5c08b502ed6f7ffec94a300477f
+  Leggimi.txt 8538b1c25a43dc3c3d8eb6584426c2e238304e0ec2a4deced968040fb798f6ec
+  FILE_ID.DIZ b1c0a243b3f013755ef225a88a500f03be7be63977be334337464eb809717f5a

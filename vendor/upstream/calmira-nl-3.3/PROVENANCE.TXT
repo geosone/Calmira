@@ -1,0 +1,8 @@
+Source: http://www.calmira.de/downloads/files/dutch/c33setdu.exe
+Archive SHA-256: 9b96aecf46553c6d036e341c4e705d392a2c970028f26fced9489eb11f5b9c4b
+Extracted with unzip/innoextract; files unchanged:
+  CALMIRA.EXE 2ab4861f059d6a800eb67dc9a230e4992ba424b740bd9d76accc87f042250888
+  CALMIRA.HLP 2bbf0577e1a6db653ba5b1765f71fef3d311b51cb36bfae3c1a71139c2f9b107
+  LICENSE.TXT 61b65d8be67f0acb3a370ce0826c073b7c54a5c08b502ed6f7ffec94a300477f
+  README.TXT 003ed2c4d5edd05d3cd3604fddae4fb826d5825b97ceb3ee546728e00352c8ff
+  FILE_ID.DIZ 71b58af91d63a747707c0d1442f8795553aa8255d24e8583152a9119ea5a486a

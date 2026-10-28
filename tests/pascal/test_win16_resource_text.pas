@@ -29,6 +29,13 @@ begin
     try
       Check(Catalog.SelectLanguage('de') and (LocalLoadStr(SCreateNewUser) = 'Neuen Benutzer anlegen'), 'de');
       Check(Catalog.SelectLanguage('fr') and (LocalLoadStr(SCreateNewUser) = 'Cr'#233'er un nouvel utilisateur'), 'fr');
+      { Messages extracted from the German LOCALE.RES and translated EXE builds. }
+      Check(Catalog.SelectLanguage('de') and (LocalLoadStr(SWelcome) = 'Willkommen'), 'de message');
+      Check(Catalog.SelectLanguage('nl') and (LocalLoadStr(SWelcome) = 'Welkom'), 'nl');
+      Check(Catalog.SelectLanguage('it') and (LocalLoadStr(SWelcome) = 'Benvenuto'), 'it');
+      Check(Catalog.SelectLanguage('es') and (LocalLoadStr(SWelcome) = 'Bienvenido'), 'es');
+      Check(Catalog.SelectLanguage('pl') and
+        (LocalLoadStr(SCannotMoveToBin) = 'Przeniesienie %s do kosza jest niemo'#$BF'liwe'), 'pl in CP1250');
       Check(Catalog.SelectLanguage('probe'), 'probe');
       Check(LocalLoadStr(SCreateNewUser) = 'probe resource', 'provider overrides bound');
       Check(Catalog.TranslateResource(SUserName, '?') = 'User name:', 'English fallback');

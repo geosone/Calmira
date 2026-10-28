@@ -1,0 +1,230 @@
+ 
+----------------------------------------------------------------------
+	LEGGIMI di Calmira Italia Versione 3.2ita Build 301
+			     Marzo 2002             
+----------------------------------------------------------------------             
+             
+            (c) 2001-2002 Fernando Antonazzo, Calmira Italia
+
+
+	1) Introduzione
+	2) Come si installa
+	3) Come si disinstalla
+	4) Requisiti di sistema
+	5) File Necessari
+
+
+	-----------------------
+	INTRODUZIONE
+	-----------------------
+                        
+        Calmira è una shell 16 Bit per windows 3.1 e Windows per 
+        Workgroup progettata da Li-Hisn nel 1997.
+        Il programmatore a partire dall'anno succesivo decise di 
+        mettere a disposizione di tutti gli utenti il codice 
+        sorgente del programma mentre ne abbandona lo sviluppo. 
+        Sempre nello stesso anno, un gruppo di programmatori 
+        decise di proseguire il lavoro iniziato da Li-Hisn, 
+        sviluppando e migliorando ulteriormente la shell.
+        Il sito di riferimento del progetto Calmira è 
+        www.calmira.org dove, oltre ad avere una ricca 
+        informazione sul progetto Calmira, potrai scaricare 
+        l'ultima versione del programma
+        Noterai che Calmira è una shell stabilissima, proprio 
+        perché  è il risultato di un intenso lavoro al quale  
+        partecipa ormai una comunità di utenti che, segnala 
+        eventuali bug oppure offre la possibilità di risolverli.
+                          
+        Calmira può funzionare con Windows 95?
+        La risposta è No. Ossia non avrebbe alcun senso 
+        sostituire l'eccezionale shell di un sistema a 32 Bit 
+        come quella di Windows 95, senza poi considerare i 
+        problemi di incompatibilità generale con il sottosistema 
+        di Win 32.
+        Calmira, invece, trova il suo successo, proprio perché 
+        sostituisce una shell "primitiva" e scomoda come quella 
+        di Windows 3.x e restituendo ad un sistema operativo, 
+        che necessita di pochissime risorse hardware per poter 
+        funzionare, la flessibilità e confortevolezza di un 
+        ambiente, appunto, come quello di windows 95, facendo 
+        "rivivere" computer considerati ormai pezzi da museo
+        dell' informatica.
+        Ognuno poi, avrà le sue motivazioni riguardo all'uso di 
+        un computer 386 o 486 dal valore commerciale prossimo 
+        allo zero, piuttosto che usare un costoso pentium con 
+        qualche Gigaherz di potenza.
+                        
+        Un altro motivo del successo di Calmira consiste nel 
+        fatto che il programma è Free.
+        Per una corretta interpretazione di questo concetto ti 
+        consiglio di leggere una copia tradotta in italiano di 
+        una GNU (General Public License) reperibile sul sito
+        di Calmira Italia; non si tratta della 
+        versione originale e non ha valore legale, comunque la 
+        traduzione è abbastanza fedele: nella stessa pagina 
+        troverai ovviamente la versione originale della GNU in 
+        inglese.
+        Da questa evenienza ne scaturisce non solo che per usare 
+        il programma non bisogna pagare nulla, ma soprattutto 
+        potrai personalizzarlo a volontà, aggiungendo nuove 
+        funzionalità e se vuoi potrai ridistribuirlo, a una sola 
+        condizione però: il programma e protetto da licensa GNU 
+        e quindi non potrai porre limitazioni o condizioni 
+        all'utlizzo dello stesso.
+                        
+        Calmira include:
+        -Profili utente multipli per configurazioni
+         personalizzate
+        -Gestione Risorse basata su icone per gestire i 
+         files in finestre indipendenti una dall'altra 
+        -Supporto per le descrizoni 4DOS al posto dei 
+         nomi dei files lunghi 
+        -Collegamenti sul Desktop o su files a qualunque 
+         oggetto o URL 
+        -Gestione Risorse per esplorare piu' velocemente 
+         le unita' disco basato su Explorer 
+        -Barra delle applicazioni con un versatile Menu 
+         Avvio, diviso in livelli 
+        -Cestino per conservare cartelle e files 
+         eliminati, con ripristino automatico 
+        -Moltissime di opzioni ed impostazioni a portata 
+         di click 
+        -Guida in linea di 80 pagine con tutto il 
+         supporto di cui hai bisogno
+                                   
+	--------------------------------                        
+	Come si installa
+	--------------------------------
+                        
+        L' installazione è semplicissima: una volta decompresso 
+        il file Cal32.it.zip in una directory qualsiasi, ad 
+        esempio C:\Calmira, decomprimi anche il file
+	Ctl3d.zip contenente le librerie dinamiche
+	Ctl3dv2.dll e Ctl3d.dll, questi due files
+	dovrai spostarli nella directory c:\windows\system
+        (non lasciare una copia di questi files nella dir
+        di Calmira)
+        eseguire il file Calmira.exe. Ti consiglio, 
+        non per necessità del programma ma di alcuni Add-Ons, di 
+        rispettare il nome della directory "Calmira" e di 
+        posizionarla in C:\.
+        Per far funzionare Calmira come shell definitiva di 
+        Windows 3.x dovrai fare una piccola modifica
+        al file System.ini, (si trova nella directory 
+        Windows\System)  procedendo nel modo seguente:
+        fai una (backup) copia del file System.ini;
+        nella sezione [boot] di questo file troverai questa 
+        stringa
+        [Boot]
+        shell=progman.exe
+        Progman.exe è ovviamente la shell predefinita di 
+        Windows 3.x;
+        metti un punto e virgola all' inizio della stringa, in 
+        questo modo dirai a Windows di non eseguire quella 
+        istruzione;
+        inserisci questa nuova stringa:
+        [Boot]
+        ;shell=progman.exe
+        shell=c:\calmira\calmira.exe 
+        Ovviamente il percorso è valido nel caso (consigliato) 
+        che tu abbia scelto la directory C:\Calmira come dir 
+        predefinita; altrimenti occore ovviamente puntare al 
+        file "Calmira.exe".
+        Lo stesso discorso vale con il gestore dei processi 
+        (CTascman.exe):
+        [Boot]
+        taskman.exe=c:\calmira\ctaskman.exe
+        A questo punto, dopo il riavvio, il sistema è 
+        configurato per far funzionare Calmira come shell 
+        predefinita di Windows e, CTascman come gestore dei 
+        processi predefinito.
+                        
+	--------------------------	
+	Installazione automatica 
+	--------------------------
+                            
+        Dal 13 febbraio 2002 è stato creato un programma di 
+        installazione di Calmira che provvede ad automatizzare 
+        tutto il setup della shell.
+        Nella sezione Download potrai scegliere se scaricare la 
+        versione con setup manuale o automatico. 
+        In questo caso per installare Calmira basta lanciare 
+	il file setup.exe, ed eseguirà tutte le operazioni
+	descritte nel setup manuale.                
+                       
+
+	---------------------------
+	Come si disinstalla
+        ---------------------------
+                
+        Basta Cancellare la directory nella quale hai copiato i 
+        file del programma e rimuovere le strighe aggiunte al 
+        file System.ini, es:
+        shell=progman.exe
+        ;shell=c:\calmira\calmira.exe
+        La shell predefinita di Windows 3.1 ritorna ad essere
+        progman.exe
+        Ovviamente lo stesso discorso vale con Ctaskman:
+	qui basta cancellare l'intera stringa
+        Taskman=c:\calmira\CTaskman.exe
+	
+	
+	------------------------------                       
+	Requisiti di sistema
+        ------------------------------                
+                        
+	Le richieste Hardware di Calmira sono davvero modeste.
+        Per installare Calmira sono necessari:
+        -Un computer con processore 386 o superiore 
+        -Microsoft Windows 3.1 o Windows per Workgroup 
+        -Appena 4 MB di memoria (sono raccomandati 8 MB) 
+        -Un sistema video VGA o superiore 
+        -Un Mouse 
+                        
+	------------------------------
+	File richiesti
+	------------------------------
+        
+        Calmira necessita dei file Ctl3dv2.dll e Ctl3d.dll: 
+        librerie dinamiche, normalmente presenti nella 
+        cartella Windows\System.
+	Quelle fornite nel file Ctl3d.zip sono gli ultimi
+	aggiornamenti della Microsoft.
+	Ti consiglio pertanto di sostituire le versioni
+	precedenti di questi files.
+
+        La versione base di Calmira prevede la presenza 
+        dei files seguenti , tutti contenuti nel   
+        pacchetto compresso Cal32Ita.zip.
+	
+        Nome del File	Descrizione			
+        -------------	-----------			  
+	Calmira.exe	Il file esecutivo del programma	
+        Explorer.exe	Lancia l'explorer di Calmira	 
+        ctaskman.exe	Esegue il gestore dei processi	 
+        wndhooks.dll	Contiene istruzioni a basso livello 
+                        utilizzate da CTaskman
+        dosrun.exe	Svolge alcune funzioni nelle sessioni 
+                        DOS
+        direxist.exe	Un piccolo programma per localizzare 
+                        le directory
+        calmira.ini	File di impostazione principale di 
+                        Calmira
+        start.ini	Memorizza le impostazioni del Menù 
+                        Avvio
+        calmira.hlp     Circa 80 pagine di guida in linea
+        leggimi.txt     L'ultima documentazione allegata 
+                        al programma (questo file)        
+        license.txt     La licensa GNU
+        file_id.diz 	Informazioni Varie
+        start.bat	Esegue un programma Windows da una 
+                        sessione DOS
+        ctl3d.zip       Comtiene, compressa, due librerie a 
+                        collegamento dinamico di Windows  
+        shutdown.bmp  	Schermata di chiusura (opzionale)
+        w95icons.dll	Libreria di icone stile Windows 95
+           
+                                
+                        
+            
+

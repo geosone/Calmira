@@ -1863,3 +1863,15 @@ headers and entry code.
   - the KERNEL file-change notification for creating and deleting a file.
   The mouse and keyboard hooks need real input and are not covered.
 
+## Languages from the Old Packages
+
+`make languages` now also builds Dutch, Polish, Italian and Spanish, and
+German gets German messages. The sources and coverage are listed in
+`docs/localization.md`.
+- `tools/build_languages.py` reads translations from Win16 NE executables
+  and `.RES` files: string tables by the matching release's `LOCALE.PAS`
+  numbers, and forms from `TPF0` resources.
+- `make win16-resource-text-runtime-test` selects each language under
+  Windows 3.11. For Polish it checks a CP1250 character byte for byte.
+- The test harness now copies every `.LNG` file.
+

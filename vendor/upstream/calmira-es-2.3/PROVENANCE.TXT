@@ -1,0 +1,7 @@
+Source: http://www.calmira.de/downloads/files/espanol/calm23sp.zip
+Archive SHA-256: d9601b54635d4588c248c7febf51e2cf49b6e21278d08a05fb02e61e05d56bc2
+Extracted with unzip/innoextract; files unchanged:
+  CALMIRA.EXE b7268addf6a7152be6aaffd8391ad2549f3b9aa33b331523bffbe9a0f7a65015
+  LICENSE.TXT 61b65d8be67f0acb3a370ce0826c073b7c54a5c08b502ed6f7ffec94a300477f
+  leame.txt 7c97d35729ef08b44a6092027214d84f7bdd4e031883a74f72c6abc492fb0ce2
+  FILE_ID.DIZ 854782d071a971f727f14d3731dae04f13cf31d2acb92ad9a16fb8a29d0ba1cd

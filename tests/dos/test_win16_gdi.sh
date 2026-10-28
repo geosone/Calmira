@@ -37,8 +37,7 @@ python3 "$root/tests/bitmap_fixtures.py" "$work"
 mcopy -o -i "$partition" "$work/BITS1.BMP" "$work/BITS8.BMP" "$work/BITS24.BMP" "$work/SHORT.BMP" ::/
 if [ -n "${GDI_CATALOG_DIR:-}" ]; then
     python3 "$root/tests/form_catalog_fixtures.py" "$work"
-    mcopy -o -i "$partition" "$GDI_CATALOG_DIR/en.LNG" "$GDI_CATALOG_DIR/de.LNG" \
-        "$GDI_CATALOG_DIR/fr.LNG" "$work/PROBE.LNG" ::/
+    mcopy -o -i "$partition" "$GDI_CATALOG_DIR"/*.LNG "$work/PROBE.LNG" ::/
 fi
 set --
 if [ -n "${QEMU_DATA_DIR:-}" ]; then set -- -L "$QEMU_DATA_DIR"; fi

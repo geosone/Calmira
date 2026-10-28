@@ -25,6 +25,10 @@ build/win16/ctl3d/CTL3DV2.DLL
 build/lang/en.LNG
 build/lang/de.LNG
 build/lang/fr.LNG
+build/lang/nl.LNG
+build/lang/it.LNG
+build/lang/es.LNG
+build/lang/pl.LNG
 build/win16/clfnhook/OLFNHOOK.DLL
 build/win16/clfnhook/OLFNLOAD.EXE
 build/win16/archive/OLFNVIEW.EXE
