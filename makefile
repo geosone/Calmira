@@ -205,7 +205,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-forms-runtime-test win16-dialogs-runtime-test win16-input-query-runtime-test \
 		win16-shellapi-runtime-test win16-inifiles-runtime-test win16-menus-runtime-test \
 		win16-system-dlls-runtime-test win16-clipbrd-runtime-test win16-radio-runtime-test \
-		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test win16-spin-runtime-test win16-bevel-runtime-test win16-listbox-runtime-test win16-align-runtime-test win16-parent-runtime-test win16-ownerdraw-runtime-test win16-canvas-context-runtime-test win16-hints-runtime-test win16-minimize-runtime-test win16-grids-runtime-test win16-form-loader-runtime-test win16-outline-runtime-test win16-common-dialogs-runtime-test win16-tab-panel-runtime-test win16-timer-runtime-test win16-dde-runtime-test win16-radio-group-runtime-test win16-file-filter-runtime-test win16-shape-runtime-test win16-form-menu-runtime-test win16-loader-props-runtime-test win16-far-imports-runtime-test \
+		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test win16-spin-runtime-test win16-bevel-runtime-test win16-listbox-runtime-test win16-align-runtime-test win16-parent-runtime-test win16-ownerdraw-runtime-test win16-canvas-context-runtime-test win16-hints-runtime-test win16-minimize-runtime-test win16-grids-runtime-test win16-form-loader-runtime-test win16-outline-runtime-test win16-common-dialogs-runtime-test win16-tab-panel-runtime-test win16-timer-runtime-test win16-dde-runtime-test win16-radio-group-runtime-test win16-file-filter-runtime-test win16-shape-runtime-test win16-form-menu-runtime-test win16-loader-props-runtime-test win16-far-imports-runtime-test win16-delphi-asm-runtime-test \
 		win16-cursor-runtime-test win16-cursor-modal-runtime-test \
 		win16-form-activation-runtime-test win16-form-resize-runtime-test win16-form-state-runtime-test \
 		win16-ui-runtime-test win16-window-runtime-test win16-input-runtime-test \
@@ -846,6 +846,44 @@ win16-form-menu: fpc-win16-gui-rtl
 
 win16-form-menu-runtime-test: win16-form-menu
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-form-menu/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: lfnfuncs win16-lfnfuncs win16-lfnfuncs-runtime-test
+# Calmira's long-filename library, imported by vcl/lfnutils.pas.
+lfnfuncs: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/lfnfuncs/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fuvcl -Fu./$(FPC_WIN16_GUI_RTL) \
+		-Fusrc -Fusrc/portable -Fusrc/win16 \
+		-FU$(BUILD_DIR)/lfnfuncs/units -FE$(BUILD_DIR)/lfnfuncs -oLFNFUNCS.DLL src/lfnfuncs.dpr
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/lfnfuncs/LFNFUNCS.DLL
+
+win16-lfnfuncs: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-lfnfuncs/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fuvcl -Fu./$(FPC_WIN16_GUI_RTL) \
+		-FU$(BUILD_DIR)/tests/win16-lfnfuncs/units -FE$(BUILD_DIR)/tests/win16-lfnfuncs \
+		-oGDITEST.EXE tests/pascal/test_win16_lfnfuncs.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-lfnfuncs/GDITEST.EXE
+
+# Not in win16-fixed-regression yet: the Win16 RTL has no DLL entry code,
+# so Windows refuses to load LFNFUNCS.DLL (see docs/build_status.md).
+win16-lfnfuncs-runtime-test: win16-lfnfuncs lfnfuncs
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-lfnfuncs/GDITEST.EXE)' \
+		GDI_EXTRA_FILES='$(abspath $(BUILD_DIR)/lfnfuncs/LFNFUNCS.DLL)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-delphi-asm win16-delphi-asm-runtime-test
+# vcl comes before the RTL so that Strings is vcl/strings.pas.
+win16-delphi-asm: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-delphi-asm/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fuvcl -Fu./$(FPC_WIN16_GUI_RTL) \
+		-Fusrc -Fusrc/portable -Fusrc/win16 -Futests/pascal \
+		-FU$(BUILD_DIR)/tests/win16-delphi-asm/units -FE$(BUILD_DIR)/tests/win16-delphi-asm \
+		-oGDITEST.EXE tests/pascal/test_win16_delphi_asm.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-delphi-asm/GDITEST.EXE
+
+win16-delphi-asm-runtime-test: win16-delphi-asm
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-delphi-asm/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-far-imports win16-far-imports-runtime-test
 win16-far-imports: fpc-win16-gui-rtl

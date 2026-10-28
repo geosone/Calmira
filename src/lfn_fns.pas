@@ -114,8 +114,17 @@ function GetLFN: Boolean;export;
 
 implementation
 
-uses dialogs,
+uses {$IFNDEF FPC}dialogs,{$ENDIF} { unused; it would link the VCL }
   winprocs;
+{$IFDEF FPC}
+{ Delphi 1's WinProcs declares these; Free Pascal's lacks DOS3Call and
+  overloads the conversions for far and huge pointers. }
+procedure Dos3Call; far; external 'KERNEL' index 102;
+procedure AnsiToOem(AnsiStr, OemStr: PChar);
+begin WinProcs.AnsiToOem(PFarChar(AnsiStr), PFarChar(OemStr)); end;
+procedure OemToAnsi(OemStr, AnsiStr: PChar);
+begin WinProcs.OemToAnsi(PFarChar(OemStr), PFarChar(AnsiStr)); end;
+{$ENDIF}
 var
   UnicodeConversion:Byte;
   LfnEnabled: Boolean;
@@ -353,7 +362,11 @@ else
    end;
    asm
 	mov	dl,d
+{$IFDEF FPC}
+	lea	si,[fname+3]
+{$ELSE}
 	mov	si,offset fname+3
+{$ENDIF}
 	mov	ax,7147h
 	{int	21h}
 	jnc	@@e
@@ -742,7 +755,9 @@ else
   GetLongName := ShortName;
 end;
 
-procedure IsWS; assembler;
+{ Free Pascal: no frame, whose prologue would load DS through AX and whose
+  epilogue would change the flags this routine returns. }
+procedure IsWS; assembler;{$IFDEF FPC} nostackframe;{$ENDIF}
 {testet AL auf Wei�raum, d.h. $09, $0A, $0D, $20}
  asm	cmp	al,09h
 	jz	@@e
@@ -764,8 +779,12 @@ function NextItemStr(var s: PChar; escap, delim:Word):PChar;assembler;
 	 push	di
 	 push	[escap]
 	 push	[delim]
+{$IFDEF FPC}
+	 call	OneItem		{a far routine, maybe in another segment}
+{$ELSE}
 	 push	cs
 	 call	near ptr OneItem
+{$ENDIF}
 	 les	di,[s]
 	 stosw
 	 xchg	dx,ax
@@ -793,7 +812,14 @@ function OneItem(d,s: PChar; escap, delim:Word):PChar;
 	 lds	si,[s]
 	 les	di,[d]
 	 mov	cx,ds
+{$IFDEF FPC}
+	 or	cx,cx	{far calls make @@e too distant for JCXZ}
+	 jnz	@@notnil
+	 jmp	@@e
+@@notnil:
+{$ELSE}
 	 jcxz	@@e	{wenn da NIL drinsteht, immer durchreichen!}
+{$ENDIF}
 
 	 mov	cx,[escap]
 	 or	ch,ch

@@ -1448,6 +1448,15 @@ used a near `jmp`, which the linker cannot resolve to an imported entry
 ("cannot reach a DLL with a relative relocation"). It now uses `jmp far`
 whenever the routine is far, as `g_intf_wrapper` and `a_call_name` already do.
 
+A fourth patch, `fpc-i8086-delphi-assembler-pascal.patch`, keeps the pascal
+convention for `assembler` routines in Delphi mode on i8086. Free Pascal
+switched them to its register convention to follow 32-bit Delphi. 16-bit
+Delphi has only the pascal convention, which is also Free Pascal's default
+on i8086. A routine declared in an interface and implemented in assembler
+(`MiscUtil.Min`, `Strings.CharCount` and 14 more) was called with stack
+parameters but read them from registers, and returned without removing them
+from the stack.
+
 `prepare_fpc_compiler.py` stages only tracked compiler/bootstrap-RTL sources and
 licenses outside the pinned checkout, applies the patches in order with zero
 fuzz, and records revision, per-patch/builder hashes and bootstrap identity. Source, patch,

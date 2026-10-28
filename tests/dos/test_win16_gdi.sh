@@ -21,6 +21,10 @@ mcopy -o -i "$partition" "$root/bmp/bin.bmp" ::/PROBE.BMP
 if [ -n "${GDI_HELPER_EXE:-}" ]; then
     mcopy -o -i "$partition" "$GDI_HELPER_EXE" ::/APPSEND.EXE
 fi
+# Further files the program needs next to it, such as its DLLs.
+for extra in ${GDI_EXTRA_FILES:-}; do
+    mcopy -o -i "$partition" "$extra" ::/
+done
 if [ -n "${GDI_HELP_FILE:-}" ]; then
     mmd -i "$partition" ::/HELPDOCS
     mcopy -o -i "$partition" "$GDI_HELP_FILE" ::/HELPDOCS/CALMIRA.HLP

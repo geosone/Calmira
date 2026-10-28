@@ -20,6 +20,7 @@ def checkout(directory):
     files = {'compiler/i8086/n8086add.pas': (UPSTREAM / 'compiler/i8086/n8086add.pas').read_bytes(),
              'compiler/i8086/n8086ld.pas': (UPSTREAM / 'compiler/i8086/n8086ld.pas').read_bytes(),
              'compiler/i8086/hlcgcpu.pas': (UPSTREAM / 'compiler/i8086/hlcgcpu.pas').read_bytes(),
+             'compiler/pstatmnt.pas': (UPSTREAM / 'compiler/pstatmnt.pas').read_bytes(),
              'compiler/Makefile': b'# fixture\n', 'rtl/Makefile': b'# fixture\n',
              'Makefile': b'# fixture\n', 'Makefile.fpc': b'# fixture\n',
              'LICENSE': b'fixture license\n'}
@@ -52,6 +53,9 @@ class CompilerPointerTests(unittest.TestCase):
             self.assertIn('(tconstsym(symtableentry).consttyp in [constresourcestring,constwresourcestring]) and\n'
                           '                 (current_settings.x86memorymodel=mm_huge)', load)
             self.assertIn('segref.refaddr:=addr_seg;\n                  cg.a_load_ref_reg', load)
+            statements = (target / 'compiler/pstatmnt.pas').read_text()
+            self.assertIn('{$ifndef i8086}\n         if (m_delphi in current_settings.modeswitches) and\n'
+                          '            (po_assembler in current_procinfo.procdef.procoptions)', statements)
             wrapper = (target / 'compiler/i8086/hlcgcpu.pas').read_text()
             self.assertIn('procedure thlcgcpu.g_external_wrapper(', wrapper)
             self.assertIn('if not is_proc_far(procdef) then', wrapper)

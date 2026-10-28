@@ -25,7 +25,7 @@ class Win16FarImportTests(unittest.TestCase):
     def test_native_suite_is_in_the_regression(self):
         make = (ROOT / 'makefile').read_text()
         self.assertIn('win16-far-imports-runtime-test: win16-far-imports', make)
-        self.assertIn('win16-loader-props-runtime-test win16-far-imports-runtime-test \\', make)
+        self.assertIn('win16-loader-props-runtime-test win16-far-imports-runtime-test', make)
         native = (ROOT / 'tests/pascal/test_win16_far_imports.pas').read_text()
         for check in ('a wrapped USER import is reached with a far jump', 'ParamStr links in Delphi mode'):
             self.assertIn(check, native)

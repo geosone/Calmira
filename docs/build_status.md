@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 99 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 100 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1766,4 +1766,49 @@ Still missing before Calmira can start:
 - Linking the generated `*_dfm` loader units into the program.
 - A loader for `tips`.
 - LFNFUNCS.DLL itself (`src/lfnfuncs.dpr`).
+
+## Delphi 1 Assembler Routines and LFNFUNCS.DLL
+
+- Compiler patch `fpc-i8086-delphi-assembler-pascal.patch`. In Delphi mode,
+  Free Pascal compiled every `assembler` routine with its register
+  convention, as 32-bit Delphi does. Delphi 1 passes parameters on the
+  stack.
+  - In `MiscUtil` (`Min`, `Max`, `Range`, `Sign`, `NormalizeRect`),
+    `Strings` (`LowCase`, `InString`, `CharCount`, `IsBlank`, `FillString`,
+    ...) and `Drives`, callers pushed the parameters while the routine read
+    registers. The routine then returned without removing the parameters,
+    so the stack drifted with every call.
+  - The external assembler (`-al`) rejects only some of these as
+    `[ax]`/`[dx]`; a parameter in BX gives a valid address, and the internal
+    assembler accepted them all. CALMIRA.EXE as linked in the previous
+    slice had these bugs.
+  - The compiler fingerprint changes again.
+- `make win16-delphi-asm-runtime-test` calls the original routines, an
+  interface-declared and a forward-declared assembler routine, 2000 times in
+  a loop.
+- `make lfnfuncs` builds `LFNFUNCS.DLL` (334 KB, 8 KB data) from the
+  original `src/lfnfuncs.dpr`. `src/lfn_fns.pas` has minimal FPC branches:
+  - `Dos3Call` (KERNEL.102) and PChar versions of `AnsiToOem`/`OemToAnsi`,
+    which Free Pascal's WinProcs lacks or overloads;
+  - `IsWS` is `nostackframe`. A frame's prologue loads DS through AX (the
+    tested character), and its epilogue changes the flags `IsWS` returns;
+  - `NextItemStr` calls `OneItem` far, where Delphi pushed CS and called
+    near inside one segment;
+  - a `jcxz` that the longer far calls put out of range;
+  - the unused `Dialogs`, which would link the VCL into the DLL.
+- **The DLL does not load yet.** The Win16 linker gives a library the
+  program's startup code, which calls `InitTask`. A DLL needs its own entry
+  (hInstance in DI, heap size in CX, return 1) and a `WEP` export. This
+  is missing from Free Pascal's Win16 port, so Windows silently refuses to
+  load any FPC DLL, as a minimal library shows too. `WNDHOOKS.DLL` needs it
+  as well, because system-wide hooks must live in a DLL.
+  - `win16-lfnfuncs-runtime-test`, together with the harness option
+    `GDI_EXTRA_FILES` (more files for `C:\`), is ready but stays out of the
+    regression until then.
+- Bugs of the original, only on the long-filename path and not changed:
+  - `__getdir` never calls DOS and writes into its pointer parameter;
+  - `__getvolinfo` loads DS without saving it;
+  - `Doscall_Type_DSSI_ESDI` passes the parameter's address instead of
+    the buffer.
+  These will be looked at with a working DOSLFN.
 

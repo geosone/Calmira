@@ -1,0 +1,20 @@
+--- a/compiler/pstatmnt.pas
++++ b/compiler/pstatmnt.pas
+@@ -2093,11 +2093,16 @@
+                srsym.realname:='$hiddenresult';
+            end;
+ 
+-         { delphi uses register calling for assembler methods }
++         { delphi uses register calling for assembler methods. Not on i8086:
++           16-bit Delphi has only the pascal convention, which is also the
++           default here, and the routine may already have been declared (and
++           called) with it in an interface or forward declaration }
++{$ifndef i8086}
+          if (m_delphi in current_settings.modeswitches) and
+             (po_assembler in current_procinfo.procdef.procoptions) and
+             not(po_hascallingconvention in current_procinfo.procdef.procoptions) then
+            current_procinfo.procdef.proccalloption:=pocall_register;
++{$endif not i8086}
+ 
+          { force the asm statement }
+          if current_scanner.token<>_ASM then
