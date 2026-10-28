@@ -10,14 +10,19 @@ type
   private
     FCaption: string;
     FAlignment: TAlignment;
-    FWordWrap, FShowAccelChar: Boolean;
+    FWordWrap, FShowAccelChar, FAutoSize: Boolean;
     FFocusControl: TCustomControl;
     procedure SetFocusControl(Value: TCustomControl);
     procedure SetCaption(const Value: string);
     procedure SetAlignment(Value: TAlignment);
     procedure SetWordWrap(Value: Boolean);
     procedure SetShowAccelChar(Value: Boolean);
+    procedure SetAutoSize(Value: Boolean);
+    { Delphi 1's AdjustBounds: fit the size to the text (wrapped to the current
+      width with WordWrap); a right-aligned label keeps its right edge. }
+    procedure AdjustBounds;
   protected
+    procedure Loaded; override;
     procedure FontChanged; override;
     procedure Paint; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -32,6 +37,8 @@ type
     property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property WordWrap: Boolean read FWordWrap write SetWordWrap default False;
     property ShowAccelChar: Boolean read FShowAccelChar write SetShowAccelChar default True;
+    { Resizes on caption, font and WordWrap changes, and once after loading. }
+    property AutoSize: Boolean read FAutoSize write SetAutoSize default True;
     property Font;
     property Color;
     property Visible;
@@ -40,6 +47,8 @@ type
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
+    property OnDragDrop;
+    property OnDragOver;
   end;
 implementation
 uses SysUtils, WinTypes, WinProcs, native_window, native_mnemonic;
@@ -70,21 +79,54 @@ constructor TLabel.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FShowAccelChar := True;
- 
+  FAutoSize := True;
   SetBounds(0, 0, 65, 17);
 end;
 procedure TLabel.FontChanged;
-begin Invalidate; end;
+begin AdjustBounds; Invalidate; end;
+procedure TLabel.Loaded;
+begin
+  inherited Loaded;
+  AdjustBounds;
+end;
+procedure TLabel.SetAutoSize(Value: Boolean);
+begin
+  if Value = FAutoSize then Exit;
+  FAutoSize := Value;
+  AdjustBounds;
+end;
+procedure TLabel.AdjustBounds;
+var DC: HDC; Old: HFONT; Area: TRect; Buffer: array[0..255] of Char; Flags: Word; X: Integer;
+begin
+  if not FAutoSize or (csLoading in ComponentState) then Exit;
+  { An empty caption still measures one line, as in Delphi. }
+  if (FCaption = '') or FShowAccelChar and (FCaption = '&') then StrPCopy(Buffer, ' ')
+  else StrPCopy(Buffer, FCaption);
+  Area := Graphics.Rect(0, 0, Width, Height);
+  Flags := DT_EXPANDTABS or DT_CALCRECT;
+  if FWordWrap then Flags := Flags or DT_WORDBREAK;
+  if not FShowAccelChar then Flags := Flags or DT_NOPREFIX;
+  DC := GetDC(0);
+  if DC = 0 then raise ENativeWindowError.Create('Cannot measure label text');
+  try
+    Old := SelectObject(DC, Font.Handle);
+    DrawText(DC, Buffer, StrLen(Buffer), Area, Flags);
+    SelectObject(DC, Old);
+  finally ReleaseDC(0, DC); end;
+  X := Left;
+  if FAlignment = taRightJustify then Inc(X, Width - Area.Right);
+  SetBounds(X, Top, Area.Right, Area.Bottom);
+end;
 procedure TLabel.SetCaption(const Value: string);
 begin
   if Pos(#0, Value) <> 0 then raise ENativeWindowError.Create('Embedded NUL in label caption');
   if FCaption = Value then Exit;
-  FCaption := Value; Invalidate;
+  FCaption := Value; AdjustBounds; Invalidate;
 end;
 procedure TLabel.SetAlignment(Value: TAlignment);
 begin if Value <> FAlignment then begin FAlignment := Value; Invalidate; end; end;
 procedure TLabel.SetWordWrap(Value: Boolean);
-begin if Value <> FWordWrap then begin FWordWrap := Value; Invalidate; end; end;
+begin if Value <> FWordWrap then begin FWordWrap := Value; AdjustBounds; Invalidate; end; end;
 procedure TLabel.SetShowAccelChar(Value: Boolean);
 begin if Value <> FShowAccelChar then begin FShowAccelChar := Value; Invalidate; end; end;
 procedure TLabel.Paint;

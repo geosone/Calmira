@@ -60,6 +60,8 @@ begin
     Window := TCustomControl.Create(nil); Window.Color := clWhite;
     Window.CreateHandle(0, 'Label probe', WS_POPUP or WS_VISIBLE, 20, 20, 240, 180);
     LabelControl := TLabel.Create(nil); LabelControl.Color := clWhite;
+    { Alignment, wrapping and prefixes are drawn within fixed bounds. }
+    LabelControl.AutoSize := False;
     LabelControl.SetBounds(8, 8, 120, 30); LabelControl.Font.Color := clRed;
     LabelControl.Font.Height := -16; LabelControl.Caption := 'MMM'; LabelControl.Parent := Window;
     Window.Repaint; LeftInk := Scan(clRed);

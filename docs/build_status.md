@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 97 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 98 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1649,3 +1649,49 @@ The full regression passed (`build/tests/file-filter.log`, 96 suites, exit 0).
 
 Covered by `make win16-form-menu-runtime-test`.
 
+## Form Loader Properties
+
+The generated loaders for 33 of the 38 Calmira forms now compile. Still
+missing: the four forms that use `TNativeForm` (`askdrop`, `incsrch`,
+`password`, `select`), and `tips`, whose DFM holds an icon picture.
+
+- `tools/dfm_loader.py` adds `Graphics` and `Controls` to every loader's uses
+  clause, as the first entries. Delphi resolves `clBlack`, `fsBold`,
+  `crIBeam` and similar DFM values through global maps, whatever units the
+  form uses.
+- `TLabel`:
+  - `AutoSize` (default True) follows Delphi 1's `AdjustBounds`. Caption,
+    font and `WordWrap` changes resize the label, and so does `Loaded` once.
+    An empty caption measures one blank, and a right-aligned label keeps its
+    right edge.
+  - Adds `OnDragDrop` and `OnDragOver`.
+- Graphic controls have a `Cursor`. The parent window shows it on
+  `WM_SETCURSOR` for the control under the mouse (or the one capturing it);
+  an unknown cursor raises. Calmira's own cursors, such as `crFinger`, work
+  once `Screen.Cursors` holds them.
+- `TImage` adds the click, mouse and drag events.
+- `TEdit`:
+  - `OnDblClick`, fired after EDIT selects the word;
+  - `HideSelection` (`ES_NOHIDESEL`), fixed once the window exists.
+- `TRadioButton.OnDblClick` (from `BN_DOUBLECLICKED`).
+- `TCheckBox.Alignment` (`BS_LEFTTEXT`), which can change on a live control.
+- `TForm`:
+  - `OnDblClick`, for double clicks not routed to a graphic child;
+  - `KeyPreview`: after menu shortcuts and dialog keys, the form's
+    `OnKeyDown`/`OnKeyPress`/`OnKeyUp` see keys sent to its controls, and
+    clearing the key consumes it;
+  - `AutoScroll`, which is stored only, because forms never show scroll bars.
+- `Menus`:
+  - `TMenuItem.ShortCutText` comes from Calmira's modified `Menus.dcu`. It is
+    display text after the caption, for keys the form handles itself, and
+    takes precedence over `ShortCut`'s text.
+  - `TPopupMenu.HelpContext` is stored on the root item.
+  - `TMenu.GetHelpContext` falls back to the parent items.
+
+Covered by `make win16-loader-props-runtime-test` and
+`tests/test_win16_loader_props.py`.
+
+`tests/pascal/test_win16_label.pas` now sets `AutoSize := False`, because it
+checks alignment, wrapping and prefixes inside fixed bounds. The full
+regression (`build/tests/loader-props.log`, 98 suites) passed except that
+suite; it passed again after the change.

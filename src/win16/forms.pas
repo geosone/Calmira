@@ -53,7 +53,8 @@ type
     FFormStyle: TFormStyle;
     FIcon: TIcon;
     FMenu: TMainMenu;
-    FOnCreate, FOnDestroy, FOnPaint: TNotifyEvent;
+    FOnCreate, FOnDestroy, FOnPaint, FOnDblClick: TNotifyEvent;
+    FKeyPreview, FAutoScroll: Boolean;
     { Client size requested before the window exists, or -1. }
     FDesignClientWidth, FDesignClientHeight: Integer;
     FVisibleAfterCreate: Boolean;
@@ -75,6 +76,8 @@ type
     procedure WMSysCommand(var Message: TWMSysCommand); message WM_SYSCOMMAND;
     procedure WMCommand(var Message: TWMCommand); message WM_COMMAND;
     procedure WMInitMenuPopup(var Message: TMessage); message WM_INITMENUPOPUP;
+    { Only double clicks not routed to a graphic child reach the form. }
+    procedure WMLButtonDblClk(var Message: TWMMouse); message WM_LBUTTONDBLCLK;
     procedure SetMenu(Value: TMainMenu);
     procedure SetBorderStyle(Value: TFormBorderStyle);
     procedure SetBorderIcons(Value: TBorderIcons);
@@ -90,6 +93,9 @@ type
     procedure CreateParams(var Params: TCreateParams); virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure Paint; override;
+    procedure DblClick; override;
+    { KeyPreview: the form's key events for a key sent to one of its controls. }
+    function PreviewKey(var Message: TMsg): Boolean;
   public
     { Menu shortcuts come before the dialog keys. }
     function ProcessDialogMessage(var Message: TMsg): Boolean; override;
@@ -109,6 +115,13 @@ type
     property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
     { Called after the background is painted, with Canvas ready. }
     property OnPaint: TNotifyEvent read FOnPaint write FOnPaint;
+    property OnDblClick: TNotifyEvent read FOnDblClick write FOnDblClick;
+    { The form's OnKeyDown, OnKeyPress and OnKeyUp see keys sent to its
+      controls first, after menu shortcuts and dialog keys; clearing Key
+      consumes the key. }
+    property KeyPreview: Boolean read FKeyPreview write FKeyPreview default False;
+    { Forms never show scroll bars; kept for DFM compatibility. }
+    property AutoScroll: Boolean read FAutoScroll write FAutoScroll default True;
     property OnDragDrop;
     property OnDragOver;
     { Drawn while minimized; an empty Icon falls back to Application.Icon. }
@@ -374,6 +387,7 @@ begin
   FIcon := TIcon.Create; FIcon.OnChange := IconChanged;
   FBorderStyle := bsSizeable;
   FBorderIcons := [biSystemMenu, biMinimize, biMaximize];
+  FAutoScroll := True;
   FDesignClientWidth := -1; FDesignClientHeight := -1;
 end;
 destructor TForm.Destroy;
@@ -621,7 +635,42 @@ begin
     if FMenu.IsShortCut(Key) then begin Result := True; Exit; end;
   end;
   Result := inherited ProcessDialogMessage(Message);
+  if not Result and FKeyPreview then Result := PreviewKey(Message);
 end;
+function TForm.PreviewKey(var Message: TMsg): Boolean;
+var Key: Word; Ch: Char;
+begin
+  Result := False;
+  { Keys sent to the form itself reach its handlers anyway. }
+  if (Handle = 0) or (Message.hwnd = Handle) or not IsChild(Handle, Message.hwnd) then Exit;
+  case Message.message of
+    WM_KEYDOWN, WM_SYSKEYDOWN:
+      begin
+        Key := Message.wParam;
+        KeyDown(Key, KeyDataToShiftState(Message.lParam));
+        if Key = 0 then Result := True else Message.wParam := Key;
+      end;
+    WM_KEYUP, WM_SYSKEYUP:
+      begin
+        Key := Message.wParam;
+        KeyUp(Key, KeyDataToShiftState(Message.lParam));
+        if Key = 0 then Result := True else Message.wParam := Key;
+      end;
+    WM_CHAR:
+      begin
+        Ch := Char(Message.wParam);
+        KeyPress(Ch);
+        if Ch = #0 then Result := True else Message.wParam := Ord(Ch);
+      end;
+  end;
+end;
+procedure TForm.WMLButtonDblClk(var Message: TWMMouse);
+begin
+  inherited;
+  DblClick;
+end;
+procedure TForm.DblClick;
+begin if Assigned(FOnDblClick) then FOnDblClick(Self); end;
 procedure TForm.DoClose(var Action: TCloseAction);
 begin
   inherited DoClose(Action);

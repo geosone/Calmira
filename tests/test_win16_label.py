@@ -34,8 +34,7 @@ class Win16LabelTests(unittest.TestCase):
         self.assertIn('TEdit = native_edit.TEdit', facade)
         self.assertIn('TCheckBox = native_checkbox.TCheckBox', facade)
         self.assertNotIn('native_edit', source)
-        for text in ('AutoSize:', 'ParentFont:'):
-            self.assertNotIn(text, source)
+        self.assertNotIn('ParentFont:', source)
         self.assertIn('property FocusControl: TCustomControl', source)
 
     def test_font_is_owned_and_native_dc_state_is_restored(self):

@@ -1,8 +1,8 @@
 { SPDX-License-Identifier: GPL-2.0-or-later
   Delphi 1 Menus over USER menu handles. Handles are created on demand and
   rebuilt from the item tree when an item changes, so callers may customize a
-  live handle (for example with ModifyMenu) until the next change. Keyboard
-  shortcut dispatch from forms, hints and DFM menus are not provided yet. }
+  live handle (for example with ModifyMenu) until the next change. Menu hints
+  and menu merging are not provided. }
 unit Menus;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This Menus unit requires Win16}{$ENDIF}
@@ -24,6 +24,7 @@ type
     FGroupIndex: Byte;
     FCommand: Word;
     FShortCut: TShortCut;
+    FShortCutText: string;
     FHelpContext: LongInt;
     FHint: string;
     FItems: TList;
@@ -42,6 +43,7 @@ type
     procedure SetVisible(Value: Boolean);
     procedure SetBreak(Value: TMenuBreak);
     procedure SetShortCut(Value: TShortCut);
+    procedure SetShortCutText(const Value: string);
     procedure SetGroupIndex(Value: Byte);
     procedure ClearHandle;
     procedure PopulateMenu;
@@ -72,6 +74,10 @@ type
     property HelpContext: LongInt read FHelpContext write FHelpContext default 0;
     property Hint: string read FHint write FHint;
     property ShortCut: TShortCut read FShortCut write SetShortCut default 0;
+    { Calmira's Menus: text shown after the caption for a key the program
+      handles itself; it takes precedence over ShortCut's text and is not a
+      shortcut. }
+    property ShortCutText: string read FShortCutText write SetShortCutText;
     property Visible: Boolean read FVisible write SetVisible default True;
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
   end;
@@ -92,6 +98,9 @@ type
     { Clicks the enabled item whose ShortCut matches the key message. }
     function IsShortCut(var Message: TWMKey): Boolean;
     function FindItem(Value: Word; Kind: TFindItemKind): TMenuItem;
+    { The help context of the item with this command (or submenu handle), or
+      of its nearest parent with one; a popup menu's own context is last. }
+    function GetHelpContext(Value: Word; ByCommand: Boolean): LongInt;
     property Handle: HMENU read GetHandle;
     { The window that owns this menu bar; set by the form that shows it. }
     property WindowHandle: HWND read FWindowHandle write SetWindowHandle;
@@ -108,6 +117,8 @@ type
     FAutoPopup: Boolean;
     FPopupComponent: TComponent;
     FOnPopup: TNotifyEvent;
+    function GetPopupHelpContext: LongInt;
+    procedure SetPopupHelpContext(Value: LongInt);
   protected
     procedure DoPopup(Sender: TObject); virtual;
   public
@@ -118,6 +129,8 @@ type
   published
     property Alignment: TPopupAlignment read FAlignment write FAlignment default paLeft;
     property AutoPopup: Boolean read FAutoPopup write FAutoPopup default True;
+    { Stored on the root item, as in Delphi 1. }
+    property HelpContext: LongInt read GetPopupHelpContext write SetPopupHelpContext default 0;
     property OnPopup: TNotifyEvent read FOnPopup write FOnPopup;
   end;
 const
@@ -258,7 +271,8 @@ begin
     Item := TMenuItem(FItems[I]);
     if not Item.FVisible then Continue;
     Caption := Item.FCaption;
-    if Item.FShortCut <> scNone then Caption := Caption + #9 + ShortCutToText(Item.FShortCut);
+    if Item.FShortCutText <> '' then Caption := Caption + #9 + Item.FShortCutText
+    else if Item.FShortCut <> scNone then Caption := Caption + #9 + ShortCutToText(Item.FShortCut);
     StrPCopy(Text, Caption);
     if Item.FCaption = '-' then
       AppendMenu(FHandle, Item.AppendFlags, 0, nil)
@@ -386,6 +400,12 @@ begin
   FShortCut := Value;
   MenuChanged;
 end;
+procedure TMenuItem.SetShortCutText(const Value: string);
+begin
+  if FShortCutText = Value then Exit;
+  FShortCutText := Value;
+  MenuChanged;
+end;
 procedure TMenuItem.SetGroupIndex(Value: Byte);
 begin
   { Delphi 1 uses GroupIndex only to merge menus, which is not provided yet. }
@@ -445,6 +465,14 @@ function TMenu.FindItem(Value: Word; Kind: TFindItemKind): TMenuItem;
 begin
   Result := FindIn(FItems, Value, Kind);
 end;
+function TMenu.GetHelpContext(Value: Word; ByCommand: Boolean): LongInt;
+var Item: TMenuItem;
+begin
+  if ByCommand then Item := FindItem(Value, fkCommand) else Item := FindItem(Value, fkHandle);
+  if Item = nil then Item := FItems;
+  while (Item <> nil) and (Item.FHelpContext = 0) do Item := Item.FParent;
+  if Item = nil then Result := 0 else Result := Item.FHelpContext;
+end;
 function TMenu.DispatchCommand(ACommand: Word): Boolean;
 var Item: TMenuItem;
 begin
@@ -498,6 +526,10 @@ begin
   if PopupList <> nil then PopupList.FMenus.Remove(Self);
   inherited Destroy;
 end;
+function TPopupMenu.GetPopupHelpContext: LongInt;
+begin Result := Items.FHelpContext; end;
+procedure TPopupMenu.SetPopupHelpContext(Value: LongInt);
+begin Items.FHelpContext := Value; end;
 procedure TPopupMenu.DoPopup(Sender: TObject);
 begin
   if Assigned(FOnPopup) then FOnPopup(Sender);

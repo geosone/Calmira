@@ -37,6 +37,13 @@ type
     property AutoSize: Boolean read FAutoSize write SetAutoSize default False;
     property Color;
     property Visible;
+    property OnClick;
+    property OnDblClick;
+    property OnMouseDown;
+    property OnMouseMove;
+    property OnMouseUp;
+    property OnDragDrop;
+    property OnDragOver;
   end;
   { A graphic control whose OnPaint draws on Canvas. }
   TPaintBox = class(TGraphicControl)

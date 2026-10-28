@@ -12,7 +12,9 @@ type
     FCaption: string;
     FState: TCheckBoxState;
     FAllowGrayed, FNotifying: Boolean;
+    FAlignment: TLeftRight;
     FOnClick: TNotifyEvent;
+    procedure SetAlignment(Value: TLeftRight);
     function GetState: TCheckBoxState;
     procedure SetState(Value: TCheckBoxState);
     function GetChecked: Boolean;
@@ -35,6 +37,8 @@ type
     property Checked: Boolean read GetChecked write SetChecked;
     property State: TCheckBoxState read GetState write SetState default cbUnchecked;
     property AllowGrayed: Boolean read FAllowGrayed write FAllowGrayed default False;
+    { taLeftJustify puts the caption left of the box (BS_LEFTTEXT). }
+    property Alignment: TLeftRight read FAlignment write SetAlignment default taRightJustify;
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
     property Font;
     property Enabled;
@@ -58,7 +62,19 @@ var CheckProcedure: WNDPROC;
 constructor TCheckBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner); TabStop := True; SetBounds(0, 0, 97, 17);
- 
+  FAlignment := taRightJustify;
+end;
+procedure TCheckBox.SetAlignment(Value: TLeftRight);
+var Style: LongInt;
+begin
+  if Value = FAlignment then Exit;
+  FAlignment := Value;
+  if Handle = 0 then Exit;
+  { BUTTON reads the style bit when it paints. }
+  Style := GetWindowLong(Handle, GWL_STYLE);
+  if Value = taLeftJustify then Style := Style or BS_LEFTTEXT else Style := Style and not LongInt(BS_LEFTTEXT);
+  SetWindowLong(Handle, GWL_STYLE, Style);
+  InvalidateRect(Handle, nil, True);
 end;
 function TCheckBox.NativeClassName: PChar;
 begin RegisterNativeSuperclass('BUTTON', CheckClass, CheckProcedure); Result := CheckClass; end;
@@ -78,7 +94,8 @@ procedure TCheckBox.CreateHandle(Parent: HWND; const Caption: string; Style: DWO
 begin
   if (Parent = 0) or (Style and WS_CHILD = 0) then
     raise ENativeWindowError.Create('Checkbox requires a child window');
-  Style := (Style and not DWORD($F or WS_TABSTOP)) or BS_3STATE;
+  Style := (Style and not DWORD($F or WS_TABSTOP or BS_LEFTTEXT)) or BS_3STATE;
+  if FAlignment = taLeftJustify then Style := Style or BS_LEFTTEXT;
   if TabStop then Style := Style or WS_TABSTOP;
   inherited CreateHandle(Parent, FCaption, Style, X, Y, Width, Height);
   try

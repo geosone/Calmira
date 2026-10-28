@@ -25,6 +25,10 @@ class DfmLoaderTests(unittest.TestCase):
                   "implementation\n(* uses Gone; *)\nuses SysUtils // , Lost\n, Classes;\nconst S = 'uses X;';\nend.\n")
         self.assertEqual(unit_uses(source), ('Demo', ['native_form', 'Classes', 'SysUtils']))
 
+    def test_loader_always_uses_graphics_and_controls_first(self):
+        text = compile_loader(fixture(), UNIT)[0]
+        self.assertIn('uses Graphics, Controls, Forms, form_text, probe;', text)
+
     def test_probe_loader_order(self):
         text = compile_loader(fixture(), PROBE)[0]
         self.assertIn('uses Classes, Graphics, Controls, StdCtrls, ExtCtrls, Menus, Forms, form_text, form_loader_probe;', text)

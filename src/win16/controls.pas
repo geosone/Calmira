@@ -83,6 +83,9 @@ type
     procedure CheckMouseControl;
     procedure ForgetGraphic(Control: TGraphicControl);
     function RouteGraphicMouse(var M: TMessage): Boolean;
+    { WM_SETCURSOR over this window's client area: the cursor of the graphic
+      child under the mouse (or capturing it), if that is not crDefault. }
+    function GraphicCursor(var M: TMessage): Boolean;
     function GetTabOrder: Integer;
     procedure SetTabOrder(Value: Integer);
     procedure SetTabStop(Value: Boolean);
@@ -227,7 +230,9 @@ type
     FVisible, FEnabled: Boolean;
     FOnClick, FOnDblClick: TNotifyEvent;
     FPopupMenu: TPopupMenu;
+    FCursor: TCursor;
     procedure SetPopupMenu(Value: TPopupMenu);
+    procedure SetCursor(Value: TCursor);
     procedure SetParent(Value: TCustomControl);
     procedure MouseMessage(Msg, Keys: Word; X, Y: Integer);
     procedure SetLeft(Value: Integer);
@@ -293,6 +298,8 @@ type
     property ClientHeight: Integer read FHeight;
     property Visible: Boolean read FVisible write SetVisible;
     property Enabled: Boolean read FEnabled write SetEnabled;
+    { Shown while the mouse is over the control; set by the parent window. }
+    property Cursor: TCursor read FCursor write SetCursor default crDefault;
   end;
   { Delphi 1 TCustomControl descends from TWinControl; here they are one class. }
   TWinControl = TCustomControl;
@@ -1179,9 +1186,29 @@ begin
     WM_TIMER:
       if Message.WParam = MouseLeaveTimer then
       begin CheckMouseControl; Message.Result := 0; Exit; end;
+    WM_SETCURSOR:
+      if GraphicCursor(Message) then Exit;
     WM_DESTROY: DestroyWnd;
   end;
   inherited WndProc(Message);
+end;
+function TCustomControl.GraphicCursor(var M: TMessage): Boolean;
+var Position: TPoint; Graphic: TGraphicControl; Value: HCURSOR;
+begin
+  Result := False;
+  if (HWND(M.WParam) <> Handle) or (SmallInt(LoWord(M.LParam)) <> HTCLIENT) then Exit;
+  Graphic := FCaptureControl;
+  if Graphic = nil then
+  begin
+    GetCursorPos(Position);
+    WinProcs.ScreenToClient(Handle, Position);
+    Graphic := GraphicAt(Position.X, Position.Y);
+  end;
+  if (Graphic = nil) or (Graphic.FCursor = crDefault) then Exit;
+  if not LookupNativeCursor(Graphic.FCursor, Value) then Exit;
+  WinProcs.SetCursor(Value);
+  M.Result := 1;
+  Result := True;
 end;
 procedure TCustomControl.StoreBounds(const Area: TRect);
 begin
@@ -1295,6 +1322,12 @@ begin
   inherited Create(AOwner); FCanvas := TGraphicCanvas.Create;
   TGraphicCanvas(FCanvas).FControl := Self;
   FVisible := True; FEnabled := True; FClickEvents := True;
+end;
+procedure TGraphicControl.SetCursor(Value: TCursor);
+var Handle: HCURSOR;
+begin
+  if not LookupNativeCursor(Value, Handle) then raise ENativeWindowError.Create('Invalid cursor');
+  FCursor := Value;
 end;
 function TGraphicControl.Perform(Msg, WParam: Word; LParam: LongInt): LongInt;
 var Message: TMessage;

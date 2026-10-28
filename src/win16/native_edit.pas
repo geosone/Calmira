@@ -14,9 +14,9 @@ type
     FPasswordChar: Char;
     FCharCase: TEditCharCase;
     FReadOnly, FModified, FInitializing, FNotifying: Boolean;
-    FAutoSelect, FOEMConvert: Boolean;
+    FAutoSelect, FOEMConvert, FHideSelection: Boolean;
     FBorderStyle: TBorderStyle;
-    FOnChange: TNotifyEvent;
+    FOnChange, FOnDblClick: TNotifyEvent;
     procedure SetBorderStyle(Value: TBorderStyle);
     function GetText: string;
     procedure SetText(const Value: string);
@@ -38,7 +38,9 @@ type
     procedure SetPasswordChar(Value: Char);
     procedure SetCharCase(Value: TEditCharCase);
     procedure SetOEMConvert(Value: Boolean);
+    procedure SetHideSelection(Value: Boolean);
   protected
+    procedure DblClick; override;
     procedure FontChanged; override;
     function NativeClassName: PChar; override;
     procedure WndProc(var M: TMessage); override;
@@ -74,10 +76,14 @@ type
     property AutoSelect: Boolean read FAutoSelect write FAutoSelect default True;
     { Typed text is converted to the OEM character set and back (ES_OEMCONVERT). }
     property OEMConvert: Boolean read FOEMConvert write SetOEMConvert default False;
+    { False keeps the selection visible without the focus (ES_NOHIDESEL).
+      Fixed once the window exists. }
+    property HideSelection: Boolean read FHideSelection write SetHideSelection default True;
     { Fixed once the window exists. }
     property BorderStyle: TBorderStyle read FBorderStyle write SetBorderStyle default bsSingle;
     property Font;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    property OnDblClick: TNotifyEvent read FOnDblClick write FOnDblClick;
     property Enabled;
     property Visible;
     property TabStop;
@@ -91,7 +97,7 @@ constructor TEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner); TabStop := True;
   Color := clWindow; ParentColor := False;
-  FAutoSelect := True; FBorderStyle := bsSingle;
+  FAutoSelect := True; FHideSelection := True; FBorderStyle := bsSingle;
   SetBounds(0, 0, 121, 23);
 end;
 function TEdit.NativeClassName: PChar;
@@ -113,6 +119,7 @@ begin
   if FCharCase = ecUpperCase then Style := Style or ES_UPPERCASE;
   if FCharCase = ecLowerCase then Style := Style or ES_LOWERCASE;
   if FOEMConvert then Style := Style or ES_OEMCONVERT;
+  if not FHideSelection then Style := Style or ES_NOHIDESEL;
   FInitializing := True;
   try
     inherited CreateHandle(Parent, FText, Style, X, Y, Width, Height);
@@ -129,6 +136,14 @@ begin
   if Handle <> 0 then raise ENativeWindowError.Create('Edit border cannot change after creation');
   FBorderStyle := Value;
 end;
+procedure TEdit.SetHideSelection(Value: Boolean);
+begin
+  if Value = FHideSelection then Exit;
+  if Handle <> 0 then raise ENativeWindowError.Create('Edit HideSelection cannot change after creation');
+  FHideSelection := Value;
+end;
+procedure TEdit.DblClick;
+begin if Assigned(FOnDblClick) then FOnDblClick(Self); end;
 procedure TEdit.SetOEMConvert(Value: Boolean);
 var Style: LongInt;
 begin
@@ -207,6 +222,8 @@ begin
   { USER owns EDIT painting and its local edit buffer. }
   if (M.Msg = WM_PAINT) or (M.Msg = WM_ERASEBKGND) then DefaultHandler(M)
   else inherited WndProc(M);
+  { EDIT has CS_DBLCLKS and selects the word first, as in Delphi. }
+  if M.Msg = WM_LBUTTONDBLCLK then DblClick;
   case M.Msg of
     WM_SETTEXT, WM_CHAR, WM_CUT, WM_PASTE, WM_CLEAR, WM_UNDO, EM_UNDO, EM_REPLACESEL:
       begin

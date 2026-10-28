@@ -27,6 +27,8 @@ DESIGN_ONLY = {'textheight', 'iscontrol', 'scaled'}
 BOUNDS = ('left', 'top', 'width', 'height')
 TRANSLATED = {'caption', 'hint'}
 MENUS = {'tpopupmenu', 'tmainmenu'}
+# Units every loader needs for the identifiers DFM values may name.
+IMPLICIT_UNITS = ('Graphics', 'Controls')
 
 
 def strip_source(text):
@@ -286,6 +288,11 @@ class Loader:
                 self.emit(f'F.{node.name}.TabOrder := {order};')
         self.lines.extend('  ' + line for line in self.events)
         names = [form_unit] + [u for u in uses if u.casefold() not in ('forms', 'form_text', form_unit.casefold())]
+        # Delphi resolves colour, font-style and cursor identifiers in a DFM
+        # through global maps, whatever the form unit uses. First in the list,
+        # so the form unit's own units still take precedence.
+        listed = {u.casefold() for u in names}
+        names[1:1] = [u for u in IMPLICIT_UNITS if u.casefold() not in listed]
         unit = form_unit.lower() + '_dfm'
         head = [f'{{ Generated from binary DFM; SHA256 {digest}. Do not edit. }}',
                 f'unit {unit};', '{$mode delphi}{$H-}', 'interface', 'implementation',

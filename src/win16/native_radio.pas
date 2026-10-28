@@ -14,7 +14,7 @@ type
     FCaption: string;
     FChecked: Boolean;
     FAlignment: TAlignment;
-    FOnClick: TNotifyEvent;
+    FOnClick, FOnDblClick: TNotifyEvent;
     procedure SetChecked(Value: Boolean);
     procedure SetAlignment(Value: TAlignment);
     procedure SetCaption(const Value: string);
@@ -25,6 +25,8 @@ type
     procedure WndProc(var M: TMessage); override;
     function ControlCommand(Code: Word): Boolean; override;
     function ControlMnemonic(Key: Char): Boolean; override;
+    { BN_DOUBLECLICKED, which USER sends for radio buttons. }
+    procedure DblClick; override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure DefaultHandler(var Message); override;
@@ -36,6 +38,7 @@ type
     property Caption: string read FCaption write SetCaption;
     property Checked: Boolean read FChecked write SetChecked default False;
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
+    property OnDblClick: TNotifyEvent read FOnDblClick write FOnDblClick;
     property Font;
     property Enabled;
     property Visible;
@@ -122,9 +125,12 @@ begin
 end;
 function TRadioButton.ControlCommand(Code: Word): Boolean;
 begin
-  Result := Code = BN_CLICKED;
-  if Result and Enabled and Visible then Click;
+  Result := (Code = BN_CLICKED) or (Code = BN_DOUBLECLICKED);
+  if not Result or not Enabled or not Visible then Exit;
+  if Code = BN_CLICKED then Click else DblClick;
 end;
+procedure TRadioButton.DblClick;
+begin if Assigned(FOnDblClick) then FOnDblClick(Self); end;
 function TRadioButton.ControlMnemonic(Key: Char): Boolean;
 begin
   Result := CanFocus and CaptionMatches(Caption, Key);
