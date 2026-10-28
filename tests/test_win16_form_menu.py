@@ -31,7 +31,7 @@ class Win16FormMenuTests(unittest.TestCase):
     def test_bit_button_kinds_and_icon_streams(self):
         buttons = (ROOT / 'src/win16/buttons.pas').read_text()
         for text in ('TBitBtnKind = (bkCustom, bkOK, bkCancel, bkHelp, bkYes, bkNo, bkClose,',
-                     "if not (csLoading in ComponentState) or (Caption = '') then Caption := KindCaptions[Value];"):
+                     "Caption := FormText('TStandardButtons', KindNames[Value], 'Caption', KindCaptions[Value]);"):
             self.assertIn(text, buttons)
         icon = (ROOT / 'src/win16/gdi_icon.pas').read_text()
         for text in ('procedure LoadFromStream(Stream: TStream);', 'procedure SaveToStream(Stream: TStream);',

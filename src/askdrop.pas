@@ -29,15 +29,11 @@ unit Askdrop;
 interface
 
 uses
-{$IFDEF FPC}
-  WinTypes, native_modal, native_label,
-{$ELSE}
   Forms, StdCtrls,
-{$ENDIF}
   Classes, Picbtn, ExtCtrls, Controls, Buttons;
 
 type
-  TAskDropBox = class({$IFDEF FPC}TNativeModalForm{$ELSE}TForm{$ENDIF})
+  TAskDropBox = class(TForm)
     Label1: TLabel;
     BitBtn1: TPicBtn;
     BitBtn2: TPicBtn;
@@ -49,14 +45,6 @@ type
     { Private declarations }
   public
     { Public declarations }
-{$IFDEF FPC}
-    { The shell supplies its sound preference; no unported MiscUtil dependency. }
-    SoundEnabled: Boolean;
-    constructor Create(AOwner: TComponent); override;
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
-      X, Y, Width, Height: SmallInt); override;
-{$ENDIF}
   end;
 
 var
@@ -67,15 +55,7 @@ implementation
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses WinProcs, Graphics,
-{$IFDEF FPC}
-  form_text;
-{$ELSE}
   WinTypes, MiscUtil;
-{$ENDIF}
-
-{$IFDEF FPC}
-{$I askdrop_form.inc}
-{$ENDIF}
 
 procedure TAskDropBox.FormCreate(Sender: TObject);
 begin
@@ -89,11 +69,7 @@ end;
 
 procedure TAskDropBox.FormShow(Sender: TObject);
 begin
-{$IFDEF FPC}
-  if SoundEnabled then MessageBeep(MB_ICONQUESTION);
-{$ELSE}
   if MsgDialogSounds then MessageBeep(MB_ICONQUESTION);
-{$ENDIF}
 end;
 
 end.

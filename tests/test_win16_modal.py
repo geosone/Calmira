@@ -93,7 +93,7 @@ class Win16ModalTests(unittest.TestCase):
                       (ROOT / 'makefile').read_text())
 
     def test_original_search_keeps_modeless_and_modal_acceptance_and_delphi_branch(self):
-        self.assertIn('class(TNativeModalForm)', active_source('src/incsrch.pas'))
+        self.assertIn('class(TForm)', active_source('src/incsrch.pas'))
         self.assertIn('class(TForm)', active_source('src/incsrch.pas', False))
         source = (ROOT / 'tests/pascal/test_win16_incsrch_modal.pas').read_text()
         for text in ('Dialog.FormShow(Sender)', 'Dialog.ShowModal',

@@ -1,6 +1,6 @@
 program TestWin16IncSearchModal;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Classes, SysUtils, Controls, Incsrch;
+uses WinTypes, WinProcs, Classes, SysUtils, Controls, Incsrch, incsrch_dfm;
 type
   TObserver = class
     Key: Word;

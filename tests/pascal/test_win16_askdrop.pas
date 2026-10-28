@@ -1,7 +1,7 @@
 program ADTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
 uses WinTypes, WinProcs, Win31, Classes, SysUtils, Graphics, Controls, Buttons,
-  PicBtn, Askdrop, native_form;
+  PicBtn, Askdrop, askdrop_dfm, native_form;
 {$IFDEF MODAL_PROBE}
 type
   { A typed old-style object callback needs no class VMT in scarce DGROUP. }

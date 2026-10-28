@@ -1,6 +1,6 @@
 program TestWin16IncSearch;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Win31, Classes, SysUtils, Controls, Incsrch, native_loop;
+uses WinTypes, WinProcs, Win31, Classes, SysUtils, Controls, Incsrch, incsrch_dfm, native_loop;
 type
   TObserver = class
     Calls: Integer;

@@ -1,6 +1,6 @@
 program SelectTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Win31, Classes, SysUtils, Select, Controls, PicBtn;
+uses WinTypes, WinProcs, Win31, Classes, SysUtils, Select, select_dfm, Controls, PicBtn;
 type
   TD = object
     Calls, FailOnCall: Integer;

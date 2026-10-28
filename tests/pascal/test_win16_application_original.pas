@@ -1,7 +1,7 @@
 program ApplicationOriginalTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Classes, SysUtils, Messages, Controls, Incsrch,
-  native_application, native_form;
+uses WinTypes, WinProcs, Classes, SysUtils, Messages, Controls, Incsrch, incsrch_dfm,
+  native_application, native_form, Forms;
 type TD = object
   Shows, ModalRuns, SearchCalls, Mode: Integer;
   Last: string[15];
@@ -61,7 +61,8 @@ procedure Exercise;
 begin
   FillChar(Driver, SizeOf(Driver), 0);
   try
-    App := TNativeApplication.Create(nil); App.Initialize;
+    { Incsrch is a TForm, so Forms' Application is the one application. }
+    App := Application;
     App.CreateForm(TNativeForm, Main); Main.Caption := 'Factory';
     Main.SetBounds(10, 10, 230, 120); Main.OnShow := Driver.MainShown;
     Check(App.Run = 0, 'native run');
@@ -72,7 +73,7 @@ begin
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   if App <> nil then
     if App.QuitRequested and not App.Terminated then App.ProcessMessages(500);
-  App.Free; App := nil; Main := nil; Dialog := nil;
+  App := nil; Main := nil; Dialog := nil;
   Check(not PeekMessage(Queue, 0, WM_QUIT, WM_QUIT, PM_NOREMOVE), 'no residual quit');
 end;
 begin

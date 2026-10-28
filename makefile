@@ -262,11 +262,11 @@ win16-application-factory-runtime-test: win16-application-factory
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-application-factory/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-application-original win16-application-original-runtime-test
-win16-application-original: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/incsrch_form.inc
+win16-application-original: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/incsrch_dfm.pas
 	mkdir -p $(BUILD_DIR)/tests/win16-application-original/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
 		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl \
 		-FU$(BUILD_DIR)/tests/win16-application-original/units -FE$(BUILD_DIR)/tests/win16-application-original \
 		-oGDITEST.EXE tests/pascal/test_win16_application_original.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-application-original/GDITEST.EXE
@@ -1404,26 +1404,29 @@ win16-gui-diagnostics-runtime-test: win16-gui-diagnostics
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-gui-diagnostics/GDITEST.EXE)' \
 		sh tests/dos/test_win16_gdi.sh
 
+# Calmira's forms: a loader unit (and its bitmaps) per DFM, see tools/dfm_loader.py.
+$(BUILD_DIR)/generated/forms/%_dfm.pas $(BUILD_DIR)/generated/forms/%_dfm.res: src/%.dfm src/%.pas \
+		tools/dfm_loader.py tools/compile_dfm.py tools/dfm_bitmaps.py tools/bitmap_resources.py
+	mkdir -p $(BUILD_DIR)/generated/forms
+	python3 tools/dfm_loader.py --unit src/$*.pas --output $(BUILD_DIR)/generated/forms/$*_dfm.pas \
+		--resources $(BUILD_DIR)/generated/forms/$*_dfm.res $<
+
 win16-form-resources-report:
 	python3 tools/compile_dfm.py src --inventory --output $(BUILD_DIR)/generated/forms/report.json
 
-win16-form-resources: $(BUILD_DIR)/generated/forms/incsrch_form.inc \
-	$(BUILD_DIR)/generated/forms/askdrop_form.inc $(BUILD_DIR)/generated/forms/askdrop.res \
-	$(BUILD_DIR)/generated/forms/select_form.inc $(BUILD_DIR)/generated/forms/select.res \
-	$(BUILD_DIR)/generated/forms/password_form.inc $(BUILD_DIR)/generated/forms/password.res
-
-$(BUILD_DIR)/generated/forms/password_form.inc $(BUILD_DIR)/generated/forms/password.res &: src/password.dfm tools/compile_dfm.py tools/dfm_bitmaps.py tools/bitmap_resources.py
-	python3 tools/compile_dfm.py $< --output $(BUILD_DIR)/generated/forms/password_form.inc \
-		--resources $(BUILD_DIR)/generated/forms/password.res
+win16-form-resources: $(BUILD_DIR)/generated/forms/incsrch_dfm.pas \
+	$(BUILD_DIR)/generated/forms/askdrop_dfm.pas $(BUILD_DIR)/generated/forms/askdrop_dfm.res \
+	$(BUILD_DIR)/generated/forms/select_dfm.pas $(BUILD_DIR)/generated/forms/select_dfm.res \
+	$(BUILD_DIR)/generated/forms/password_dfm.pas $(BUILD_DIR)/generated/forms/password_dfm.res
 
 .PHONY: win16-password win16-password-runtime-test
-win16-password: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/password_form.inc $(BUILD_DIR)/generated/forms/password.res src/locale.res
+win16-password: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/password_dfm.pas $(BUILD_DIR)/generated/forms/password_dfm.res src/locale.res
 	mkdir -p $(BUILD_DIR)/tests/win16-password/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
 		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-password/units \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-password/units \
 		-FE$(BUILD_DIR)/tests/win16-password -oGDITEST.EXE tests/pascal/test_win16_password.pas
-	python3 tools/merge_res16.py src/locale.res $(BUILD_DIR)/generated/forms/password.res \
+	python3 tools/merge_res16.py src/locale.res $(BUILD_DIR)/generated/forms/password_dfm.res \
 		--output $(BUILD_DIR)/tests/win16-password/bound.res
 	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/tests/win16-password/bound.res $(BUILD_DIR)/tests/win16-password/GDITEST.EXE
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-password/GDITEST.EXE
@@ -1432,13 +1435,13 @@ win16-password-runtime-test: win16-password
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-password/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-password-language win16-password-language-runtime-test win16-resource-text win16-resource-text-runtime-test
-win16-password-language: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/password_form.inc $(BUILD_DIR)/generated/forms/password.res src/locale.res
+win16-password-language: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/password_dfm.pas $(BUILD_DIR)/generated/forms/password_dfm.res src/locale.res
 	mkdir -p $(BUILD_DIR)/tests/win16-password-language/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
 		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-password-language/units \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-password-language/units \
 		-FE$(BUILD_DIR)/tests/win16-password-language -oGDITEST.EXE tests/pascal/test_win16_password_language.pas
-	python3 tools/merge_res16.py src/locale.res $(BUILD_DIR)/generated/forms/password.res \
+	python3 tools/merge_res16.py src/locale.res $(BUILD_DIR)/generated/forms/password_dfm.res \
 		--output $(BUILD_DIR)/tests/win16-password-language/bound.res
 	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/tests/win16-password-language/bound.res $(BUILD_DIR)/tests/win16-password-language/GDITEST.EXE
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-password-language/GDITEST.EXE
@@ -1473,17 +1476,13 @@ win16-mnemonic: fpc-win16-gui-rtl
 win16-mnemonic-runtime-test: win16-mnemonic
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-mnemonic/GDITEST.EXE)' \
 		sh tests/dos/test_win16_gdi.sh
-$(BUILD_DIR)/generated/forms/select_form.inc $(BUILD_DIR)/generated/forms/select.res &: src/select.dfm tools/compile_dfm.py tools/dfm_bitmaps.py tools/bitmap_resources.py
-	python3 tools/compile_dfm.py $< --output $(BUILD_DIR)/generated/forms/select_form.inc \
-		--resources $(BUILD_DIR)/generated/forms/select.res
-
-win16-select: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/select_form.inc $(BUILD_DIR)/generated/forms/select.res src/icons.res
+win16-select: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/select_dfm.pas $(BUILD_DIR)/generated/forms/select_dfm.res src/icons.res
 	mkdir -p $(BUILD_DIR)/tests/win16-select/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-select/units \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fuvcl -Fu./$(FPC_WIN16_GUI_RTL) \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-select/units \
 		-FE$(BUILD_DIR)/tests/win16-select -oGDITEST.EXE tests/pascal/test_win16_select.pas
-	python3 tools/merge_res16.py src/icons.res $(BUILD_DIR)/generated/forms/select.res \
+	python3 tools/merge_res16.py src/icons.res $(BUILD_DIR)/generated/forms/select_dfm.res \
 		--output $(BUILD_DIR)/tests/win16-select/bound.res
 	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/tests/win16-select/bound.res $(BUILD_DIR)/tests/win16-select/GDITEST.EXE
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-select/GDITEST.EXE
@@ -1493,13 +1492,13 @@ win16-select-runtime-test: win16-select
 		sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-select-language win16-select-language-runtime-test
-win16-select-language: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/select_form.inc $(BUILD_DIR)/generated/forms/select.res src/icons.res
+win16-select-language: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/select_dfm.pas $(BUILD_DIR)/generated/forms/select_dfm.res src/icons.res
 	mkdir -p $(BUILD_DIR)/tests/win16-select-language/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-select-language/units \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fuvcl -Fu./$(FPC_WIN16_GUI_RTL) \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-select-language/units \
 		-FE$(BUILD_DIR)/tests/win16-select-language -oGDITEST.EXE tests/pascal/test_win16_select_language.pas
-	python3 tools/merge_res16.py src/icons.res $(BUILD_DIR)/generated/forms/select.res \
+	python3 tools/merge_res16.py src/icons.res $(BUILD_DIR)/generated/forms/select_dfm.res \
 		--output $(BUILD_DIR)/tests/win16-select-language/bound.res
 	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/tests/win16-select-language/bound.res $(BUILD_DIR)/tests/win16-select-language/GDITEST.EXE
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-select-language/GDITEST.EXE
@@ -1508,49 +1507,42 @@ win16-select-language-runtime-test: win16-select-language languages
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-select-language/GDITEST.EXE)' \
 		GDI_CATALOG_DIR='$(abspath $(BUILD_DIR)/lang)' sh tests/dos/test_win16_gdi.sh
 
-$(BUILD_DIR)/generated/forms/incsrch_form.inc: src/incsrch.dfm tools/compile_dfm.py tools/dfm_bitmaps.py tools/bitmap_resources.py
-	python3 tools/compile_dfm.py $< --output $@
-
 .PHONY: win16-askdrop win16-askdrop-runtime-test
 .PHONY: win16-askdrop-modal win16-askdrop-modal-runtime-test
 .PHONY: win16-askdrop-language win16-askdrop-language-runtime-test
-$(BUILD_DIR)/generated/forms/askdrop_form.inc $(BUILD_DIR)/generated/forms/askdrop.res &: src/askdrop.dfm tools/compile_dfm.py tools/dfm_bitmaps.py tools/bitmap_resources.py
-	python3 tools/compile_dfm.py $< --output $(BUILD_DIR)/generated/forms/askdrop_form.inc \
-		--resources $(BUILD_DIR)/generated/forms/askdrop.res
-
-win16-askdrop: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/askdrop_form.inc $(BUILD_DIR)/generated/forms/askdrop.res
+win16-askdrop: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/askdrop_dfm.pas $(BUILD_DIR)/generated/forms/askdrop_dfm.res
 	mkdir -p $(BUILD_DIR)/tests/win16-askdrop/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-askdrop/units \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-askdrop/units \
 		-FE$(BUILD_DIR)/tests/win16-askdrop -oGDITEST.EXE tests/pascal/test_win16_askdrop.pas
-	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/generated/forms/askdrop.res $(BUILD_DIR)/tests/win16-askdrop/GDITEST.EXE
+	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/generated/forms/askdrop_dfm.res $(BUILD_DIR)/tests/win16-askdrop/GDITEST.EXE
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-askdrop/GDITEST.EXE
 
 win16-askdrop-runtime-test: win16-askdrop languages
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-askdrop/GDITEST.EXE)' \
 		GDI_CATALOG_DIR='$(abspath $(BUILD_DIR)/lang)' sh tests/dos/test_win16_gdi.sh
 
-win16-askdrop-modal: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/askdrop_form.inc $(BUILD_DIR)/generated/forms/askdrop.res
+win16-askdrop-modal: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/askdrop_dfm.pas $(BUILD_DIR)/generated/forms/askdrop_dfm.res
 	mkdir -p $(BUILD_DIR)/tests/win16-askdrop-modal/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -dMODAL_PROBE -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-askdrop-modal/units \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -dMODAL_PROBE -Fu$(FPC_WIN16_GUI_RTL) \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-askdrop-modal/units \
 		-FE$(BUILD_DIR)/tests/win16-askdrop-modal -oGDITEST.EXE tests/pascal/test_win16_askdrop.pas
-	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/generated/forms/askdrop.res $(BUILD_DIR)/tests/win16-askdrop-modal/GDITEST.EXE
+	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/generated/forms/askdrop_dfm.res $(BUILD_DIR)/tests/win16-askdrop-modal/GDITEST.EXE
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-askdrop-modal/GDITEST.EXE
 
 win16-askdrop-modal-runtime-test: win16-askdrop-modal
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-askdrop-modal/GDITEST.EXE)' \
 		sh tests/dos/test_win16_gdi.sh
 
-win16-askdrop-language: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/askdrop_form.inc $(BUILD_DIR)/generated/forms/askdrop.res
+win16-askdrop-language: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/askdrop_dfm.pas $(BUILD_DIR)/generated/forms/askdrop_dfm.res
 	mkdir -p $(BUILD_DIR)/tests/win16-askdrop-language/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-askdrop-language/units \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -Fuvcl -FU$(BUILD_DIR)/tests/win16-askdrop-language/units \
 		-FE$(BUILD_DIR)/tests/win16-askdrop-language -oGDITEST.EXE tests/pascal/test_win16_askdrop_language.pas
-	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/generated/forms/askdrop.res $(BUILD_DIR)/tests/win16-askdrop-language/GDITEST.EXE
+	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/generated/forms/askdrop_dfm.res $(BUILD_DIR)/tests/win16-askdrop-language/GDITEST.EXE
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-askdrop-language/GDITEST.EXE
 
 win16-askdrop-language-runtime-test: win16-askdrop-language languages
@@ -1561,7 +1553,7 @@ win16-incsrch: fpc-win16-gui-rtl win16-form-resources
 	mkdir -p $(BUILD_DIR)/tests/win16-incsrch/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
 		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -FU$(BUILD_DIR)/tests/win16-incsrch/units \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -FU$(BUILD_DIR)/tests/win16-incsrch/units \
 		-FE$(BUILD_DIR)/tests/win16-incsrch -oGDITEST.EXE tests/pascal/test_win16_incsrch.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-incsrch/GDITEST.EXE
 
@@ -1574,7 +1566,7 @@ win16-form-text: fpc-win16-gui-rtl win16-form-resources
 	mkdir -p $(BUILD_DIR)/tests/win16-form-text/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
 		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -FU$(BUILD_DIR)/tests/win16-form-text/units \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -FU$(BUILD_DIR)/tests/win16-form-text/units \
 		-FE$(BUILD_DIR)/tests/win16-form-text -oGDITEST.EXE tests/pascal/test_win16_form_text.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-form-text/GDITEST.EXE
 
@@ -1612,7 +1604,7 @@ win16-incsrch-modal: fpc-win16-gui-rtl win16-form-resources
 	mkdir -p $(BUILD_DIR)/tests/win16-incsrch-modal/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
 		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
-		-Fi$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -FU$(BUILD_DIR)/tests/win16-incsrch-modal/units \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fusrc/win16 -Fusrc/portable -Fusrc -FU$(BUILD_DIR)/tests/win16-incsrch-modal/units \
 		-FE$(BUILD_DIR)/tests/win16-incsrch-modal -oGDITEST.EXE tests/pascal/test_win16_incsrch_modal.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-incsrch-modal/GDITEST.EXE
 

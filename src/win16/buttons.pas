@@ -9,8 +9,9 @@ type
   TButtonLayout = native_speedbutton.TButtonLayout;
   { Delphi 1 BitBtn/MessageDlg look; only the new 3D look is drawn. }
   TButtonStyle = (bsAutoDetect, bsWin31, bsNew);
-  { Standard buttons: Kind sets the caption, ModalResult and Default or
-    Cancel. Delphi's stock glyphs are not provided. }
+  { Standard buttons: Kind sets the translated caption, ModalResult and
+    Default or Cancel. Delphi's stock glyphs are not provided at run time;
+    generated form loaders supply a drawn one for bkCancel. }
   TBitBtnKind = (bkCustom, bkOK, bkCancel, bkHelp, bkYes, bkNo, bkClose,
     bkAbort, bkRetry, bkIgnore, bkAll);
   TButtonState = native_speedbutton.TButtonState;
@@ -54,10 +55,13 @@ type
     property Layout: TButtonLayout read FLayout write SetLayout default blGlyphLeft;
   end;
 implementation
-uses SysUtils, WinProcs, Controls, Forms, native_window;
+uses SysUtils, WinProcs, Controls, Forms, native_window, form_text;
 const
   KindCaptions: array[TBitBtnKind] of string[7] = ('', 'OK', 'Cancel', '&Help',
     '&Yes', '&No', '&Close', 'Abort', '&Retry', '&Ignore', '&All');
+  { Keys of the translated captions, as in Delphi's string-table captions. }
+  KindNames: array[TBitBtnKind] of string[6] = ('', 'OK', 'Cancel', 'Help',
+    'Yes', 'No', 'Close', 'Abort', 'Retry', 'Ignore', 'All');
   KindResults: array[TBitBtnKind] of TModalResult = (mrNone, mrOK, mrCancel, mrNone,
     mrYes, mrNo, mrNone, mrAbort, mrRetry, mrIgnore, mrAll);
 procedure TBitBtn.SetKind(Value: TBitBtnKind);
@@ -68,7 +72,8 @@ begin
   Default := Value in [bkOK, bkYes];
   Cancel := Value in [bkCancel, bkNo];
   { A streamed custom caption is kept. }
-  if not (csLoading in ComponentState) or (Caption = '') then Caption := KindCaptions[Value];
+  if not (csLoading in ComponentState) or (Caption = '') then
+    Caption := FormText('TStandardButtons', KindNames[Value], 'Caption', KindCaptions[Value]);
   ModalResult := KindResults[Value];
 end;
 procedure TBitBtn.Click;

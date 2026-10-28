@@ -4,7 +4,7 @@ import unittest
 
 from test_win16_handles import active_source
 from tools.build_languages import DfmReader
-from tools.compile_dfm import compile_dfm
+from tools.dfm_loader import compile_loader
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -93,7 +93,7 @@ class Win16EntryControlTests(unittest.TestCase):
     def test_original_incremental_search_keeps_original_logic_and_delphi_branch(self):
         fpc = active_source('src/incsrch.pas')
         old = active_source('src/incsrch.pas', False)
-        self.assertIn('class(TNativeModalForm)', fpc)
+        self.assertIn('class(TForm)', fpc)
         self.assertIn('class(TForm)', old)
         self.assertIn('{$R *.dfm}', old)
         self.assertNotIn('{$R *.dfm}', fpc)
@@ -102,10 +102,11 @@ class Win16EntryControlTests(unittest.TestCase):
             for text in ('FOnSearch(self, Edit.Text)', 'Text := Lowercase(InitialChar)',
                          '(Key = VK_RETURN) or (Key = VK_ESCAPE) then Close'):
                 self.assertIn(text, source)
-        generated = compile_dfm((ROOT / 'src/incsrch.dfm').read_bytes())
-        self.assertIn('{$I incsrch_form.inc}', fpc)
-        for text in ('Edit.OnChange := EditChange', 'Edit.OnKeyDown := EditKeyDown',
-                     'OnShow := FormShow', 'Edit.CharCase := ecLowerCase',
+        generated, _ = compile_loader((ROOT / 'src/incsrch.dfm').read_bytes(),
+                                      (ROOT / 'src/incsrch.pas').read_text(encoding='cp1252'))
+        self.assertNotIn('{$I incsrch_form.inc}', fpc)
+        for text in ('F.Edit.OnChange := F.EditChange', 'F.Edit.OnKeyDown := F.EditKeyDown',
+                     'F.OnShow := F.FormShow', 'F.Edit.CharCase := ecLowerCase',
                      "if InitialChar = #0 then Text := '' else"):
             self.assertIn(text, fpc + generated)
 
@@ -114,18 +115,20 @@ class Win16EntryControlTests(unittest.TestCase):
                       'CharCase', 'ActiveControl', 'Font.Name', 'Font.Height')
         values = {}
         DfmReader((ROOT / 'src/incsrch.dfm').read_bytes(), properties).component(values)
-        source = compile_dfm((ROOT / 'src/incsrch.dfm').read_bytes())
+        source, _ = compile_loader((ROOT / 'src/incsrch.dfm').read_bytes(),
+                                   (ROOT / 'src/incsrch.pas').read_text(encoding='cp1252'))
         prefix = 'TIncSearchDlg.'
         width = values[prefix + 'IncSearchDlg.ClientWidth']
         height = values[prefix + 'IncSearchDlg.ClientHeight']
-        self.assertIn(f'Graphics.Rect(0, 0, {width}, {height})', source)
+        self.assertIn(f'F.ClientHeight := {height};', source)
+        self.assertIn(f'F.ClientWidth := {width};', source)
         for name in ('Edit', 'Label1'):
             bounds = ', '.join(str(values[prefix + name + '.' + p])
                                for p in ('Left', 'Top', 'Width', 'Height'))
-            self.assertIn(f'{name}.SetBounds({bounds})', source)
+            self.assertIn(f'F.{name}.SetBounds({bounds})', source)
             caption = values.get(prefix + name + '.Caption')
             if caption is not None:
-                self.assertIn(f"{name}.Caption := FormText('TIncSearchDlg', '{name}', 'Caption', '{caption}')", source)
+                self.assertIn(f"F.{name}.Caption := FormText('TIncSearchDlg', '{name}', 'Caption', '{caption}')", source)
         self.assertEqual(values[prefix + 'Edit.CharCase'], 'ecLowerCase')
         self.assertEqual(values[prefix + 'IncSearchDlg.ActiveControl'], 'Edit')
 

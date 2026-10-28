@@ -1,6 +1,6 @@
 program PasswordTest;
 {$mode delphi}{$H-}{$K+}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Win31, Classes, SysUtils, Password, Controls,
+uses WinTypes, WinProcs, Win31, Classes, SysUtils, Password, password_dfm, Controls,
   PicBtn, native_form, resource_text, Locale;
 type TD = object
   Mode, Errors: Integer;

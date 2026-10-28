@@ -17,10 +17,10 @@ import sys
 
 if __package__:
     from .compile_dfm import DfmError, header_sections, identifier, literal, parse, write_generated
-    from .dfm_bitmaps import BitmapResources, bitmap_payload
+    from .dfm_bitmaps import BitmapResources, bitmap_payload, cancellation_glyph
 else:
     from compile_dfm import DfmError, header_sections, identifier, literal, parse, write_generated
-    from dfm_bitmaps import BitmapResources, bitmap_payload
+    from dfm_bitmaps import BitmapResources, bitmap_payload, cancellation_glyph
 
 # Designer metadata with no run-time meaning.
 DESIGN_ONLY = {'textheight', 'iscontrol', 'scaled'}
@@ -202,6 +202,13 @@ class Loader:
                     if field not in ('Service', 'Topic'):
                         self.fail(node, spelled, f'unsupported link entry {item.data!r}')
                     self.emit(f'{target}.Dde{field} := {literal(text)};')
+            elif key == 'kind' and value.kind == 'ident' and value.data.casefold() == 'bkcancel':
+                self.emit(f'{target}.{spelled} := {self.scalar(node, spelled, value)};')
+                # Delphi draws the stock glyph from its own BUTTONS.RES; this
+                # replacement is drawn by dfm_bitmaps. A streamed Glyph follows.
+                if 'glyph.data' not in node.properties:
+                    name = self.resources.add(cancellation_glyph())
+                    self.emit(f"{target}.Glyph.LoadFromResourceName(HInstance, '{name}'); {target}.NumGlyphs := 2;")
             elif key == 'data' and value.kind == 'binary':
                 # TOutline's DefineProperties data; 1F alone is an empty outline.
                 if value.data != b'\x1f':

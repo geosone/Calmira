@@ -1260,18 +1260,18 @@ Calmira dialog, DFM loading, modal Forms or physical keyboard acceptance.
 
 ## Original incremental search dialog
 
-`src/incsrch.pas` now has a maintained FPC branch deriving TIncSearchDlg from
-TNativeModalForm, while its Delphi TForm/resource branch remains intact. The original
+`src/incsrch.pas` is a plain TForm on both compilers. The original
 EditChange, FormShow and EditKeyDown methods still perform the search callback,
 initial lowercase character/caret positioning and Enter/Escape close. No duplicate
 search implementation or placeholder Forms unit is introduced.
 The FPC path maps an unset InitialChar (#0) to empty text: the original icon
 window's `.` command opens the dialog without assigning an initial character.
 
-Its FPC constructor is now generated directly from the unchanged `incsrch.dfm`
-by `tools/compile_dfm.py`; no second handwritten layout remains. The generated
-include lives in `build/generated/forms/`. It preserves the 171x41 client area,
-child bounds, names, fonts, lowercase policy and typed original event bindings.
+Its components come from the loader unit `incsrch_dfm`, generated from the
+unchanged `incsrch.dfm` by `tools/dfm_loader.py` into `build/generated/forms/`
+(see "Form Loaders" in `docs/build_status.md`); no handwritten layout remains.
+It preserves the 171x41 client area, child bounds, names, fonts, lowercase
+policy and the original event bindings.
 `ActiveControl=Edit` maps to `TNativeForm.InitialControl`, a weak descendant
 reference focused after OnShow. Freeing clears it; detached, hidden or disabled
 controls are not focused. This is initial-focus policy, not full ActiveControl.
@@ -1346,13 +1346,12 @@ truncations. None of this supplies the still-missing full Forms/application shel
 
 ### Original drag/drop decision dialog
 
-`src/askdrop.pas` now derives from TNativeModalForm only on FPC and includes its
-constructor generated from the unchanged `askdrop.dfm`. The original FormCreate
-copies the USER question icon, after child creation/Loaded, and initializes focus
-to the copy button. The Delphi TForm/resource/sound-setting path is retained.
-FPC callers supply the shell sound preference through SoundEnabled (default
-false); automatic integration with the still-unported Settings/MiscUtil is not
-claimed. The original Copy=mrOK (1), Move=mrYes (6), Cancel=mrCancel (2) decisions
+`src/askdrop.pas` is a plain TForm, loaded by the generated `askdrop_dfm`. On
+FPC, FormCreate loads its own copy of USER's question icon instead of handing
+the shared `LoadIcon` handle to TIcon, which would destroy it, and initializes
+focus to the copy button. FormShow reads the original `MiscUtil.MsgDialogSounds`.
+`Kind = bkCancel` gets a drawn stock glyph from the loader, as Delphi's
+BUTTONS.RES glyphs are not redistributable. The original Copy=mrOK (1), Move=mrYes (6), Cancel=mrCancel (2) decisions
 are preserved. The dialog selects an action; this probe does not copy/move files.
 
 Separate 4-KiB-stack/2-KiB-heap probes avoid combining all diagnostic code at the
@@ -1369,8 +1368,8 @@ checkbox implementations. The original password dialog is described below.
 
 ### Original password dialog and numeric strings
 
-`src/password.pas` now has an FPC-only TNativeModalForm branch, generated from
-the unchanged original DFM. The Delphi implementation remains separate. Explicit
+`src/password.pas` is a TForm loaded by the generated `password_dfm`; its FPC
+branch keeps its own validation. The Delphi implementation remains separate. Explicit
 mode state replaces translated-caption comparisons; initialization clears input
 and modal results and becomes valid only after all captions have loaded. Visible
 or running dialogs cannot be reinitialized. New usernames remain ASCII
@@ -1475,11 +1474,10 @@ in-place replacement of existing build caches.
 
 ### Original selection dialog
 
-`make win16-select` compiles the original `src/select.pas` methods with a typed
-constructor generated from the unchanged DFM. Its modeless callbacks retain
+`make win16-select` compiles the original `src/select.pas`, a TForm loaded by
+the generated `select_dfm`. Its modeless callbacks retain
 the original sender/select-vs-deselect and semicolon-token behavior; they are not
-filesystem operations. `word_tokens` extracts the original public-domain GetWord
-without unrelated assembler/UI dependencies, with portable bounds/overflow tests.
+filesystem operations. GetWord comes from the original `vcl/strings.pas`.
 The FPC branch loads the bundled MULTIFILEICON; the unported configurable shell
 icon cache is not emulated. Delphi's existing path remains intact.
 

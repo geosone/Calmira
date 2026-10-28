@@ -1,6 +1,6 @@
 program TestWin16FormText;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Classes, SysUtils, Incsrch, form_text, form_catalog;
+uses WinTypes, WinProcs, Classes, SysUtils, Incsrch, incsrch_dfm, form_text, form_catalog;
 var Dialog: TIncSearchDlg; Catalog: TFormTextCatalog;
   Previous: TFormTextProvider; Failed, Rejected: Boolean;
 procedure LogLine(const Text: string);

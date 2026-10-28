@@ -31,8 +31,8 @@ class PasswordPortTests(unittest.TestCase):
 
     def test_fpc_mode_is_state_not_caption_and_initialization_is_transactional(self):
         source = active_source('src/password.pas')
-        self.assertIn('class(TNativeModalForm)', source)
-        self.assertIn('{$I password_form.inc}', source)
+        self.assertIn('class(TForm)', source)
+        self.assertNotIn('{$I password_form.inc}', source)
         self.assertIn('FNewUser and not IsValidLogin', source)
         self.assertIn('not FNewUser and (Edit1.Text <> previous)', source)
         self.assertNotIn('Caption = LocalLoadStr', source)
@@ -90,7 +90,7 @@ class PasswordPortTests(unittest.TestCase):
         for name in ('password', 'password-language', 'resource-text'):
             self.assertIn(f'win16-{name}-runtime-test: win16-{name}', source)
             self.assertIn(f'$(BUILD_DIR)/tests/win16-{name}/units', source)
-        self.assertIn('tools/merge_res16.py src/locale.res $(BUILD_DIR)/generated/forms/password.res', source)
+        self.assertIn('tools/merge_res16.py src/locale.res $(BUILD_DIR)/generated/forms/password_dfm.res', source)
         portable = (ROOT / 'src/portable/legacy_password.pas').read_text()
         self.assertIn('NOT secure encryption', portable)
         self.assertIn('MaxLegacyPasswordLength = 127', portable)

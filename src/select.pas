@@ -29,21 +29,14 @@ unit Select;
 interface
 
 uses WinTypes, WinProcs, Classes, Graphics, Controls, Buttons,
-{$IFDEF FPC}
-  native_form, native_label, native_edit,
-{$ELSE}
   Forms, StdCtrls, StylSped,
-{$ENDIF}
   ExtCtrls, Picbtn;
 
 type
   TSelectFileEvent = procedure(Sender: TObject; const FileSpec: string;
     Select: Boolean) of object;
 
-  TSelectFileDlg = class({$IFDEF FPC}TNativeForm{$ELSE}TForm{$ENDIF})
-{$IFDEF FPC}
-  public
-{$ENDIF}
+  TSelectFileDlg = class(TForm)
     Image: TImage;
     Edit: TEdit;
     Label1: TLabel;
@@ -59,12 +52,6 @@ type
     FSelectFiles: TSelectFileEvent;
   public
     { Public declarations }
-{$IFDEF FPC}
-    constructor Create(AOwner: TComponent); override;
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
-      X, Y, Width, Height: SmallInt); override;
-{$ENDIF}
     property OnSelectFiles: TSelectFileEvent read FSelectFiles write FSelectFiles;
   end;
 
@@ -77,13 +64,9 @@ implementation
 
 uses
 {$IFDEF FPC}
-  word_tokens, form_text;
+  Strings;
 {$ELSE}
   Strings, Resource;
-{$ENDIF}
-
-{$IFDEF FPC}
-{$I select_form.inc}
 {$ENDIF}
 
 procedure TSelectFileDlg.FormCreate(Sender: TObject);

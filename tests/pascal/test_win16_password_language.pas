@@ -1,6 +1,6 @@
 program PasswordLanguageTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Classes, SysUtils, Password, Controls, Locale,
+uses WinTypes, WinProcs, Classes, SysUtils, Password, password_dfm, Controls, Locale,
   form_text, resource_text, form_catalog;
 type TD = object
   Errors: Integer;

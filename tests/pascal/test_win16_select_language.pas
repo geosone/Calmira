@@ -1,6 +1,6 @@
 program SelectLanguageTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Classes, SysUtils, Select, form_text, form_catalog;
+uses WinTypes, WinProcs, Classes, SysUtils, Select, select_dfm, form_text, form_catalog;
 type TD = object
   Calls: Integer;
   Valid: Boolean;

@@ -1345,8 +1345,9 @@ The full regression passed (`build/tests/grids.log`, 87 suites, exit 0).
   TScrollTree's outline data; `tips` has an icon picture. Whether the
   generated units compile depends on the classes and properties the port
   provides; that is the next step, form by form. The four forms ported
-  earlier (`askdrop`, `incsrch`, `password`, `select`) keep their
-  TNativeForm constructors from `tools/compile_dfm.py`.
+  earlier (`askdrop`, `incsrch`, `password`, `select`) kept their
+  TNativeForm constructors from `tools/compile_dfm.py` until the slice
+  "TForm Loaders for the First Four Dialogs" below.
 
 Covered by `make win16-form-loader-runtime-test` and `tests/test_dfm_loader.py`.
 
@@ -1695,3 +1696,39 @@ Covered by `make win16-loader-props-runtime-test` and
 checks alignment, wrapping and prefixes inside fixed bounds. The full
 regression (`build/tests/loader-props.log`, 98 suites) passed except that
 suite; it passed again after the change.
+
+## TForm Loaders for the First Four Dialogs
+
+`askdrop`, `incsrch`, `password` and `select` were the first Calmira dialogs
+ported, as `TNativeModalForm`/`TNativeForm` classes with constructors that
+`tools/compile_dfm.py` generated. They are now plain `TForm` descendants
+loaded by generated loader units, like every other form. 37 of the 38
+Calmira forms (and `vcl/icondlg`) now have loaders that compile; only `tips`
+is left, because its DFM holds an icon picture.
+
+- The units lose their FPC constructor, `Notification` and `CreateHandle`
+  overrides and the `{$I *_form.inc}` includes.
+  - `incsrch` and `select` are back to the original uses clauses; `select`
+    takes `GetWord` from the original `vcl/strings.pas`.
+  - `askdrop` reads the original `MiscUtil.MsgDialogSounds`, which replaces
+    the FPC-only `SoundEnabled`.
+  - `password` keeps its FPC validation branch.
+- The makefile has one pattern rule,
+  `$(BUILD_DIR)/generated/forms/%_dfm.pas` and `%_dfm.res`, generated from
+  `src/%.dfm` with `src/%.pas`. `win16-form-resources` and the dialog test
+  targets use it, with `-Fu$(BUILD_DIR)/generated/forms`. The askdrop and
+  select targets compile with `-Sh-`, as the `calmira` target does, because
+  of the original `vcl` units. The select targets also put `vcl` ahead of the
+  RTL, so `Strings` is `vcl/strings.pas`.
+- `TBitBtn.Kind` translates its caption through
+  `FormText('TStandardButtons', ...)`, as Delphi loads it from its string
+  table.
+- For `Kind = bkCancel` without a streamed glyph, `tools/dfm_loader.py` adds
+  the drawn cancel glyph that `compile_dfm.py` used. Delphi's own BUTTONS.RES
+  glyphs are not redistributable.
+- `test_win16_application_original.pas` uses `Forms.Application`. `Incsrch`
+  now brings in `Forms`, which creates the application.
+
+The dialogs' 11 native suites pass. Their only changes are the loader units
+added to their uses clauses and the `Forms.Application` change above.
+

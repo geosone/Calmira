@@ -6,7 +6,8 @@ import unittest
 
 from test_win16_handles import active_source
 from tools.build_languages import build
-from tools.compile_dfm import compile_bundle, inventory
+from tools.compile_dfm import inventory
+from tools.dfm_loader import compile_loader
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -15,12 +16,13 @@ class Win16ResourceFormTests(unittest.TestCase):
     def test_original_drag_drop_handlers_and_delphi_branch_are_retained(self):
         fpc = active_source('src/askdrop.pas')
         old = active_source('src/askdrop.pas', False)
-        self.assertIn('class(TNativeModalForm)', fpc)
-        self.assertIn('{$I askdrop_form.inc}', fpc)
+        self.assertIn('class(TForm)', fpc)
+        self.assertNotIn('{$I askdrop_form.inc}', fpc)
+        # Borrowing USER's shared icon must not hand it to TIcon to destroy.
         self.assertIn('Icon.Picture.Icon.LoadFromResource(0, IDI_QUESTION)', fpc)
         self.assertIn('InitialControl := BitBtn1', fpc)
-        self.assertIn('if SoundEnabled then MessageBeep(MB_ICONQUESTION)', fpc)
-        self.assertNotIn('MiscUtil', fpc.split('implementation', 1)[1])
+        self.assertIn('if MsgDialogSounds then MessageBeep(MB_ICONQUESTION)', fpc)
+        self.assertIn('MiscUtil', fpc.split('implementation', 1)[1])
         self.assertIn('class(TForm)', old)
         self.assertIn('{$R *.dfm}', old)
         self.assertIn('Icon.Picture.Icon.Handle := LoadIcon(0, IDI_QUESTION)', old)
@@ -53,20 +55,23 @@ class Win16ResourceFormTests(unittest.TestCase):
         for name in ('askdrop.dfm', 'incsrch.dfm', 'password.dfm'):
             self.assertIn(name, report['supported'])
         self.assertIn('Kind', report['blocked']['replace.dfm'])
-        self.assertIn('class(TNativeModalForm)', active_source('src/password.pas'))
+        self.assertIn('class(TForm)', active_source('src/password.pas'))
         self.assertIn('Forms, Dialogs', active_source('src/password.pas', False))
 
     def test_native_resource_binding_and_separate_probe_outputs_are_required(self):
         makefile = (ROOT / 'makefile').read_text()
-        self.assertIn('--resources $(BUILD_DIR)/generated/forms/askdrop.res', makefile)
+        self.assertIn('--resources $(BUILD_DIR)/generated/forms/$*_dfm.res $<', makefile)
         for name in ('askdrop', 'askdrop-modal', 'askdrop-language'):
             self.assertIn(f'win16-{name}-runtime-test: win16-{name}', makefile)
             self.assertIn(f'$(BUILD_DIR)/tests/win16-{name}/units', makefile)
-            self.assertIn(f'$(BUILD_DIR)/generated/forms/askdrop.res $(BUILD_DIR)/tests/win16-{name}/GDITEST.EXE', makefile)
+            self.assertIn(f'$(BUILD_DIR)/generated/forms/askdrop_dfm.res $(BUILD_DIR)/tests/win16-{name}/GDITEST.EXE', makefile)
         self.assertIn('win16-gui-stdio-runtime-test: win16-gui-stdio', makefile)
-        source, resources = compile_bundle((ROOT / 'src/askdrop.dfm').read_bytes())
+        source, resources = compile_loader((ROOT / 'src/askdrop.dfm').read_bytes(),
+                                           (ROOT / 'src/askdrop.pas').read_text(encoding='cp1252'))
         self.assertTrue(resources)
-        self.assertIn('DfmCreateEvent := FormCreate', source)
+        self.assertIn('F.OnCreate := F.FormCreate', source)
+        # Kind = bkCancel without a streamed Glyph gets the drawn stock glyph.
+        self.assertIn("F.BitBtn3.Kind := bkCancel;\n  F.BitBtn3.Glyph.LoadFromResourceName(HInstance, 'DFM_", source)
 
     def test_caption_provider_does_not_eagerly_import_the_concrete_catalogue(self):
         provider = (ROOT / 'src/win16/form_text.pas').read_text()

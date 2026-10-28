@@ -1,6 +1,6 @@
 program ADLanguage;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Classes, SysUtils, Askdrop, form_text, form_catalog;
+uses WinTypes, WinProcs, Classes, SysUtils, Askdrop, askdrop_dfm, form_text, form_catalog;
 var Dialog: TAskDropBox; Catalog: TFormTextCatalog; Previous: TFormTextProvider; Failed: Boolean;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string; Data: array[0..255] of Char;

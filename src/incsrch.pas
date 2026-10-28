@@ -29,18 +29,14 @@ unit Incsrch;
 interface
 
 uses WinTypes, WinProcs, Classes, Graphics,
-{$IFDEF FPC}
-  native_modal,
-{$ELSE}
   Forms, Buttons,
-{$ENDIF}
   Controls,
   StdCtrls;
 
 type
   TSearchEvent = procedure (Sender: TObject; const s: string) of object;
 
-  TIncSearchDlg = class({$IFDEF FPC}TNativeModalForm{$ELSE}TForm{$ENDIF})
+  TIncSearchDlg = class(TForm)
     Edit: TEdit;
     Label1: TLabel;
     procedure EditChange(Sender: TObject);
@@ -53,12 +49,6 @@ type
     FInitialChar: Char;
   public
     { Public declarations }
-{$IFDEF FPC}
-    constructor Create(AOwner: TComponent); override;
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
-      X, Y, Width, Height: SmallInt); override;
-{$ENDIF}
     property OnSearch: TSearchEvent read FOnSearch write FOnSearch;
     property InitialChar: Char read FInitialChar write FInitialChar;
   end;
@@ -72,12 +62,7 @@ implementation
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses SysUtils
-{$IFDEF FPC}, form_text{$ENDIF};
-
-{$IFDEF FPC}
-{$I incsrch_form.inc}
-{$ENDIF}
+uses SysUtils;
 
 procedure TIncSearchDlg.EditChange(Sender: TObject);
 begin

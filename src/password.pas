@@ -30,7 +30,7 @@ interface
 
 uses
 {$IFDEF FPC}
-  native_modal, native_edit, native_label,
+  Forms, StdCtrls,
 {$ELSE}
   LangUI, Forms, Dialogs, StdCtrls,
 {$ENDIF}
@@ -41,10 +41,7 @@ type
 {$IFDEF FPC}
   TPasswordErrorEvent = procedure(Sender: TObject; Ident: Word) of object;
 {$ENDIF}
-  TPasswordDlg = class({$IFDEF FPC}TNativeModalForm{$ELSE}TForm{$ENDIF})
-{$IFDEF FPC}
-  public
-{$ENDIF}
+  TPasswordDlg = class(TForm)
     Edit1: TEdit;
     Edit2: TEdit;
     Edit3: TEdit;
@@ -67,10 +64,6 @@ type
   public
     { Public declarations }
 {$IFDEF FPC}
-    constructor Create(AOwner: TComponent); override;
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
-      X, Y, Width, Height: SmallInt); override;
     property OnValidationError: TPasswordErrorEvent read FOnValidationError write FOnValidationError;
 {$ENDIF}
     procedure InitNewUser;
@@ -90,14 +83,13 @@ implementation
 
 uses
 {$IFDEF FPC}
-  legacy_password, resource_text, form_text,
+  legacy_password, resource_text,
 {$ELSE}
   MiscUtil, Strings,
 {$ENDIF}
   Locale;
 
 {$IFDEF FPC}
-{$I password_form.inc}
 procedure TPasswordDlg.ResetInput;
 begin
   if Visible or ModalRunning then raise Exception.Create('Cannot reinitialize visible dialog');
