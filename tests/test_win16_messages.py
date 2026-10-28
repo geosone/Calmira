@@ -67,7 +67,7 @@ class Win16MessageTests(unittest.TestCase):
                          'rtl/objpas/sysutils/datih.inc',
                          'rtl/objpas/sysutils/dati.inc', 'rtl/win16/winprocsh.inc',
                          'rtl/win16/winprocs.inc', 'rtl/win16/win31.pp',
-                         'rtl/win16/wintypes.inc'):
+                         'rtl/win16/wintypes.inc', 'rtl/win16/Makefile', 'rtl/win16/Makefile.fpc'):
                 target = source / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 extra[name] = (ROOT / 'vendor/reference/freepascal' / name).read_bytes()

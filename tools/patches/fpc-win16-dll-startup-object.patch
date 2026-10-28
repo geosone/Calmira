@@ -1,0 +1,60 @@
+diff -ru a/compiler/systems/t_win16.pas b/compiler/systems/t_win16.pas
+--- a/compiler/systems/t_win16.pas
++++ b/compiler/systems/t_win16.pas
+@@ -232,6 +232,23 @@
+                                TExternalLinkerWin16WLink
+ ****************************************************************************}
+ 
++{ The startup code: prt0<model> for programs; libraries need their own
++  entry code (dllprt0<model>), which must not start a task. }
++function StartupObjectName(isdll: boolean): string;
++begin
++  case current_settings.x86memorymodel of
++    mm_small:   Result:='prt0s';
++    mm_medium:  Result:='prt0m';
++    mm_compact: Result:='prt0c';
++    mm_large:   Result:='prt0l';
++    mm_huge:    Result:='prt0h';
++    else
++      internalerror(2019061501);
++  end;
++  if isdll then
++    Result:='dll'+Result;
++end;
++
+ function TExternalLinkerWin16WLink.WriteResponseFile(isdll: boolean): Boolean;
+ Var
+   linkres  : TLinkRes;
+@@ -257,14 +274,7 @@
+     LinkRes.Add('option symfile');
+ 
+   { add objectfiles, start with prt0 always }
+-  case current_settings.x86memorymodel of
+-    mm_tiny:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0t','',false)));
+-    mm_small:   LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0s','',false)));
+-    mm_medium:  LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0m','',false)));
+-    mm_compact: LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0c','',false)));
+-    mm_large:   LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0l','',false)));
+-    mm_huge:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0h','',false)));
+-  end;
++  LinkRes.Add('file ' + maybequoted(FindObjectFile(StartupObjectName(isdll),'',false)));
+   while not ObjectFiles.Empty do
+   begin
+     s:=ObjectFiles.GetFirst;
+@@ -394,15 +404,7 @@
+   if IsSharedLibrary then
+     LinkScript.Concat('ISSHAREDLIBRARY');
+   { add objectfiles, start with prt0 always }
+-  case current_settings.x86memorymodel of
+-    mm_small:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0s','',false)));
+-    mm_medium:  LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0m','',false)));
+-    mm_compact: LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0c','',false)));
+-    mm_large:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0l','',false)));
+-    mm_huge:    LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0h','',false)));
+-    else
+-      internalerror(2019061501);
+-  end;
++  LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile(StartupObjectName(IsSharedLibrary),'',false)));
+   while not ObjectFiles.Empty do
+   begin
+     s:=ObjectFiles.GetFirst;

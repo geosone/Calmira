@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 100 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 102 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1796,19 +1796,50 @@ Still missing before Calmira can start:
     near inside one segment;
   - a `jcxz` that the longer far calls put out of range;
   - the unused `Dialogs`, which would link the VCL into the DLL.
-- **The DLL does not load yet.** The Win16 linker gives a library the
-  program's startup code, which calls `InitTask`. A DLL needs its own entry
-  (hInstance in DI, heap size in CX, return 1) and a `WEP` export. This
-  is missing from Free Pascal's Win16 port, so Windows silently refuses to
-  load any FPC DLL, as a minimal library shows too. `WNDHOOKS.DLL` needs it
-  as well, because system-wide hooks must live in a DLL.
-  - `win16-lfnfuncs-runtime-test`, together with the harness option
-    `GDI_EXTRA_FILES` (more files for `C:\`), is ready but stays out of the
-    regression until then.
 - Bugs of the original, only on the long-filename path and not changed:
   - `__getdir` never calls DOS and writes into its pointer parameter;
   - `__getvolinfo` loads DS without saving it;
   - `Doscall_Type_DSSI_ESDI` passes the parameter's address instead of
     the buffer.
   These will be looked at with a working DOSLFN.
+
+## Free Pascal Win16 DLLs
+
+Free Pascal's Win16 port could build libraries, but Windows never ran one.
+The original Delphi DLLs (`LFNFUNCS.DLL`, `WNDHOOKS.DLL` from
+`vendor/upstream/calmira-lfn-de`) served as the reference for their NE
+headers and entry code.
+
+- **Entry code.** A library was linked with the program startup. The
+  program startup calls `InitTask`, which fails in a library, and then ends
+  the loading task with `int 21h/4CFFh`. The RTL patch
+  `fpc-win16-dll-startup.patch` adds `dllprt0{s,m,c,l,h}` for this:
+  - registers on entry are those of Delphi's and the SDK's LibEntry: DI is
+    hInstance, CX the heap size, ES:SI the command line;
+  - it calls `LocalInit` for the local heap, sets the system unit's
+    variables (PrefixSeg 0, which `IsLibrary` is derived from), runs
+    `PASCALMAIN` (unit initialization and the library's main block) and
+    returns AX = 1;
+  - it exports `WEP`, which calls `FPC_LIB_EXIT` (exit procedures and unit
+    finalization).
+
+  The compiler patch `fpc-win16-dll-startup-object.patch` links libraries
+  with it, for wlink and for the internal linker.
+- **Export names.** Windows looks up the requested name in upper case, both
+  in `GetProcAddress` and in the loader resolving a program's imports by
+  name. Delphi and Microsoft's linker write exports in upper case; Free
+  Pascal kept the declared case, so no import by name was found ("call to
+  an undefined dynalink"). This was verified by changing only the names in
+  a built DLL. The compiler patch `fpc-win16-export-names-upper.patch`
+  writes the EXPDEF names in upper case.
+- `make win16-dll-runtime-test` loads a library statically and, under a
+  second module name, with `LoadLibrary`. It checks:
+  - unit initialization, the main block, `IsLibrary` and `HInstance`;
+  - heap, strings and exceptions inside the library;
+  - `GetProcAddress` by name;
+  - that `FreeLibrary` runs the finalization through `WEP`.
+- `make win16-lfnfuncs-runtime-test` calls the original `LFNFUNCS.DLL`
+  through `vcl/lfnutils.pas`. It covers `NextItem`, `NextItemStr`, `SetLFN`,
+  `IsProgExt`, `LFindFirst`/`LFindNext` and `LFileOpen` without long file
+  names. The long-filename path waits for a working DOSLFN.
 

@@ -1,0 +1,15 @@
+diff -ru a/compiler/systems/t_win16.pas b/compiler/systems/t_win16.pas
+--- a/compiler/systems/t_win16.pas
++++ b/compiler/systems/t_win16.pas
+@@ -192,7 +192,10 @@
+       DllExport_COMENT_EXPDEF:=TOmfRecord_COMENT_EXPDEF.Create;
+       DllExport_COMENT_EXPDEF.ExportByOrdinal:=eo_index in hp.options;
+       DllExport_COMENT_EXPDEF.ResidentName:=eo_resident in hp.options;
+-      DllExport_COMENT_EXPDEF.ExportedName:=hp.name^;
++      { Windows searches the name tables for the requested name in upper
++        case (GetProcAddress and the loader), as Microsoft's linker and
++        Delphi write them }
++      DllExport_COMENT_EXPDEF.ExportedName:=upper(hp.name^);
+       if assigned(hp.sym) then
+         case hp.sym.typ of
+           staticvarsym:

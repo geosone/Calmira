@@ -1457,6 +1457,12 @@ on i8086. A routine declared in an interface and implemented in assembler
 parameters but read them from registers, and returned without removing them
 from the stack.
 
+Two more compiler patches make libraries work:
+- `fpc-win16-dll-startup-object.patch` links them with the RTL's library
+  entry code `dllprt0*`, which `fpc-win16-dll-startup.patch` adds;
+- `fpc-win16-export-names-upper.patch` writes export names in upper case,
+  which is how Windows looks them up.
+
 `prepare_fpc_compiler.py` stages only tracked compiler/bootstrap-RTL sources and
 licenses outside the pinned checkout, applies the patches in order with zero
 fuzz, and records revision, per-patch/builder hashes and bootstrap identity. Source, patch,

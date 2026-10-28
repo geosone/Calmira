@@ -1,0 +1,232 @@
+diff -ruN a/rtl/win16/dllprt0c.asm b/rtl/win16/dllprt0c.asm
+--- a/rtl/win16/dllprt0c.asm
++++ b/rtl/win16/dllprt0c.asm
+@@ -0,0 +1,4 @@
++; nasm -f obj -o dllprt0c.o dllprt0c.asm
++%define __COMPACT__
++%define __DLL__
++%include "prt0comn.asm"
+diff -ruN a/rtl/win16/dllprt0h.asm b/rtl/win16/dllprt0h.asm
+--- a/rtl/win16/dllprt0h.asm
++++ b/rtl/win16/dllprt0h.asm
+@@ -0,0 +1,4 @@
++; nasm -f obj -o dllprt0h.o dllprt0h.asm
++%define __HUGE__
++%define __DLL__
++%include "prt0comn.asm"
+diff -ruN a/rtl/win16/dllprt0l.asm b/rtl/win16/dllprt0l.asm
+--- a/rtl/win16/dllprt0l.asm
++++ b/rtl/win16/dllprt0l.asm
+@@ -0,0 +1,4 @@
++; nasm -f obj -o dllprt0l.o dllprt0l.asm
++%define __LARGE__
++%define __DLL__
++%include "prt0comn.asm"
+diff -ruN a/rtl/win16/dllprt0m.asm b/rtl/win16/dllprt0m.asm
+--- a/rtl/win16/dllprt0m.asm
++++ b/rtl/win16/dllprt0m.asm
+@@ -0,0 +1,4 @@
++; nasm -f obj -o dllprt0m.o dllprt0m.asm
++%define __MEDIUM__
++%define __DLL__
++%include "prt0comn.asm"
+diff -ruN a/rtl/win16/dllprt0s.asm b/rtl/win16/dllprt0s.asm
+--- a/rtl/win16/dllprt0s.asm
++++ b/rtl/win16/dllprt0s.asm
+@@ -0,0 +1,4 @@
++; nasm -f obj -o dllprt0s.o dllprt0s.asm
++%define __SMALL__
++%define __DLL__
++%include "prt0comn.asm"
+diff -ruN a/rtl/win16/Makefile b/rtl/win16/Makefile
+--- a/rtl/win16/Makefile
++++ b/rtl/win16/Makefile
+@@ -935,7 +935,7 @@
+ override TARGET_IMPLICITUNITS+=$(CP_UNITS)
+ endif
+ ifeq ($(CPU_OS_TARGET),i8086-win16)
+-override TARGET_LOADERS+=prt0s prt0m prt0c prt0l prt0h
++override TARGET_LOADERS+=prt0s prt0m prt0c prt0l prt0h dllprt0s dllprt0m dllprt0c dllprt0l dllprt0h
+ endif
+ override INSTALL_FPCPACKAGE=y y
+ ifeq ($(CPU_OS_TARGET),i8086-win16)
+@@ -3027,3 +3027,18 @@
+ prt0h$(OEXT) : prt0h.asm prt0comn.asm
+ 	$(MAKE) $(COMPILER_UNITTARGETDIR)
+ 	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0h$(OEXT) prt0h.asm
++dllprt0s$(OEXT) : dllprt0s.asm prt0comn.asm
++	$(MAKE) $(COMPILER_UNITTARGETDIR)
++	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)dllprt0s$(OEXT) dllprt0s.asm
++dllprt0m$(OEXT) : dllprt0m.asm prt0comn.asm
++	$(MAKE) $(COMPILER_UNITTARGETDIR)
++	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)dllprt0m$(OEXT) dllprt0m.asm
++dllprt0c$(OEXT) : dllprt0c.asm prt0comn.asm
++	$(MAKE) $(COMPILER_UNITTARGETDIR)
++	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)dllprt0c$(OEXT) dllprt0c.asm
++dllprt0l$(OEXT) : dllprt0l.asm prt0comn.asm
++	$(MAKE) $(COMPILER_UNITTARGETDIR)
++	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)dllprt0l$(OEXT) dllprt0l.asm
++dllprt0h$(OEXT) : dllprt0h.asm prt0comn.asm
++	$(MAKE) $(COMPILER_UNITTARGETDIR)
++	$(NASM) -f obj -o $(UNITTARGETDIRPREFIX)dllprt0h$(OEXT) dllprt0h.asm
+diff -ruN a/rtl/win16/Makefile.fpc b/rtl/win16/Makefile.fpc
+--- a/rtl/win16/Makefile.fpc
++++ b/rtl/win16/Makefile.fpc
+@@ -4,7 +4,7 @@
+ [package]
+ main=rtl
+ [target]
+-loaders=prt0s prt0m prt0c prt0l prt0h 
++loaders=prt0s prt0m prt0c prt0l prt0h dllprt0s dllprt0m dllprt0c dllprt0l dllprt0h 
+ units=$(SYSTEMUNIT) $(UUCHARUNIT) $(OBJPASUNIT) $(STRINGSUNIT) $(ISO7185UNIT) $(EXTPASUNIT) $(DOSUNIT) \
+       $(WINTYPESUNIT) $(WINPROCSUNIT) $(WIN31UNIT) $(PORTSUNIT) $(DYNLIBSUNIT) $(SORTBASEUNIT) \
+       $(SYSCONSTUNIT) $(RTLCONSTSUNIT) $(SYSUTILSUNIT) $(MATHUNIT) $(TYPESUNIT) $(TYPINFOUNIT) $(FGLUNIT) \
+@@ -78,4 +78,19 @@
+ prt0h$(OEXT) : prt0h.asm prt0comn.asm
+ 	$(MAKE) $(COMPILER_UNITTARGETDIR)
+         $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)prt0h$(OEXT) prt0h.asm
++dllprt0s$(OEXT) : dllprt0s.asm prt0comn.asm
++	$(MAKE) $(COMPILER_UNITTARGETDIR)
++        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)dllprt0s$(OEXT) dllprt0s.asm
++dllprt0m$(OEXT) : dllprt0m.asm prt0comn.asm
++	$(MAKE) $(COMPILER_UNITTARGETDIR)
++        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)dllprt0m$(OEXT) dllprt0m.asm
++dllprt0c$(OEXT) : dllprt0c.asm prt0comn.asm
++	$(MAKE) $(COMPILER_UNITTARGETDIR)
++        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)dllprt0c$(OEXT) dllprt0c.asm
++dllprt0l$(OEXT) : dllprt0l.asm prt0comn.asm
++	$(MAKE) $(COMPILER_UNITTARGETDIR)
++        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)dllprt0l$(OEXT) dllprt0l.asm
++dllprt0h$(OEXT) : dllprt0h.asm prt0comn.asm
++	$(MAKE) $(COMPILER_UNITTARGETDIR)
++        $(NASM) -f obj -o $(UNITTARGETDIRPREFIX)dllprt0h$(OEXT) dllprt0h.asm
+ 
+diff -ruN a/rtl/win16/prt0comn.asm b/rtl/win16/prt0comn.asm
+--- a/rtl/win16/prt0comn.asm
++++ b/rtl/win16/prt0comn.asm
+@@ -54,6 +54,101 @@
+                 extern __AHIncr
+                 import __AHIncr KERNEL
+ 
++;; Libraries get their own entry code instead of the task startup below.
++%ifdef __DLL__
++                extern LocalInit
++                import LocalInit KERNEL
++                extern FPC_LIB_EXIT
++
++..start:        ; Win16 libraries start with the following values in registers:
++                ;
++                ; CX = the size, in bytes, of the local heap
++                ; DI = handle, identifying the library instance
++                ; DS = segment of the automatic data segment for the library
++                ; ES:SI = the command line
++                ;
++                ; The library runs on the stack of the task that loads it
++                ; (SS <> DS) and returns AX = 1 on success, AX = 0 on failure.
++                push si
++                push di
++                push ds
++                push es
++                jcxz .heap_done
++                ; a library initializes its local heap itself
++                push ds
++                xor ax, ax
++                push ax
++                push cx
++                call far LocalInit
++                test ax, ax
++                jz .init_failed
++.heap_done:
++                pop es
++%ifdef __HUGE__
++                ; the system unit's variables live in its own data segment
++%macro set_unit_var 3
++                mov cx, seg %1
++                mov ds, cx
++                mov word [%1+%2], %3
++%endmacro
++%else
++%macro set_unit_var 3
++                mov word [%1+%2], %3
++%endmacro
++%endif
++                ; a library has no PSP; the system unit derives IsLibrary from this
++                set_unit_var __fpc_PrefixSeg, 0, 0
++                set_unit_var __fpc_CmdLine, 2, es
++                set_unit_var __fpc_CmdLine, 0, si
++                set_unit_var __fpc_CmdShow, 0, 0
++                set_unit_var __fpc_HInstance, 0, di
++                set_unit_var __fpc_HPrevInst, 0, 0
++                set_unit_var __fpc_SelectorInc, 0, __AHIncr
++                pop ds
++                push ds
++
++                ; initialize the units and run the library's main block
++%ifdef __FAR_CODE__
++                call far PASCALMAIN
++%else
++                call PASCALMAIN
++%endif
++                mov ax, 1
++                jmp .done
++.init_failed:
++                pop es
++                xor ax, ax
++.done:
++                pop ds
++                pop di
++                pop si
++                retf
++
++
++                ; WEP(nExitType: Integer): Integer; far; pascal
++                ; Windows calls it before it unloads the library.
++                global WEP
++                export WEP WEP resident
++WEP:
++                push si
++                push di
++                push ds
++                mov ax, DGROUP
++                mov ds, ax
++                ; run the exit procedures and the units' finalization
++%ifdef __FAR_CODE__
++                call far FPC_LIB_EXIT
++%else
++                call FPC_LIB_EXIT
++%endif
++                pop ds
++                pop di
++                pop si
++                mov ax, 1
++                retf 2
++
++%else
++
+ ..start:        ; Win16 applications start with the following
+                 ; values in registers:
+                 ;
+@@ -143,6 +238,7 @@
+ error:
+                 mov ax, 4cffh
+                 int 21h
++%endif ; __DLL__
+ 
+ 
+                 global FPC_MSDOS_CARRY
+diff -ruN a/rtl/win16/system.pp b/rtl/win16/system.pp
+--- a/rtl/win16/system.pp
++++ b/rtl/win16/system.pp
+@@ -689,7 +689,12 @@
+   { To be set if this is a GUI or console application }
+   IsConsole := FALSE;
+   { To be set if this is a library and not a program  }
++{$ifdef CALMIRA_WIN16_DLL}
++  { only the library startup code (dllprt0*.asm) leaves PrefixSeg 0 }
++  IsLibrary := PrefixSeg = 0;
++{$else}
+   IsLibrary := FALSE;
++{$endif}
+ { Setup heap }
+   InitWin16Heap;
+   SysInitExceptions;

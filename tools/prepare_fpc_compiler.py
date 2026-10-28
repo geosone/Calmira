@@ -12,7 +12,9 @@ ROOT = Path(__file__).resolve().parents[1]
 PATCHES = (ROOT / 'tools/patches/fpc-i8086-class-pointer-compare.patch',
            ROOT / 'tools/patches/fpc-i8086-huge-resourcestrings.patch',
            ROOT / 'tools/patches/fpc-i8086-far-external-wrapper.patch',
-           ROOT / 'tools/patches/fpc-i8086-delphi-assembler-pascal.patch')
+           ROOT / 'tools/patches/fpc-i8086-delphi-assembler-pascal.patch',
+           ROOT / 'tools/patches/fpc-win16-dll-startup-object.patch',
+           ROOT / 'tools/patches/fpc-win16-export-names-upper.patch')
 BUILDER = ROOT / 'tools/build_fpc_class_pointer.sh'
 
 
@@ -25,7 +27,8 @@ def prepare(source, output, build_id):
         'compiler', 'rtl', 'Makefile', 'Makefile.fpc', 'LICENSE']).split(b'\0')
     paths = [Path(name.decode()) for name in names if name]
     for required in ('compiler/i8086/n8086add.pas', 'compiler/i8086/n8086ld.pas',
-                     'compiler/i8086/hlcgcpu.pas', 'compiler/pstatmnt.pas', 'compiler/Makefile',
+                     'compiler/i8086/hlcgcpu.pas', 'compiler/pstatmnt.pas',
+                     'compiler/systems/t_win16.pas', 'compiler/Makefile',
                      'rtl/Makefile', 'Makefile', 'LICENSE'):
         if Path(required) not in paths:
             raise ValueError('incomplete tracked Free Pascal source checkout')
