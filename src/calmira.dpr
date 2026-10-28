@@ -98,7 +98,7 @@ uses
   Sysrefer in 'sysrefer.pas',
   Sysrefed in 'sysrefed.pas' {System Reference Editor};
 
-{$R *.res}
+{$IFNDEF FPC}{$R *.res}{$ENDIF}
 {$D Calmira LFN Beta Release}
 
 procedure LoadAndRun;

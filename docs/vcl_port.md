@@ -1440,6 +1440,14 @@ code addressed them through DS, which only worked when both happened to share
 a segment. Otherwise `SysUtils.InitExceptions` read a garbage
 `SOutOfMemory` and crashed before the program's first statement.
 
+A third patch, `fpc-i8086-far-external-wrapper.patch`, makes the wrapper for
+an external routine jump far. A routine declared in a unit's interface and
+bound to a DLL in its implementation (`vcl/lfnutils.pas` binds LFNFUNCS.DLL
+this way) is reached through a small wrapper. On i8086 that wrapper always
+used a near `jmp`, which the linker cannot resolve to an imported entry
+("cannot reach a DLL with a relative relocation"). It now uses `jmp far`
+whenever the routine is far, as `g_intf_wrapper` and `a_call_name` already do.
+
 `prepare_fpc_compiler.py` stages only tracked compiler/bootstrap-RTL sources and
 licenses outside the pinned checkout, applies the patches in order with zero
 fuzz, and records revision, per-patch/builder hashes and bootstrap identity. Source, patch,

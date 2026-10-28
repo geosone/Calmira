@@ -1,0 +1,19 @@
+--- a/rtl/win16/system.pp
++++ b/rtl/win16/system.pp
+@@ -453,6 +453,16 @@
+     paramstr:='';
+ end;
+ 
++{$ifdef CALMIRA_WIN16_PARAMSTRA}
++{ objpas binds ParamStr to this alias for every MSWINDOWS target; without it
++  every Delphi-mode program using ParamStr fails to link. The parameter is
++  objpas's Integer, a smallint on CPU16: callee cleanup must match. }
++function paramstr_a(l : smallint) : ansistring; [public,alias:'_FPC_ParamStrA'];
++begin
++  paramstr_a:=paramstr(l);
++end;
++{$endif CALMIRA_WIN16_PARAMSTRA}
++
+ procedure randomize;
+ begin
+   randseed:=GetTickCount;

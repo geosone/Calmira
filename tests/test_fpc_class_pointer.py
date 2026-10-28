@@ -19,6 +19,7 @@ def checkout(directory):
     subprocess.run(['git', 'init', '-q', str(source)], check=True)
     files = {'compiler/i8086/n8086add.pas': (UPSTREAM / 'compiler/i8086/n8086add.pas').read_bytes(),
              'compiler/i8086/n8086ld.pas': (UPSTREAM / 'compiler/i8086/n8086ld.pas').read_bytes(),
+             'compiler/i8086/hlcgcpu.pas': (UPSTREAM / 'compiler/i8086/hlcgcpu.pas').read_bytes(),
              'compiler/Makefile': b'# fixture\n', 'rtl/Makefile': b'# fixture\n',
              'Makefile': b'# fixture\n', 'Makefile.fpc': b'# fixture\n',
              'LICENSE': b'fixture license\n'}
@@ -51,6 +52,11 @@ class CompilerPointerTests(unittest.TestCase):
             self.assertIn('(tconstsym(symtableentry).consttyp in [constresourcestring,constwresourcestring]) and\n'
                           '                 (current_settings.x86memorymodel=mm_huge)', load)
             self.assertIn('segref.refaddr:=addr_seg;\n                  cg.a_load_ref_reg', load)
+            wrapper = (target / 'compiler/i8086/hlcgcpu.pas').read_text()
+            self.assertIn('procedure thlcgcpu.g_external_wrapper(', wrapper)
+            self.assertIn('if not is_proc_far(procdef) then', wrapper)
+            self.assertIn('list.concat(taicpu.op_sym(A_JMP,S_FAR,current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION)));',
+                          wrapper)
             manifest = json.loads((target / 'calmira-compiler.json').read_text())
             self.assertEqual(manifest['schema'], 2)
             self.assertEqual(manifest['build_id'], 'test-bootstrap')

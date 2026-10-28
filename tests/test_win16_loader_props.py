@@ -67,7 +67,7 @@ class Win16LoaderPropertyTests(unittest.TestCase):
     def test_native_suite_is_in_the_regression(self):
         make = read('makefile')
         self.assertIn('win16-loader-props-runtime-test: win16-loader-props', make)
-        self.assertIn('win16-form-menu-runtime-test win16-loader-props-runtime-test \\', make)
+        self.assertIn('win16-form-menu-runtime-test win16-loader-props-runtime-test', make)
         native = read('tests/pascal/test_win16_loader_props.pas')
         for check in ('an AutoSize label fits its caption', 'a loading label keeps its streamed size',
                       "the parent shows a graphic control''s Cursor", 'TEdit.OnDblClick fires',

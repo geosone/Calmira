@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 98 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 99 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1731,4 +1731,39 @@ is left, because its DFM holds an icon picture.
 
 The dialogs' 11 native suites pass. Their only changes are the loader units
 added to their uses clauses and the `Forms.Application` change above.
+
+## CALMIRA.EXE Links
+
+`make calmira` (with the corrected compiler) now compiles all of Calmira's
+units and links `CALMIRA.EXE`: 3.6 MB of code, 12 KB of the 64 KB data
+segment. It does not run yet. Its resources, the form loader units and
+LFNFUNCS.DLL are still missing (see below).
+
+- `src/calmira.dpr` skips `{$R *.res}` under FPC. FPC cannot bind resources
+  for Win16; the tests bind them with `wrc` after linking, and the program
+  will too.
+- `fpc-win16-paramstra.patch` (RTL, `-dCALMIRA_WIN16_PARAMSTRA`): in
+  Delphi mode `objpas` declares `ParamStr` as AnsiString and binds it to the
+  external `_FPC_ParamStrA` on every MSWINDOWS target, but the Win16 system
+  unit did not provide it. The alias takes a `smallint`, objpas's `Integer`
+  on CPU16. With a `longint`, the callee removes two bytes too many from the
+  stack and the program crashes with a general protection fault.
+- `fpc-i8086-far-external-wrapper.patch` (compiler): `vcl/lfnutils.pas`
+  declares its routines in the interface and binds them to LFNFUNCS.DLL in
+  the implementation. FPC reaches such imports through a wrapper whose near
+  `jmp` the linker rejected. It now jumps far for far routines; see
+  `docs/vcl_port.md`. The compiler fingerprint changes, so the
+  class-pointer build tree is new.
+
+Covered by `make win16-far-imports-runtime-test` and
+`tests/test_win16_far_imports.py`. The native probe wraps `USER.GetTickCount`
+and `KERNEL.GetVersion` the way LFNUTILS wraps LFNFUNCS, and calls
+`ParamStr` in Delphi mode.
+
+Still missing before Calmira can start:
+- Binding `calmira.res`, `locale.res`, the icons and the generated form
+  bitmaps.
+- Linking the generated `*_dfm` loader units into the program.
+- A loader for `tips`.
+- LFNFUNCS.DLL itself (`src/lfnfuncs.dpr`).
 

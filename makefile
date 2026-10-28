@@ -205,7 +205,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-forms-runtime-test win16-dialogs-runtime-test win16-input-query-runtime-test \
 		win16-shellapi-runtime-test win16-inifiles-runtime-test win16-menus-runtime-test \
 		win16-system-dlls-runtime-test win16-clipbrd-runtime-test win16-radio-runtime-test \
-		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test win16-spin-runtime-test win16-bevel-runtime-test win16-listbox-runtime-test win16-align-runtime-test win16-parent-runtime-test win16-ownerdraw-runtime-test win16-canvas-context-runtime-test win16-hints-runtime-test win16-minimize-runtime-test win16-grids-runtime-test win16-form-loader-runtime-test win16-outline-runtime-test win16-common-dialogs-runtime-test win16-tab-panel-runtime-test win16-timer-runtime-test win16-dde-runtime-test win16-radio-group-runtime-test win16-file-filter-runtime-test win16-shape-runtime-test win16-form-menu-runtime-test win16-loader-props-runtime-test \
+		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test win16-spin-runtime-test win16-bevel-runtime-test win16-listbox-runtime-test win16-align-runtime-test win16-parent-runtime-test win16-ownerdraw-runtime-test win16-canvas-context-runtime-test win16-hints-runtime-test win16-minimize-runtime-test win16-grids-runtime-test win16-form-loader-runtime-test win16-outline-runtime-test win16-common-dialogs-runtime-test win16-tab-panel-runtime-test win16-timer-runtime-test win16-dde-runtime-test win16-radio-group-runtime-test win16-file-filter-runtime-test win16-shape-runtime-test win16-form-menu-runtime-test win16-loader-props-runtime-test win16-far-imports-runtime-test \
 		win16-cursor-runtime-test win16-cursor-modal-runtime-test \
 		win16-form-activation-runtime-test win16-form-resize-runtime-test win16-form-state-runtime-test \
 		win16-ui-runtime-test win16-window-runtime-test win16-input-runtime-test \
@@ -846,6 +846,18 @@ win16-form-menu: fpc-win16-gui-rtl
 
 win16-form-menu-runtime-test: win16-form-menu
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-form-menu/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-far-imports win16-far-imports-runtime-test
+win16-far-imports: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-far-imports/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Futests/pascal \
+		-FU$(BUILD_DIR)/tests/win16-far-imports/units -FE$(BUILD_DIR)/tests/win16-far-imports \
+		-oGDITEST.EXE tests/pascal/test_win16_far_imports.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-far-imports/GDITEST.EXE
+
+win16-far-imports-runtime-test: win16-far-imports
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-far-imports/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-loader-props win16-loader-props-runtime-test
 win16-loader-props: fpc-win16-gui-rtl
