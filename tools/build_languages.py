@@ -26,6 +26,20 @@ BINARIES = {
 RESOURCE_STRINGS = {
     'de': (ROOT / 'vendor/upstream/calmira-de-3.3/SRC/LOCALE.RES', ROOT / 'vendor/upstream/calmira-3.3/SRC'),
 }
+# The English release each translation was made from: (forms, messages).
+# A translation is kept only while that English text is still today's text;
+# forms were reordered and reworded since, so others would land on the
+# wrong control.
+BASES = {
+    'de': (ROOT / 'vendor/upstream/calmira-lfn-3.3/SRC', ROOT / 'vendor/upstream/calmira-3.3/SRC'),
+    'fr': (ROOT / 'vendor/upstream/calmira-3.3/SRC',) * 2,
+    'nl': (ROOT / 'vendor/upstream/calmira-3.3/SRC',) * 2,
+    'pl': (ROOT / 'vendor/upstream/calmira-3.3/SRC',) * 2,
+    'it': (ROOT / 'vendor/upstream/calmira-3.2/SRC',) * 2,
+    'es': (ROOT / 'vendor/upstream/calmira-2.2/SOURCE/SRC',) * 2,
+}
+# Texts no historical translation covers, translated for this project.
+TRANSLATED = ROOT / 'locales/translated'
 NAMES = {'en': 'English', 'de': 'Deutsch', 'fr': 'Francais', 'nl': 'Nederlands',
          'pl': 'Polski', 'it': 'Italiano', 'es': 'Espa\u00f1ol'}
 CODEPAGES = {'pl': 1250}
@@ -189,12 +203,39 @@ def resource_catalogue(resources, english, codepage):
     return strings, forms
 
 
+def directory_forms(directory):
+    forms = {}
+    for path in sorted(path for path in directory.iterdir() if path.suffix.lower() == '.dfm'):
+        DfmReader(path.read_bytes()).component(forms)
+    return forms
+
+
+def same_text(left, right):
+    return ' '.join(left.split()).lower() == ' '.join(right.split()).lower()
+
+
+def current(translation, base, today):
+    """Translation entries whose base English text is still today's text."""
+    return {key: value for key, value in translation.items()
+            if key in base and key in today and same_text(base[key], today[key])}
+
+
 def placeholders(value):
     return re.findall(r'%(?:\d+:)?[-\d.*]*[a-z]', value.lower().replace('%%', ''))
 
 
 def escape(value):
     return value.replace('\\', '\\\\').replace('\r\n', '\n').replace('\r', '\n').replace('\n', '\\n').replace('\t', '\\t')
+
+
+def check(code, key, value, baseline, codepage):
+    """Why an entry cannot be written, or None."""
+    if code != 'en' and key in baseline and placeholders(value) != placeholders(baseline[key]):
+        return 'format mismatch'
+    if (len(f'{key}={escape(value)}'.encode(f'cp{codepage}')) > 250 or
+            len(value.replace('\n', '\r\n').encode(f'cp{codepage}')) > 250):
+        return 'exceeds Win16 short-string limit'
+    return None
 
 
 def build(output):
@@ -207,22 +248,32 @@ def build(output):
         if code in RESOURCE_STRINGS:
             resource, english = RESOURCE_STRINGS[code]
             strings.update(resource_catalogue(res_resources(resource.read_bytes()), english, 'cp1252')[0])
-        forms = {}
-        for path in sorted(path for path in directory.iterdir() if path.suffix.lower() == '.dfm'):
-            DfmReader(path.read_bytes()).component(forms)
-        catalogues[code] = {'Strings': {ids[k]: v for k, v in strings.items() if k in ids},
-                            'Forms': forms}
+        catalogues[code] = (strings, directory_forms(directory))
     for code, (executable, english) in BINARIES.items():
-        strings, forms = resource_catalogue(ne_resources(executable.read_bytes()), english,
-                                            f'cp{CODEPAGES.get(code, 1252)}')
-        catalogues[code] = {'Strings': {ids[k]: v for k, v in strings.items() if k in ids},
-                            'Forms': forms}
+        catalogues[code] = resource_catalogue(ne_resources(executable.read_bytes()), english,
+                                              f'cp{CODEPAGES.get(code, 1252)}')
+    today_strings, today_forms = catalogues['en']
+    stale = {}
+    for code, (forms_base, strings_base) in BASES.items():
+        strings, forms = catalogues[code]
+        kept = (current(strings, resource_strings(strings_base), today_strings),
+                current(forms, directory_forms(forms_base), today_forms))
+        stale[code] = len(strings) + len(forms) - len(kept[0]) - len(kept[1])
+        catalogues[code] = kept
+    catalogues = {code: {'Strings': {ids[k]: v for k, v in strings.items() if k in ids}, 'Forms': forms}
+                  for code, (strings, forms) in catalogues.items()}
     extras = json.loads((ROOT / 'locales/extra.json').read_text())
     report = {}
     for code, sections in catalogues.items():
         codepage = CODEPAGES.get(code, 1252)
         for section, entries in extras.get(code, {}).items():
             sections.setdefault(section, {}).update(entries)
+        translated_file = TRANSLATED / f'{code}.json'
+        fallback = (json.loads(translated_file.read_text(encoding='utf-8'))
+                    if translated_file.is_file() else {})
+        for section, entries in fallback.items():
+            for key, value in entries.items():
+                sections.setdefault(section, {}).setdefault(key, value)
         translated = 0
         omitted = []
         lines = ['[Language]', f'Code={code}', f'Name={NAMES[code]}', f'CodePage={codepage}', '']
@@ -230,19 +281,19 @@ def build(output):
             lines.append(f'[{section}]')
             baseline = catalogues['en'].get(section, {})
             for key, value in sorted(values.items()):
-                if code != 'en' and key in baseline and placeholders(value) != placeholders(baseline[key]):
-                    omitted.append(f'{section}.{key}: format mismatch')
-                    continue
-                line = f'{key}={escape(value)}'
-                if (len(line.encode(f'cp{codepage}')) > 250 or
-                        len(value.replace('\n', '\r\n').encode(f'cp{codepage}')) > 250):
-                    omitted.append(f'{section}.{key}: exceeds Win16 short-string limit')
-                    continue
-                lines.append(line)
-                translated += 1
+                # A historical text that fails a check falls back to our translation.
+                for candidate in dict.fromkeys((value, fallback.get(section, {}).get(key))):
+                    if candidate is None:
+                        continue
+                    problem = check(code, key, candidate, baseline, codepage)
+                    if problem is None:
+                        lines.append(f'{key}={escape(candidate)}')
+                        translated += 1
+                        break
+                    omitted.append(f'{section}.{key}: {problem}')
             lines.append('')
         (output / f'{code}.LNG').write_bytes(('\r\n'.join(lines) + '\r\n').encode(f'cp{codepage}'))
-        report[code] = {'entries': translated, 'omitted': omitted}
+        report[code] = {'entries': translated, 'stale': stale.get(code, 0), 'omitted': omitted}
     (output / 'coverage.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({code: info['entries'] for code, info in report.items()}))
 

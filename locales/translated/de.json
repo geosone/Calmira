@@ -1,0 +1,42 @@
+{
+  "Forms": {
+    "TAboutBox.Label1.Caption": "Windows-Version:",
+    "TAboutBox.Label2.Caption": "MS-DOS-Version:",
+    "TAboutBox.LicenseBtn.Caption": "Lizenz lesen",
+    "TAboutBox.VersionLabel.Caption": "Version 5.0 (Vorabversion)",
+    "TBinPropDlg.BinPropDlg.Caption": "Eigenschaften von Papierkorb",
+    "TBinPropDlg.HelpBtn.Caption": "Hilfe",
+    "TComputer.Computer.Caption": "Arbeitsplatz",
+    "TComputer.ConfigDesktop.Caption": "&Desktop...",
+    "TComputer.NewNetShort.Caption": "&Internet",
+    "TComputer.SysProperties.Caption": "&System...",
+    "TDeskPropDlg.Label19.Caption": "Die Änderungen werden erst nach einem Neustart von Calmira Reborn wirksam.",
+    "TDeskPropDlg.Label6.Caption": "Symbolabstand:",
+    "TFilePropDlg.FilePropDlg.Caption": "Eigenschaften",
+    "TFilePropDlg.SystemFile.Caption": "&System",
+    "TFilePropDlg.TabPanel.Tabs.Strings.1": "Version",
+    "TFileSysPropDlg.Contents.Items.Strings.2": "&Details",
+    "TFileSysPropDlg.HelpBtn.Caption": "Hilfe",
+    "TFileSysPropDlg.TabPanel.Tabs.Strings.1": "Details",
+    "TFilterDialog.Label2.Caption": "&Filter:",
+    "TIconWindow.ViewToolbar.Caption": "&Symbolleiste",
+    "TMessageForm.Information.Caption": "Information",
+    "TOpenDialogExFrm.Label2.Caption": "&Filter",
+    "TRefEditDlg.HelpBtn.Caption": "Hilfe",
+    "TRefEditDlg.ShowCombo.Items.Strings.0": "Normal",
+    "TSplashForm.VersionLabel.Caption": "Version 5.0 Vorabversion",
+    "TStartPropDlg.Win95Menu.Caption": "Menü im &Windows 95-Stil mit Symbolen",
+    "TSysPropDlg.Label13.Caption": "Browser:",
+    "TSysPropDlg.Label7.Caption": "&Name:",
+    "TTipDialog.cbShowDailyTips.Caption": "Beim ersten Start von Calmira Reborn an jedem Tag anzeigen"
+  },
+  "Strings": {
+    "1059": "Möchten Sie Calmira Reloaded wirklich beenden?",
+    "1177": "Anhalten",
+    "1181": "Anpassen",
+    "1200": "WARNUNG: Das Beenden eines Programms kann zu unerwünschten Folgen wie Ressourcenverlust und Instabilität führen. Das Programm kann seine Daten nicht speichern. \"%s\" wirklich beenden?",
+    "1284": "Sortieren nach Typ",
+    "1299": "Geändert (Uhrzeit)",
+    "1300": "Geändert (Datum)"
+  }
+}

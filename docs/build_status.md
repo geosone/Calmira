@@ -1875,3 +1875,17 @@ German gets German messages. The sources and coverage are listed in
   Windows 3.11. For Polish it checks a CP1250 character byte for byte.
 - The test harness now copies every `.LNG` file.
 
+## Translated Missing Texts
+
+All seven catalogues now have between 915 (es) and 1060 (en) entries.
+`docs/localization.md` describes the rules.
+- **Stale entries dropped.** `tools/build_languages.py` drops historical
+  translations whose English base text changed since the release they were
+  made from. This was 25 to 79 entries per language, and 409 for the Spanish
+  2.3.
+- **Gaps filled.** `locales/translated/<code>.json` fills the gaps with
+  translations made for this project.
+- **Checks.** Python tests check every translated key, placeholder and code
+  page. The native resource-text suite loads one Spanish project
+  translation under Windows 3.11.
+

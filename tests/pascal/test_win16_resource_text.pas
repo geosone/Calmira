@@ -34,6 +34,9 @@ begin
       Check(Catalog.SelectLanguage('nl') and (LocalLoadStr(SWelcome) = 'Welkom'), 'nl');
       Check(Catalog.SelectLanguage('it') and (LocalLoadStr(SWelcome) = 'Benvenuto'), 'it');
       Check(Catalog.SelectLanguage('es') and (LocalLoadStr(SWelcome) = 'Bienvenido'), 'es');
+      { Translated for this project: the Spanish 2.3 text predates today's wording. }
+      Check(Catalog.SelectLanguage('es') and
+        (LocalLoadStr(SCannotMoveToBin) = 'No se pudo mover %s a la papelera.'), 'es project translation');
       Check(Catalog.SelectLanguage('pl') and
         (LocalLoadStr(SCannotMoveToBin) = 'Przeniesienie %s do kosza jest niemo'#$BF'liwe'), 'pl in CP1250');
       Check(Catalog.SelectLanguage('probe'), 'probe');

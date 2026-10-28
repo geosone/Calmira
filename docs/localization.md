@@ -6,16 +6,39 @@ translations. New UI text belongs in `locales/extra.json`. Generated files use
 the language's Windows ANSI code page (CP1252; CP1250 for Polish) and CRLF,
 with short-string limits checked before writing.
 
-| Code | Language | Source | Messages / form texts matching today's keys |
+| Code | Language | Historical source | Catalogue entries |
 |---|---|---|---|
-| en | English | `src` (RC and DFM) | 228 / 804 |
-| de | Deutsch | `calmira-lfn-de` DFMs, messages from `calmira-de-3.3/SRC/LOCALE.RES` | 228 / 797 |
-| fr | Francais | `calmira-fr-3.3` (RC and DFM) | 225 / 693 |
-| nl | Nederlands | `calmira-nl-3.3/CALMIRA.EXE` | 225 / 684 |
-| pl | Polski | `calmira-pl-3.3/CALMIRA.EXE`, CP1250 | 225 / 683 |
-| it | Italiano | `calmira-it-3.2/CALMIRA.EXE` | 221 / 667 |
-| es | Espanol | `calmira-es-2.3/CALMIRA.EXE` | 146 / 430 |
+| en | English | `src` (RC and DFM) | 1060 |
+| de | Deutsch | `calmira-lfn-de` DFMs, messages from `calmira-de-3.3/SRC/LOCALE.RES` | 1051 |
+| fr | Francais | `calmira-fr-3.3` (RC and DFM) | 1001 |
+| nl | Nederlands | `calmira-nl-3.3/CALMIRA.EXE` | 999 |
+| pl | Polski | `calmira-pl-3.3/CALMIRA.EXE`, CP1250 | 1000 |
+| it | Italiano | `calmira-it-3.2/CALMIRA.EXE` | 998 |
+| es | Espanol | `calmira-es-2.3/CALMIRA.EXE` | 915 |
 
+English entries other catalogues lack are mostly internal identifiers,
+runtime placeholders and copyright lines, which are not translated.
+
+- **Stale translations are dropped.** Each historical translation is compared
+  with the English release it was made from (`BASES` in
+  `tools/build_languages.py`: LFN 3.3 for German forms, 3.3, 3.2, or 2.2 for
+  Spanish).
+  - An entry is kept only while that English text, ignoring case and
+    spacing, is still today's English text.
+  - Dialogs were reordered and reworded since those releases. For example,
+    the French 3.3 "Général" would label today's "Wallpaper" tab, and the
+    Spanish 2.3 licence text would sit where the About box shows the MS-DOS
+    version.
+  - `coverage.json` reports the dropped count as `stale`.
+- **Project translations.** `locales/translated/<code>.json` holds texts no
+  usable historical translation covers. These were translated for this
+  project, not taken from old packages.
+  - They fill keys that are missing or stale.
+  - They also replace a historical text that fails the format or length
+    check, which is still listed under `omitted`.
+  - Language-neutral words (Internet, CD-Rom, Alias, 4DOS / LFN) are left to
+    the English fallback.
+  - Native speakers are welcome to correct them.
 - **German messages.** The German 3.3 translator edited the compiled
   `LOCALE.RES` and left `LOCALE.RC` in English (see its `EXPLAIN.TXT`). The
   German LFN build has an English string table too. Until now `de.LNG`
