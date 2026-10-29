@@ -52,6 +52,26 @@ def bitmap_payload(data, picture=False):
     return payload
 
 
+def icon_payload(data):
+    """A Delphi TPicture icon stream (an .ICO file) -> [(directory entry, image)]."""
+    if not data.startswith(b'\5TIcon'):
+        raise ValueError('expected TIcon picture data')
+    icon = data[6:]
+    if len(icon) < 6:
+        raise ValueError('truncated icon')
+    reserved, kind, count = struct.unpack_from('<HHH', icon)
+    if reserved != 0 or kind != 1 or not 1 <= count <= 16 or len(icon) < 6 + 16 * count:
+        raise ValueError('invalid icon directory')
+    images = []
+    for index in range(count):
+        entry = icon[6 + 16 * index:6 + 16 * index + 12]
+        size, offset = struct.unpack_from('<II', icon, 6 + 16 * index + 8)
+        if offset < 6 + 16 * count or size < 40 or offset + size > len(icon) or size > 65535:
+            raise ValueError('invalid icon image bounds')
+        images.append((entry, icon[offset:offset + size]))
+    return images
+
+
 def cancellation_glyph():
     """32x16, 4-bit BMP DIB: red cross and supplied grey disabled frame."""
     pixels = bytearray()
@@ -70,6 +90,14 @@ def cancellation_glyph():
 class BitmapResources:
     def __init__(self):
         self.entries = {}
+        self.icons = {}
+
+    def add_icon(self, images):
+        """An icon group named after its content; image ordinals restart at 1
+        per sidecar and are renumbered when resources are linked."""
+        name = 'DFM_' + hashlib.sha256(b''.join(e + i for e, i in images)).hexdigest()[:20].upper()
+        self.icons[name] = images
+        return name
 
     def add(self, payload):
         name = 'DFM_' + hashlib.sha256(payload).hexdigest()[:20].upper()
@@ -83,4 +111,14 @@ class BitmapResources:
         for name, payload in sorted(self.entries.items()):
             result += b'\xff\x02\0' + name.encode('ascii') + b'\0'
             result += struct.pack('<HI', 0x1030, len(payload)) + payload
+        ordinal = 1
+        for name, images in sorted(self.icons.items()):
+            group = struct.pack('<HHH', 0, 1, len(images))
+            for entry, image in images:
+                result += b'\xff\x03\0\xff' + struct.pack('<H', ordinal)
+                result += struct.pack('<HI', 0x1010, len(image)) + image
+                group += entry + struct.pack('<H', ordinal)
+                ordinal += 1
+            result += b'\xff\x0e\0' + name.encode('ascii') + b'\0'
+            result += struct.pack('<HI', 0x1030, len(group)) + group
         return bytes(result)

@@ -45,6 +45,7 @@ type
     procedure WMActivate(var M: TWMActivate); message WM_ACTIVATE;
     procedure WMSize(var M: TMessage); message WM_SIZE;
     procedure WMNCDestroy(var M: TMessage); message WM_NCDESTROY;
+    procedure SetNormalBounds(X, Y, AWidth, AHeight: Integer);
     function GetActive: Boolean;
     function GetActiveControl: TCustomControl;
     procedure SetActiveControl(Value: TCustomControl);
@@ -183,12 +184,34 @@ begin
   if FChangingForm or Painting or (Canvas.Handle <> 0) or (FActivationDepth <> 0) or FResizing or FChangingState then
     raise ENativeWindowError.Create('Form lifecycle reentry');
 end;
+{ As Delphi's TWinControl.SetBounds for an icon: the bounds become the
+  restore placement and the window keeps its state. }
+procedure TNativeForm.SetNormalBounds(X, Y, AWidth, AHeight: Integer);
+var Placement: TWindowPlacement;
+begin
+  if (AWidth < 0) or (AHeight < 0) or (LongInt(X) + AWidth > 32767) or
+    (LongInt(Y) + AHeight > 32767) then raise ENativeWindowError.Create('Invalid control bounds');
+  FillChar(Placement, SizeOf(Placement), 0); Placement.length := SizeOf(Placement);
+  if not GetWindowPlacement(Handle, @Placement) then raise ENativeWindowError.Create('Invalid form state');
+  Placement.flags := 0;
+  with Placement.rcNormalPosition do
+  begin Left := X; Top := Y; Right := X + AWidth; Bottom := Y + AHeight; end;
+  { SetWindowPlacement shows the window with showCmd. }
+  if not IsWindowVisible(Handle) then Placement.showCmd := SW_HIDE
+  else if IsIconic(Handle) then Placement.showCmd := SW_SHOWMINNOACTIVE
+  else Placement.showCmd := SW_SHOWMAXIMIZED;
+  FChangingState := True;
+  try
+    if not SetWindowPlacement(Handle, @Placement) then raise ENativeWindowError.Create('Invalid form state');
+  finally FChangingState := False; end;
+  StoreBounds(Placement.rcNormalPosition);
+end;
 procedure TNativeForm.SetBounds(X, Y, AWidth, AHeight: Integer);
 begin
   if FResizing or FChangingState then raise ENativeWindowError.Create('Form lifecycle reentry');
-  if Handle <> 0 then
-    if ReadWindowState <> wsNormal then raise ENativeWindowError.Create('Invalid form state');
-  inherited SetBounds(X, Y, AWidth, AHeight);
+  if (Handle <> 0) and (ReadWindowState <> wsNormal) then
+    SetNormalBounds(X, Y, AWidth, AHeight)
+  else inherited SetBounds(X, Y, AWidth, AHeight);
 end;
 procedure TNativeForm.Resize;
 begin if Assigned(FOnResize) then FOnResize(Self); end;

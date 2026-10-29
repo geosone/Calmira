@@ -65,6 +65,7 @@ type
       X, Y, Width, Height: SmallInt);
     function GetFormClientWidth: Integer;
     function GetFormClientHeight: Integer;
+    function GetHandle: HWND;
     procedure SetClientWidth(Value: Integer);
     procedure SetClientHeight(Value: Integer);
     procedure CheckFrameChange;
@@ -109,6 +110,9 @@ type
     procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt); override;
     { Before the window exists, the size follows the current frame style. }
+    { As in Delphi, reading Handle creates the (hidden) window. Port code that
+      only asks whether it exists uses HandleAllocated. }
+    property Handle: HWND read GetHandle;
     property ClientWidth: Integer read GetFormClientWidth write SetClientWidth;
     property ClientHeight: Integer read GetFormClientHeight write SetClientHeight;
     property OnCreate: TNotifyEvent read FOnCreate write FOnCreate;
@@ -411,29 +415,29 @@ begin
 end;
 function TForm.GetFormClientWidth: Integer;
 begin
-  if (Handle = 0) and (FDesignClientWidth >= 0) then Result := FDesignClientWidth
+  if not HandleAllocated and (FDesignClientWidth >= 0) then Result := FDesignClientWidth
   else Result := inherited ClientWidth;
 end;
 function TForm.GetFormClientHeight: Integer;
 begin
-  if (Handle = 0) and (FDesignClientHeight >= 0) then Result := FDesignClientHeight
+  if not HandleAllocated and (FDesignClientHeight >= 0) then Result := FDesignClientHeight
   else Result := inherited ClientHeight;
 end;
 procedure TForm.SetClientWidth(Value: Integer);
 begin
-  if Handle <> 0 then Width := Width - inherited ClientWidth + Value
+  if HandleAllocated then Width := Width - inherited ClientWidth + Value
   else begin FDesignClientWidth := Value; ApplyClientSize; end;
 end;
 procedure TForm.SetClientHeight(Value: Integer);
 begin
-  if Handle <> 0 then Height := Height - inherited ClientHeight + Value
+  if HandleAllocated then Height := Height - inherited ClientHeight + Value
   else begin FDesignClientHeight := Value; ApplyClientSize; end;
 end;
 procedure TForm.SetIcon(Value: TIcon);
 begin FIcon.Assign(Value); end;
 procedure TForm.IconChanged(Sender: TObject);
 begin
-  if (Handle <> 0) and IsIconic(Handle) then InvalidateRect(Handle, nil, True);
+  if HandleAllocated and IsIconic(Handle) then InvalidateRect(Handle, nil, True);
 end;
 function TForm.IconHandle: HICON;
 begin
@@ -497,7 +501,7 @@ end;
 procedure TForm.CheckFrameChange;
 begin
   { USER 3.1 cannot rebuild a live frame; Delphi recreated the window instead. }
-  if Handle <> 0 then raise ENativeWindowError.Create('Form frame cannot change while the window exists');
+  if HandleAllocated then raise ENativeWindowError.Create('Form frame cannot change while the window exists');
 end;
 procedure TForm.SetBorderStyle(Value: TFormBorderStyle);
 begin
@@ -516,7 +520,7 @@ begin
   if Value = FFormStyle then Exit;
   if Value in [fsMDIChild, fsMDIForm] then raise ENativeWindowError.Create('MDI forms are not provided');
   FFormStyle := Value;
-  if Handle = 0 then Exit;
+  if not HandleAllocated then Exit;
   if Value = fsStayOnTop then
     SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE)
   else SetWindowPos(Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
@@ -572,16 +576,31 @@ begin
     if Length > 255 then Length := 255;
     Move(Params.Caption^, Title[1], Length);
     Title[0] := Chr(Length);
+    { As Delphi 1's TForm.CreateParams; USER places the window. }
     case FPosition of
       poDesigned: ;
+      poDefault:
+        begin
+          Params.X := CW_USEDEFAULT; Params.Y := CW_USEDEFAULT;
+          Params.Width := CW_USEDEFAULT; Params.Height := CW_USEDEFAULT;
+        end;
+      poDefaultPosOnly:
+        begin Params.X := CW_USEDEFAULT; Params.Y := CW_USEDEFAULT; end;
+      poDefaultSizeOnly:
+        begin Params.Width := CW_USEDEFAULT; Params.Height := CW_USEDEFAULT; end;
       poScreenCenter:
         begin
           Params.X := (GetSystemMetrics(SM_CXSCREEN) - Params.Width) div 2;
           Params.Y := (GetSystemMetrics(SM_CYSCREEN) - Params.Height) div 2;
         end;
-    else raise ENativeWindowError.Create('Only poDesigned and poScreenCenter are provided');
     end;
   end;
+end;
+function TForm.GetHandle: HWND;
+begin
+  if not HandleAllocated and not (csDestroying in ComponentState) then
+    CreateHandle(0, Caption, WS_CLIPCHILDREN or WS_CLIPSIBLINGS, Left, Top, Width, Height);
+  Result := TNativeWindow(Self).Handle;
 end;
 procedure TForm.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
   X, Y, Width, Height: SmallInt);
@@ -606,7 +625,7 @@ begin
   FMenu := Value;
   if Value = nil then Exit;
   Value.FreeNotification(Self);
-  if Handle <> 0 then Value.WindowHandle := Handle;
+  if HandleAllocated then Value.WindowHandle := Handle;
 end;
 procedure TForm.Notification(AComponent: TComponent; Operation: TOperation);
 begin
@@ -642,7 +661,7 @@ var Key: Word; Ch: Char;
 begin
   Result := False;
   { Keys sent to the form itself reach its handlers anyway. }
-  if (Handle = 0) or (Message.hwnd = Handle) or not IsChild(Handle, Message.hwnd) then Exit;
+  if not HandleAllocated or (Message.hwnd = Handle) or not IsChild(Handle, Message.hwnd) then Exit;
   case Message.message of
     WM_KEYDOWN, WM_SYSKEYDOWN:
       begin
@@ -776,7 +795,7 @@ begin
   end;
   if (FRestoreWindow <> 0) and (FHiddenForms.IndexOf(Pointer(FRestoreWindow)) >= 0) and
     IsWindowVisible(FRestoreWindow) then SetActiveWindow(FRestoreWindow)
-  else if (MainForm <> nil) and (MainForm.Handle <> 0) and IsWindowVisible(MainForm.Handle) then
+  else if (MainForm <> nil) and MainForm.HandleAllocated and IsWindowVisible(MainForm.Handle) then
     SetActiveWindow(MainForm.Handle);
   FHiddenForms.Clear; FRestoreWindow := 0;
   if Assigned(FOnRestore) then FOnRestore(Self);

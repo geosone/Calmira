@@ -27,7 +27,8 @@ class FormStateTests(unittest.TestCase):
                      'ShowWindow(Handle, Command); FWindowState := ReadWindowState',
                      'if FWindowState <> Value then raise', 'Ord(Value) > Ord(wsMaximized)',
                      'try ApplyWindowState(Value); finally FChangingState := False',
-                     'if ReadWindowState <> wsNormal then raise'):
+                     'if (Handle <> 0) and (ReadWindowState <> wsNormal) then\n    SetNormalBounds',
+                     'Placement.showCmd := SW_HIDE'):
             self.assertIn(text, source)
         self.assertNotIn('Command := SW_RESTORE', source)
 
@@ -68,7 +69,8 @@ class FormStateTests(unittest.TestCase):
                      'deferred minimized state allocates no HWND',
                      'getter observes external native maximize',
                      'native restore-to-maximized policy remains USER-owned',
-                     'nonnormal bounds assignment cannot corrupt restore placement',
+                     'nonnormal bounds assignment keeps the maximized state',
+                     'icon bounds set the restore placement without restoring',
                      'hidden state assignment is deferred without showing HWND',
                      'minimized teardown retains state and normal bounds rather than icon geometry',
                      'normal placement survives close destroy recreate',

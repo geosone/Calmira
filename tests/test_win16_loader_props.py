@@ -49,7 +49,7 @@ class Win16LoaderPropertyTests(unittest.TestCase):
         for text in ('property KeyPreview: Boolean read FKeyPreview write FKeyPreview default False;',
                      'property AutoScroll: Boolean read FAutoScroll write FAutoScroll default True;',
                      'if not Result and FKeyPreview then Result := PreviewKey(Message);',
-                     'if (Handle = 0) or (Message.hwnd = Handle) or not IsChild(Handle, Message.hwnd) then Exit;',
+                     'if not HandleAllocated or (Message.hwnd = Handle) or not IsChild(Handle, Message.hwnd) then Exit;',
                      'procedure WMLButtonDblClk(var Message: TWMMouse); message WM_LBUTTONDBLCLK;'):
             self.assertIn(text, source)
 

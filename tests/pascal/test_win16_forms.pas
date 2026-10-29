@@ -212,6 +212,30 @@ begin
   Check(Loose.CallbackErrors = 0, 'iconic painting raised nothing');
   Loose.Free;
 end;
+{ Delphi behaviour Calmira's forms rely on in OnCreate and for desktop icons. }
+procedure DelphiWindows;
+var Wnd: HWND; R: TRect;
+begin
+  Loose := TChildForm.Create(nil); Loose.SetBounds(20, 20, 150, 90);
+  Check(not Loose.HandleAllocated, 'a new form has no window yet');
+  Wnd := Loose.Handle;
+  Check((Wnd <> 0) and Loose.HandleAllocated and IsWindow(Wnd) and not IsWindowVisible(Wnd) and
+    not Loose.Visible, 'reading Handle creates the hidden window, as in Delphi');
+  Loose.Show;
+  Check((Loose.Handle = Wnd) and IsWindowVisible(Wnd), 'Show uses the window Handle created');
+  Loose.WindowState := wsMinimized; Loose.Visible := True;
+  Check(IsIconic(Wnd) and IsWindowVisible(Wnd), 'showing a visible icon again keeps it minimized');
+  Loose.Free;
+  Loose := TChildForm.Create(nil); Loose.Position := poDefault; Loose.SetBounds(0, 0, 10, 10);
+  Loose.Show; GetWindowRect(Loose.Handle, R);
+  Check(IsWindowVisible(Loose.Handle) and (R.Right - R.Left > 10) and (Loose.Width = R.Right - R.Left),
+    'poDefault lets USER place and size the window');
+  Loose.Free;
+  Loose := TChildForm.Create(nil); Loose.Position := poDefaultPosOnly; Loose.SetBounds(0, 0, 150, 90);
+  Loose.Show; GetWindowRect(Loose.Handle, R);
+  Check((R.Right - R.Left = 150) and (R.Bottom - R.Top = 90), 'poDefaultPosOnly keeps the size');
+  Loose.Free;
+end;
 procedure ParentForm;
 var Panel: TCustomControl; Child: TCustomControl;
 begin
@@ -258,7 +282,7 @@ begin
 end;
 begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
-  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; ParentForm; UtilityWindow; ModalFree; RunMain;
+  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiWindows; ParentForm; UtilityWindow; ModalFree; RunMain;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Check(StackGuardIntact, 'forms stack boundary');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');

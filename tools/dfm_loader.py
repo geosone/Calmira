@@ -17,10 +17,10 @@ import sys
 
 if __package__:
     from .compile_dfm import DfmError, header_sections, identifier, literal, parse, write_generated
-    from .dfm_bitmaps import BitmapResources, bitmap_payload, cancellation_glyph
+    from .dfm_bitmaps import BitmapResources, bitmap_payload, cancellation_glyph, icon_payload
 else:
     from compile_dfm import DfmError, header_sections, identifier, literal, parse, write_generated
-    from dfm_bitmaps import BitmapResources, bitmap_payload, cancellation_glyph
+    from dfm_bitmaps import BitmapResources, bitmap_payload, cancellation_glyph, icon_payload
 
 # Designer metadata with no run-time meaning.
 DESIGN_ONLY = {'textheight', 'iscontrol', 'scaled'}
@@ -213,6 +213,12 @@ class Loader:
                 # TOutline's DefineProperties data; 1F alone is an empty outline.
                 if value.data != b'\x1f':
                     self.fail(node, spelled, 'only empty outline data is supported')
+            elif key == 'picture.data' and value.kind == 'binary' and value.data.startswith(b'\5TIcon'):
+                try:
+                    name = self.resources.add_icon(icon_payload(value.data))
+                except ValueError as error:
+                    self.fail(node, spelled, str(error))
+                self.emit(f"{target}.Picture.Icon.LoadFromResource(HInstance, '{name}');")
             elif key.endswith('.data') and value.kind == 'binary':
                 picture = key == 'picture.data'
                 try:

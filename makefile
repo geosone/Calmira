@@ -213,7 +213,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-paint-runtime-test win16-draw-runtime-test win16-loop-runtime-test \
 		win16-modal-loop-runtime-test win16-gui-stdio-runtime-test \
 		win16-gui-diagnostics-runtime-test win16-gui-buffer-runtime-test \
-		win16-resource-text-runtime-test fpc-win16-classes-runtime-test
+		win16-resource-text-runtime-test win16-calmira-start-runtime-test fpc-win16-classes-runtime-test
 
 win16-class-pointer: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-class-pointer/units
@@ -1501,6 +1501,11 @@ $(BUILD_DIR)/generated/forms/%_dfm.pas $(BUILD_DIR)/generated/forms/%_dfm.res: s
 	mkdir -p $(BUILD_DIR)/generated/forms
 	python3 tools/dfm_loader.py --unit src/$*.pas --output $(BUILD_DIR)/generated/forms/$*_dfm.pas \
 		--resources $(BUILD_DIR)/generated/forms/$*_dfm.res $<
+$(BUILD_DIR)/generated/forms/%_dfm.pas $(BUILD_DIR)/generated/forms/%_dfm.res: vcl/%.dfm vcl/%.pas \
+		tools/dfm_loader.py tools/compile_dfm.py tools/dfm_bitmaps.py tools/bitmap_resources.py
+	mkdir -p $(BUILD_DIR)/generated/forms
+	python3 tools/dfm_loader.py --unit vcl/$*.pas --output $(BUILD_DIR)/generated/forms/$*_dfm.pas \
+		--resources $(BUILD_DIR)/generated/forms/$*_dfm.res $<
 
 win16-form-resources-report:
 	python3 tools/compile_dfm.py src --inventory --output $(BUILD_DIR)/generated/forms/report.json
@@ -1715,15 +1720,41 @@ win16-ui-runtime-test: win16-image-runtime-test win16-progress-ui-runtime-test \
 	win16-edit-runtime-test win16-checkbox-runtime-test win16-input-dialog-runtime-test win16-incsrch-runtime-test \
 	win16-modal-runtime-test win16-incsrch-modal-runtime-test win16-form-text-runtime-test win16-askdrop-runtime-test win16-askdrop-modal-runtime-test win16-askdrop-language-runtime-test win16-mnemonic-runtime-test win16-select-runtime-test win16-select-language-runtime-test win16-password-runtime-test win16-password-language-runtime-test
 
+# Every form CALMIRA.EXE uses (src/win16/calmira_forms.pas links their loaders).
+CALMIRA_FORMS := about askdrop binprop compsys deskprop diskprop filefind fileprop filter fsysprop gotofld iconwin incsrch logon menuedit mydocs opendlg openfile password progconv progress refedit replace runprog select shorts shutdown splash strtprop sysprop sysrefed task taskman taskprop tips tree wastebin
+CALMIRA_LOADERS := $(foreach form,$(CALMIRA_FORMS) icondlg,$(BUILD_DIR)/generated/forms/$(form)_dfm.pas)
+# The resources Delphi bound through {$R}, then the loaders' bitmaps and icons.
+CALMIRA_RES := src/calmira.res src/locale.res src/icons.res src/bitmaps.res src/cursors.res \
+	src/capbtns.res vcl/chklist.res vcl/sorthdr.res \
+	$(foreach form,$(CALMIRA_FORMS) icondlg,$(BUILD_DIR)/generated/forms/$(form)_dfm.res)
+
 # Delphi 1 strings are short strings. Calmira units precede the RTL so that
 # vcl/strings.pas, not the RTL unit of the same name, satisfies "uses Strings".
-calmira: fpc-win16-gui-rtl languages win16-form-resources
+# The stack is Delphi 1's default {$M 16384}; with wlink's 4 KiB, KERNEL's
+# profile functions overflow it. Each resource file numbers its icon images
+# from 1; the merge renumbers them as Delphi's linker does.
+calmira: fpc-win16-gui-rtl languages $(CALMIRA_LOADERS)
 	mkdir -p $(BUILD_DIR)/calmira/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX \
-		-Fi$(BUILD_DIR)/generated/forms -Fuvcl -Fusrc -Fusrc/portable -Fusrc/win16 \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -koption -kstack=16k \
+		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fuvcl -Fusrc -Fusrc/portable -Fusrc/win16 \
 		-Fu./$(FPC_WIN16_GUI_RTL) -FU$(BUILD_DIR)/calmira/units \
 		-FE$(BUILD_DIR)/calmira -oCALMIRA.EXE src/calmira.dpr
+	python3 tools/merge_res16.py --renumber-images $(CALMIRA_RES) --output $(BUILD_DIR)/calmira/calmira-all.res
+	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/calmira/calmira-all.res $(BUILD_DIR)/calmira/CALMIRA.EXE
+
+.PHONY: win16-calmira-start win16-calmira-start-runtime-test
+win16-calmira-start: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-calmira-start/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-FU$(BUILD_DIR)/tests/win16-calmira-start/units -FE$(BUILD_DIR)/tests/win16-calmira-start \
+		-oGDITEST.EXE tests/pascal/test_win16_calmira_start.pas
+
+win16-calmira-start-runtime-test: win16-calmira-start calmira lfnfuncs wndhooks
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-calmira-start/GDITEST.EXE)' \
+		GDI_EXTRA_FILES='$(abspath $(BUILD_DIR)/calmira/CALMIRA.EXE) $(abspath $(BUILD_DIR)/lfnfuncs/LFNFUNCS.DLL) $(abspath $(BUILD_DIR)/wndhooks/WNDHOOKS.DLL) $(abspath src/calmira.ini) $(abspath src/start.ini) $(abspath src/tips.txt)' \
+		sh tests/dos/test_win16_gdi.sh
 
 winfile16-core: omf-toolchain
 	$(MAKE) -C $(WINFILE_PORT_SRC) -f win16/Makefile \

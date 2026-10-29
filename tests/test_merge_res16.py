@@ -32,6 +32,32 @@ class ResourceMergeTests(unittest.TestCase):
         self.assertEqual(merge([first, record(name='PROBE')]), first)
         self.assertEqual(merge([record(kind='BITMAP'), record(kind='bitmap')]), record(kind='BITMAP'))
 
+    def test_renumbered_icon_images_keep_their_groups(self):
+        def group(*ordinals):
+            return struct.pack('<HHH', 0, 1, len(ordinals)) + b''.join(
+                bytes(12) + struct.pack('<H', ordinal) for ordinal in ordinals)
+        first = record(3, 1, 0x1010, b'a1') + record(3, 2, 0x1010, b'a2') + record(14, 'A', 0x1030, group(1, 2))
+        second = record(3, 1, 0x1010, b'b1') + record(14, 'B', 0x1030, group(1))
+        cursor = record(1, 1, 0x1010, b'c1') + record(12, 'C', 0x1030, group(1))
+        with self.assertRaisesRegex(ValueError, 'conflicting resource'):
+            merge([first, second])
+        records = {(r[0], r[1]): r[3] for r in parse(merge([first, second, cursor], renumber_images=True))}
+        self.assertEqual([records[3, n] for n in (1, 2, 3)], [b'a1', b'a2', b'b1'])
+        self.assertEqual(records[14, 'A'], group(1, 2))
+        self.assertEqual(records[14, 'B'], group(3))
+        self.assertEqual((records[1, 1], records[12, 'C']), (b'c1', group(1)))
+        # Calmira's own resources link without conflicts.
+        originals = [(ROOT / name).read_bytes() for name in ('src/calmira.res', 'src/icons.res', 'src/cursors.res')]
+        merged = parse(merge(originals, renumber_images=True))
+        self.assertEqual(len(merged), sum(len(parse(data)) for data in originals))
+
+    def test_renumbering_rejects_dangling_and_named_images(self):
+        for data in (record(14, 'G', 0x1030, struct.pack('<HHH', 0, 1, 1) + bytes(12) + struct.pack('<H', 7)),
+                     record(3, 'NAMED', 0x1010, b'x'),
+                     record(14, 'G', 0x1030, b'\0\0\1\0\2\0')):
+            with self.subTest(data=data), self.assertRaises(ValueError):
+                merge([data], renumber_images=True)
+
     def test_conflicts_are_never_silently_replaced(self):
         for second in (record(payload=b'other'), record(flags=0)):
             with self.assertRaisesRegex(ValueError, 'conflicting resource'):

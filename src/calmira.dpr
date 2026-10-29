@@ -27,6 +27,7 @@ program Calmira;
 
 uses
   Forms,
+  {$IFDEF FPC}calmira_forms, {generated form loaders}{$ENDIF}
   Files,
   LangUI,
   language_catalog in 'portable\language_catalog.pas',

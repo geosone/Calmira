@@ -9,7 +9,7 @@ procedure AutoSyncProgramGroups;
 
 implementation
 
-uses Classes, SysUtils, IniFiles, Profile, Settings, Files, Start,
+uses Classes, SysUtils, WinProcs, IniFiles, Profile, Settings, Files, Start,
   program_groups;
 
 function CleanName(const Value, Fallback: string): string;
@@ -41,6 +41,18 @@ begin
     GroupPath := Copy(WinPath, 1, 2) + S
   else
     GroupPath := WinPath + S;
+end;
+
+{ PROGMAN.INI holds ANSI paths; DOS file access needs the OEM name, as
+  PROGMAN's OpenFile converts it (German Windows has an O-umlaut in ZUBEHOR.GRP). }
+function OemPath(const Value: string): string;
+var
+  Buffer: array[0..255] of Char;
+begin
+  StrPCopy(Buffer, Value);
+  AnsiToOem({$IFDEF FPC}PFarChar{$ELSE}PChar{$ENDIF}(@Buffer),
+    {$IFDEF FPC}PFarChar{$ELSE}PChar{$ENDIF}(@Buffer));
+  OemPath := StrPas(Buffer);
 end;
 
 procedure HashByte(var Hash: Longint; Value: Byte);
@@ -164,7 +176,7 @@ begin
       begin
         Path := GroupPath(Progman.ReadString('Groups', Names[I], ''));
         if Path <> '' then
-          Paths.Add(Path);
+          Paths.Add(OemPath(Path));
       end;
     finally
       Progman.Free;

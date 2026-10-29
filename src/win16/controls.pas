@@ -823,8 +823,9 @@ begin
   if FChanging then raise ENativeWindowError.Create('Control lifecycle reentry');
   if (FParent <> nil) and ((Parent = 0) or (Parent <> FParent.Handle)) then
     raise ENativeWindowError.Create('Managed parent handle mismatch');
-  if (Width < 0) or (Height < 0) or (LongInt(X) + Width > 32767) or
-    (LongInt(Y) + Height > 32767) then raise ENativeWindowError.Create('Invalid control bounds');
+  if ((Width < 0) and (Width <> CW_USEDEFAULT)) or ((Height < 0) and (Height <> CW_USEDEFAULT)) or
+    (LongInt(X) + Width > 32767) or (LongInt(Y) + Height > 32767) then
+    raise ENativeWindowError.Create('Invalid control bounds');
   FChanging := True;
   try
     inherited CreateHandle(Parent, Caption, Style, X, Y, Width, Height);
@@ -905,9 +906,16 @@ begin
   SetBounds(GetLeft, GetTop, GetWidth, Value);
 end;
 procedure TCustomControl.ReadBounds;
-var Area: TRect; Origin: TPoint; NativeParent: HWND;
+var Area: TRect; Origin: TPoint; NativeParent: HWND; Placement: TWindowPlacement;
 begin
   if Handle = 0 then Exit;
+  { As Delphi's UpdateBounds: an icon reports its restore placement. }
+  if IsIconic(Handle) then
+  begin
+    FillChar(Placement, SizeOf(Placement), 0); Placement.length := SizeOf(Placement);
+    if GetWindowPlacement(Handle, @Placement) then
+    begin StoreBounds(Placement.rcNormalPosition); Exit; end;
+  end;
   GetWindowRect(Handle, Area); Origin.X := Area.Left; Origin.Y := Area.Top;
   NativeParent := WinProcs.GetParent(Handle);
   if (DWORD(GetWindowLong(Handle, GWL_STYLE)) and WS_CHILD <> 0) and (NativeParent <> 0) then
@@ -1310,7 +1318,9 @@ procedure TCustomControl.SetVisible(Value: Boolean);
 begin
   FVisible := Value;
   if not Value then MouseCapture := False;
-  if Handle <> 0 then
+  { As in Delphi, only a change shows or hides the window: showing an icon
+    again would restore it (and send WM_QUERYOPEN). }
+  if (Handle <> 0) and (Value <> (DWORD(GetWindowLong(Handle, GWL_STYLE)) and WS_VISIBLE <> 0)) then
     if Value then ShowWindow(Handle, SW_SHOWNOACTIVATE) else ShowWindow(Handle, SW_HIDE);
   if (Align <> alNone) and (FParent <> nil) then FParent.Realign;
 end;

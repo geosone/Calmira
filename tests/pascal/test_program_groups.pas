@@ -83,7 +83,10 @@ begin
   P := PutText(B^, P + 6, 'C:\WINDOWS');
   PutWord(B^, P, $8103); PutWord(B^, P + 2, 0);
   PutWord(B^, P + 4, 8); PutWord(B^, P + 6, 3);
-  Size := P + 8;
+  { The end tag, as Program Manager writes it (MICROSOF.GRP from Office 4.3). }
+  P := P + 8;
+  PutWord(B^, P, $FFFF); PutWord(B^, P + 2, $FFFF); PutWord(B^, P + 4, 0);
+  Size := P + 6;
   SetChecksum(B^, Size);
 
   Check(ParseProgramGroup(B^, Size, Group^, ErrorText), ErrorText);
@@ -94,6 +97,13 @@ begin
   Check(Group^.Programs[0].IconIndex = 2, 'icon index');
   Check(Group^.Programs[0].WorkDirectory = 'C:\WINDOWS', 'working directory');
   Check(Group^.Programs[0].ShowCommand = 3, 'show command');
+
+  PutWord(B^, P, $8102);
+  SetChecksum(B^, Size);
+  Check(not ParseProgramGroup(B^, Size, Group^, ErrorText) and
+    (ErrorText = 'invalid group extension size'), 'empty tag other than the end tag');
+  PutWord(B^, P, $FFFF);
+  SetChecksum(B^, Size);
 
   B^[4] := B^[4] xor 1;
   Check(not ParseProgramGroup(B^, Size, Group^, ErrorText),

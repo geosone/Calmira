@@ -80,7 +80,7 @@ begin
       Dialog.BitBtn3.Glyph.Empty and (Dialog.BitBtn1.Height = 23), 'plain');
     Dialog.BitBtn1.FinishLoading;
     Check(Dialog.BitBtn1.Height = 23, 'Loaded once');
-    Check((Dialog.Handle = 0) and not Dialog.Icon.Picture.Empty and
+    Check(not Dialog.HandleAllocated and not Dialog.Icon.Picture.Empty and
       (Dialog.InitialControl = Dialog.BitBtn1), 'create');
     Dialog.Free; Dialog := nil;
     PicBtnGlyphs := True; Dialog := TAskDropBox.Create(nil);

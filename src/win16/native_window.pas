@@ -209,7 +209,9 @@ var Buffer: array[0..255] of Char; Created: HWND; ClassName: PChar; Id: Word;
 begin
   if FCreating or FDestroying or (FHandle <> 0) then
     raise ENativeWindowError.Create('Window already exists or is changing');
-  if (Width < 0) or (Height < 0) or (Pos(#0, Caption) <> 0) then
+  { CW_USEDEFAULT lets USER choose an overlapped window's size. }
+  if ((Width < 0) and (Width <> CW_USEDEFAULT)) or ((Height < 0) and (Height <> CW_USEDEFAULT)) or
+    (Pos(#0, Caption) <> 0) then
     raise ENativeWindowError.Create('Invalid native window dimensions or caption');
   if ((Parent <> 0) and not IsWindow(Parent)) or
     (((Style and WS_CHILD) <> 0) and (Parent = 0)) then

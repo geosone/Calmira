@@ -69,7 +69,7 @@ procedure TryBad(Change: Integer; Owner: HWND; const Text: string);
 begin
   Bad := TBadForm.CreateNew(nil); Bad.Change := Change; Bad.OwnerWnd := Owner; Raised := False;
   try Bad.Show; except on ENativeWindowError do Raised := True; end;
-  Check(Raised and (Bad.Handle = 0), Text);
+  Check(Raised and not Bad.HandleAllocated, Text);
   Bad.Free; Bad := nil;
 end;
 begin

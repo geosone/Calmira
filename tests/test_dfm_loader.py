@@ -1,11 +1,15 @@
 """Form-loader generator: Delphi DFM semantics and original-resource coverage."""
 from pathlib import Path
+import re
+import struct
 import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from tools.bitmap_resources import parse
 from tools.compile_dfm import DfmError
+from tools.dfm_bitmaps import icon_payload
 from tools.dfm_loader import compile_loader, unit_uses
 from tests.form_loader_fixture import Ident, component, fixture
 
@@ -73,9 +77,27 @@ class DfmLoaderTests(unittest.TestCase):
                 compile_loader(path.read_bytes(), source)
             except DfmError as error:
                 blocked[path.stem] = str(error)
-        # Icon pictures are not provided yet.
-        self.assertEqual(blocked, {
-            'tips': 'Image1.Picture.Data: only TBitmap picture data is supported'})
+        self.assertEqual(blocked, {})
+
+    def test_icon_pictures_become_icon_group_resources(self):
+        data = (ROOT / 'src/tips.dfm').read_bytes()
+        text, resources = compile_loader(data, (ROOT / 'src/tips.pas').read_text(encoding='cp1252'))
+        name = re.search(r"F\.Image1\.Picture\.Icon\.LoadFromResource\(HInstance, '(DFM_[0-9A-F]{20})'\);", text)
+        self.assertIsNotNone(name)
+        records = {(kind, ident): payload for kind, ident, _, payload, _ in parse(resources)}
+        group = records[14, name.group(1)]
+        self.assertEqual(struct.unpack_from('<HHH', group), (0, 1, 1))
+        ordinal = struct.unpack_from('<H', group, 6 + 12)[0]
+        # The image is the streamed .ICO image, byte for byte.
+        icon = data[data.index(b'\x05TIcon') + 6:]
+        size, offset = struct.unpack_from('<II', icon, 6 + 8)
+        self.assertEqual(records[3, ordinal], icon[offset:offset + size])
+        self.assertEqual(group[6:6 + 12], icon[6:6 + 12])
+
+    def test_invalid_icon_pictures_fail(self):
+        for payload in (b'\5TIcon', b'\5TIcon' + bytes(6), b'\5TIcon' + struct.pack('<HHH', 0, 1, 1) + bytes(16)):
+            with self.subTest(payload=payload), self.assertRaises(ValueError):
+                icon_payload(payload)
 
     def test_dde_link_info_sets_service_and_topic(self):
         link = lambda *entries: form([component('TDdeClientConv', 'Link', [('LinkInfo', list(entries))])])

@@ -193,6 +193,9 @@ begin
     ExtensionType := ReadWord(Data, P);
     ExtensionProgram := ReadWord(Data, P + 2);
     ExtensionSize := ReadWord(Data, P + 4);
+    { Program Manager ends the tags with $FFFF/$FFFF and size 0. }
+    if (ExtensionType = $FFFF) and (ExtensionProgram = $FFFF) then
+      Break;
     if (ExtensionSize < 6) or (P + ExtensionSize > Size) then
     begin
       ErrorText := 'invalid group extension size';

@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 103 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 104 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -1889,3 +1889,65 @@ All seven catalogues now have between 915 (es) and 1060 (en) entries.
   page. The native resource-text suite loads one Spanish project
   translation under Windows 3.11.
 
+## CALMIRA.EXE Starts
+
+`make calmira` now builds a CALMIRA.EXE that starts under Windows 3.11. It
+shows the desktop icons, the Welcome box on the first run, then the Tip of the
+Day.
+- **Forms.** The build links all 37 form loaders the shell uses, plus
+  `vcl/icondlg`, through `src/win16/calmira_forms.pas`. The program lists that
+  unit under `{$IFDEF FPC}`. The `debug` form is not used by any unit.
+  `tools/dfm_loader.py` now also loads icon pictures (`tips`): an RT_ICON
+  image plus an RT_GROUP_ICON per picture in the `.RES` sidecar, loaded with
+  `Picture.Icon.LoadFromResource`.
+- **Resources.** After linking, `wrc` binds the resources Delphi bound
+  through `{$R}`: calmira, locale, icons, bitmaps, cursors and capbtns, the
+  check list and sort header bitmaps, and every form sidecar. Each file
+  numbers its icon images from 1. `tools/merge_res16.py --renumber-images`
+  renumbers them and fixes the icon and cursor groups, as Delphi's linker
+  does.
+- **Stack.** The link gets Delphi 1's default 16 KiB stack
+  (`-koption -kstack=16k`). With wlink's 4 KiB, `GetPrivateProfileString`
+  in KERNEL overflowed it during the Program Manager group sync and caused a
+  general protection fault.
+- **Port changes, each to match Delphi 1:**
+  - Reading `TForm.Handle` creates the window, hidden. `TTaskbar.FormCreate`
+    passes `Handle` to WNDHOOKS and sends itself messages. Port code that only
+    asks whether the window exists now uses `HandleAllocated`, and so do the
+    timer, askdrop and select tests.
+  - `poDefault`, `poDefaultPosOnly` and `poDefaultSizeOnly` pass
+    `CW_USEDEFAULT`, as Delphi's `CreateParams` does. The taskbar and the
+    logon dialog use `poDefault`.
+  - `Visible := True` shows a window only if it is hidden. Showing a desktop
+    icon again restored it, and the shortcut answered `WM_QUERYOPEN` by
+    opening its target.
+  - `SetBounds` on a minimized or maximized form sets the restore placement
+    (`SetWindowPlacement`) instead of raising. A minimized form reports its
+    restore bounds. `TExtForm.LoadPosition` positions the minimized My
+    Computer window this way. `test_win16_form_state` now checks the Delphi
+    behaviour instead of the old rejection.
+- **Program Manager groups.** The sync failed on the German test image for
+  two reasons:
+  - The group parser rejected the end tag (`$FFFF`/`$FFFF`, size 0) that
+    Program Manager writes, here in Office 4.3's `MICROSOF.GRP`.
+  - `PROGMAN.INI` stores ANSI paths, and `ZUBEHÖR.GRP` needs its OEM name
+    for DOS file access (`AnsiToOem`, as PROGMAN's `OpenFile` does).
+
+Covered by:
+- `make win16-calmira-start-runtime-test`, which starts the real CALMIRA.EXE
+  with its INI files, TIPS.TXT and DLLs. It follows the first run: My Computer
+  and Recycle Bin are icons of Calmira's task, the groups are in the Start
+  menu, and closing Welcome shows the Tip of the Day. There is no error box.
+- New checks in `win16-forms-runtime-test`.
+- `tests/test_calmira_build.py`, `tests/test_dfm_loader.py`,
+  `tests/test_merge_res16.py` and `tests/pascal/test_program_groups.pas`.
+
+Seen but not fixed yet:
+- FPC's Win16 `SysUtils` dates are wrong. `GetLocalTime` is right, but
+  `DecodeDate` gives 1899-12-30 (`DateToStr(Date)` is `31-12-99`).
+  `SystemTimeToDateTime` drops the time of day. `SysUtils.GetTickCount`
+  returns a constant. Calmira shows file dates and stores the date of the
+  last tip, so this is the next slice. The start probe uses
+  `WinProcs.GetTickCount`.
+- The My Documents and shortcut icons have no captions. The taskbar has not
+  been checked on screen yet.

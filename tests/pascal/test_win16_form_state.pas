@@ -97,10 +97,16 @@ begin
   Check(IsZoomed(Form.Handle) and (Form.WindowState = wsMaximized) and
     (Driver.Guards >= 3) and Driver.Valid and (Form.CallbackErrors = 0),
     'maximized resize sees real state and rejects state bounds lifecycle reentry');
-  Rejected := False;
-  try Form.Width := 200; except on ENativeWindowError do Rejected := True; end;
-  Check(Rejected and IsZoomed(Form.Handle), 'nonnormal bounds assignment cannot corrupt restore placement');
-  Form.WindowState := wsMinimized; Form.WindowState := wsNormal; GetWindowRect(Form.Handle, Actual);
+  { As in Delphi, bounds of a maximized or minimized form are its restore placement. }
+  Form.Width := 200;
+  Check(IsZoomed(Form.Handle), 'nonnormal bounds assignment keeps the maximized state');
+  Form.WindowState := wsMinimized; Actual := Form.BoundsRect;
+  Check(IsIconic(Form.Handle) and (Actual.Right - Actual.Left = 200), 'icon reports the changed restore placement');
+  Form.SetBounds(Normal.Left, Normal.Top, Normal.Right - Normal.Left, Normal.Bottom - Normal.Top);
+  Actual := Form.BoundsRect;
+  Check(IsIconic(Form.Handle) and IsWindowVisible(Form.Handle) and SameRect(Normal, Actual),
+    'icon bounds set the restore placement without restoring');
+  Form.WindowState := wsNormal; GetWindowRect(Form.Handle, Actual);
   Check(not IsZoomed(Form.Handle) and not IsIconic(Form.Handle) and SameRect(Normal, Actual),
     'explicit normal from maximized icon restores normal not maximized geometry');
   BadState := 99; Rejected := False;

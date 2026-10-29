@@ -50,7 +50,7 @@ begin
     New(Driver); FillChar(Driver^, SizeOf(Driver^), 0);
     PicBtnGlyphs := False; Dialog := TSelectFileDlg.Create(nil);
     Dialog.OnSelectFiles := Driver^.Selection;
-    Check((Dialog.Handle = 0) and not Dialog.Image.Picture.Empty and
+    Check(not Dialog.HandleAllocated and not Dialog.Image.Picture.Empty and
       (Dialog.Label1.FocusControl = Dialog.Edit), 'DFM/create');
     Dialog.Show; SetActiveWindow(Dialog.Handle); BringWindowToTop(Dialog.Handle);
     Check(Dialog.Edit.Focused and (Dialog.Edit.Text = '*.*'), 'initial');
