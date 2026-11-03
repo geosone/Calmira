@@ -9,13 +9,12 @@ type
   TGDIBitmap = class(TGDIGraphic)
   private
     FHandle: HBITMAP;
-    FDC: HDC;
-    FOldBitmap: HGDIOBJ;
     FWidth, FHeight: SmallInt;
     FCanvas: TGDICanvas;
     FTransparent: Boolean;
     FTransparentColor: TColor;
     procedure ReleaseBitmap;
+    function SurfaceDC: HDC;
     procedure AdoptBitmap(Value: HBITMAP; DeleteOnFailure: Boolean = True);
     procedure SetWidth(Value: SmallInt);
     procedure SetHeight(Value: SmallInt);
@@ -113,13 +112,16 @@ procedure TGDIBitmap.SetTransparentColor(Value: TColor);
 begin if FTransparentColor <> Value then begin FTransparentColor := Value; Changed; end; end;
 function TGDIBitmap.CreateCanvas: TGDICanvas;
 begin Result := TGDICanvas.Create; end;
+{ The bitmap's DC, created on demand as Delphi's TBitmapCanvas does. }
+function TGDIBitmap.SurfaceDC: HDC;
+begin
+  if FHandle = 0 then Result := 0 else Result := FCanvas.Handle;
+end;
 procedure TGDIBitmap.ReleaseBitmap;
 begin
-  if FCanvas <> nil then FCanvas.Handle := 0;
-  if FDC <> 0 then
-  begin SelectObject(FDC, FOldBitmap); DeleteDC(FDC); end;
+  if FCanvas <> nil then FCanvas.MemoryBitmap := 0;
   if FHandle <> 0 then DeleteObject(FHandle);
-  FDC := 0; FHandle := 0; FOldBitmap := 0; FWidth := 0; FHeight := 0;
+  FHandle := 0; FWidth := 0; FHeight := 0;
 end;
 destructor TGDIBitmap.Destroy;
 begin ReleaseBitmap; FCanvas.Free; inherited Destroy; end;
@@ -140,17 +142,7 @@ function TGDIBitmap.ReleaseHandle: HBITMAP;
 begin
   Result := FHandle;
   if (FHandle = 0) and (FWidth = 0) and (FHeight = 0) then Exit;
-  if FDC <> 0 then
-  begin
-    if SelectObject(FDC, FOldBitmap) = 0 then
-      raise EGDIError.Create('Cannot detach bitmap');
-    if not DeleteDC(FDC) then
-    begin
-      SelectObject(FDC, FHandle);
-      raise EGDIError.Create('Cannot release bitmap DC');
-    end;
-  end;
-  FCanvas.Handle := 0; FDC := 0; FOldBitmap := 0; FHandle := 0;
+  FCanvas.MemoryBitmap := 0; FHandle := 0;
   FWidth := 0; FHeight := 0;
   try Changed;
   except
@@ -197,7 +189,7 @@ begin
   begin ReleaseBitmap; FWidth := NewWidth; FHeight := NewHeight; Changed; Exit; end;
   CopyWidth := FWidth; if CopyWidth > NewWidth then CopyWidth := NewWidth;
   CopyHeight := FHeight; if CopyHeight > NewHeight then CopyHeight := NewHeight;
-  AdoptBitmap(CopySurface(NewWidth, NewHeight, FDC, CopyWidth, CopyHeight));
+  AdoptBitmap(CopySurface(NewWidth, NewHeight, SurfaceDC, CopyWidth, CopyHeight));
   Changed;
 end;
 procedure TGDIBitmap.Assign(Source: TPersistent);
@@ -209,7 +201,7 @@ begin
   Bitmap := TGDIBitmap(Source);
   if Bitmap.FHandle = 0 then
   begin ReleaseBitmap; FWidth := Bitmap.FWidth; FHeight := Bitmap.FHeight; end
-  else AdoptBitmap(CopySurface(Bitmap.FWidth, Bitmap.FHeight, Bitmap.FDC,
+  else AdoptBitmap(CopySurface(Bitmap.FWidth, Bitmap.FHeight, Bitmap.SurfaceDC,
     Bitmap.FWidth, Bitmap.FHeight));
   FTransparent := Bitmap.FTransparent; FTransparentColor := Bitmap.FTransparentColor;
   Changed;
@@ -226,19 +218,21 @@ begin
       raise EGDIError.Create('Cannot query bitmap');
     if (Description.bmWidth <= 0) or (Description.bmHeight <= 0) then
       raise EGDIError.Create('Invalid bitmap dimensions');
+    { A bitmap selected elsewhere cannot be adopted: check it once here. }
     NewDC := CreateCompatibleDC(0);
     if NewDC = 0 then raise EGDIError.Create('Cannot create bitmap DC');
     Previous := SelectObject(NewDC, Value);
     if Previous = 0 then raise EGDIError.Create('Cannot select bitmap');
+    SelectObject(NewDC, Previous); DeleteDC(NewDC); NewDC := 0;
   except
     if NewDC <> 0 then DeleteDC(NewDC);
     if DeleteOnFailure and (Value <> 0) then DeleteObject(Value);
     raise;
   end;
   ReleaseBitmap;
-  FHandle := Value; FDC := NewDC; FOldBitmap := Previous;
+  FHandle := Value;
   FWidth := Description.bmWidth; FHeight := Description.bmHeight;
-  FCanvas.Handle := FDC;
+  FCanvas.MemoryBitmap := FHandle;
 end;
 procedure TGDIBitmap.LoadFromResource(Instance: HINST; Name: PChar);
 var Value: HBITMAP;
@@ -250,7 +244,7 @@ begin
 end;
 procedure TGDIBitmap.SaveToFile(const FileName: string);
 var Stream: TFileStream; Header: array[0..53] of Byte; RowBytes: Word; Row: Pointer;
-  Display: HDC; Y: Word; ImageSize: LongInt; Deselected: Boolean;
+  Display: HDC; Y: Word; ImageSize: LongInt;
   procedure Put(Offset: Integer; Value: LongInt; Size: Integer);
   begin Move(Value, Header[Offset], Size); end;
 begin
@@ -263,7 +257,7 @@ begin
   Put(10, SizeOf(Header), 4);
   Put(14, 40, 4); Put(18, FWidth, 4); Put(22, FHeight, 4);
   Put(26, 1, 2); Put(28, 24, 2); Put(34, ImageSize, 4);
-  Row := nil; Display := 0; Deselected := False;
+  Row := nil; Display := 0;
   Stream := TFileStream.Create(FileName, fmCreate);
   try
     Stream.WriteBuffer(Header, SizeOf(Header));
@@ -271,8 +265,7 @@ begin
     Display := GetDC(0);
     if Display = 0 then raise EGDIError.Create('Cannot acquire display DC');
     { GetDIBits needs the bitmap outside any device context. }
-    if SelectObject(FDC, FOldBitmap) = 0 then raise EGDIError.Create('Cannot release bitmap for saving');
-    Deselected := True;
+    FCanvas.FreeContext;
     for Y := 0 to FHeight - 1 do
     begin
       if GetDIBits(Display, FHandle, Y, 1, Row, LPBITMAPINFO(@Header[14]), DIB_RGB_COLORS) <> 1 then
@@ -280,7 +273,6 @@ begin
       Stream.WriteBuffer(Row^, RowBytes);
     end;
   finally
-    if Deselected then SelectObject(FDC, FHandle);
     if Display <> 0 then ReleaseDC(0, Display);
     if Row <> nil then FreeMem(Row, RowBytes);
     Stream.Free;
@@ -336,10 +328,10 @@ begin
       raise EGDIError.Create('Bitmap destination exceeds Win16 coordinates');
     Target.Left := X; Target.Top := Y; Target.Right := X + FWidth; Target.Bottom := Y + FHeight;
     Source.Left := 0; Source.Top := 0; Source.Right := FWidth; Source.Bottom := FHeight;
-    ColorKeyCopy(Destination, Target, FDC, Source, ColorToRGB(FTransparentColor), 0);
+    ColorKeyCopy(Destination, Target, SurfaceDC, Source, ColorToRGB(FTransparentColor), 0);
     Exit;
   end;
-  if not BitBlt(Destination, X, Y, FWidth, FHeight, FDC, 0, 0, SRCCOPY) then
+  if not BitBlt(Destination, X, Y, FWidth, FHeight, SurfaceDC, 0, 0, SRCCOPY) then
     raise EGDIError.Create('Cannot draw bitmap');
 end;
 procedure TGDIBitmap.StretchTo(Destination: HDC; const Area: TRect);
@@ -355,10 +347,10 @@ begin
   if FTransparent then
   begin
     { ColorKeyCopy captures both source and background before writing the target. }
-    ColorKeyCopy(Destination, Area, FDC, Source, ColorToRGB(FTransparentColor), 0);
+    ColorKeyCopy(Destination, Area, SurfaceDC, Source, ColorToRGB(FTransparentColor), 0);
     Exit;
   end;
-  if Destination = FDC then
+  if Destination = SurfaceDC then
   begin
     { StretchBlt cannot safely read overlapping pixels as it replaces them. }
     Snapshot := TGDIBitmap.Create;
@@ -372,7 +364,7 @@ begin
     if SetStretchBltMode(Destination, COLORONCOLOR) = 0 then
       raise EGDIError.Create('Cannot set bitmap stretch mode');
     if not StretchBlt(Destination, Area.Left, Area.Top, W, H,
-      FDC, 0, 0, FWidth, FHeight, SRCCOPY) then
+      SurfaceDC, 0, 0, FWidth, FHeight, SRCCOPY) then
       raise EGDIError.Create('Cannot scale bitmap');
   finally RestoreDC(Destination, State); end;
 end;

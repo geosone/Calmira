@@ -62,8 +62,8 @@ class Win16GDITests(unittest.TestCase):
             self.assertIn(text, source)
         adapter = (ROOT / 'src/win16/gdi_bitmap.pas').read_text()
         self.assertIn('Stream.ReadBuffer(Row^, Layout.RowBytes)', adapter)
-        self.assertIn('SelectObject(FDC, FOldBitmap)', adapter)
-        self.assertIn('DeleteDC(FDC)', adapter)
+        self.assertIn('if FCanvas <> nil then FCanvas.MemoryBitmap := 0;', adapter)
+        self.assertIn('SelectObject(NewDC, Previous); DeleteDC(NewDC); NewDC := 0;', adapter)
         self.assertIn('ReadBMPLayout', adapter)
 
     def test_bitmap_editing_has_native_independence_resize_and_copy_guards(self):

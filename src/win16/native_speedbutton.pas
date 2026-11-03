@@ -135,11 +135,13 @@ procedure TSpeedButton.UpdateExclusive;
 var I: Integer; Sibling: TControl;
 begin
   if (FGroupIndex = 0) or (Parent = nil) then Exit;
+  { As Delphi's Parent.Broadcast, the sender gets the message too: Calmira's
+    TStyleSpeed sets its bold caption there. }
   for I := 0 to Parent.ControlCount - 1 do
   begin
     Sibling := Parent.Controls[I];
-    if (Sibling <> Self) and (Sibling is TGraphicControl) then
-      TGraphicControl(Sibling).Perform(CM_BUTTONPRESSED, FGroupIndex, LongInt(Pointer(Self)));
+    if Sibling is TGraphicControl then
+      if TGraphicControl(Sibling).Perform(CM_BUTTONPRESSED, FGroupIndex, LongInt(Pointer(Self))) <> 0 then Exit;
   end;
 end;
 procedure TSpeedButton.CMButtonPressed(var Message: TMessage);

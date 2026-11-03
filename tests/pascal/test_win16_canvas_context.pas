@@ -14,7 +14,8 @@ type
     procedure Idle(Sender: TObject; var Done: Boolean);
   end;
 var Root, Child: TCustomControl; Boxes: array[0..5] of TBox; Box: TBox; Failed: Boolean;
-  Loop: TNativeMessageLoop; Probe: TIdleProbe; Width1: Integer; I: Integer; Own: HDC; Empty: TBitmap;
+  Loop: TNativeMessageLoop; Probe: TIdleProbe; Width1: Integer; I: Integer; Own: HDC; Empty, Copy: TBitmap;
+  First, Second: TFont; Shared: HFONT; Description: TLogFont;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
 begin
@@ -109,14 +110,35 @@ begin
     Empty := TBitmap.Create;
     try
       Empty.Canvas.Font.Name := 'System';
-      Check((Empty.Canvas.TextWidth('Calmira') > 0) and Empty.Empty and (Empty.Canvas.Handle = 0),
+      Check((Empty.Canvas.TextWidth('Calmira') > 0) and Empty.Empty and (Empty.Canvas.Handle <> 0),
         'an empty bitmap canvas measures text on a memory DC, as in Delphi');
       Empty.Width := 4; Empty.Height := 4;
       Empty.Canvas.Pixels[1, 1] := clRed;
       Check((Empty.Canvas.Handle <> 0) and (Empty.Canvas.Pixels[1, 1] = RGB(255, 0, 0)),
         'sizing the bitmap gives its canvas the bitmap DC');
+      FreeDeviceContexts;
+      Check(not DeviceContextsInUse, 'a bitmap gives its DC back at idle, as Delphi''s FreeMemoryContexts');
+      Check(Empty.Canvas.Pixels[1, 1] = RGB(255, 0, 0), 'the bitmap keeps its pixels and takes a new DC on demand');
+      Copy := TBitmap.Create;
+      try
+        Copy.Assign(Empty); FreeDeviceContexts;
+        Check(Copy.Canvas.Pixels[1, 1] = RGB(255, 0, 0), 'a copy made from a bitmap without a DC keeps the pixels');
+      finally Copy.Free; end;
     finally Empty.Free; end;
     Check(not DeviceContextsInUse, 'a freed bitmap leaves no memory DC borrowed');
+
+    First := TFont.Create; Second := TFont.Create;
+    try
+      First.Name := 'Arial'; First.Size := 10; Second.Name := 'Arial'; Second.Size := 10;
+      Check(First.Handle = Second.Handle, 'fonts with the same description share one GDI font, as in Delphi');
+      Shared := First.Handle;
+      Second.Style := [fsBold];
+      Check((Second.Handle <> Shared) and (First.Handle = Shared), 'changing a shared font gives it its own GDI font');
+      Second.Style := [];
+      First.Free; First := nil;
+      Check(GetObject(Second.Handle, SizeOf(Description), @Description) > 0,
+        'a shared font stays valid while another TFont uses it');
+    finally First.Free; Second.Free; end;
 
     Box := TBox.Create(nil); Box.SetBounds(20, 30, 40, 20); Box.Parent := Root;
     Probe := TIdleProbe.Create;

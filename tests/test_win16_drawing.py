@@ -14,7 +14,7 @@ class Win16DrawingTests(unittest.TestCase):
                      'Graphic.StretchTo(DC, Area)', 'Scaling is not supported for this graphic',
                      'LongInt(Area.Right) - Area.Left', 'Graphic.Empty then Exit'):
             self.assertIn(text, canvas)
-        for text in ('if Destination = FDC then', 'Snapshot.Assign(Self)',
+        for text in ('if Destination = SurfaceDC then', 'Snapshot.Assign(Self)',
                      'finally Snapshot.Free', 'SetStretchBltMode(Destination, COLORONCOLOR)',
                      'finally RestoreDC(Destination, State)'):
             self.assertIn(text, bitmap)
@@ -56,12 +56,27 @@ class Win16DrawingTests(unittest.TestCase):
 
     def test_canvas_borrows_a_context_outside_painting(self):
         core = (ROOT / 'src/win16/gdi_canvas.pas').read_text()
-        self.assertIn('property Handle: HDC read FHandle write SetHandle;', core)
+        self.assertIn('property Handle: HDC read GetHandle write SetHandle;', core)
+        self.assertIn('if (FHandle = 0) and FMemoryContext then Result := DC else Result := FHandle;', core)
+        # Bitmaps select into a memory DC only while used; idle gives it back.
+        self.assertIn('property MemoryBitmap: HBITMAP read FMemoryBitmap write SetMemoryBitmap;', core)
+        self.assertIn('FOldBitmap := SelectObject(Result, FMemoryBitmap);', core)
+        bitmap_source = (ROOT / 'src/win16/gdi_bitmap.pas').read_text()
+        self.assertIn('FCanvas.MemoryBitmap := FHandle;', bitmap_source)
+        self.assertNotIn('FDC', bitmap_source)
+        # Fonts, pens and brushes share GDI objects, as Delphi's resource managers.
+        for text in ('function TGDIResource.AcquireShared(const Key: string): HGDIOBJ;',
+                     'procedure ReleaseShared(Value: HGDIOBJ);', "Key := 'F' + IntToStr(FHeight)"):
+            self.assertIn(text, core)
+        probe = (ROOT / 'tests/pascal/test_win16_canvas_context.pas').read_text()
+        for text in ("a bitmap gives its DC back at idle, as Delphi''s FreeMemoryContexts",
+                     'fonts with the same description share one GDI font, as in Delphi'):
+            self.assertIn(text, probe)
         self.assertIn('if Value <> 0 then FreeContext;', core)
-        self.assertIn('ContextCanvases.Count >= ContextCacheSize', core)
+        self.assertIn('if Common >= ContextCacheSize then TGDICanvas(ContextCanvases[Oldest]).FreeContext;', core)
         self.assertIn('begin FreeContext; FFont.Free;', core)
-        self.assertIn('if FMemoryContext then Result := CreateCompatibleDC(0) else Result := 0;', core)
-        self.assertIn('if FMemoryContext then DeleteDC(Context);', core)
+        self.assertIn('Result := CreateCompatibleDC(0);', core)
+        self.assertIn('if FOldBitmap <> 0 then SelectObject(Context, FOldBitmap);', core)
         bitmap = (ROOT / 'src/win16/gdi_bitmap.pas').read_text()
         self.assertIn('FCanvas.MemoryContext := True;', bitmap)
         paint = (ROOT / 'src/win16/native_paint.pas').read_text()

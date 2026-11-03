@@ -19,7 +19,7 @@ class Win16FileFilterTests(unittest.TestCase):
         source = (ROOT / 'src/win16/gdi_bitmap.pas').read_text()
         for text in ('procedure SaveToFile(const FileName: string);', 'procedure FreeImage;',
                      'RowBytes := (LongInt(FWidth) * 3 + 3) and not 3;',
-                     'if Deselected then SelectObject(FDC, FHandle);'):
+                     'FCanvas.FreeContext;'):
             self.assertIn(text, source)
 
     def test_shape_and_paint_box_follow_delphi(self):

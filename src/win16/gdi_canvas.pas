@@ -33,11 +33,15 @@ type
   TGDIResource = class(TPersistent)
   private
     FHandle: HGDIOBJ;
-    FOwned: Boolean;
+    FOwned, FShared: Boolean;
     FOnChange: TNotifyEvent;
     FNotifying: Boolean;
   protected
     procedure ReleaseHandle;
+    { As Delphi's resource managers: objects with the same description share
+      one GDI object, counted by reference. Returns 0 when none exists yet. }
+    function AcquireShared(const Key: string): HGDIOBJ;
+    procedure AddShared(const Key: string; Value: HGDIOBJ);
     procedure Changed;
   public
     destructor Destroy; override;
@@ -111,11 +115,15 @@ type
     FHandle: HDC;
     FContext: HDC;
     FMemoryContext: Boolean;
+    FMemoryBitmap: HBITMAP;
+    FOldBitmap: HGDIOBJ;
     FPen: TGDIPen;
     FBrush: TGDIBrush;
     FFont: TGDIFont;
     procedure Changed;
     procedure SetHandle(Value: HDC);
+    function GetHandle: HDC;
+    procedure SetMemoryBitmap(Value: HBITMAP);
     function DC: HDC;
     procedure RequireHandle;
     function BeginDraw: SmallInt;
@@ -168,11 +176,16 @@ type
       text calls such as DrawText. }
     function ContextHandle: HDC;
     { The DC handed in by the owner (painting, owner draw), or 0. Drawing
-      without one uses AcquireContext, which leaves Handle at 0. }
-    property Handle: HDC read FHandle write SetHandle;
+      without one uses AcquireContext, which leaves Handle at 0. A memory
+      canvas instead returns its memory DC, as Delphi's TBitmapCanvas. }
+    property Handle: HDC read GetHandle write SetHandle;
     { Without Handle, draw on a memory DC instead of failing, as Delphi's
       TBitmapCanvas does for an empty bitmap (e.g. to measure text). }
     property MemoryContext: Boolean read FMemoryContext write FMemoryContext;
+    { The bitmap the memory DC selects. As in Delphi, the DC exists only
+      while the canvas is used: idle gives it back (FreeDeviceContexts), so
+      a bitmap does not hold a GDI DC and its region for its lifetime. }
+    property MemoryBitmap: HBITMAP read FMemoryBitmap write SetMemoryBitmap;
     property Pen: TGDIPen read FPen write SetPen;
     property Brush: TGDIBrush read FBrush write SetBrush;
     property Font: TGDIFont read FFont write SetFont;
@@ -230,11 +243,68 @@ begin
   if Color < 0 then Result := GetSysColor(-(Color + 1))
   else Result := Color and $FFFFFF;
 end;
-procedure TGDIResource.ReleaseHandle;
+type
+  PSharedObject = ^TSharedObject;
+  TSharedObject = record
+    Key: string[47];
+    Handle: HGDIOBJ;
+    References: Word;
+  end;
+var SharedObjects: TList;
+function TGDIResource.AcquireShared(const Key: string): HGDIOBJ;
+var I: Integer; Entry: PSharedObject;
 begin
-  if FOwned and (FHandle <> 0) then
-    if not DeleteObject(FHandle) then raise EGDIError.Create('Cannot release GDI object');
-  FHandle := 0; FOwned := False;
+  Result := 0;
+  if SharedObjects = nil then Exit;
+  for I := 0 to SharedObjects.Count - 1 do
+  begin
+    Entry := SharedObjects[I];
+    if Entry^.Key = Key then
+    begin
+      Inc(Entry^.References); Result := Entry^.Handle;
+      FHandle := Result; FShared := True; FOwned := False;
+      Exit;
+    end;
+  end;
+end;
+procedure TGDIResource.AddShared(const Key: string; Value: HGDIOBJ);
+var Entry: PSharedObject;
+begin
+  if SharedObjects = nil then SharedObjects := TList.Create;
+  New(Entry);
+  Entry^.Key := Key; Entry^.Handle := Value; Entry^.References := 1;
+  try SharedObjects.Add(Entry);
+  except Dispose(Entry); DeleteObject(Value); raise; end;
+  FHandle := Value; FShared := True; FOwned := False;
+end;
+procedure ReleaseShared(Value: HGDIOBJ);
+var I: Integer; Entry: PSharedObject;
+begin
+  for I := SharedObjects.Count - 1 downto 0 do
+  begin
+    Entry := SharedObjects[I];
+    if Entry^.Handle = Value then
+    begin
+      Dec(Entry^.References);
+      if Entry^.References = 0 then
+      begin
+        SharedObjects.Delete(I); Dispose(Entry);
+        if not DeleteObject(Value) then raise EGDIError.Create('Cannot release GDI object');
+      end;
+      Exit;
+    end;
+  end;
+end;
+procedure TGDIResource.ReleaseHandle;
+var Value: HGDIOBJ; Shared: Boolean;
+begin
+  Value := FHandle; Shared := FShared;
+  FHandle := 0; FShared := False;
+  if Shared and (Value <> 0) then begin FOwned := False; ReleaseShared(Value); Exit; end;
+  if FOwned and (Value <> 0) then
+    if not DeleteObject(Value) then
+    begin FHandle := Value; raise EGDIError.Create('Cannot release GDI object'); end;
+  FOwned := False;
 end;
 procedure TGDIResource.Invalidate;
 begin ReleaseHandle; end;
@@ -252,11 +322,21 @@ end;
 procedure TGDIPen.SetStyle(Value: TPenStyle);
 begin if Value <> FStyle then begin ReleaseHandle; FStyle := Value; Changed; end; end;
 function TGDIPen.GetHandle: HPEN;
+var Key: string; Value: HPEN;
 begin
   if FHandle = 0 then
   begin
     if FStyle = psClear then FHandle := GetStockObject(NULL_PEN)
-    else begin FHandle := CreatePen(Ord(FStyle), FWidth, ColorToRGB(FColor)); FOwned := True; end;
+    else
+    begin
+      Key := 'P' + IntToStr(Ord(FStyle)) + ',' + IntToStr(FWidth) + ',' + IntToStr(ColorToRGB(FColor));
+      if AcquireShared(Key) = 0 then
+      begin
+        Value := CreatePen(Ord(FStyle), FWidth, ColorToRGB(FColor));
+        if Value = 0 then raise EGDIError.Create('Cannot create GDI pen');
+        AddShared(Key, Value);
+      end;
+    end;
     if FHandle = 0 then raise EGDIError.Create('Cannot create GDI pen');
   end;
   Result := FHandle;
@@ -299,16 +379,24 @@ begin
   if Value <> FStyle then begin ReleaseHandle; FStyle := Value; Changed; end;
 end;
 function TGDIBrush.GetHandle: HBRUSH;
+var Key: string; Value: HBRUSH;
 begin
   if FHandle = 0 then
   begin
     if FPattern <> 0 then
     begin FHandle := CreatePatternBrush(FPattern); FOwned := True; end
     else
-    case FStyle of
-      bsClear: FHandle := GetStockObject(NULL_BRUSH);
-      bsSolid: begin FHandle := CreateSolidBrush(ColorToRGB(FColor)); FOwned := True; end;
-    else FHandle := CreateHatchBrush(Ord(FStyle) - 2, ColorToRGB(FColor)); FOwned := True;
+    if FStyle = bsClear then FHandle := GetStockObject(NULL_BRUSH)
+    else
+    begin
+      Key := 'B' + IntToStr(Ord(FStyle)) + ',' + IntToStr(ColorToRGB(FColor));
+      if AcquireShared(Key) = 0 then
+      begin
+        if FStyle = bsSolid then Value := CreateSolidBrush(ColorToRGB(FColor))
+        else Value := CreateHatchBrush(Ord(FStyle) - 2, ColorToRGB(FColor));
+        if Value = 0 then raise EGDIError.Create('Cannot create GDI brush');
+        AddShared(Key, Value);
+      end;
     end;
     if FHandle = 0 then raise EGDIError.Create('Cannot create GDI brush');
   end;
@@ -385,7 +473,7 @@ begin
   try FOnChange(Self); finally FNotifying := False; end;
 end;
 function TGDIFont.GetHandle: HFONT;
-var Description: TLogFont;
+var Description: TLogFont; Key: string; Value: HFONT;
 begin
   if FHandle = 0 then
   begin
@@ -398,8 +486,15 @@ begin
     Description.lfStrikeOut := Ord(fsStrikeOut in FStyle);
     Description.lfCharSet := DEFAULT_CHARSET;
     StrPCopy(Description.lfFaceName, FName);
-    FHandle := CreateFontIndirect(Description); FOwned := True;
-    if FHandle = 0 then raise EGDIError.Create('Cannot create GDI font');
+    Key := 'F' + IntToStr(FHeight) + ',' + IntToStr(Description.lfWeight) +
+      Chr(48 + Description.lfItalic) + Chr(48 + Description.lfUnderline) +
+      Chr(48 + Description.lfStrikeOut) + ',' + FName;
+    if AcquireShared(Key) = 0 then
+    begin
+      Value := CreateFontIndirect(Description);
+      if Value = 0 then raise EGDIError.Create('Cannot create GDI font');
+      AddShared(Key, Value);
+    end;
   end;
   Result := FHandle;
 end;
@@ -434,13 +529,45 @@ begin
 end;
 function DeviceContextsInUse: Boolean;
 begin Result := (ContextCanvases <> nil) and (ContextCanvases.Count > 0); end;
+procedure EvictCommonContext;
+var I, Common, Oldest: Integer;
+begin
+  if ContextCanvases = nil then Exit;
+  Common := 0; Oldest := -1;
+  for I := 0 to ContextCanvases.Count - 1 do
+    if not TGDICanvas(ContextCanvases[I]).FMemoryContext then
+    begin
+      Inc(Common);
+      if Oldest < 0 then Oldest := I;
+    end;
+  if Common >= ContextCacheSize then TGDICanvas(ContextCanvases[Oldest]).FreeContext;
+end;
 function TGDICanvas.AcquireContext: HDC;
 begin
-  if FMemoryContext then Result := CreateCompatibleDC(0) else Result := 0;
+  Result := 0;
+  if not FMemoryContext then Exit;
+  Result := CreateCompatibleDC(0);
+  if (Result = 0) or (FMemoryBitmap = 0) then Exit;
+  FOldBitmap := SelectObject(Result, FMemoryBitmap);
+  if FOldBitmap = 0 then
+  begin DeleteDC(Result); raise EGDIError.Create('Cannot select bitmap'); end;
 end;
 procedure TGDICanvas.ReleaseContext(Context: HDC);
 begin
-  if FMemoryContext then DeleteDC(Context);
+  if not FMemoryContext then Exit;
+  if FOldBitmap <> 0 then SelectObject(Context, FOldBitmap);
+  FOldBitmap := 0;
+  DeleteDC(Context);
+end;
+function TGDICanvas.GetHandle: HDC;
+begin
+  if (FHandle = 0) and FMemoryContext then Result := DC else Result := FHandle;
+end;
+procedure TGDICanvas.SetMemoryBitmap(Value: HBITMAP);
+begin
+  if Value = FMemoryBitmap then Exit;
+  FreeContext;
+  FMemoryBitmap := Value;
 end;
 procedure TGDICanvas.FreeContext;
 var Context: HDC;
@@ -461,9 +588,9 @@ begin
   if FHandle <> 0 then begin Result := FHandle; Exit; end;
   if FContext = 0 then
   begin
-    { USER has five common DCs: give back the oldest borrowed one first. }
-    if (ContextCanvases <> nil) and (ContextCanvases.Count >= ContextCacheSize) then
-      TGDICanvas(ContextCanvases[0]).FreeContext;
+    { USER has five common DCs: give back the oldest borrowed one first.
+      Memory DCs are not common DCs and stay until idle. }
+    if not FMemoryContext then EvictCommonContext;
     FContext := AcquireContext;
     if FContext <> 0 then
     begin

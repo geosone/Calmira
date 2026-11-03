@@ -79,6 +79,7 @@ begin
     Check(Observer.ParentDowns = 1, 'empty area reaches the parent');
     ClickAt(20, 20);
     Check(A.Down and (A.State = bsExclusive) and (A.Clicks = 1) and (B.Pressed >= 1), 'group button stays down');
+    Check(A.Pressed >= 1, 'the button going down gets CM_BUTTONPRESSED too, as from Delphi''s Broadcast');
     ClickAt(60, 20);
     Check(B.Down and not A.Down and (A.State = bsUp) and (B.State = bsExclusive), 'group is exclusive');
     ClickAt(60, 20);

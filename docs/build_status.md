@@ -2014,8 +2014,8 @@ Still different from the original:
   the visible, zero-sized `TApplication` window, so Windows' task list shows
   only "Calmira". Window classes are `CalmiraNativeWindow` instead of the
   form class names.
-- The taskbar button of the active task is not drawn bold.
-- System resources are lower (67% against 81% free).
+- (Bold task button and system resources: fixed in "Bold Task Button and
+  GDI Resources".)
 
 ## Clock, Dates and Regional Settings
 
@@ -2045,3 +2045,32 @@ Covered by:
   WIN.INI);
 - the patch guards in `test_fpc_class_pointer`, `test_win16_messages` and
   `test_win16_shell_units`.
+
+## Bold Task Button and GDI Resources
+
+- **`CM_BUTTONPRESSED` reaches the pressed button too.** Delphi's
+  `UpdateExclusive` uses `Parent.Broadcast`, which includes the sender, and
+  stops when a control returns a result. Calmira's `TStyleSpeed` sets its
+  bold caption there (`BoldOnDown`), so the active task button is bold again.
+- **GDI resources as in the original (81% free, was 63%).** A TOOLHELP walk
+  of the GDI heap after start-up showed 37 DCs and 63 regions against the
+  original's 11 and 37, and 42 fonts against 12.
+  - Every non-empty `TBitmap` kept its own memory DC, with its region, for
+    its lifetime. As Delphi's `TBitmapCanvas`, the canvas now selects the
+    bitmap into a memory DC only when used (`TGDICanvas.MemoryBitmap`). Idle
+    gives it back with the other borrowed DCs, as `FreeMemoryContexts` does.
+    `Canvas.Handle` of a bitmap returns that DC, as in Delphi.
+  - Fonts, pens and brushes with the same description share one GDI object,
+    counted by reference, as Delphi's resource managers do.
+  After the change: 11 DCs, 37 regions, 11 fonts, GDI 81% free.
+
+Covered by `win16-speedbutton` (the sender gets `CM_BUTTONPRESSED`) and
+`win16-canvas-context`. The latter checks:
+- a bitmap gives its DC back at idle and keeps its pixels;
+- a copy can be made from a bitmap without a DC;
+- equal fonts share one handle;
+- a changed font gets its own handle;
+- a shared font survives when one of its users is freed.
+
+Still different from the original: forms are not owned by the
+`TApplication` window, and window classes are `CalmiraNativeWindow`.
