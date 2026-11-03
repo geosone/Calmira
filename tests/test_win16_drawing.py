@@ -77,7 +77,7 @@ class Win16DrawingTests(unittest.TestCase):
             self.assertIn(text, probe)
         self.assertIn('if Value <> 0 then FreeContext;', core)
         self.assertIn('if Common >= ContextCacheSize then TGDICanvas(ContextCanvases[Oldest]).FreeContext;', core)
-        self.assertIn('begin FreeContext; FFont.Free;', core)
+        self.assertIn('begin Unrealize; FreeContext; FFont.Free;', core)
         self.assertIn('Result := CreateCompatibleDC(0);', core)
         self.assertIn('if FOldBitmap <> 0 then SelectObject(Context, FOldBitmap);', core)
         bitmap = (ROOT / 'src/win16/gdi_bitmap.pas').read_text()
@@ -97,6 +97,22 @@ class Win16DrawingTests(unittest.TestCase):
             self.assertIn(text, test)
         makefile = (ROOT / 'makefile').read_text()
         self.assertIn('win16-canvas-context-runtime-test', makefile.split('win16-fixed-regression:', 1)[1].split('\n\n', 1)[0])
+
+    def test_handle_realizes_objects_as_delphi_required_state(self):
+        core = (ROOT / 'src/win16/gdi_canvas.pas').read_text()
+        for text in ('if Result <> 0 then Realize(Result);',
+                     'if Solid then SetBkMode(Context, OPAQUE) else SetBkMode(Context, TRANSPARENT);',
+                     'if not FFontValid then begin SelectObject(Context, FFont.GetHandle); FFontValid := True; end;',
+                     "SelectObject(FRealized, GetStockObject(SYSTEM_FONT));",
+                     'if (FHandle <> 0) and Assigned(FOnRelease) then FOnRelease(Self);',
+                     'if (FRealized <> 0) and (Value <> FRealized) then Unrealize;'):
+            self.assertIn(text, core)
+        probe = (ROOT / 'tests/pascal/test_win16_canvas_context.pas').read_text()
+        for text in ('Handle selects font, text colour and an opaque brush-coloured background, as Delphi',
+                     'a font the caller selected stays until the canvas font changes, as Delphi',
+                     'setting Handle to 0 puts the stock objects back, as DeselectHandles'):
+            self.assertIn(text, probe)
+        self.assertIn('win16-canvas-context-runtime-test win16-gdi-runtime-test', (ROOT / 'makefile').read_text())
 
     def test_fill_enum_exports_and_native_order(self):
         core = (ROOT / 'src/win16/gdi_canvas.pas').read_text()

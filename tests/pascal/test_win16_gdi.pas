@@ -95,7 +95,7 @@ begin
   Bad := False;
   try Canvas.CopyRect(Box(0, 0, 2, 2), ResourceImage.Canvas, Box(0, 0, 2, 2));
   except on EGDIError do Bad := True; end;
-  Check(Bad, 'source canvas without a bitmap DC rejected');
+  Check(not Bad, 'an empty bitmap''s canvas is a memory DC to copy from, as Delphi''s TBitmapCanvas');
   ResourceImage.Height := 7;
   Image.Assign(ResourceImage);
   Check((Image.Width = 0) and (Image.Height = 7) and (Image.Handle = 0),
@@ -424,8 +424,8 @@ begin
       Image.LoadFromFile('C:\LARGE.BMP');
       Check((Image.Width = 320) and (Image.Height = 400), 'BMP larger than 64 KiB loads by scan line');
       Image.Clear;
-      Check((Image.Handle = 0) and (Image.Canvas.Handle = 0) and (Image.Width = 0),
-        'clear releases bitmap and detaches canvas');
+      Check((Image.Handle = 0) and (Image.Canvas.Handle <> 0) and (Image.Width = 0),
+        'clear releases the bitmap; the canvas keeps a memory DC, as Delphi''s TBitmapCanvas');
       Rejected := False;
       try Image.DrawTo(MemoryDC, 0, 0); except on EGDIError do Rejected := True; end;
       Check(Rejected, 'drawing empty bitmap rejected');

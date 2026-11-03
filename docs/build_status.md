@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 104 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 105 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -2133,3 +2133,38 @@ seemed present. The sentinel is now the printable `<no key>`.
 Covered by:
 - `win16-inifiles`: a `#1` default comes back empty;
 - `win16-calmira-start`: the main group is in START.INI under its own name.
+
+## Mouse Scripts and the Start Menu
+
+The comparison runs can now click. QEMU's `mouse_move` is relative and
+Windows accelerates it, so the scratch runner sets `MouseSpeed=0` in the
+test copy of WIN.INI (one mickey per pixel). It moves in steps of at most
+120, pausing after each: QEMU passes only as many packets as fit into the
+PS/2 queue and keeps the rest of a large move pending, which swallowed the
+moves that came after it.
+
+With the mouse the Start menu could be compared. Its items were drawn in
+the bold System font on white boxes. Calmira's `TStartMenu` hands
+`WM_DRAWITEM`'s DC to its canvas and calls `DrawText(Canvas.Handle, ...)`.
+In Delphi, reading `Canvas.Handle` selects font, pen and brush into the DC
+(`RequiredState`), sets the font colour, and sets an opaque background in the
+brush colour, or a transparent one for a clear brush. Our `Handle` returned
+the bare DC. It now does the same as Delphi:
+- Only objects that changed since are selected again, so a font the caller
+  selected stays.
+- Before a selected object is deleted, or when the DC changes hands, the
+  stock objects go back into the DC, as `DeselectHandles`.
+
+The Start menu now matches the original pixel for pixel, apart from the
+banner, which says "Reloaded".
+
+`win16-gdi` was not part of the regression. Two of its checks still
+expected an empty bitmap's canvas to have no DC. Since the lazy bitmap DC it
+has a memory DC, as Delphi's `TBitmapCanvas`. The checks now expect that, and
+the suite is in `win16-fixed-regression` (105 suites).
+
+Covered by `win16-canvas-context`:
+- `Handle` selects the font and sets the colours and background mode;
+- a changed font or a clear brush takes effect on the next `Handle`;
+- a font the caller selected stays;
+- `Handle := 0` puts the stock objects back.

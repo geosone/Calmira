@@ -15,7 +15,7 @@ type
   end;
 var Root, Child: TCustomControl; Boxes: array[0..5] of TBox; Box: TBox; Failed: Boolean;
   Loop: TNativeMessageLoop; Probe: TIdleProbe; Width1: Integer; I: Integer; Own: HDC; Empty, Copy: TBitmap;
-  First, Second: TFont; Shared: HFONT; Description: TLogFont;
+  First, Second: TFont; Shared: HFONT; Description: TLogFont; Assigned: TCanvas; Face: array[0..31] of Char;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
 begin
@@ -140,6 +140,26 @@ begin
         'a shared font stays valid while another TFont uses it');
     finally First.Free; Second.Free; end;
 
+    { Owner draw hands the canvas a DC; reading Handle selects the canvas's
+      objects into it, as Delphi's RequiredState. }
+    Own := GetDC(Root.Handle); Assigned := TCanvas.Create;
+    try
+      Assigned.Font.Name := 'Arial'; Assigned.Font.Size := 8; Assigned.Font.Color := clRed;
+      Assigned.Brush.Color := clBlue; Assigned.Handle := Own;
+      GetTextFace(Assigned.Handle, SizeOf(Face), Face);
+      Check((StrComp(Face, 'Arial') = 0) and (GetTextColor(Own) = ColorToRGB(clRed)) and
+        (GetBkColor(Own) = ColorToRGB(clBlue)) and (GetBkMode(Own) = OPAQUE),
+        'Handle selects font, text colour and an opaque brush-coloured background, as Delphi');
+      Assigned.Brush.Style := bsClear; Assigned.Font.Name := 'Courier New'; Assigned.Font.Color := clLime;
+      GetTextFace(Assigned.Handle, SizeOf(Face), Face);
+      Check((StrComp(Face, 'Courier New') = 0) and (GetBkMode(Own) = TRANSPARENT) and
+        (GetTextColor(Own) = ColorToRGB(clLime)), 'a changed font and a clear brush reach the DC on the next Handle');
+      SelectObject(Assigned.Handle, GetStockObject(ANSI_FIXED_FONT)); GetTextFace(Assigned.Handle, SizeOf(Face), Face);
+      Check(StrComp(Face, 'Courier New') <> 0, 'a font the caller selected stays until the canvas font changes, as Delphi');
+      Assigned.Handle := 0;
+      GetTextFace(Own, SizeOf(Face), Face);
+      Check(StrComp(Face, 'System') = 0, 'setting Handle to 0 puts the stock objects back, as DeselectHandles');
+    finally Assigned.Free; ReleaseDC(Root.Handle, Own); end;
     Box := TBox.Create(nil); Box.SetBounds(20, 30, 40, 20); Box.Parent := Root;
     Probe := TIdleProbe.Create;
     Loop := TNativeMessageLoop.Create;

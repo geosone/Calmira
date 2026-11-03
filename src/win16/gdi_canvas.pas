@@ -37,6 +37,7 @@ type
     FHandle: HGDIOBJ;
     FOwned, FShared: Boolean;
     FOnChange: TNotifyEvent;
+    FOnRelease: TNotifyEvent;
     FNotifying: Boolean;
   protected
     procedure ReleaseHandle;
@@ -49,6 +50,9 @@ type
     destructor Destroy; override;
     procedure Invalidate;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    { Called before the GDI object is given back, while it may still be
+      selected into a canvas's DC. }
+    property OnRelease: TNotifyEvent read FOnRelease write FOnRelease;
   end;
   TGDIPen = class(TGDIResource)
   private
@@ -119,9 +123,19 @@ type
     FMemoryContext: Boolean;
     FMemoryBitmap: HBITMAP;
     FOldBitmap: HGDIOBJ;
+    { The DC that Handle has put Font, Pen and Brush into, as Delphi's
+      RequiredState, and the colours it set there. }
+    FRealized: HDC;
+    FRealizedText, FRealizedBack: TColorRef;
+    FRealizedSolid: Boolean;
+    { Cleared when that object changed and went out of the DC. }
+    FFontValid, FPenValid, FBrushValid: Boolean;
     FPen: TGDIPen;
     FBrush: TGDIBrush;
     FFont: TGDIFont;
+    procedure Realize(Context: HDC);
+    procedure Unrealize;
+    procedure ObjectReleased(Sender: TObject);
     procedure Changed;
     procedure SetHandle(Value: HDC);
     function GetHandle: HDC;
@@ -307,6 +321,7 @@ end;
 procedure TGDIResource.ReleaseHandle;
 var Value: HGDIOBJ; Shared: Boolean;
 begin
+  if (FHandle <> 0) and Assigned(FOnRelease) then FOnRelease(Self);
   Value := FHandle; Shared := FShared;
   FHandle := 0; FShared := False;
   if Shared and (Value <> 0) then begin FOwned := False; ReleaseShared(Value); Exit; end;
@@ -526,11 +541,13 @@ end;
 constructor TGDICanvas.Create;
 begin
   inherited Create; FPen := TGDIPen.Create; FBrush := CreateBrush; FFont := TGDIFont.Create;
+  FPen.OnRelease := ObjectReleased; FBrush.OnRelease := ObjectReleased;
+  FFont.OnRelease := ObjectReleased;
 end;
 function TGDICanvas.CreateBrush: TGDIBrush;
 begin Result := TGDIBrush.Create; end;
 destructor TGDICanvas.Destroy;
-begin FreeContext; FFont.Free; FBrush.Free; FPen.Free; inherited Destroy; end;
+begin Unrealize; FreeContext; FFont.Free; FBrush.Free; FPen.Free; inherited Destroy; end;
 const ContextCacheSize = 4;
 var ContextCanvases: TList;
 procedure FreeDeviceContexts;
@@ -566,6 +583,7 @@ begin
 end;
 procedure TGDICanvas.ReleaseContext(Context: HDC);
 begin
+  if FRealized = Context then Unrealize;
   if not FMemoryContext then Exit;
   if FOldBitmap <> 0 then SelectObject(Context, FOldBitmap);
   FOldBitmap := 0;
@@ -574,6 +592,59 @@ end;
 function TGDICanvas.GetHandle: HDC;
 begin
   if (FHandle = 0) and FMemoryContext then Result := DC else Result := FHandle;
+  if Result <> 0 then Realize(Result);
+end;
+{ As Delphi's TCanvas.RequiredState: Handle comes with the canvas's font,
+  pen and brush selected, the font colour as text colour and, as Delphi's
+  CreateBrush, an opaque background in the brush colour (transparent for a
+  clear brush), for direct API calls such as DrawText. }
+procedure TGDICanvas.Realize(Context: HDC);
+var Text, Back: TColorRef; Solid: Boolean;
+begin
+  if FRealized <> Context then
+  begin
+    Unrealize;
+    if (SelectObject(Context, FFont.GetHandle) = 0) or (SelectObject(Context, FPen.GetHandle) = 0) or
+      (SelectObject(Context, FBrush.GetHandle) = 0) then raise EGDIError.Create('Cannot select drawing objects');
+    FRealized := Context; FRealizedText := $FFFFFFFF; FRealizedBack := $FFFFFFFF;
+    FFontValid := True; FPenValid := True; FBrushValid := True;
+  end
+  else
+  begin
+    { Only what changed since goes in again; whatever else the caller put
+      into the DC stays, as with Delphi's state flags. }
+    if not FFontValid then begin SelectObject(Context, FFont.GetHandle); FFontValid := True; end;
+    if not FPenValid then begin SelectObject(Context, FPen.GetHandle); FPenValid := True; end;
+    if not FBrushValid then begin SelectObject(Context, FBrush.GetHandle); FBrushValid := True; end;
+  end;
+  Text := ColorToRGB(FFont.Color); Solid := FBrush.Style <> bsClear;
+  if Solid then Back := ColorToRGB(FBrush.Color) else Back := not ColorToRGB(FBrush.Color) and $FFFFFF;
+  if Text <> FRealizedText then begin SetTextColor(Context, Text); FRealizedText := Text; end;
+  if (Back <> FRealizedBack) or (Solid <> FRealizedSolid) then
+  begin
+    SetBkColor(Context, Back);
+    if Solid then SetBkMode(Context, OPAQUE) else SetBkMode(Context, TRANSPARENT);
+    FRealizedBack := Back; FRealizedSolid := Solid;
+  end;
+end;
+{ As Delphi's DeselectHandles: stock objects go back into the DC before ours
+  can be deleted or the DC changes hands. }
+procedure TGDICanvas.Unrealize;
+begin
+  if FRealized = 0 then Exit;
+  SelectObject(FRealized, GetStockObject(SYSTEM_FONT));
+  SelectObject(FRealized, GetStockObject(BLACK_PEN));
+  SelectObject(FRealized, GetStockObject(WHITE_BRUSH));
+  FRealized := 0;
+end;
+procedure TGDICanvas.ObjectReleased(Sender: TObject);
+begin
+  if FRealized = 0 then Exit;
+  if Sender = FFont then
+  begin SelectObject(FRealized, GetStockObject(SYSTEM_FONT)); FFontValid := False; end
+  else if Sender = FPen then
+  begin SelectObject(FRealized, GetStockObject(BLACK_PEN)); FPenValid := False; end
+  else begin SelectObject(FRealized, GetStockObject(WHITE_BRUSH)); FBrushValid := False; end;
 end;
 procedure TGDICanvas.SetMemoryBitmap(Value: HBITMAP);
 begin
@@ -592,6 +663,7 @@ end;
 procedure TGDICanvas.SetHandle(Value: HDC);
 begin
   { The owner's DC replaces a borrowed context, like Delphi's TControlCanvas. }
+  if (FRealized <> 0) and (Value <> FRealized) then Unrealize;
   if Value <> 0 then FreeContext;
   FHandle := Value;
 end;
