@@ -36,6 +36,21 @@ class LocalizationTests(unittest.TestCase):
             self.assertEqual(metadata['TForm.Form.HelpContext'], number)
             self.assertEqual(metadata['TForm.Form.Caption'], 'Title')
 
+    def test_unnamed_components_get_no_shared_key(self):
+        # Notebook pages have no name; their captions come from Pages.Strings.
+        # A shared 'TForm..Caption' key once renamed a radio group's buttons.
+        def short(value):
+            raw = value.encode('cp1252')
+            return bytes([len(raw)]) + raw
+        data = (b'TPF0' + short('TForm') + short('Form') + short('Caption') + b'\x06' + short('Title') +
+                b'\0' + short('TPage') + short('') + short('Caption') + b'\x06' + short('Fonts') +
+                b'\0\0\0')
+        result = {}
+        LANGUAGES.DfmReader(data).component(result)
+        self.assertEqual(result, {'TForm.Form.Caption': 'Title'})
+        langui = (ROOT / 'vcl/langui.pas').read_text(encoding='cp1252')
+        self.assertEqual(langui.count("  if Item.Name <> '' then\n"), 2)
+
     def test_catalogues_have_shared_ids_and_ansi_line_limits(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)

@@ -22,6 +22,9 @@ var
   ListObject: TObject;
   Texts: TStrings;
 begin
+  { Unnamed components, such as notebook pages and the buttons of a radio
+    group, have no key of their own: their owners' lists carry the texts. }
+  if Item.Name <> '' then
   for I := 0 to 1 do
   begin
     Prop := GetPropInfo(Item.ClassInfo, Names[I]);
@@ -33,6 +36,7 @@ begin
       SetStrProp(Item, Prop, Value);
     end;
   end;
+  if Item.Name <> '' then
   for I := 0 to 2 do
   begin
     Prop := GetPropInfo(Item.ClassInfo, Lists[I]);

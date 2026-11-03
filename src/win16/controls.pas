@@ -67,6 +67,8 @@ type
     FParent: TCustomControl;
     FChanging: Boolean;
     FCompositing: Boolean;
+    FColorBrush: HBRUSH;
+    FColorBrushColor: TColor;
     FLeft, FTop, FWidth, FHeight: Integer;
     FEnabled, FVisible: Boolean;
     FTabStop: Boolean;
@@ -133,6 +135,14 @@ type
     procedure CNDrawItem(var M: TWMDrawItem); message CN_DRAWITEM;
     procedure CNMeasureItem(var M: TWMMeasureItem); message CN_MEASUREITEM;
     procedure WMMeasureItem(var M: TWMMeasureItem); message WM_MEASUREITEM;
+    { As Delphi's TWinControl.WMCtlColor: the child answers CN_CTLCOLOR; a
+      child that leaves it at 0 gets USER's default colours. }
+    procedure WMCtlColor(var M: TMessage); message WM_CTLCOLOR;
+    { Sets DC's colours to Font and Color and returns a brush of Color, as
+      Delphi's CN_CTLCOLOR answer; the brush is owned by the control. }
+    function CtlColorBrush(DC: HDC): HBRUSH;
+    { Delphi's TWinControl.WMEraseBkgnd: fills the client area with Color. }
+    procedure EraseWithColor(var M: TMessage);
     { Delivers a CN_* message straight to Child's WndProc, as Delphi's
       Perform does, so a failure unwinds into the parent's handler. }
     function Reflect(Child: TCustomControl; Msg, WParam: Word; LParam: LongInt): LongInt;
@@ -153,6 +163,9 @@ type
       or when the control is freed, while the window and its contents still
       exist. }
     procedure CreateWnd; virtual;
+    { Runs after CreateWnd: state that Delphi would have put on a window made
+      earlier (by HandleNeeded) goes onto the new window here. }
+    procedure WndCreated; virtual;
     procedure DestroyWnd; virtual;
     { Ctl3D is kept and inherited as in Delphi. Dialog frames, check boxes
       and radio buttons use CTL3D.DLL when it is loaded (native_ctl3d). }
@@ -682,6 +695,9 @@ begin
   end;
   FControls.Free; FControls := nil;
   inherited Destroy;
+  { After the window is gone, so that USER no longer paints with it. }
+  if FColorBrush <> 0 then DeleteObject(FColorBrush);
+  FColorBrush := 0;
 end;
 function TCustomControl.IsVisualChild(Child: TControl): Boolean;
 begin
@@ -805,6 +821,35 @@ begin
     end;
   DefaultHandler(M);
 end;
+procedure TCustomControl.WMCtlColor(var M: TMessage);
+var Child: TCustomControl; Brush: LongInt;
+begin
+  Child := FindWindowedChild(LoWord(M.LParam));
+  if Child <> nil then
+  begin
+    Brush := Reflect(Child, CN_CTLCOLOR, M.WParam, M.LParam);
+    if Brush <> 0 then begin M.Result := Brush; Exit; end;
+  end;
+  DefaultHandler(M);
+end;
+function TCustomControl.CtlColorBrush(DC: HDC): HBRUSH;
+begin
+  if (FColorBrush = 0) or (FColorBrushColor <> Color) then
+  begin
+    if FColorBrush <> 0 then DeleteObject(FColorBrush);
+    FColorBrush := CreateSolidBrush(ColorToRGB(Color)); FColorBrushColor := Color;
+  end;
+  SetTextColor(DC, ColorToRGB(Font.Color));
+  SetBkColor(DC, ColorToRGB(Color));
+  Result := FColorBrush;
+end;
+procedure TCustomControl.EraseWithColor(var M: TMessage);
+var Area: TRect;
+begin
+  WinProcs.GetClientRect(Handle, Area);
+  WinProcs.FillRect(HDC(M.WParam), Area, CtlColorBrush(HDC(M.WParam)));
+  M.Result := 1;
+end;
 procedure TCustomControl.WMCommand(var M: TWMCommand);
 var Child: TCustomControl;
 begin
@@ -838,8 +883,11 @@ begin
   if not FEnabled then Style := Style or WS_DISABLED;
   CreateHandle(ParentWindow, '', Style, FLeft, FTop, FWidth, FHeight);
   CreateWnd;
+  WndCreated;
 end;
 procedure TCustomControl.CreateWnd;
+begin end;
+procedure TCustomControl.WndCreated;
 begin end;
 procedure TCustomControl.DestroyWnd;
 begin end;

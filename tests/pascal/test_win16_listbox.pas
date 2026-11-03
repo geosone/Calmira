@@ -9,8 +9,19 @@ type
     procedure DblClick(Sender: TObject);
     procedure Draw(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
   end;
-var Root: TCustomControl; List, Multi, Drawn: TListBox; Observer: TObserver; Failed: Boolean;
+  { Like Calmira's TCheckList: CreateWnd rereads the marks from Objects. }
+  TObjectMarks = class(TListBox)
+  protected
+    procedure CreateWnd; override;
+  end;
+var Root: TCustomControl; List, Multi, Drawn: TListBox; Marks: TObjectMarks; Index: Integer; Observer: TObserver; Failed: Boolean;
   Msg: TMsg; R: TRect; Rejected: Boolean; Pos: TPoint; Selected: string;
+procedure TObjectMarks.CreateWnd;
+var I: Integer;
+begin
+  inherited CreateWnd;
+  for I := 0 to Items.Count - 1 do Selected[I] := LongBool(Items.Objects[I]);
+end;
 procedure TObserver.Click(Sender: TObject); begin Inc(Clicks); end;
 procedure TObserver.DblClick(Sender: TObject); begin Inc(DblClicks); end;
 procedure TObserver.Draw(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
@@ -95,6 +106,18 @@ begin
     Multi.Selected[2] := False;
     Multi.Parent := nil; Multi.Parent := Root;
     Check((Multi.SelCount = 1) and Multi.Selected[0], 'multi-selection survives recreation');
+    Multi.Items[0] := 'eins'; Multi.Items[1] := 'zwei';
+    Check((Multi.Items[0] = 'eins') and Multi.Selected[0] and not Multi.Selected[1] and
+      (Multi.SelCount = 1), 'replaced entries keep their marks, as TCheckList ticks need');
+    Marks := TObjectMarks.Create(nil);
+    Marks.MultiSelect := True; Marks.ExtendedSelect := False;
+    for Index := 0 to 19 do Marks.Items.Add('mark ' + IntToStr(Index));
+    Marks.Selected[1] := True; Marks.Selected[18] := True; Marks.TopIndex := 0;
+    Marks.SetBounds(270, 10, 120, 60); Marks.Parent := Root;
+    Check((Marks.Handle <> 0) and Marks.Selected[1] and Marks.Selected[18] and (Marks.SelCount = 2) and
+      (Marks.Perform(LB_GETTOPINDEX, 0, 0) = 0),
+      'marks set before the window survive a CreateWnd that rereads them, at the top line');
+    Marks.Free;
     Rejected := False;
     try Multi.MultiSelect := False; except on ENativeWindowError do Rejected := True; end;
     Check(Rejected, 'creation styles are fixed on a live list');

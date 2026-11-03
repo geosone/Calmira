@@ -46,6 +46,8 @@ type
     FColumns, FItemHeight, FItemIndex, FTopIndex: Integer;
     FMultiSelect, FExtendedSelect, FIntegralHeight, FSorted: Boolean;
     FSelection: TBits;
+    { The marks the window was created with, put back after CreateWnd. }
+    FCreatedSelection: TBits;
     FDrawing: Boolean;
     FOnDrawItem: TDrawItemEvent;
     FOnMeasureItem: TMeasureItemEvent;
@@ -100,6 +102,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure DefaultHandler(var Message); override;
+    procedure WndCreated; override;
     procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt); override;
     procedure Clear;
@@ -168,14 +171,22 @@ begin Result := FItems.Objects[Index]; end;
 procedure TListBoxStrings.PutObject(Index: Integer; AObject: TObject);
 begin FItems.Objects[Index] := AObject; end;
 procedure TListBoxStrings.Put(Index: Integer; const S: AnsiString);
-var Selected, Old: Integer; AObject: TObject;
+var Selected, Old: Integer; AObject: TObject; Marked: Boolean;
 begin
   { The selection stays on the same entry: on the replaced one at its new
-    place, otherwise on the entry that was selected before. }
+    place, otherwise on the entry that was selected before. In a multiple
+    selection list (TCheckList keeps its ticks there) the replaced entry
+    keeps its own mark. }
   Selected := FListBox.ItemIndex; AObject := FItems.Objects[Index]; Old := Index;
+  Marked := FListBox.FMultiSelect and FListBox.Selected[Index];
   Delete(Index);
   if FListBox.FSorted then Index := Add(S) else Insert(Index, S);
   FItems.Objects[Index] := AObject;
+  if FListBox.FMultiSelect then
+  begin
+    FListBox.Selected[Index] := Marked;
+    Exit;
+  end;
   if Selected < 0 then Exit;
   if Selected = Old then Selected := Index
   else
@@ -256,7 +267,7 @@ end;
 destructor TCustomListBox.Destroy;
 begin
   inherited Destroy;
-  FSelection.Free;
+  FSelection.Free; FCreatedSelection.Free;
   FItems.Free;
 end;
 function TCustomListBox.NativeClassName: PChar;
@@ -321,13 +332,33 @@ begin
     if FItemIndex >= FItems.Count then FItemIndex := -1;
     if FMultiSelect then
     begin
+      FCreatedSelection.Free; FCreatedSelection := TBits.Create;
       for I := 0 to FItems.Count - 1 do
-        if (I < FSelection.Size) and FSelection[I] then Perform(LB_SETSEL, 1, I);
+        if (I < FSelection.Size) and FSelection[I] then
+        begin
+          Perform(LB_SETSEL, 1, I); FCreatedSelection[I] := True;
+        end;
       if FItemIndex >= 0 then Perform(LB_SETCARETINDEX, FItemIndex, 0);
     end
     else Perform(LB_SETCURSEL, FItemIndex, 0);
     Perform(LB_SETTOPINDEX, FTopIndex, 0);
   except DestroyHandle; raise; end;
+end;
+procedure TCustomListBox.WndCreated;
+var I, Top: Integer;
+begin
+  { Delphi's Selected creates the window, so marks set before (TCheckList's
+    SetData on a hidden page) are on it before a CreateWnd that rereads its
+    own state, as TCheckList's does from Items.Objects. }
+  if (FCreatedSelection <> nil) and (Handle <> 0) then
+  begin
+    { LB_SETSEL scrolls to the mark; the list keeps its top line. }
+    Top := Perform(LB_GETTOPINDEX, 0, 0);
+    for I := 0 to FItems.Count - 1 do
+      if (I < FCreatedSelection.Size) and FCreatedSelection[I] then SetSelected(I, True);
+    Perform(LB_SETTOPINDEX, Top, 0);
+  end;
+  FCreatedSelection.Free; FCreatedSelection := nil;
 end;
 procedure TCustomListBox.RequireLiveStyle;
 begin

@@ -23,6 +23,7 @@ type
     procedure FontChanged; override;
     function NativeClassName: PChar; override;
     procedure WndProc(var M: TMessage); override;
+    procedure CNCtlColor(var M: TMessage); message CN_CTLCOLOR;
     function ControlCommand(Code: Word): Boolean; override;
     function ControlMnemonic(Key: Char): Boolean; override;
     { BN_DOUBLECLICKED, which USER sends for radio buttons. }
@@ -46,7 +47,7 @@ type
     property TabOrder;
   end;
 implementation
-uses SysUtils, WinProcs, native_window, native_mnemonic;
+uses SysUtils, WinProcs, native_window, native_mnemonic, native_ctl3d;
 const RadioClass = 'CalmiraNativeRadioButton';
 var RadioProcedure: WNDPROC;
 constructor TRadioButton.Create(AOwner: TComponent);
@@ -60,12 +61,25 @@ function TRadioButton.NativeClassName: PChar;
 begin RegisterNativeSuperclass('BUTTON', RadioClass, RadioProcedure); Result := RadioClass; end;
 procedure TRadioButton.DefaultHandler(var Message);
 begin
+  { Delphi 1 makes Ctl3DBtnWndProc the default procedure of a Ctl3D button;
+    CTL3D draws the 3D box and calls the BUTTON procedure for the rest. }
   with TMessage(Message) do
-    Result := CallWindowProc(RadioProcedure, Handle, Msg, WParam, LParam);
+    if Ctl3D and (Ctl3DBtnWndProc <> nil) then
+      Result := CallWindowProc(WinTypes.WNDPROC(Ctl3DBtnWndProc), Handle, Msg, WParam, LParam)
+    else
+      Result := CallWindowProc(RadioProcedure, Handle, Msg, WParam, LParam);
+end;
+procedure TRadioButton.CNCtlColor(var M: TMessage);
+begin
+  { The background is the control's Color, which follows its parent. }
+  M.Result := CtlColorBrush(HDC(M.WParam));
 end;
 procedure TRadioButton.WndProc(var M: TMessage);
 begin
-  if (M.Msg = WM_PAINT) or (M.Msg = WM_ERASEBKGND) then DefaultHandler(M)
+  { CTL3D paints only the circle and the caption, so the background is
+    erased here, as Delphi's TWinControl does. }
+  if M.Msg = WM_ERASEBKGND then EraseWithColor(M)
+  else if M.Msg = WM_PAINT then DefaultHandler(M)
   else inherited WndProc(M);
 end;
 procedure TRadioButton.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;

@@ -2375,3 +2375,27 @@ the white edge. The fix belongs in `paintframe` in the Open386MAX
 the caption at `d + 1`. The input query test now has Delphi's 16 KiB
 stack, as the dialogs test and `CALMIRA.EXE` do. The child frames make its
 scripted modal loop deeper than the default 4 KiB allows.
+
+## CTL3D Buttons and Check Lists
+
+The General page of Desktop Properties now matches the original apart from
+the known one-pixel offset of the "Cancel" caption:
+
+- **Radio buttons and check boxes.** As in Delphi 1's StdCtrls, they use
+  `Ctl3DBtnWndProc` as their default procedure when Ctl3D is on, so CTL3D
+  draws the 3D circle and box. The parent reflects `WM_CTLCOLOR` to the
+  child as `CN_CTLCOLOR`, and the child answers with a brush of its Color,
+  which follows the parent. Before, `DefWindowProc` gave them Windows 3.1's
+  white. `WM_ERASEBKGND` fills the button with that brush, as Delphi's
+  `TWinControl` does; CTL3D does not erase, so parts of the previous page
+  showed through.
+- **Radio group captions.** The catalogue no longer has a key for unnamed
+  components. Notebook pages have no name, so all of them wrote one
+  `TDeskPropDlg..Caption` key, and the language layer then renamed every
+  unnamed radio button "Fonts". `LangUI` skips unnamed components, and the
+  stale keys left the project translations.
+- **Check list ticks.** `TCheckList` keeps its ticks as list box marks.
+  Replacing an item's text, which the language layer does, now keeps the
+  item's mark. Marks set before the window exists (`SetData` on a hidden
+  page) are put back after `CreateWnd`. In Delphi, `Selected` creates the
+  window earlier, before `TCheckList.CreateWnd` rereads `Items.Objects`.

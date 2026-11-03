@@ -9,7 +9,7 @@ type
     procedure Clicked(Sender: TObject);
   end;
 var Root, Peer: TCustomControl; Box: TCheckBox; Observer: TObserver;
-  Failed, Rejected: Boolean; I, Before, PoolUser, PoolGDI: Integer; Raw: HWND;
+  Failed, Rejected: Boolean; I, Before, PoolUser, PoolGDI: Integer; Raw: HWND; DC: HDC; Brush: LongInt;
   Buffer: array[0..255] of Char; Font: TFont;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string; Data: array[0..255] of Char;
@@ -51,6 +51,11 @@ begin
     GetWindowText(Box.Handle, Buffer, SizeOf(Buffer));
     Check((StrPas(Buffer) = 'Remember') and (Box.Perform(BM_GETCHECK, 0, 0) = 1) and
       (Observer.Calls = Before) and Box.TabStop, 'native creation restores state quietly');
+    Root.Color := clYellow; DC := GetDC(Box.Handle);
+    Brush := SendMessage(Root.Handle, WM_CTLCOLOR, DC, MakeLong(Box.Handle, CTLCOLOR_BTN));
+    Check((Brush <> 0) and (Box.Color = clYellow) and (GetBkColor(DC) = ColorToRGB(clYellow)),
+      'the parent answers WM_CTLCOLOR with the box''s inherited Color, as Delphi');
+    ReleaseDC(Box.Handle, DC); Root.Color := clBtnFace;
     MouseClick;
     Check(not Box.Checked and (Observer.Calls = Before + 1), 'mouse toggles exactly once');
     Box.SetFocus; Before := Observer.Calls;

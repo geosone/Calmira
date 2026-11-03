@@ -45,6 +45,25 @@ class Ctl3DTest(unittest.TestCase):
         self.assertIn("inherited CreateHandle(Parent, '', Style, X + 1, Y + 1, Width - 2, Height - 2);",
                       source('native_listbox.pas'))
 
+    def test_buttons_run_through_ctl3d_on_their_parents_color(self):
+        controls = source('controls.pas')
+        self.assertIn('procedure WMCtlColor(var M: TMessage); message WM_CTLCOLOR;', controls)
+        self.assertIn('Brush := Reflect(Child, CN_CTLCOLOR, M.WParam, M.LParam);', controls)
+        self.assertIn('WinProcs.FillRect(HDC(M.WParam), Area, CtlColorBrush(HDC(M.WParam)));', controls)
+        self.assertIn('  CreateWnd;\n  WndCreated;\nend;', controls)
+        for unit in ('native_checkbox.pas', 'native_radio.pas'):
+            text = source(unit)
+            self.assertIn('if Ctl3D and (Ctl3DBtnWndProc <> nil) then\n'
+                          '      Result := CallWindowProc(WinTypes.WNDPROC(Ctl3DBtnWndProc),', text)
+            self.assertIn('M.Result := CtlColorBrush(HDC(M.WParam));', text)
+            self.assertIn('if M.Msg = WM_ERASEBKGND then EraseWithColor(M)', text)
+
+    def test_marks_set_before_the_list_window_survive_createwnd(self):
+        listbox = source('native_listbox.pas')
+        self.assertIn('if (I < FCreatedSelection.Size) and FCreatedSelection[I] then SetSelected(I, True);',
+                      listbox)
+        self.assertIn('Marked := FListBox.FMultiSelect and FListBox.Selected[Index];', listbox)
+
     def test_message_dialogs_use_delphi_1_font_and_layout(self):
         dialogs = source('dialogs.pas')
         self.assertIn("Form.Font.Name := 'MS Sans Serif'; Form.Font.Size := 8; Form.Font.Style := [fsBold];",

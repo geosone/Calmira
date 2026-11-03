@@ -109,6 +109,10 @@ class DfmReader:
                 break
             value = self.value()
             key = f'{root_class}.{name}.{prop}'
+            # Unnamed components (notebook pages) share one key, so the last
+            # page's caption would win; their texts come from Pages.Strings.
+            if not name:
+                continue
             if prop in self.properties:
                 result[key] = value
             if prop in ('Caption', 'Hint') and isinstance(value, str):

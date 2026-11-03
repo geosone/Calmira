@@ -24,6 +24,7 @@ type
     procedure FontChanged; override;
     function NativeClassName: PChar; override;
     procedure WndProc(var M: TMessage); override;
+    procedure CNCtlColor(var M: TMessage); message CN_CTLCOLOR;
     function ControlCommand(Code: Word): Boolean; override;
     function ControlMnemonic(Key: Char): Boolean; override;
   public
@@ -47,7 +48,7 @@ type
     property TabOrder;
   end;
 implementation
-uses SysUtils, WinProcs, native_window, native_mnemonic;
+uses SysUtils, WinProcs, native_window, native_mnemonic, native_ctl3d;
 function TCheckBox.ControlMnemonic(Key: Char): Boolean;
 begin
   Result := CanFocus and CaptionMatches(Caption, Key);
@@ -80,13 +81,26 @@ function TCheckBox.NativeClassName: PChar;
 begin RegisterNativeSuperclass('BUTTON', CheckClass, CheckProcedure); Result := CheckClass; end;
 procedure TCheckBox.DefaultHandler(var Message);
 begin
+  { Delphi 1 makes Ctl3DBtnWndProc the default procedure of a Ctl3D button;
+    CTL3D draws the 3D box and calls the BUTTON procedure for the rest. }
   with TMessage(Message) do
-    Result := CallWindowProc(CheckProcedure, Handle, Msg, WParam, LParam);
+    if Ctl3D and (Ctl3DBtnWndProc <> nil) then
+      Result := CallWindowProc(WinTypes.WNDPROC(Ctl3DBtnWndProc), Handle, Msg, WParam, LParam)
+    else
+      Result := CallWindowProc(CheckProcedure, Handle, Msg, WParam, LParam);
+end;
+procedure TCheckBox.CNCtlColor(var M: TMessage);
+begin
+  { The background is the control's Color, which follows its parent. }
+  M.Result := CtlColorBrush(HDC(M.WParam));
 end;
 procedure TCheckBox.WndProc(var M: TMessage);
 begin
   if M.Msg = WM_DESTROY then FState := GetState;
-  if (M.Msg = WM_PAINT) or (M.Msg = WM_ERASEBKGND) then DefaultHandler(M)
+  { CTL3D paints only the box and the caption, so the background is erased
+    here, as Delphi's TWinControl does. }
+  if M.Msg = WM_ERASEBKGND then EraseWithColor(M)
+  else if M.Msg = WM_PAINT then DefaultHandler(M)
   else inherited WndProc(M);
 end;
 procedure TCheckBox.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
