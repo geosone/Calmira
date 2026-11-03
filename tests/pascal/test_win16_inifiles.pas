@@ -35,6 +35,7 @@ begin
     Check(Ini.FileName = IniName, 'file name');
     Check(Ini.ReadString('Main', 'Name', '') = 'Calmira', 'read string');
     Check(Ini.ReadString('Main', 'Missing', 'dflt') = 'dflt', 'string default');
+    Check(Ini.ReadString('Main', 'Missing', #1) = '', 'Windows trims a control-character default, so it cannot mark a missing key');
     Check(Ini.ReadInteger('Main', 'Hex', 0) = 31, 'C hex integer');
     Check(Ini.ReadInteger('Main', 'Big', 0) = 100000, 'long integer');
     Check(Ini.ReadInteger('Main', 'Bad', 7) = 7, 'invalid integer default');

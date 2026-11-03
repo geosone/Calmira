@@ -52,6 +52,17 @@ class ShellUnitTests(unittest.TestCase):
                      'ShellExecute', 'FindExecutable'):
             self.assertRegex(source, rf"function {name}\([^;]*(;[^;]*)*?\)[^;]*; external 'SHELL';")
 
+    def test_program_group_sync_marks_missing_keys_printably(self):
+        # Windows 3.1 trims a #1 default to '', which gave every imported
+        # group and program a " (99)" suffix and rewrote START.INI each start.
+        source = (ROOT / 'src/grpsync.pas').read_text()
+        self.assertIn("NoKey = '<no key>';", source)
+        self.assertNotIn(', #1)', source)
+        probe = (ROOT / 'tests/pascal/test_win16_inifiles.pas').read_text()
+        self.assertIn('Windows trims a control-character default', probe)
+        start = (ROOT / 'tests/pascal/test_win16_calmira_start.pas').read_text()
+        self.assertIn('group names keep their captions, without a (99) suffix', start)
+
     def test_inifiles_uses_profile_api(self):
         source = (ROOT / 'src/win16/inifiles.pas').read_text()
         self.assertIn('GetPrivateProfileString', source)

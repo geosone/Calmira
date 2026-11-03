@@ -2115,4 +2115,21 @@ Covered by:
 - `win16-dialogs`: font, button class and style, and owner of a message
   dialog.
 
-Still different from the original: USER resources 85% free against 87%.
+USER resources stay at 85% free against the original's 87%. A walk of
+all USER heaps shows the difference in the menu heap, about 1 KB more. That is
+the Start menu's *Program Manager* tree, which the original does not have
+(see `docs/program_groups.md`).
+
+## Program Manager Group Names
+
+Every imported group and program was called, for example,
+`Hauptgruppe (99)`, and START.INI was rewritten at every start. `GrpSync`
+used `#1` as the default of `ReadString` to detect a missing key. Windows
+3.1's `GetPrivateProfileString` trims control characters from the default
+as it does blanks, so a missing key read as `''`. `UniqueKey` then took every
+name as taken and counted up to `(99)`, and the Program Manager tree never
+seemed present. The sentinel is now the printable `<no key>`.
+
+Covered by:
+- `win16-inifiles`: a `#1` default comes back empty;
+- `win16-calmira-start`: the main group is in START.INI under its own name.

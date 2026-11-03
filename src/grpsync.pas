@@ -102,6 +102,11 @@ begin
   end;
 end;
 
+const
+  { GetPrivateProfileString trims control characters and blanks from the
+    default, so a missing key is told apart by a printable value. }
+  NoKey = '<no key>';
+
 function UniqueKey(Profile: TProfile; const Section, Wanted: string;
   SubMenu: Boolean): string;
 var
@@ -113,10 +118,10 @@ begin
   Number := 1;
   repeat
     if SubMenu then
-      Existing := Profile.ReadString(Section, Candidate + '*', #1)
+      Existing := Profile.ReadString(Section, Candidate + '*', NoKey)
     else
-      Existing := Profile.ReadString(Section, Candidate, #1);
-    if Existing = #1 then
+      Existing := Profile.ReadString(Section, Candidate, NoKey);
+    if Existing = NoKey then
     begin
       UniqueKey := Candidate;
       Exit;
@@ -206,7 +211,7 @@ begin
     StartProfile := TProfile.Create(StartFile);
     try
       RootPresent := StartProfile.ReadString(ParentSection,
-        RootCaption + '*', #1) <> #1;
+        RootCaption + '*', NoKey) <> NoKey;
       if not Force and (Signature = OldSignature) and
         (((Imported <> 0) and RootPresent) or
          ((Imported = 0) and not RootPresent)) then

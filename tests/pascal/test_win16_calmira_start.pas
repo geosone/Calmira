@@ -103,6 +103,9 @@ begin
       'Program Manager has a taskbar button, so its icon moves off the desktop');
     Check(StartEntry('Start\&Programs', 'Program Manager*') <> '',
       'Program Manager groups are synchronised into the Start menu');
+    Check((StartEntry('Start\&Programs\Program Manager', 'Hauptgruppe*') <> '') and
+      (StartEntry('Start\&Programs\Program Manager', 'Hauptgruppe (99)*') = ''),
+      'group names keep their captions, without a (99) suffix');
     Check(Find('Error') = 0, 'no error box while starting');
     Bar := Find('Taskbar');
     if Bar <> 0 then GetWindowRect(Bar, R);
