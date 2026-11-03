@@ -2010,10 +2010,38 @@ Covered by:
   tip title matches the bitmap).
 
 Still different from the original:
-- The clock shows 12:00 AM (the `SysUtils` date bugs above).
 - Every form is a top-level window of its own. In Delphi they are owned by
   the visible, zero-sized `TApplication` window, so Windows' task list shows
   only "Calmira". Window classes are `CalmiraNativeWindow` instead of the
   form class names.
 - The taskbar button of the active task is not drawn bold.
 - System resources are lower (67% against 81% free).
+
+## Clock, Dates and Regional Settings
+
+The taskbar clock shows the time, and numbers and dates follow the regional
+settings, as in the original.
+- **Value parameters over six bytes (compiler,
+  `fpc-i8086-stack-copy-address.patch`).** In a routine that makes calls, the
+  i8086 code generator copies a `Double` or record value parameter to the
+  stack with `FPC_MOVE`. It took the destination address from `SP` only
+  after pushing the source address, so the copy landed six bytes too low. The
+  callee then saw almost zero. `DecodeDate`, `DecodeTime`,
+  `SystemTimeToDateTime` and `Now` all pass a `TDateTime` this way; the
+  "constant" `SysUtils.GetTickCount` and the 12:00 AM clock came from the
+  same bug. Upstream `main` has the same code. The fix addresses the
+  reserved area through a register loaded from `SP` before the pushes.
+- **Regional settings (RTL, `fpc-win16-delphi1-intl.patch`,
+  `-dCALMIRA_WIN16_DELPHI1_INTL`).** FPC's Win16 `SysUtils` kept fixed
+  defaults. Like Delphi 1's `GetFormatSettings`, it now reads the `[intl]`
+  section of WIN.INI: currency, separators, short and long date formats,
+  and the time format with `iTime`, `iTLZero`, `s1159` and `s2359`. The
+  About box shows "78,64 MB" on a German Windows, as the original does.
+
+Covered by:
+- `win16-class-pointer` (a `Double` and an eight-byte record reach a value
+  parameter, `EncodeTime`, `FormatDateTime`);
+- `win16-far-imports` (decimal separator and short date format from
+  WIN.INI);
+- the patch guards in `test_fpc_class_pointer`, `test_win16_messages` and
+  `test_win16_shell_units`.

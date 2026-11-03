@@ -20,6 +20,7 @@ def checkout(directory):
     files = {'compiler/i8086/n8086add.pas': (UPSTREAM / 'compiler/i8086/n8086add.pas').read_bytes(),
              'compiler/i8086/n8086ld.pas': (UPSTREAM / 'compiler/i8086/n8086ld.pas').read_bytes(),
              'compiler/i8086/hlcgcpu.pas': (UPSTREAM / 'compiler/i8086/hlcgcpu.pas').read_bytes(),
+             'compiler/i8086/cgcpu.pas': (UPSTREAM / 'compiler/i8086/cgcpu.pas').read_bytes(),
              'compiler/pstatmnt.pas': (UPSTREAM / 'compiler/pstatmnt.pas').read_bytes(),
              'compiler/systems/t_win16.pas': (UPSTREAM / 'compiler/systems/t_win16.pas').read_bytes(),
              'compiler/Makefile': b'# fixture\n', 'rtl/Makefile': b'# fixture\n',
@@ -145,6 +146,19 @@ class CompilerPointerTests(unittest.TestCase):
             self.assertTrue((output / 'lang/de.LNG').is_file())
             self.assertTrue((output / 'lang/fr.LNG').is_file())
 
+
+    def test_stack_copies_are_addressed_before_the_move_pushes(self):
+        patch_file = ROOT / 'tools/patches/fpc-i8086-stack-copy-address.patch'
+        self.assertIn(patch_file, stage.PATCHES)
+        patch_text = patch_file.read_text()
+        self.assertIn('+                a_load_reg_reg(list,OS_16,OS_16,NR_STACK_POINTER_REG,tmpreg);', patch_text)
+        self.assertIn('+                href.segment:=NR_SS;', patch_text)
+        self.assertIn('-                reference_reset_base(href,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);', patch_text)
+        probe = (ROOT / 'tests/pascal/test_win16_class_pointer.pas').read_text()
+        for text in ('a Double from memory reaches a value parameter',
+                     'an eight-byte record reaches a value parameter',
+                     'SysUtils formats a date and time'):
+            self.assertIn(text, probe)
 
 if __name__ == '__main__':
     unittest.main()

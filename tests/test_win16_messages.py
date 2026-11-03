@@ -67,7 +67,8 @@ class Win16MessageTests(unittest.TestCase):
                          'rtl/objpas/sysutils/datih.inc',
                          'rtl/objpas/sysutils/dati.inc', 'rtl/win16/winprocsh.inc',
                          'rtl/win16/winprocs.inc', 'rtl/win16/win31.pp',
-                         'rtl/win16/wintypes.inc', 'rtl/win16/Makefile', 'rtl/win16/Makefile.fpc'):
+                         'rtl/win16/wintypes.inc', 'rtl/win16/sysutils.pp',
+                         'rtl/win16/Makefile', 'rtl/win16/Makefile.fpc'):
                 target = source / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 extra[name] = (ROOT / 'vendor/reference/freepascal' / name).read_bytes()
@@ -90,6 +91,11 @@ class Win16MessageTests(unittest.TestCase):
             sysstr = (first / 'rtl/objpas/sysutils/sysstr.inc').read_text(encoding='latin1')
             for text in ('   Result:=NullStr', "  if (S <> Nil) and (S^ <> '') then", '  DisposeStr(P);\n  P := NewStr(S);'):
                 self.assertIn(text, sysstr)
+            sysutils = (first / 'rtl/win16/sysutils.pp').read_text(encoding='latin1')
+            for text in ('{$ifdef CALMIRA_WIN16_DELPHI1_INTL}', "GetProfileString('intl', KeyZ, DefaultZ, Buffer, SizeOf(Buffer));",
+                         "DecimalSeparator := IntlChar('sDecimal', '.');", "TimePostfix := ' AMPM'",
+                         '  GetDelphi1FormatSettings;'):
+                self.assertIn(text, sysutils)
             self.assertIn('Procedure FmtStr(Var Res: OpenString; Const Fmt : String; Const args: Array of const);',
                           (first / 'rtl/objpas/sysutils/sysstrh.inc').read_text(encoding='latin1'))
             self.assertIn('TFileName = ShortString;',

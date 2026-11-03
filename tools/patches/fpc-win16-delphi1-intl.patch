@@ -1,0 +1,83 @@
+diff -ru a/rtl/win16/sysutils.pp b/rtl/win16/sysutils.pp
+--- a/rtl/win16/sysutils.pp
++++ b/rtl/win16/sysutils.pp
+@@ -797,9 +797,79 @@
+ end;
+ 
+ 
++{$ifdef CALMIRA_WIN16_DELPHI1_INTL}
++{ As Delphi 1's GetFormatSettings: the [intl] section of WIN.INI. }
++function IntlString(const Key, Default: ShortString): ShortString;
++var
++  KeyZ, DefaultZ: array[0..31] of AnsiChar;
++  Buffer: array[0..255] of AnsiChar;
++begin
++  StrPCopy(KeyZ, Key);
++  StrPCopy(DefaultZ, Default);
++  GetProfileString('intl', KeyZ, DefaultZ, Buffer, SizeOf(Buffer));
++  Result := StrPas(Buffer);
++end;
++
++function IntlChar(const Key: ShortString; Default: AnsiChar): AnsiChar;
++var
++  Value: ShortString;
++begin
++  Value := IntlString(Key, Default);
++  if Value = '' then
++    Result := Default
++  else
++    Result := Value[1];
++end;
++
++function IntlInt(const Key: ShortString; Default: SmallInt): SmallInt;
++var
++  KeyZ: array[0..31] of AnsiChar;
++begin
++  StrPCopy(KeyZ, Key);
++  Result := SmallInt(GetProfileInt('intl', KeyZ, Default));
++end;
++
++procedure GetDelphi1FormatSettings;
++var
++  HourFormat, TimePrefix, TimePostfix: ShortString;
++begin
++  with DefaultFormatSettings do
++  begin
++  CurrencyString := IntlString('sCurrency', '');
++  CurrencyFormat := IntlInt('iCurrency', 0);
++  NegCurrFormat := IntlInt('iNegCurr', 0);
++  ThousandSeparator := IntlChar('sThousand', ',');
++  DecimalSeparator := IntlChar('sDecimal', '.');
++  CurrencyDecimals := IntlInt('iCurrDigits', 2);
++  DateSeparator := IntlChar('sDate', '/');
++  ShortDateFormat := IntlString('sShortDate', 'm/d/yy');
++  LongDateFormat := IntlString('sLongDate', 'mmmm d, yyyy');
++  TimeSeparator := IntlChar('sTime', ':');
++  TimeAMString := IntlString('s1159', 'am');
++  TimePMString := IntlString('s2359', 'pm');
++  TimePrefix := '';
++  TimePostfix := '';
++  if IntlInt('iTLZero', 0) = 0 then
++    HourFormat := 'h'
++  else
++    HourFormat := 'hh';
++  if IntlInt('iTime', 0) = 0 then
++    if IntlInt('iTimePrefix', 0) = 0 then
++      TimePostfix := ' AMPM'
++    else
++      TimePrefix := 'AMPM ';
++  ShortTimeFormat := TimePrefix + HourFormat + ':mm' + TimePostfix;
++  LongTimeFormat := TimePrefix + HourFormat + ':mm:ss' + TimePostfix;
++  end;
++end;
++{$endif CALMIRA_WIN16_DELPHI1_INTL}
++
+ Procedure InitInternational;
+ begin
+   InitInternationalGeneric;
++{$ifdef CALMIRA_WIN16_DELPHI1_INTL}
++  GetDelphi1FormatSettings;
++{$endif CALMIRA_WIN16_DELPHI1_INTL}
+   InitAnsi;
+ end;
+ 

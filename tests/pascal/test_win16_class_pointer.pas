@@ -23,6 +23,9 @@ type
 var Instance, AliasValue, Fake, Other: TLarge; Kind, OtherKind: TLargeClass;
   Failed, ThrowNow, Rejected: Boolean; Constructors, Destructors, Afters, Befores, I: Integer;
   OwnerNode, ChildNode: TLargeComponent; ComponentDeaths: Integer;
+type
+  TQuad = record A, B, C, D: Word; end;
+var Stored: Double; Quad: TQuad; Count: LongInt; Wide: Cardinal;
 {$I win16_stack_guard.inc}
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
@@ -104,10 +107,28 @@ begin
   Check(Rejected and (Instance = nil) and (Constructors = 2) and
     (Destructors = 2) and (Afters = 1) and (Befores = 1), 'failed constructor cleanup');
 end;
+function Thousandths(X: Double): LongInt;
+begin Result := Trunc(X * 1000); end;
+function QuadSum(Q: TQuad): LongInt;
+begin Result := LongInt(Q.A) + Q.B + Q.C + Q.D; end;
+{ A value parameter over six bytes is copied to the stack by FPC_MOVE in a
+  routine that makes calls; its address must be taken before the pushes. }
+procedure StackCopies;
+begin
+  Count := 46328; Stored := Count;
+  Check(Thousandths(Stored) = 46328000, 'a Double from memory reaches a value parameter');
+  Wide := 60000; Stored := Wide; Stored := Stored + 0.5;
+  Check(Thousandths(Stored) = 60000500, 'a Cardinal converted to Double keeps its value');
+  Quad.A := 1; Quad.B := 20; Quad.C := 300; Quad.D := 4000;
+  Check(QuadSum(Quad) = 4321, 'an eight-byte record reaches a value parameter');
+  Check(Trunc(Frac(EncodeTime(13, 45, 30, 0)) * 24) = 13, 'EncodeTime and Frac agree');
+  Check(FormatDateTime('yyyy-mm-dd hh:nn', EncodeDate(2026, 11, 3) + EncodeTime(13, 45, 0, 0)) =
+    '2026-11-03 13:45', 'SysUtils formats a date and time');
+end;
 begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP far class pointers');
   try
-    CompareSynthetic; Construct; Components;
+    CompareSynthetic; Construct; Components; StackCopies;
     for I := 1 to 40 do begin Instance := TLarge.Create; Instance.Free; Instance := nil; end;
     Check((Constructors = 42) and (Destructors = 42) and (Afters = 41) and
       (Befores = 41), 'repeated lifetime balance');

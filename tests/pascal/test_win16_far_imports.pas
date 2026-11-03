@@ -2,6 +2,7 @@ program TestWin16FarImports;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
 uses WinTypes, WinProcs, SysUtils, far_import_probe;
 var Failed: Boolean; Before, Ticks: LongInt; Name, Target: PString;
+  Buffer: array[0..63] of Char;
 procedure LogLine(const Text: string);
 var F: HFILE; S: string;
 begin
@@ -25,6 +26,11 @@ begin
     Check(CompareText(ExtractFileName(ProbeParamStr(0)), 'GDITEST.EXE') = 0,
       'ParamStr links in Delphi mode');
     Check(ProbeParamStr(99) = '', 'ParamStr beyond ParamCount is empty');
+    GetProfileString('intl', 'sDecimal', '.', Buffer, SizeOf(Buffer));
+    Check((DecimalSeparator = Buffer[0]) and (Buffer[0] <> #0),
+      'SysUtils takes the decimal separator from WIN.INI, as in Delphi 1');
+    GetProfileString('intl', 'sShortDate', 'm/d/yy', Buffer, SizeOf(Buffer));
+    Check(ShortDateFormat = StrPas(Buffer), 'SysUtils takes the short date format from WIN.INI');
     { Calmira's TReference starts every field at NullStr and fills it with AssignStr. }
     Name := NullStr; Target := NullStr;
     AssignStr(Name, 'Calmira Explorer'); AssignStr(Target, 'C:\');

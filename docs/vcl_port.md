@@ -1463,6 +1463,15 @@ Two more compiler patches make libraries work:
 - `fpc-win16-export-names-upper.patch` writes export names in upper case,
   which is how Windows looks them up.
 
+`fpc-i8086-stack-copy-address.patch` fixes value parameters over six bytes
+(`Double`, `TRect` and other records). In a routine that makes calls, the
+compiler copies such a parameter to the stack with `FPC_MOVE`. It pushed the
+source address first and only then took the destination address from `SP`,
+six bytes below the reserved area, so the parameter arrived as garbage. Every
+`TDateTime` passed by value was affected. The copy now addresses the reserved
+area through a register loaded from `SP` before the pushes. Upstream `main`
+has the same code.
+
 `prepare_fpc_compiler.py` stages only tracked compiler/bootstrap-RTL sources and
 licenses outside the pinned checkout, applies the patches in order with zero
 fuzz, and records revision, per-patch/builder hashes and bootstrap identity. Source, patch,

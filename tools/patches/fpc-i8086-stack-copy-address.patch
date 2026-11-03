@@ -1,0 +1,26 @@
+diff -ru a/compiler/i8086/cgcpu.pas b/compiler/i8086/cgcpu.pas
+--- a/compiler/i8086/cgcpu.pas
++++ b/compiler/i8086/cgcpu.pas
+@@ -1458,6 +1458,7 @@
+       var
+         len : tcgint;
+         href : treference;
++        tmpreg : tregister;
+       begin
+         { cgpara.size=OS_NO requires a copy on the stack }
+         if use_push(cgpara) then
+@@ -1468,7 +1469,13 @@
+                 cgpara.check_simple_location;
+                 len:=align(cgpara.intsize,cgpara.alignment);
+                 g_stackpointer_alloc(list,len);
+-                reference_reset_base(href,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
++                { Address the copy through a register: a copy by FPC_MOVE
++                  pushes its source before it takes the destination's
++                  address, which would then be below the reserved area. }
++                tmpreg:=getaddressregister(list);
++                a_load_reg_reg(list,OS_16,OS_16,NR_STACK_POINTER_REG,tmpreg);
++                reference_reset_base(href,tmpreg,0,ctempposinvalid,4,[]);
++                href.segment:=NR_SS;
+                 g_concatcopy(list,r,href,len);
+               end
+             else
