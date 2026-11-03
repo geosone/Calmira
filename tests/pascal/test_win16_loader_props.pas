@@ -98,10 +98,12 @@ begin
   SetCursorPos(Main.ClientToScreen(Point(350, 10)).X, Main.ClientToScreen(Point(350, 10)).Y);
   SendMessage(Main.Handle, WM_SETCURSOR, Main.Handle, MakeLong(HTCLIENT, WM_MOUSEMOVE));
   Check(GetCursor <> LoadCursor(0, IDC_IBEAM), 'away from the control the cursor is not used');
-  try
-    Wide.Cursor := 12345;
-    Check(False, 'an unknown graphic cursor is rejected');
-  except on E: Exception do Check(Wide.Cursor = crIBeam, 'an unknown graphic cursor is rejected'); end;
+  Wide.Cursor := 12345;
+  SetCursorPos(Main.ClientToScreen(Point(Wide.Left + 2, Wide.Top + 2)).X,
+    Main.ClientToScreen(Point(Wide.Left + 2, Wide.Top + 2)).Y);
+  SendMessage(Main.Handle, WM_SETCURSOR, Main.Handle, MakeLong(HTCLIENT, WM_MOUSEMOVE));
+  Check((Wide.Cursor = 12345) and (GetCursor = LoadCursor(0, IDC_ARROW)),
+    'an unknown graphic cursor shows the default arrow, as Delphi');
 end;
 procedure CheckClicks;
 var Image: TImage; Radio: TRadioButton; Box: TCheckBox; Hidden: TEdit; Msg: TMsg;

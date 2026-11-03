@@ -1,0 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later
+   Cursors Delphi's Controls unit links from CONTROLS.RES (crDrag,
+   crMultiDrag, crHSplit). The images are Microsoft WinFile's move and split
+   cursors (MIT, vendor/reference/microsoft-winfile); compile with
+   -i=vendor/reference/microsoft-winfile/src. */
+DRAG      CURSOR smove.cur
+MULTIDRAG CURSOR mmove.cur
+HSPLIT    CURSOR split.cur

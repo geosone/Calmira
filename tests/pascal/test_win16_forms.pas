@@ -369,6 +369,9 @@ begin
   Rejected := False;
   try DeallocateHWnd(Wnd); except on ENativeWindowError do Rejected := True; end;
   Check(Rejected, 'unknown windows are rejected');
+  Rejected := False;
+  try DeallocateHWnd(0); except on Exception do Rejected := True; end;
+  Check(not Rejected, 'DeallocateHWnd(0) is harmless, as Delphi (TExtForm.Destroy after a failed create)');
 end;
 procedure ModalFree;
 begin

@@ -44,7 +44,20 @@ begin
     crSizeWE: Resource := IDC_SIZEWE;
     crUpArrow: Resource := IDC_UPARROW;
     crHourGlass: Resource := IDC_WAIT;
-  else Result := False; Exit; end;
+  else
+    { Delphi links its own drag and splitter cursors (CONTROLS.RES); ours
+      come from src/win16/controls.rc when the program links it. }
+    case Index of
+      crDrag: Value := LoadCursor(HInstance, 'DRAG');
+      crMultiDrag: Value := LoadCursor(HInstance, 'MULTIDRAG');
+      crHSplit: Value := LoadCursor(HInstance, 'HSPLIT');
+    end;
+    if Value <> 0 then Exit;
+    { As Delphi's Screen.Cursors: an index without a cursor shows the default
+      arrow. Calmira's DFMs name its own cursors (crFinger) before
+      registering them. }
+    Resource := IDC_ARROW;
+  end;
   Value := LoadCursor(0, Resource); Result := Value <> 0;
 end;
 function LookupNativeCursor(Index: TCursor; var Value: HCURSOR): Boolean;

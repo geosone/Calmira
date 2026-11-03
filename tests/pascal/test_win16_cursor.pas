@@ -57,9 +57,15 @@ begin
   PointAt(Edit.Handle, 10, 10);
   Check(CursorTarget = Edit.Handle, 'packed POINT hit testing finds real EDIT');
   CursorMessage(Edit.Handle, HTCLIENT); Check(CurrentCursor = Beam, 'native EDIT default cursor preserved');
-  Rejected := False;
-  try Edit.Cursor := 1234; except on ENativeWindowError do Rejected := True; end;
-  Check(Rejected and (Edit.Cursor = crDefault) and (CurrentCursor = Beam), 'invalid control cursor preserves state');
+  Edit.Cursor := 1234; CursorMessage(Edit.Handle, HTCLIENT);
+  Check((Edit.Cursor = 1234) and (CurrentCursor = Arrow), 'an unknown control cursor shows the default arrow, as Delphi');
+  Edit.Cursor := crDefault;
+  Edit.Cursor := crHSplit; CursorMessage(Edit.Handle, HTCLIENT);
+  Check((CurrentCursor = LoadCursor(HInstance, 'HSPLIT')) and (CurrentCursor <> 0) and (CurrentCursor <> Arrow),
+    'crHSplit shows the linked splitter cursor, as Delphi');
+  Edit.Cursor := crDrag; CursorMessage(Edit.Handle, HTCLIENT);
+  Check((CurrentCursor = LoadCursor(HInstance, 'DRAG')) and (CurrentCursor <> 0), 'crDrag shows the linked drag cursor');
+  Edit.Cursor := crDefault;
 end;
 procedure PriorityAndStack;
 begin
@@ -72,9 +78,9 @@ begin
   Check((View.CursorDepth = 2) and (View.Cursor = crNone) and (CurrentCursor = 0), 'nested none cursor hides image');
   View.PopCursor; Check((View.Cursor = crCross) and (CurrentCursor = Cross), 'inner pop restores outer cursor');
   View.PopCursor; Check((View.CursorDepth = 0) and (CurrentCursor = WaitCursor), 'outer pop restores busy cursor');
-  Rejected := False;
-  try View.PushCursor(1234); except on ENativeCursorError do Rejected := True; end;
-  Check(Rejected and (View.CursorDepth = 0) and (View.Cursor = crHourGlass), 'invalid push preserves state');
+  View.PushCursor(1234);
+  Check((View.CursorDepth = 1) and (View.Cursor = 1234) and (CurrentCursor = Arrow), 'an unknown screen cursor shows the default arrow, as Delphi');
+  View.PopCursor; Check((View.CursorDepth = 0) and (View.Cursor = crHourGlass), 'pop after an unknown cursor restores the busy cursor');
   Rejected := False;
   try View.PopCursor; except on ENativeCursorError do Rejected := True; end;
   Check(Rejected and (CurrentCursor = WaitCursor), 'empty pop preserves image');
@@ -103,7 +109,7 @@ begin
   View.Cursors[77] := Cross; Edit.Cursor := 77;
   Check(CurrentCursor = Cross, 'control resolves registered custom cursor');
   View.Cursors[77] := 0; CursorMessage(Edit.Handle, HTCLIENT);
-  Check(CurrentCursor = Beam, 'removed control cursor safely falls back to USER'); Edit.Cursor := crDefault;
+  Check(CurrentCursor = Arrow, 'a removed control cursor shows the default arrow, as Delphi'); Edit.Cursor := crDefault;
   Rejected := False;
   try Other.Cursor := crCross; except on ENativeCursorError do Rejected := True; end;
   Check(Rejected and (Other.Cursor = crDefault), 'second screen cannot steal cursor controller');

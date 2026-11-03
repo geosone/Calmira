@@ -2208,3 +2208,45 @@ Covered by:
   and graphic controls, a pending state after an external show;
 - `win16-notebook`: last header section caption and face-colour background;
 - `win16-inifiles`: `ReadSectionValues` merging.
+
+## Helper Programs and the Explorer
+
+The test installation used the original helper programs. `win16-helpers`
+still pointed at the old default RTL and no longer built. It now uses the same
+GUI RTL, memory model and short strings as `CALMIRA.EXE`. SHOWDESK, SCRNSAVE,
+EXPLORER and CTASKMAN build again.
+
+With our helpers in place, the tray's Calmira Explorer button crashed
+`CALMIRA.EXE` with a GPF in `Forms.DeallocateHWnd`. Our own `EXPLORER.EXE`
+was not the cause: the original crashed our shell the same way. There were
+three problems:
+- `TIconWindow`'s DFM sets `Cursor := crFinger` and `crHSplit`. Delphi's
+  `SetCursor` accepts any index and `Screen.Cursors` shows the default arrow
+  for one it does not know. Ours raised `Invalid cursor`. Unknown indexes now
+  show the arrow, as Delphi.
+- The exception reached `TExtForm.Destroy`, which calls
+  `DeallocateHWnd(HelperWindow)` with 0 when the constructor failed. In Delphi
+  that is a failing `DestroyWindow(0)`. Ours raised and ended the program, and
+  a timer freed after Forms finalization then read the freed window list.
+  `DeallocateHWnd` now ignores 0 and calls after finalization.
+- Delphi links `crDrag`, `crMultiDrag` and `crHSplit` from Borland's
+  `CONTROLS.RES`. `src/win16/controls.rc` provides the same names from
+  Microsoft WinFile's MIT move and split cursors. Calmira's Explorer splitter
+  and taskbar dragging use them.
+
+The Explorer window now opens from the tray as in the original. Only the total
+size of the files in C:\ differs, because the two test runs leave different
+log files there.
+
+The helpers are still 77–300 KB, against 3–30 KB for Delphi's. That is the
+size of the FPC Win16 RTL; behaviour is the same.
+
+COUNTTIP, DIREXIST and DOSRUN are Turbo Pascal DOS programs. They need the
+FPC `msdos` target, which this toolchain does not build yet. The original DOS
+binaries stay in place.
+
+Covered by:
+- `win16-cursor`: an unknown cursor shows the arrow, and the linked
+  `crHSplit` and `crDrag`;
+- `win16-loader-props`: an unknown graphic-control cursor;
+- `win16-forms`: `DeallocateHWnd(0)`.

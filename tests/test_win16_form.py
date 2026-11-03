@@ -98,3 +98,27 @@ class Win16FormTests(unittest.TestCase):
         self.assertIn("Strings.Values[Keys[I]] := ReadString(Section, Keys[I], '');", source)
         test = (ROOT / 'tests/pascal/test_win16_inifiles.pas').read_text()
         self.assertIn('without clearing it, as Delphi 1', test)
+
+    def test_explorer_opens_with_unknown_and_delphi_cursors(self):
+        cursors = (ROOT / 'src/win16/native_cursors.pas').read_text()
+        self.assertIn("crHSplit: Value := LoadCursor(HInstance, 'HSPLIT');", cursors)
+        self.assertIn('Resource := IDC_ARROW;', cursors)
+        self.assertNotIn('else Result := False; Exit; end;', cursors)
+        rc = (ROOT / 'src/win16/controls.rc').read_text()
+        for line in ('DRAG      CURSOR smove.cur', 'MULTIDRAG CURSOR mmove.cur', 'HSPLIT    CURSOR split.cur'):
+            self.assertIn(line, rc)
+        makefile = (ROOT / 'makefile').read_text()
+        self.assertIn('$(BUILD_DIR)/controls/controls.res \\', makefile)
+        self.assertIn('-r -zm -bt=windows -i=$(WINFILE_PORT_SRC)/src', makefile)
+        forms = (ROOT / 'src/win16/forms.pas').read_text()
+        self.assertIn('if (Wnd = 0) or (UtilityWindows = nil) then Exit;', forms)
+        test = (ROOT / 'tests/pascal/test_win16_cursor.pas').read_text()
+        self.assertIn("'crHSplit shows the linked splitter cursor, as Delphi'", test)
+        self.assertIn("'an unknown control cursor shows the default arrow, as Delphi'", test)
+
+    def test_helpers_build_with_the_calmira_runtime(self):
+        makefile = (ROOT / 'makefile').read_text()
+        start = makefile.index('win16-helpers: fpc-win16-gui-rtl languages')
+        rule = makefile[start:makefile.index('\n\n', start)]
+        self.assertIn('-Sh- $(WIN16_GUI_FLAGS) -CX -Fu./$(FPC_WIN16_GUI_RTL)', rule)
+        self.assertNotIn('FPC_WIN16_UNITS', rule)

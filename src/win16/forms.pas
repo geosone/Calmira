@@ -313,6 +313,10 @@ end;
 procedure DeallocateHWnd(Wnd: HWND);
 var I: Integer; Window: TUtilityWindow;
 begin
+  { As Delphi, where DestroyWindow(0) just fails: TExtForm.Destroy passes 0
+    when its inherited constructor raised before AllocateHWnd. Windows still
+    allocated at Forms finalization have already been destroyed there. }
+  if (Wnd = 0) or (UtilityWindows = nil) then Exit;
   for I := 0 to UtilityWindows.Count - 1 do
   begin
     Window := TUtilityWindow(UtilityWindows[I]);

@@ -1051,12 +1051,13 @@ win16-screen-modal-runtime-test: win16-screen-modal
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-screen-modal/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-cursor win16-cursor-runtime-test
-win16-cursor: fpc-win16-gui-rtl
+win16-cursor: fpc-win16-gui-rtl $(BUILD_DIR)/controls/controls.res
 	mkdir -p $(BUILD_DIR)/tests/win16-cursor/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
 		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-cursor/units -FE$(BUILD_DIR)/tests/win16-cursor \
 		-oGDITEST.EXE tests/pascal/test_win16_cursor.pas
+	$(WATCOM_BIN)/wrc -q -bt=windows $(BUILD_DIR)/controls/controls.res $(BUILD_DIR)/tests/win16-cursor/GDITEST.EXE
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-cursor/GDITEST.EXE
 
 win16-cursor-runtime-test: win16-cursor
@@ -1727,7 +1728,7 @@ CALMIRA_FORMS := about askdrop binprop compsys deskprop diskprop filefind filepr
 CALMIRA_LOADERS := $(foreach form,$(CALMIRA_FORMS) icondlg,$(BUILD_DIR)/generated/forms/$(form)_dfm.pas)
 # The resources Delphi bound through {$R}, then the loaders' bitmaps and icons.
 CALMIRA_RES := src/calmira.res src/locale.res src/icons.res src/bitmaps.res src/cursors.res \
-	src/capbtns.res vcl/chklist.res vcl/sorthdr.res \
+	src/capbtns.res vcl/chklist.res vcl/sorthdr.res $(BUILD_DIR)/controls/controls.res \
 	$(foreach form,$(CALMIRA_FORMS) icondlg,$(BUILD_DIR)/generated/forms/$(form)_dfm.res)
 
 # Delphi 1 strings are short strings. Calmira units precede the RTL so that
@@ -1735,7 +1736,12 @@ CALMIRA_RES := src/calmira.res src/locale.res src/icons.res src/bitmaps.res src/
 # The stack is Delphi 1's default {$M 16384}; with wlink's 4 KiB, KERNEL's
 # profile functions overflow it. Each resource file numbers its icon images
 # from 1; the merge renumbers them as Delphi's linker does.
-calmira: fpc-win16-gui-rtl languages $(CALMIRA_LOADERS)
+# Delphi's drag and splitter cursors, from WinFile's MIT cursor images.
+$(BUILD_DIR)/controls/controls.res: src/win16/controls.rc makefile
+	mkdir -p $(BUILD_DIR)/controls
+	$(WATCOM_BIN)/wrc -q -r -zm -bt=windows -i=$(WINFILE_PORT_SRC)/src -fo=$@ src/win16/controls.rc
+
+calmira: fpc-win16-gui-rtl languages $(CALMIRA_LOADERS) $(BUILD_DIR)/controls/controls.res
 	mkdir -p $(BUILD_DIR)/calmira/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
 		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -koption -kstack=16k \
@@ -1780,12 +1786,14 @@ drive-probe: fpc-win16-toolchain languages
 		-Fu./$(FPC_WIN16_UNITS) -Fusrc/portable -Fusrc/win16 -FU$(DRIVE_PROBE_DIR)/units \
 		-FE$(DRIVE_PROBE_DIR) -oDRVPROBE.EXE src/win16/drive_probe.pas
 
-win16-helpers: fpc-win16-toolchain
+# The helpers are built like CALMIRA.EXE: same GUI RTL, memory model and
+# short strings.
+win16-helpers: fpc-win16-gui-rtl languages
 	mkdir -p $(BUILD_DIR)/helpers/units
 	@for helper in SHOWDESK SCRNSAVE EXPLORER CTASKMAN; do \
 		source_name=$$(printf '%s' "$$helper" | tr '[:upper:]' '[:lower:]'); \
 		PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -CX -Fu./$(FPC_WIN16_UNITS) \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fu./$(FPC_WIN16_GUI_RTL) \
 		-Fusrc -Fusrc/portable -Fusrc/win16 -FU$(BUILD_DIR)/helpers/units -FE$(BUILD_DIR)/helpers \
 		-o$$helper.EXE src/$$source_name.dpr || exit 1; \
 		$(WATCOM_BIN)/wrc -q -bt=windows src/$$source_name.res \
