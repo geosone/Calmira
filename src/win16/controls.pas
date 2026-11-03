@@ -154,8 +154,12 @@ type
       exist. }
     procedure CreateWnd; virtual;
     procedure DestroyWnd; virtual;
-    { Ctl3D is kept and inherited as in Delphi; no CTL3D.DLL drawing yet. }
+    { Ctl3D is kept and inherited as in Delphi. Dialog frames, check boxes
+      and radio buttons use CTL3D.DLL when it is loaded (native_ctl3d). }
     procedure Ctl3DChanged; virtual;
+    { Delphi's csFramed: with Ctl3D, the parent draws a sunken edge around
+      the control (edits, list and combo boxes). }
+    function Ctl3DFramed: Boolean; virtual;
     procedure SetCtl3D(Value: Boolean);
     procedure SetParentCtl3D(Value: Boolean);
     procedure WMCommand(var M: TWMCommand); message WM_COMMAND;
@@ -721,8 +725,24 @@ begin
     coBack: ChangeView(cvaBack);
   end;
 end;
+function TCustomControl.Ctl3DFramed: Boolean;
+begin Result := False; end;
+{ As Delphi 1's TWinControl.PaintControls: a shadow edge at the top left and
+  a highlight edge at the bottom right, just outside each framed child. }
+procedure PaintCtl3DFrame(DC: HDC; const Bounds: TRect);
+var Brush: HBRUSH; Edge: TRect;
+begin
+  Brush := CreateSolidBrush(ColorToRGB(clBtnShadow));
+  Edge := Rect(Bounds.Left - 1, Bounds.Top - 1, Bounds.Right, Bounds.Bottom);
+  FrameRect(DC, Edge, Brush);
+  DeleteObject(Brush);
+  Brush := CreateSolidBrush(ColorToRGB(clBtnHighlight));
+  Edge := Rect(Bounds.Left, Bounds.Top, Bounds.Right + 1, Bounds.Bottom + 1);
+  FrameRect(DC, Edge, Brush);
+  DeleteObject(Brush);
+end;
 procedure TCustomControl.PaintOverlay;
-var I: Integer;
+var I: Integer; Child: TCustomControl;
 begin
   inherited PaintOverlay;
   if FCompositing then Exit;
@@ -730,6 +750,13 @@ begin
   try
     if FGraphics <> nil then
       for I := 0 to FGraphics.Count - 1 do TGraphicControl(FGraphics[I]).PaintOn(Canvas.Handle);
+    if FWindows <> nil then
+      for I := 0 to FWindows.Count - 1 do
+      begin
+        Child := TCustomControl(FWindows[I]);
+        if Child.FCtl3D and Child.Ctl3DFramed and Child.Visible then
+          PaintCtl3DFrame(Canvas.Handle, Child.GetControlBounds);
+      end;
   finally FCompositing := False; end;
 end;
 function TCustomControl.FindWindowedChild(Window: HWND): TCustomControl;

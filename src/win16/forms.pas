@@ -62,6 +62,7 @@ type
     FCreation: Pointer;
     procedure ApplyClientSize;
     function NativeClassName: PChar; override;
+    function NativeExStyle: DWORD; override;
     procedure PrepareCreation(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt);
     function GetFormClientWidth: Integer;
@@ -100,6 +101,7 @@ type
     { KeyPreview: the form's key events for a key sent to one of its controls. }
     function PreviewKey(var Message: TMsg): Boolean;
   public
+    procedure DefaultHandler(var Message); override;
     { Menu shortcuts come before the dialog keys. }
     function ProcessDialogMessage(var Message: TMsg): Boolean; override;
     { Runs the loaders registered for this class and its ancestors, as Delphi
@@ -269,7 +271,7 @@ var
   Application: TApplication;
   Screen: TScreen;
 implementation
-uses WinProcs, native_window, native_input, native_mnemonic;
+uses WinProcs, native_window, native_input, native_mnemonic, native_ctl3d;
 type
   { Kept off the stack: forms are created deep in small (4 KB) task stacks. }
   PFormCreation = ^TFormCreation;
@@ -415,7 +417,7 @@ procedure TForm.ApplyClientSize;
 var Area: TRect;
 begin
   Area := Rect(0, 0, 0, 0);
-  AdjustWindowRect(Area, FrameStyle, False);
+  AdjustWindowRectEx(Area, FrameStyle, False, NativeExStyle);
   if FDesignClientWidth >= 0 then Width := FDesignClientWidth + Area.Right - Area.Left;
   if FDesignClientHeight >= 0 then Height := FDesignClientHeight + Area.Bottom - Area.Top;
 end;
@@ -425,7 +427,7 @@ end;
 function FrameSize(Form: TForm): TRect;
 begin
   Result := Rect(0, 0, 0, 0);
-  AdjustWindowRect(Result, Form.FrameStyle, Form.Menu <> nil);
+  AdjustWindowRectEx(Result, Form.FrameStyle, Form.Menu <> nil, Form.NativeExStyle);
 end;
 function TForm.GetFormClientWidth: Integer;
 var Area: TRect;
@@ -552,7 +554,8 @@ begin
     { An overlapped window always gets a caption; a bare frame must be a popup. }
     bsNone: Result := WS_POPUP;
     bsSingle: Result := WS_CAPTION or WS_BORDER;
-    bsDialog: Result := WS_CAPTION or WS_DLGFRAME;
+    { As Delphi; CTL3D looks for DS_MODALFRAME before painting the frame. }
+    bsDialog: Result := WS_CAPTION or WS_DLGFRAME or DS_MODALFRAME;
   else Result := WS_CAPTION or WS_THICKFRAME;
   end;
   Icons := FBorderIcons;
@@ -567,6 +570,20 @@ begin
 end;
 procedure TForm.CreateParams(var Params: TCreateParams);
 begin end;
+{ Delphi gives bsDialog the modal dialog frame; CTL3D paints only that one. }
+function TForm.NativeExStyle: DWORD;
+begin
+  if FBorderStyle = bsDialog then Result := WS_EX_DLGMODALFRAME else Result := 0;
+end;
+{ As Delphi 1: with CTL3D loaded, a Ctl3D dialog's frame is painted in 3D. }
+procedure TForm.DefaultHandler(var Message);
+begin
+  with TMessage(Message) do
+    if ((Msg = WM_NCPAINT) or (Msg = WM_NCACTIVATE) or (Msg = WM_SETTEXT)) and
+      (FBorderStyle = bsDialog) and Ctl3D and (Handle <> 0) and Assigned(Ctl3DDlgFramePaint) then
+      Result := Ctl3DDlgFramePaint(Handle, Msg, WParam, LParam)
+    else inherited DefaultHandler(Message);
+end;
 var FormClassNames: TStringList;
 { As Delphi, each form class registers a window class of its own name, such
   as TTaskbar, which Calmira's exclude list and other programs see. }
@@ -1101,6 +1118,8 @@ begin
 end;
 initialization
   ReleaseMessage := RegisterWindowMessage('CalmiraFormRelease');
+  { Loaded up front, on a shallow stack: CTL3D's start-up code runs on ours. }
+  InitCtl3D;
   UtilityWindows := TList.Create;
   Application := TApplication.Create(nil); Application.Initialize;
   Screen := TScreen.Create(nil); Screen.Application := Application;
@@ -1115,6 +1134,7 @@ finalization
   UtilityWindows.Free; UtilityWindows := nil;
   Application.Free; Application := nil;
   Screen.Free; Screen := nil;
+  DoneCtl3D;
   { USER keeps its own copy of each registered class name. }
   if FormClassNames <> nil then
     while FormClassNames.Count > 0 do

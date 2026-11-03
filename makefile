@@ -1017,10 +1017,12 @@ win16-dialogs-runtime-test: win16-dialogs
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-dialogs/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-input-query win16-input-query-runtime-test
+# Like win16-dialogs: Delphi 1's 16 KiB stack, as CALMIRA.EXE has; the
+# Ctl3D frames of the edit add to the depth of its scripted modal loop.
 win16-input-query: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-input-query/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -koption -kstack=16k -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-input-query/units -FE$(BUILD_DIR)/tests/win16-input-query \
 		-oGDITEST.EXE tests/pascal/test_win16_input_query.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-input-query/GDITEST.EXE

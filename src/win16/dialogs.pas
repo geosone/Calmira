@@ -141,6 +141,10 @@ uses WinProcs, CommDlg, native_application, native_label, native_button, native_
 const
   DialogStyle = WS_POPUP or WS_CAPTION or WS_DLGFRAME or WS_SYSMENU;
   Margin = 12; IconSize = 32; ButtonGap = 6;
+  { Message dialogs, measured on Delphi 1's: 10 pixels around the icon and
+    the text, which is centred beside a taller icon; the buttons 10 pixels
+    below them and 8 pixels above the bottom edge. }
+  MsgMargin = 10; MsgBottom = 8;
   { Keys double as English defaults. }
   TitleKeys: array[TMsgDlgType] of string[11] =
     ('Warning', 'Error', 'Information', 'Confirm', '');
@@ -170,9 +174,11 @@ procedure FinishForm(Form: TForm; AWidth, AHeight: Integer);
 var Area: TRect;
 begin
   Area := Graphics.Rect(0, 0, AWidth, AHeight);
-  AdjustWindowRect(Area, DialogStyle, False);
-  Form.SetBounds((GetSystemMetrics(SM_CXSCREEN) - (Area.Right - Area.Left)) div 2,
-    (GetSystemMetrics(SM_CYSCREEN) - (Area.Bottom - Area.Top)) div 2,
+  { bsDialog's modal frame, which TForm adds. }
+  AdjustWindowRectEx(Area, DialogStyle or DS_MODALFRAME, False, WS_EX_DLGMODALFRAME);
+  { Centred as Delphi does: half the screen less half the window. }
+  Form.SetBounds(GetSystemMetrics(SM_CXSCREEN) div 2 - (Area.Right - Area.Left) div 2,
+    GetSystemMetrics(SM_CYSCREEN) div 2 - (Area.Bottom - Area.Top) div 2,
     Area.Right - Area.Left, Area.Bottom - Area.Top);
   { An existing HWND keeps ShowModal from creating a resizable frame. }
   Form.CreateHandle(0, Form.Caption, DialogStyle or WS_CLIPCHILDREN or WS_CLIPSIBLINGS,
@@ -231,36 +237,41 @@ const
     (IDI_EXCLAMATION, IDI_HAND, IDI_ASTERISK, IDI_QUESTION, nil);
 var Form: TForm; Text: TLabel; Icon: TMessageIcon; Button: TButton;
   DefaultButton, CancelButton, B: TMsgDlgBtn; HasDefault: Boolean; TextArea: TRect;
-  Count, TextLeft, TextWidth, ButtonsWidth, ClientWidth, ButtonTop, X, Order: Integer;
+  Count, TextLeft, TextTop, TextWidth, ButtonsWidth, ClientWidth, ButtonTop, X, Order: Integer;
 begin
   if AButtons = [] then raise ENativeApplicationError.Create('Message dialog needs a button');
   Form := TForm.Create(Application);
   try
     if AType = mtCustom then PrepareForm(Form, Application.Title)
     else PrepareForm(Form, DialogText(TitleKeys[AType], TitleKeys[AType]));
-    TextLeft := Margin;
+    { Delphi 1's CreateMessageDialog writes its text in bold MS Sans Serif. }
+    Form.Font.Name := 'MS Sans Serif'; Form.Font.Size := 8; Form.Font.Style := [fsBold];
+    TextLeft := MsgMargin;
     if Icons[AType] <> nil then
     begin
       Icon := TMessageIcon.Create(Form); Icon.Parent := Form;
       Icon.FIcon := LoadIcon(0, Icons[AType]);
-      Icon.SetBounds(Margin, Margin, IconSize, IconSize);
-      TextLeft := Margin + IconSize + Margin;
+      Icon.SetBounds(MsgMargin, MsgMargin, IconSize, IconSize);
+      TextLeft := MsgMargin + IconSize + MsgMargin;
     end;
     Text := TLabel.Create(Form); Text.Parent := Form;
     Text.WordWrap := True; Text.ShowAccelChar := False;
     TextArea := MeasureText(Text.Font, Msg, GetSystemMetrics(SM_CXSCREEN) div 2);
     TextWidth := TextArea.Right - TextArea.Left;
-    Text.SetBounds(TextLeft, Margin, TextWidth, TextArea.Bottom - TextArea.Top);
+    TextTop := MsgMargin;
+    if (Icons[AType] <> nil) and (TextArea.Bottom - TextArea.Top < IconSize) then
+      Inc(TextTop, (IconSize - (TextArea.Bottom - TextArea.Top)) div 2);
+    Text.SetBounds(TextLeft, TextTop, TextWidth, TextArea.Bottom - TextArea.Top);
     Text.Caption := Msg;
     Count := 0;
     for B := Low(TMsgDlgBtn) to High(TMsgDlgBtn) do
       if B in AButtons then Inc(Count);
     ButtonsWidth := Count * MsgDlgBtnSize.X + (Count - 1) * ButtonGap;
-    ClientWidth := TextLeft + TextWidth + Margin;
-    if ButtonsWidth + 2 * Margin > ClientWidth then ClientWidth := ButtonsWidth + 2 * Margin;
-    ButtonTop := Margin + TextArea.Bottom - TextArea.Top;
-    if (Icons[AType] <> nil) and (ButtonTop < Margin + IconSize) then ButtonTop := Margin + IconSize;
-    Inc(ButtonTop, Margin);
+    ClientWidth := TextLeft + TextWidth + MsgMargin;
+    if ButtonsWidth + 2 * MsgMargin > ClientWidth then ClientWidth := ButtonsWidth + 2 * MsgMargin;
+    ButtonTop := MsgMargin + TextArea.Bottom - TextArea.Top;
+    if (Icons[AType] <> nil) and (ButtonTop < MsgMargin + IconSize) then ButtonTop := MsgMargin + IconSize;
+    Inc(ButtonTop, MsgMargin);
     HasDefault := True;
     if mbOK in AButtons then DefaultButton := mbOK
     else if mbYes in AButtons then DefaultButton := mbYes
@@ -287,7 +298,7 @@ begin
           Form.InitialControl := Button;
         Inc(X, MsgDlgBtnSize.X + ButtonGap); Inc(Order);
       end;
-    FinishForm(Form, ClientWidth, ButtonTop + MsgDlgBtnSize.Y + Margin);
+    FinishForm(Form, ClientWidth, ButtonTop + MsgDlgBtnSize.Y + MsgBottom);
   except Form.Free; raise; end;
   Result := Form;
 end;

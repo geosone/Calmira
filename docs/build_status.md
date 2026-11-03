@@ -2339,3 +2339,39 @@ layer (`vcl/langui.pas`) then rewrites every list item, and
 `Put` now keeps the selection on the same entry, in combo boxes and list
 boxes, sorted or not. `test_win16_combobox` and `test_win16_listbox` cover
 it, including a combo box filled before its handle exists.
+
+## CTL3D Frames
+
+Our dialogs had a thin black border where the original has the grey 3D
+dialog frame. Delphi 1 loads `CTL3DV2.DLL` (or `CTL3D.DLL`) and registers
+the program with it. A `bsDialog` form then has `DS_MODALFRAME` and
+`WS_EX_DLGMODALFRAME`, and its `WM_NCPAINT`, `WM_NCACTIVATE` and `WM_SETTEXT`
+go to `Ctl3dDlgFramePaint`. `src/win16/native_ctl3d.pas` does the same. It
+loads the exports by ordinal through KERNEL's `GetProcAddress`; the RTL calls
+that function `WinGetProcAddress`, and its own `GetProcAddress` takes a string.
+`TNativeWindow` now creates windows with `CreateWindowEx`, and
+`TForm.NativeExStyle` supplies the extended style. Without the DLL, dialogs
+keep the plain modal frame.
+
+Delphi's `TWinControl.PaintControls` draws a shadow and a highlight edge
+around each child with `Ctl3D` and `csFramed`: edits (also memos and spin
+edits), list boxes and combo boxes. `TCustomControl.PaintOverlay` now does
+this. As in Delphi 1, the list box window sits one pixel inside its
+requested bounds.
+
+Message dialogs now use Delphi 1's bold MS Sans Serif 8 and its spacing,
+measured on the original: a 10-pixel margin, text centred beside a taller
+icon, buttons 10 pixels below and 8 pixels above the bottom edge, and
+centring as `Screen.Width div 2 - Width div 2`. The Desktop Properties
+wallpaper page and the "Unable to run Notepad" error now match the original
+pixel for pixel, apart from the focus rectangle and one pixel in the
+"Cancel" caption.
+
+With our own Open386MAX `CTL3DV2.DLL`, which the package installs, the
+Desktop Properties frame differs from Microsoft's CTL3D in two pixels: the
+top inner shadow line and the left one each end one pixel too late, over
+the white edge. The fix belongs in `paintframe` in the Open386MAX
+`CTL3D.C`: end the top line at `w - d - 2` and start the white line under
+the caption at `d + 1`. The input query test now has Delphi's 16 KiB
+stack, as the dialogs test and `CALMIRA.EXE` do. The child frames make its
+scripted modal loop deeper than the default 4 KiB allows.

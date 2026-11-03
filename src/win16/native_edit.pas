@@ -40,6 +40,7 @@ type
     procedure SetOEMConvert(Value: Boolean);
     procedure SetHideSelection(Value: Boolean);
   protected
+    function Ctl3DFramed: Boolean; override;
     procedure DblClick; override;
     procedure FontChanged; override;
     function NativeClassName: PChar; override;
@@ -345,4 +346,7 @@ begin
   except Perform(WM_SETFONT, GetStockObject(SYSTEM_FONT), 0); Invalidate; raise; end;
   Perform(WM_SETFONT, NativeFont, 0); Invalidate;
 end;
+{ Delphi 1 gives TEdit csFramed. }
+function TEdit.Ctl3DFramed: Boolean;
+begin Result := True; end;
 end.

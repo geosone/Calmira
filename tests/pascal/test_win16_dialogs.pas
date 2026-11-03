@@ -1,6 +1,6 @@
 program DialogsTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Controls, Forms, Buttons, Dialogs, form_text;
+uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Graphics, Controls, Forms, Buttons, Dialogs, form_text;
 type
   TCatalog = class
     function Translate(const RootClass, ComponentName, PropertyName,
@@ -57,9 +57,11 @@ begin
     Bitmap := nil;
     for I := 0 to Form.ComponentCount - 1 do
       if Form.Components[I] is TBitBtn then Bitmap := TBitBtn(Form.Components[I]);
-    Check((Form.BorderStyle = bsDialog) and (Form.Font.Name = 'System') and (Bitmap <> nil) and
-      (Bitmap.Style = bsNew) and (GetParent(Form.Handle) = Application.Handle),
-      'Delphi 1 message dialogs: System font, TBitBtns in MsgDlgButtonStyle, owned by the application');
+    Check((Form.BorderStyle = bsDialog) and (Form.Font.Name = 'MS Sans Serif') and
+      (Form.Font.Style = [fsBold]) and (Bitmap <> nil) and
+      (Bitmap.Style = bsNew) and (GetParent(Form.Handle) = Application.Handle) and
+      (GetWindowLong(Form.Handle, GWL_EXSTYLE) and WS_EX_DLGMODALFRAME <> 0),
+      'Delphi 1 message dialogs: bold MS Sans Serif, modal frame, TBitBtns in MsgDlgButtonStyle, owned by the application');
   finally Form.Free; end;
   Script(akKey, VK_RETURN, '');
   ShowMessage('Plain');

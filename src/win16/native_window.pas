@@ -18,6 +18,8 @@ type
   protected
     procedure ControlOperation(Operation: TControlOperation; var Value: Boolean); override;
     function NativeClassName: PChar; virtual;
+    { The extended style CreateHandle passes to CreateWindowEx. }
+    function NativeExStyle: DWORD; virtual;
     procedure WndProc(var Message: TMessage); virtual;
     function GetControlBounds: TRect; override;
     procedure SetControlBounds(const Value: TRect); override;
@@ -201,6 +203,8 @@ procedure TNativeWindow.WndProc(var Message: TMessage);
 begin Dispatch(Message); end;
 function TNativeWindow.NativeClassName: PChar;
 begin EnsureWindowClass; Result := WindowClassName; end;
+function TNativeWindow.NativeExStyle: DWORD;
+begin Result := 0; end;
 procedure TNativeWindow.DefaultHandler(var Message);
 begin
   with TMessage(Message) do Result := DefWindowProc(FHandle, Msg, WParam, LParam);
@@ -229,7 +233,7 @@ begin
   end;
   StrPCopy(Buffer, Caption); FCreating := True;
   try
-    Created := CreateWindow(ClassName, Buffer, Style, X, Y, Width, Height,
+    Created := CreateWindowEx(NativeExStyle, ClassName, Buffer, Style, X, Y, Width, Height,
       Parent, HMENU(Id), HInstance, Pointer(Self));
   finally FCreating := False; end;
   if Created = 0 then

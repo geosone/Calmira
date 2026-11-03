@@ -75,6 +75,7 @@ type
     procedure RequireLiveStyle;
     procedure WMSize(var M: TMessage); message WM_SIZE;
   protected
+    function Ctl3DFramed: Boolean; override;
     procedure FontChanged; override;
     function NativeClassName: PChar; override;
     procedure WndProc(var M: TMessage); override;
@@ -308,7 +309,10 @@ begin
   if FColumns <> 0 then Style := Style or LBS_MULTICOLUMN;
   if FBorderStyle = bsSingle then Style := Style or WS_BORDER;
   if TabStop then Style := Style or WS_TABSTOP;
-  inherited CreateHandle(Parent, '', Style, X, Y, Width, Height);
+  { As Delphi 1's TCustomListBox.CreateParams: the window sits one pixel
+    inside the requested bounds, inside the parent's Ctl3D frame. The
+    bounds then follow the window, as Delphi's UpdateBounds does. }
+  inherited CreateHandle(Parent, '', Style, X + 1, Y + 1, Width - 2, Height - 2);
   try
     FontChanged;
     if FStyle = lbOwnerDrawFixed then Perform(LB_SETITEMHEIGHT, 0, FItemHeight);
@@ -576,4 +580,7 @@ begin
   except Perform(WM_SETFONT, GetStockObject(SYSTEM_FONT), 0); Invalidate; raise; end;
   Perform(WM_SETFONT, NativeFont, 0); Invalidate;
 end;
+{ Delphi 1 gives TCustomListBox csFramed. }
+function TCustomListBox.Ctl3DFramed: Boolean;
+begin Result := True; end;
 end.
