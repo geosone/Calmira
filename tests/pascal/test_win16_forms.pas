@@ -228,6 +228,36 @@ begin
   Check(Loose.CallbackErrors = 0, 'iconic painting raised nothing');
   Loose.Free;
 end;
+{ Calmira's TExtForm.StretchShift moves controls through TControl, and sizes
+  them by the client size read in Loaded, before the window exists. }
+procedure DelphiBounds;
+var Area: TRect; W, H: Integer; Button: TButton; Text: TLabel; C: TControl;
+begin
+  Loose := TChildForm.Create(nil); Loose.SetBounds(20, 20, 240, 160);
+  W := Loose.ClientWidth; H := Loose.ClientHeight;
+  Check(not Loose.HandleAllocated, 'client size read without creating the window');
+  Area := Rect(0, 0, 0, 0); AdjustWindowRect(Area, WS_OVERLAPPEDWINDOW, False);
+  Check((W = 240 - (Area.Right - Area.Left)) and (H = 160 - (Area.Bottom - Area.Top)),
+    'client size without a window is net of the frame, as Delphi');
+  Loose.Handle;
+  Check((Loose.ClientWidth = W) and (Loose.ClientHeight = H), 'client size unchanged by creating the window');
+  Button := TButton.Create(Loose); Button.Parent := Loose;
+  Text := TLabel.Create(Loose); Text.Parent := Loose;
+  C := Button; C.SetBounds(5, 6, 70, 20);
+  Check((Button.Left = 5) and (Button.Top = 6) and (Button.Width = 70) and (Button.Height = 20) and
+    (C.Width = 70), 'TControl.SetBounds and bounds properties reach a windowed control');
+  C.Width := 80; C.Top := 9;
+  Check((Button.Width = 80) and (Button.Top = 9) and (Loose.Width = 240), 'TControl bounds do not touch the form');
+  C := Text; C.SetBounds(3, 40, 50, 13); C.Left := 4;
+  Check((Text.Left = 4) and (Text.Top = 40) and (Text.Width = 50) and (C.Height = 13),
+    'TControl bounds reach a graphic control');
+  Loose.Free;
+  Loose := TChildForm.Create(nil); Loose.SetBounds(20, 20, 240, 160);
+  Loose.WindowState := wsMinimized;
+  ShowWindow(Loose.Handle, SW_SHOWNORMAL);
+  Check(Loose.WindowState = wsNormal, 'a pending state yields to the shown window state');
+  Loose.Free;
+end;
 { Delphi behaviour Calmira's forms rely on in OnCreate and for desktop icons. }
 procedure DelphiWindows;
 var Wnd: HWND; R: TRect;
@@ -364,7 +394,7 @@ begin
 end;
 begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
-  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiWindows; WindowHierarchy; DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
+  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiBounds; DelphiWindows; WindowHierarchy; DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Check(StackGuardIntact, 'forms stack boundary');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');

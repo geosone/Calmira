@@ -70,3 +70,31 @@ class Win16FormTests(unittest.TestCase):
         makefile = (ROOT / 'makefile').read_text()
         self.assertIn('win16-form: fpc-win16-gui-rtl', makefile)
         self.assertIn('win16-form-runtime-test: win16-form', makefile)
+
+    def test_stretch_shift_bounds_follow_delphi(self):
+        base = (ROOT / 'src/win16/control_base.pas').read_text()
+        self.assertIn('procedure SetBounds(X, Y, AWidth, AHeight: Integer); virtual;', base)
+        for name in ('Left', 'Top', 'Width', 'Height'):
+            self.assertIn(f'property {name}: Integer read Get{name} write Set{name};', base)
+        controls = (ROOT / 'src/win16/controls.pas').read_text()
+        self.assertEqual(controls.count('procedure SetBounds(X, Y, AWidth, AHeight: Integer); override;'), 2)
+        forms = (ROOT / 'src/win16/forms.pas').read_text()
+        self.assertIn('Area := FrameSize(Self); Result := Width - (Area.Right - Area.Left);', forms)
+        native = (ROOT / 'src/win16/native_form.pas').read_text()
+        self.assertIn('FPendingState and IsWindowVisible(Handle) then FPendingState := False', native)
+        test = (ROOT / 'tests/pascal/test_win16_forms.pas').read_text()
+        self.assertIn("'TControl bounds do not touch the form'", test)
+        self.assertIn("'a pending state yields to the shown window state'", test)
+
+    def test_header_last_section_reaches_right_edge(self):
+        source = (ROOT / 'src/win16/native_header.pas').read_text()
+        self.assertIn('then W := ClientWidth - X', source)
+        self.assertNotIn('SetBkMode(Canvas.Handle, TRANSPARENT)', source)
+        test = (ROOT / 'tests/pascal/test_win16_notebook.pas').read_text()
+        self.assertIn("'section captions are drawn on the face colour'", test)
+
+    def test_read_section_values_merges_as_delphi(self):
+        source = (ROOT / 'src/win16/inifiles.pas').read_text()
+        self.assertIn("Strings.Values[Keys[I]] := ReadString(Section, Keys[I], '');", source)
+        test = (ROOT / 'tests/pascal/test_win16_inifiles.pas').read_text()
+        self.assertIn('without clearing it, as Delphi 1', test)

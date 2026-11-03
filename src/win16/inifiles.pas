@@ -97,9 +97,11 @@ begin
   Strings.BeginUpdate;
   try
     ReadSection(Section, Keys);
-    Strings.Clear;
+    { Delphi 1 merges through Values[] and does not clear Strings first:
+      Calmira reads [Environment] into the DOS environment this way, and
+      clears its other lists itself. }
     for I := 0 to Keys.Count - 1 do
-      Strings.Add(Keys[I] + '=' + ReadString(Section, Keys[I], ''));
+      Strings.Values[Keys[I]] := ReadString(Section, Keys[I], '');
   finally
     Strings.EndUpdate;
     Keys.Free;

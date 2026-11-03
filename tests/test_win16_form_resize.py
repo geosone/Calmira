@@ -34,7 +34,7 @@ class FormResizeTests(unittest.TestCase):
     def test_virtual_bounds_dispatch_and_teardown_keep_resize_guard_effective(self):
         source = (ROOT / 'src/win16/native_form.pas').read_text()
         controls = (ROOT / 'src/win16/controls.pas').read_text()
-        self.assertIn('procedure SetBounds(X, Y, AWidth, AHeight: Integer); virtual;', controls)
+        self.assertIn('procedure SetBounds(X, Y, AWidth, AHeight: Integer); override;', controls)
         self.assertIn('procedure SetBounds(X, Y, AWidth, AHeight: Integer); override;', source)
         bounds = source.split('procedure TNativeForm.SetBounds(', 1)[1].split(
             'procedure TNativeForm.Resize;', 1)[0]

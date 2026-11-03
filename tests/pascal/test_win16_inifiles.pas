@@ -42,8 +42,12 @@ begin
     Check(Ini.ReadBool('Main', 'On', False) and Ini.ReadBool('Main', 'Off', True), 'read bool');
     Ini.ReadSection('Main', List);
     Check(List.CommaText = 'Name,Hex,Big,Bad,On', 'read section');
-    Ini.ReadSectionValues('Other', List);
+    List.Clear; Ini.ReadSectionValues('Other', List);
     Check((List.Count = 1) and (List[0] = 'X=1'), 'read section values');
+    List.Clear; List.Add('windir=C:\WINDOWS'); List.Add('X=0');
+    Ini.ReadSectionValues('Other', List);
+    Check((List.Count = 2) and (List.Values['windir'] = 'C:\WINDOWS') and (List.Values['X'] = '1'),
+      'ReadSectionValues merges into the list without clearing it, as Delphi 1');
     Ini.WriteString('New', 'Text', 'hello world'); Ini.WriteInteger('New', 'Num', -42);
     Ini.WriteBool('New', 'Flag', True);
     Check((Ini.ReadString('New', 'Text', '') = 'hello world') and

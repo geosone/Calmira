@@ -8,6 +8,7 @@ type
     procedure OnSizing(Sender: TObject; ASection, AWidth: Integer);
     procedure OnSized(Sender: TObject; ASection, AWidth: Integer);
   end;
+var DC: HDC; X, Y, Ink, Shadow: Integer; Pixel: TColorRef;
 var Root: TCustomControl; Book: TNotebook; Header: THeader; Edit: TEdit; Observer: TObserver;
   Failed, Rejected: Boolean; I, PoolUser: Integer; Page: TPage;
 procedure LogLine(const Text: string);
@@ -104,6 +105,19 @@ begin
     Rejected := False;
     try Header.SectionWidth[3] := 1; except on Exception do Rejected := True; end;
     Check(Rejected, 'section index out of range');
+    Header.SectionWidth[0] := 60; Header.SectionWidth[1] := 60; Header.SectionWidth[2] := 0;
+    InvalidateRect(Header.Handle, nil, True); UpdateWindow(Header.Handle);
+    DC := GetDC(Header.Handle); Ink := 0; Shadow := 0;
+    for X := 124 to 200 do
+      for Y := 2 to 16 do
+      begin
+        Pixel := GetPixel(DC, X, Y);
+        if Pixel = GetSysColor(COLOR_BTNTEXT) then Inc(Ink)
+        else if Pixel = GetSysColor(COLOR_BTNSHADOW) then Inc(Shadow);
+      end;
+    ReleaseDC(Header.Handle, DC);
+    Check(Ink > 0, 'last section with width 0 reaches the right edge and shows its caption, as Delphi');
+    Check(Shadow = 0, 'section captions are drawn on the face colour');
     PoolUser := GetFreeSystemResources(GFSR_USERRESOURCES);
     for I := 1 to 20 do begin Book.PageIndex := 1 - Book.PageIndex; TPage(Book.Pages.Objects[1 - Book.PageIndex]).DestroyHandle; end;
     Check(GetFreeSystemResources(GFSR_USERRESOURCES) >= PoolUser - 2, 'page handle cycling resource stability');

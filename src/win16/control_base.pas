@@ -59,6 +59,14 @@ type
     procedure SetShowHint(Value: Boolean);
     procedure SetParentShowHint(Value: Boolean);
     procedure FontObjectChanged(Sender: TObject);
+    function GetLeft: Integer;
+    function GetTop: Integer;
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    procedure SetLeft(Value: Integer);
+    procedure SetTop(Value: Integer);
+    procedure SetWidth(Value: Integer);
+    procedure SetHeight(Value: Integer);
   protected
     { Asks the parent to lay out its aligned children again. }
     procedure RequestAlign; virtual;
@@ -114,6 +122,14 @@ type
     property Dragging: Boolean read GetDragging;
     { Position in the parent's client area. }
     property BoundsRect: TRect read GetControlBounds write SetControlBounds;
+    { As Delphi's TControl: Calmira moves mixed control arrays through these
+      (TExtForm.StretchShift), and inside "with Control do" a missing member
+      would silently bind to the enclosing form instead. }
+    procedure SetBounds(X, Y, AWidth, AHeight: Integer); virtual;
+    property Left: Integer read GetLeft write SetLeft;
+    property Top: Integer read GetTop write SetTop;
+    property Width: Integer read GetWidth write SetWidth;
+    property Height: Integer read GetHeight write SetHeight;
     procedure Show;
     procedure Hide;
     procedure BringToFront;
@@ -158,6 +174,30 @@ begin
   if Value = nil then raise Exception.Create('Control font cannot be nil');
   FFont.Assign(Value);
 end;
+procedure TControl.SetBounds(X, Y, AWidth, AHeight: Integer);
+var Area: TRect;
+begin
+  Area.Left := X; Area.Top := Y; Area.Right := X + AWidth; Area.Bottom := Y + AHeight;
+  SetControlBounds(Area);
+end;
+function TControl.GetLeft: Integer;
+begin Result := GetControlBounds.Left; end;
+function TControl.GetTop: Integer;
+begin Result := GetControlBounds.Top; end;
+function TControl.GetWidth: Integer;
+var Area: TRect;
+begin Area := GetControlBounds; Result := Area.Right - Area.Left; end;
+function TControl.GetHeight: Integer;
+var Area: TRect;
+begin Area := GetControlBounds; Result := Area.Bottom - Area.Top; end;
+procedure TControl.SetLeft(Value: Integer);
+begin SetBounds(Value, Top, Width, Height); end;
+procedure TControl.SetTop(Value: Integer);
+begin SetBounds(Left, Value, Width, Height); end;
+procedure TControl.SetWidth(Value: Integer);
+begin SetBounds(Left, Top, Value, Height); end;
+procedure TControl.SetHeight(Value: Integer);
+begin SetBounds(Left, Top, Width, Value); end;
 procedure TControl.FontObjectChanged(Sender: TObject);
 begin
   if not FInheriting then FParentFont := False;

@@ -112,10 +112,13 @@ var I, X, W: Integer; R: TRect; Buffer: array[0..255] of Char;
 begin
   X := 0;
   Canvas.Brush.Style := bsSolid;
-  SetBkMode(Canvas.Handle, TRANSPARENT);
+  { As Delphi's THeader, the last section reaches the right edge, even with
+    a stored width of 0 (Calmira's Recycle Bin "Modified" column). }
   for I := 0 to FSections.Count do
   begin
-    if I < FSections.Count then W := GetWidth(I) else W := ClientWidth - X;
+    if I < FSections.Count - 1 then W := GetWidth(I)
+    else if (I = FSections.Count - 1) or (FSections.Count = 0) then W := ClientWidth - X
+    else Break;
     if W <= 0 then Continue;
     R := Graphics.Rect(X, 0, X + W, ClientHeight);
     Canvas.Brush.Color := clBtnFace; Canvas.FillRect(R);
@@ -128,6 +131,9 @@ begin
     if I < FSections.Count then
     begin
       InflateRect(R, -4, 0);
+      { The caption background is the face colour: reading Canvas.Handle
+        realizes the brush, so set it first rather than SetBkMode by hand. }
+      Canvas.Brush.Color := clBtnFace;
       SelectObject(Canvas.Handle, Font.Handle);
       SetTextColor(Canvas.Handle, ColorToRGB(Font.Color));
       StrPCopy(Buffer, FSections[I]);

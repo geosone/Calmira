@@ -38,7 +38,7 @@ class Win16GaugeTests(unittest.TestCase):
             self.assertIn(text, fpc)
         self.assertNotIn('for i := 0 to GetSegments', fpc)
         self.assertIn('for i := 0 to GetSegments', active_source('vcl/bargauge.pas', False))
-        self.assertIn('procedure SetBounds(X, Y, AWidth, AHeight: Integer); virtual;',
+        self.assertIn('procedure SetBounds(X, Y, AWidth, AHeight: Integer); override;',
                       (ROOT / 'src/win16/controls.pas').read_text())
 
     def test_native_probe_checks_pixels_text_ranges_and_resource_lifetime(self):

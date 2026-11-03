@@ -252,6 +252,9 @@ begin
 end;
 function TNativeForm.GetWindowState: TWindowState;
 begin
+  { A requested state is kept only while the window is hidden; once visible,
+    however it was shown, USER knows the state, as Delphi's WMSize does. }
+  if (Handle <> 0) and FPendingState and IsWindowVisible(Handle) then FPendingState := False;
   if (Handle <> 0) and not FPendingState then FWindowState := ReadWindowState;
   Result := FWindowState;
 end;

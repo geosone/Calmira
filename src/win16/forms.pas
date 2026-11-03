@@ -415,15 +415,29 @@ begin
   if FDesignClientWidth >= 0 then Width := FDesignClientWidth + Area.Right - Area.Left;
   if FDesignClientHeight >= 0 then Height := FDesignClientHeight + Area.Bottom - Area.Top;
 end;
-function TForm.GetFormClientWidth: Integer;
+{ Without a window, the client size the window will have: Delphi's
+  GetClientRect creates the window to ask USER, so ClientWidth in Loaded is
+  already net of the frame. }
+function FrameSize(Form: TForm): TRect;
 begin
-  if not HandleAllocated and (FDesignClientWidth >= 0) then Result := FDesignClientWidth
-  else Result := inherited ClientWidth;
+  Result := Rect(0, 0, 0, 0);
+  AdjustWindowRect(Result, Form.FrameStyle, Form.Menu <> nil);
+end;
+function TForm.GetFormClientWidth: Integer;
+var Area: TRect;
+begin
+  if HandleAllocated then begin Result := inherited ClientWidth; Exit; end;
+  if FDesignClientWidth >= 0 then begin Result := FDesignClientWidth; Exit; end;
+  Area := FrameSize(Self); Result := Width - (Area.Right - Area.Left);
+  if Result < 0 then Result := 0;
 end;
 function TForm.GetFormClientHeight: Integer;
+var Area: TRect;
 begin
-  if not HandleAllocated and (FDesignClientHeight >= 0) then Result := FDesignClientHeight
-  else Result := inherited ClientHeight;
+  if HandleAllocated then begin Result := inherited ClientHeight; Exit; end;
+  if FDesignClientHeight >= 0 then begin Result := FDesignClientHeight; Exit; end;
+  Area := FrameSize(Self); Result := Height - (Area.Bottom - Area.Top);
+  if Result < 0 then Result := 0;
 end;
 procedure TForm.SetClientWidth(Value: Integer);
 begin

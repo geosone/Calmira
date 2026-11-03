@@ -174,7 +174,7 @@ type
     procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt); override;
     procedure CreateControl(ParentWindow: HWND);
-    procedure SetBounds(X, Y, AWidth, AHeight: Integer); virtual;
+    procedure SetBounds(X, Y, AWidth, AHeight: Integer); override;
     procedure DisableAlign;
     procedure EnableAlign;
     procedure Realign;
@@ -275,7 +275,7 @@ type
     destructor Destroy; override;
     procedure Click; virtual;
     function Perform(Msg, WParam: Word; LParam: LongInt): LongInt;
-    procedure SetBounds(X, Y, AWidth, AHeight: Integer); virtual;
+    procedure SetBounds(X, Y, AWidth, AHeight: Integer); override;
     procedure Invalidate;
     procedure Show;
     procedure Hide;

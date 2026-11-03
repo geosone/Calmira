@@ -2168,3 +2168,43 @@ Covered by `win16-canvas-context`:
 - a changed font or a clear brush takes effect on the next `Handle`;
 - a font the caller selected stays;
 - `Handle := 0` puts the stock objects back.
+
+## My Computer and Recycle Bin Windows
+
+Opening My Computer and the Recycle Bin with the mouse showed four
+differences from the original.
+
+**My Computer listed 3 of 8 items.** The entries under `[Programs]` use
+`%windir%`, which expanded to an empty string. Calmira reads `[Environment]`
+into the DOS environment list with `ReadSectionValues`. Delphi 1 merges the
+section through `Values[]`. Ours cleared the list first, so `windir`,
+`COMSPEC` and `PATH` were lost. It now merges, as Delphi 1. Calmira clears its
+other lists itself before reading them.
+
+**The window contents did not follow a restore.** The client area left a gap
+on the right and at the bottom, and the status bar was hidden. Calmira lays
+out these windows with `TExtForm.StretchShift`, which runs
+`with C[i] do SetBounds(...)` over an array of `TControl`. Our `TControl` had
+no `Left`, `Top`, `Width`, `Height` or `SetBounds`, so inside the `with` they
+bound to the form instead. The form then refused to resize during its own
+`Resize`. The base class now has these members, as Delphi's `TControl`. Two
+smaller causes were also fixed:
+- `ClientWidth` read before the window exists (in `Loaded`) now subtracts the
+  frame, as Delphi.
+- A window state requested while hidden no longer overrides the state of a
+  window that is already visible.
+
+**Header columns.** Delphi's `THeader` extends its last section to the right
+edge. The Recycle Bin stores `Section3=0` for "Modified", so our header drew
+that column without its title. Section titles also had a grey background:
+`Paint` set `TRANSPARENT` itself and then changed the brush, and the next
+`Canvas.Handle` set the background back to opaque, as Delphi's `RequiredState`
+does. `Paint` now sets the face colour before drawing the text.
+
+Both windows now match the original.
+
+Covered by:
+- `win16-forms`: client size without a window, `TControl` bounds on windowed
+  and graphic controls, a pending state after an external show;
+- `win16-notebook`: last header section caption and face-colour background;
+- `win16-inifiles`: `ReadSectionValues` merging.
