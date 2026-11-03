@@ -63,6 +63,8 @@ class CompilerPointerTests(unittest.TestCase):
             self.assertIn("FindObjectFile(StartupObjectName(IsSharedLibrary),'',false)", linker)
             self.assertIn("Result:='dll'+Result;", linker)
             self.assertIn('DllExport_COMENT_EXPDEF.ExportedName:=upper(hp.name^);', linker)
+            self.assertIn("if cs_debuginfo in current_settings.moduleswitches then\n  begin\n"
+                          "    if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4,dbg_dwarf5] then", linker)
             wrapper = (target / 'compiler/i8086/hlcgcpu.pas').read_text()
             self.assertIn('procedure thlcgcpu.g_external_wrapper(', wrapper)
             self.assertIn('if not is_proc_far(procdef) then', wrapper)

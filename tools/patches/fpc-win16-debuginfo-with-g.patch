@@ -1,0 +1,26 @@
+--- a/compiler/systems/t_win16.pas
++++ b/compiler/systems/t_win16.pas
+@@ -269,12 +269,17 @@
+ 
+   LinkRes.Add('option description '+maybequoted_for_script(description,script_unix));
+ 
+-  if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4,dbg_dwarf5] then
+-    LinkRes.Add('debug dwarf')
+-  else if target_dbg.id=dbg_codeview then
+-    LinkRes.Add('debug codeview');
+-  if cs_link_separate_dbg_file in current_settings.globalswitches then
+-    LinkRes.Add('option symfile');
++  { As for msdos: debug information only with -g, so that -g- and -Xs
++    executables do not carry the DWARF sections. }
++  if cs_debuginfo in current_settings.moduleswitches then
++  begin
++    if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4,dbg_dwarf5] then
++      LinkRes.Add('debug dwarf')
++    else if target_dbg.id=dbg_codeview then
++      LinkRes.Add('debug codeview');
++    if cs_link_separate_dbg_file in current_settings.globalswitches then
++      LinkRes.Add('option symfile');
++  end;
+ 
+   { add objectfiles, start with prt0 always }
+   LinkRes.Add('file ' + maybequoted(FindObjectFile(StartupObjectName(isdll),'',false)));

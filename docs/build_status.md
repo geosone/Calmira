@@ -2296,3 +2296,26 @@ SCRNSAVE starts the configured screen saver. The test image has none, and
 both versions behave the same.
 
 Covered by `win16-forms`: `Show` activates a normal form.
+
+## Executable Size and Debug Information
+
+Our executables were far larger than Delphi's: `CALMIRA.EXE` 4.6 MB against
+1.0 MB, SHOWDESK 77 KB against 3 KB. Behind the NE segments, wlink had
+appended an ELF container with DWARF debug sections. FPC's Win16 linker
+script (`t_win16.pas`) always writes `debug dwarf`. The MS-DOS one checks
+`-g` first. `-Xs` therefore did not help.
+
+`fpc-win16-debuginfo-with-g.patch` adds the same `-g` check for Win16; it is
+also on the fork branch `calmira-win16`. Our builds do not use `-g`.
+Addresses are looked up in the `-Xm` linker map, as before. Sizes now:
+
+| File | Before | Now | Original |
+| --- | ---: | ---: | ---: |
+| CALMIRA.EXE | 4,621,846 | 2,487,360 | 1,000,096 |
+| CTASKMAN.EXE | 301,407 | 135,972 | 29,882 |
+| EXPLORER.EXE | 277,741 | 125,142 | 16,406 |
+| SCRNSAVE.EXE | 77,397 | 30,780 | 3,416 |
+| SHOWDESK.EXE | 78,316 | 31,008 | 3,424 |
+
+The rest is code: FPC's huge-model RTL, and SysUtils in CTASKMAN and
+EXPLORER. `pack-win16` compresses the release files with UPX.

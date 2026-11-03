@@ -15,7 +15,8 @@ PATCHES = (ROOT / 'tools/patches/fpc-i8086-class-pointer-compare.patch',
            ROOT / 'tools/patches/fpc-i8086-delphi-assembler-pascal.patch',
            ROOT / 'tools/patches/fpc-win16-dll-startup-object.patch',
            ROOT / 'tools/patches/fpc-win16-export-names-upper.patch',
-           ROOT / 'tools/patches/fpc-i8086-stack-copy-address.patch')
+           ROOT / 'tools/patches/fpc-i8086-stack-copy-address.patch',
+           ROOT / 'tools/patches/fpc-win16-debuginfo-with-g.patch')
 BUILDER = ROOT / 'tools/build_fpc_class_pointer.sh'
 
 
