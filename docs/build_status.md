@@ -9,7 +9,7 @@ Run commands from the repository root with OpenWatcom in `/opt/watcom`:
 | `make test` | Portable Pascal programs including shared diagnostic-buffer fault tests, host help-service harness, portable C and Python tests |
 | `make win16-ui` | Builds twenty-seven isolated UI acceptance probes; `win16-ui-runtime-test` runs their private-image tests and supports `make -j4` |
 | `make fpc-win16-fixed-compiler` | Isolated i8086 class/class-reference comparison correction; existing compiler and vendor checkout remain untouched |
-| `make win16-fixed-regression` | All 105 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
+| `make win16-fixed-regression` | All 106 native suites pass under the huge data model with the corrected compiler/private RTL, including the Forms/Dialogs/ShellAPI/IniFiles/Menus/Clipbrd units, radio buttons, combo boxes and list boxes, mixed children, heap shrink bounds and password resource cycles |
 | `make win16-realloc-runtime-test` | Adjacent live heap guard and prefix preservation across small/global resizing, nil allocation and zero-size release |
 | `make win16-application` | Explicit application/weak-form registry, main close/quit policy, startup guard, owned teardown and exception recovery; not full Forms |
 | `make win16-application-dialog` | Multi-form keyboard/filter routing and startup-modal completion/quit/error recovery |
@@ -2241,12 +2241,58 @@ log files there.
 The helpers are still 77–300 KB, against 3–30 KB for Delphi's. That is the
 size of the FPC Win16 RTL; behaviour is the same.
 
-COUNTTIP, DIREXIST and DOSRUN are Turbo Pascal DOS programs. They need the
-FPC `msdos` target, which this toolchain does not build yet. The original DOS
-binaries stay in place.
 
 Covered by:
 - `win16-cursor`: an unknown cursor shows the arrow, and the linked
   `crHSplit` and `crDrag`;
 - `win16-loader-props`: an unknown graphic-control cursor;
 - `win16-forms`: `DeallocateHWnd(0)`.
+
+## DOS Helper Programs
+
+COUNTTIP, DIREXIST and DOSRUN are Turbo Pascal programs for plain MS-DOS.
+`make dos-helpers` now builds them with FPC's `msdos` target in the small
+model. `tools/build_msdos_rtl.sh` builds that RTL from the same staged,
+patched sources as the Win16 RTL.
+
+DOSRUN starts a DOS program after Windows exits (Run with "MS-DOS session").
+Turbo Pascal's `{$M 1536,0,0}` keeps about 6 KiB and gives the rest to the
+program. FPC's startup code computes the same size, data + stack + maxheap,
+but then still resized the DOS block to a full 64 KiB data segment. Under our
+DOSRUN, MEM reported 76 KiB less than under the original. The patch
+`fpc-msdos-maxheap-resize.patch` (`CALMIRA_MSDOS_MAXHEAP`, also on the fork
+branch `calmira-win16`) resizes the block as the comment there intends. Our
+DOSRUN now keeps 29 KiB; the rest of the difference is FPC's larger code.
+
+FPC's RTL puts the parameter list on the heap, and `Dos.Exec` the command
+line, so `{$M ...,0,0}` stopped both programs with runtime error 203.
+DIREXIST and DOSRUN get a small heap under `{$IFDEF FPC}`. DIREXIST uses the
+`Dos` unit there, because FPC has no `WinDOS`.
+
+`dos-helpers-runtime-test` boots plain DOS and checks:
+- DIREXIST's exit codes for a directory, a file, a missing path, a root, `..`
+  and no parameter;
+- that COUNTTIP's output on `src/tips.txt` matches the Calmira 3.02 binary;
+- that DOSRUN starts MEM and keeps at most 32 KiB.
+
+The suite is part of `win16-fixed-regression` (106 suites).
+
+
+## Task Manager and Screen Saver Helpers
+
+Started while Calmira runs, CTASKMAN asks Calmira to show its Task Manager.
+Ours showed it inactive. Delphi's `CMShowingChanged` shows a form with
+`ShowWindow(SW_SHOWNORMAL)` (minimized: `SW_SHOWMINNOACTIVE`, maximized:
+`SW_SHOWMAXIMIZED`), which activates it. Our `Show` used
+`SW_SHOWNOACTIVATE`. It now uses Delphi's commands, and the Task Manager comes
+up active as in the original.
+
+When Calmira is not running, CTASKMAN shows a message box. Our English text
+was a shortened rewording. It is the original wording again, both as the
+program's default and in `locales/extra.json`. The translations are
+unchanged.
+
+SCRNSAVE starts the configured screen saver. The test image has none, and
+both versions behave the same.
+
+Covered by `win16-forms`: `Show` activates a normal form.

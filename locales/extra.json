@@ -23,7 +23,7 @@
     "DriveProbe": {"Title": "Calmira Drive Probe"},
     "TaskManager": {
       "Title": "Calmira Task Manager",
-      "Unavailable": "Calmira stopped unexpectedly.\n\nAbort: shut down Windows (recommended).\nRetry: restart Calmira.\nIgnore: start Windows Task Manager."
+      "Unavailable": "The Calmira Task Manager is not available because Calmira has terminated abnormally.\n\nClick ABORT to shut down windows (recommended),\nclick RETRY to restart Calmira or\nclick IGNORE to start the Windows Task Manager."
     },
     "FileManager": {
       "Title": "Calmira File Manager",

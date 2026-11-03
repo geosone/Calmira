@@ -17,7 +17,7 @@ class FormStateTests(unittest.TestCase):
         show = source.split('procedure TNativeForm.Show;', 1)[1].split(
             'procedure TNativeForm.HideWindow;', 1)[0]
         self.assertLess(show.index('Requested := GetWindowState'), show.index('CreateHandle('))
-        self.assertLess(show.index('FPendingState := False'), show.index('Visible := True'))
+        self.assertLess(show.index('FPendingState := False'), show.index('ShowWindow(Handle, ShowCommands[Requested]);'))
         self.assertLess(show.index('ApplyWindowState(Requested)'), show.index('DoShow;'))
 
     def test_state_commands_preserve_normal_semantics_and_callback_guards(self):

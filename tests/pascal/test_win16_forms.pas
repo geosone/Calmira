@@ -257,6 +257,11 @@ begin
   ShowWindow(Loose.Handle, SW_SHOWNORMAL);
   Check(Loose.WindowState = wsNormal, 'a pending state yields to the shown window state');
   Loose.Free;
+  Loose := TChildForm.Create(nil); Loose.SetBounds(40, 40, 200, 120);
+  SetActiveWindow(Application.MainForm.Handle);
+  Loose.Show;
+  Check(GetActiveWindow = Loose.Handle, 'Show activates a normal form, as Delphi''s SW_SHOWNORMAL');
+  Loose.Free;
 end;
 { Delphi behaviour Calmira's forms rely on in OnCreate and for desktop icons. }
 procedure DelphiWindows;

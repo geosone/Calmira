@@ -190,6 +190,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		FPC_WIN16_ROOT='$(abspath $(FPC_WIN16_ROOT))' \
 		FPC_WIN16='$(abspath $(FPC_WIN16_FIXED))' OMF_BIN_DIR='$(abspath $(OMF_BIN_DIR))' \
 		win16-class-pointer-runtime-test win16-application-runtime-test win16-application-dialog-runtime-test \
+		dos-helpers-runtime-test \
 		win16-application-factory-runtime-test win16-application-original-runtime-test \
 		win16-application-window-runtime-test win16-application-activation-runtime-test \
 		win16-idle-runtime-test win16-application-idle-runtime-test win16-application-exception-runtime-test \
@@ -1798,6 +1799,25 @@ win16-helpers: fpc-win16-gui-rtl languages
 		-o$$helper.EXE src/$$source_name.dpr || exit 1; \
 		$(WATCOM_BIN)/wrc -q -bt=windows src/$$source_name.res \
 		$(BUILD_DIR)/helpers/$$helper.EXE || exit 1; done
+
+FPC_MSDOS_RTL := $(BUILD_DIR)/msdos-rtl/units-small
+
+fpc-msdos-rtl: fpc-win16-toolchain
+	FPC_WIN16='$(abspath $(FPC_WIN16))' FPC_MSDOS_RTL='$(abspath $(FPC_MSDOS_RTL))' sh tools/build_msdos_rtl.sh
+
+# Calmira's Turbo Pascal DOS helpers. Each sizes its DOS memory block with
+# {$M}, which the patched startup code honours as Turbo Pascal does.
+dos-helpers: fpc-msdos-rtl
+	mkdir -p $(BUILD_DIR)/dos-helpers/units
+	@for helper in COUNTTIP DIREXIST DOSRUN; do \
+		source_name=$$(printf '%s' "$$helper" | tr '[:upper:]' '[:lower:]'); \
+		PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Tmsdos -Pi8086 -WmSmall -Mtp -O2 -Xs -Fu./$(FPC_MSDOS_RTL) \
+		-FU$(BUILD_DIR)/dos-helpers/units -FE$(BUILD_DIR)/dos-helpers \
+		-o$$helper.EXE src/$$source_name.pas || exit 1; done
+
+dos-helpers-runtime-test: dos-helpers
+	DOS_HELPERS_DIR='$(abspath $(BUILD_DIR)/dos-helpers)' sh tests/dos/test_dos_helpers.sh
 
 toolchain-info:
 	@$(FPC) -iV

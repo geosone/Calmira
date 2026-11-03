@@ -1,0 +1,16 @@
+--- a/rtl/msdos/prt0comn.asm
++++ b/rtl/msdos/prt0comn.asm
+@@ -183,7 +183,13 @@
+ %endif
+         sub dx, cx  ; dx = (ds - psp) in paragraphs
+         push dx  ; save (ds - psp)
++%ifdef CALMIRA_MSDOS_MAXHEAP
++        ; keep only data+bss+stack+maxheap (ax, at most 64kb), as the comment
++        ; above says, so that Exec'd programs get the rest, as Turbo Pascal's {$M}
++        add dx, ax
++%else
+         add dx, 1000h  ; 64kb in paragraphs
++%endif
+ 
+          ; get our MCB size in paragraphs
+         dec cx

@@ -1,4 +1,10 @@
+{$IFDEF FPC}
+{ FPC's RTL builds the parameter list, and Dos.Exec the command line,
+  on the heap. }
+{$M 4096, 0, 2048}
+{$ELSE}
 {$M 1536, 0, 0}
+{$ENDIF}
 program dosrun;
 
 { Note : this program is for MS-DOS Turbo Pascal, not Delphi }

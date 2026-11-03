@@ -68,7 +68,7 @@ class Win16MessageTests(unittest.TestCase):
                          'rtl/objpas/sysutils/dati.inc', 'rtl/win16/winprocsh.inc',
                          'rtl/win16/winprocs.inc', 'rtl/win16/win31.pp',
                          'rtl/win16/wintypes.inc', 'rtl/win16/sysutils.pp',
-                         'rtl/win16/Makefile', 'rtl/win16/Makefile.fpc'):
+                         'rtl/win16/Makefile', 'rtl/win16/Makefile.fpc', 'rtl/msdos/prt0comn.asm'):
                 target = source / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 extra[name] = (ROOT / 'vendor/reference/freepascal' / name).read_bytes()
@@ -85,6 +85,8 @@ class Win16MessageTests(unittest.TestCase):
                 self.assertEqual((source / name).read_bytes(), content, name)
             self.assertIn('CALMIRA_WIN16_DOS_NO_STRINGS', (first / 'rtl/win16/dos.pp').read_text(encoding='latin1'))
             self.assertIn('set_unit_var __fpc_HInstance, 0, di', (first / 'rtl/win16/prt0comn.asm').read_text())
+            self.assertIn('%ifdef CALMIRA_MSDOS_MAXHEAP\n        ; keep only data+bss+stack+maxheap',
+                          (first / 'rtl/msdos/prt0comn.asm').read_text())
             self.assertIn('PAutoDataSegHeader(Ptr(SSeg,0))', (first / 'rtl/win16/system.pp').read_text(encoding='latin1'))
             self.assertIn('procedure AppendStr(var Dest: OpenString; const S: ShortString);',
                           (first / 'rtl/objpas/sysutils/sysstr.inc').read_text(encoding='latin1'))

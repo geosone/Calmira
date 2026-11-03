@@ -73,8 +73,7 @@ begin
     if (Pos('calmira.exe', Shell) > 0) then
     begin
 {$IFDEF FPC}
-      StrPLCopy(TextBuffer, LanguageText('TaskManager', 'Unavailable',
-        'Calmira stopped. Abort: shut down; Retry: restart; Ignore: Windows Task Manager.'), 255);
+      StrPLCopy(TextBuffer, LanguageText('TaskManager', 'Unavailable', DlgMsg), 255);
       StrPLCopy(CaptionBuffer, LanguageText('TaskManager', 'Title', DlgCpt), 255);
       Action := MessageBox(0, TextBuffer, CaptionBuffer, MB_ICONHAND or MB_ABORTRETRYIGNORE);
 {$ELSE}

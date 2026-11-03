@@ -122,3 +122,35 @@ class Win16FormTests(unittest.TestCase):
         rule = makefile[start:makefile.index('\n\n', start)]
         self.assertIn('-Sh- $(WIN16_GUI_FLAGS) -CX -Fu./$(FPC_WIN16_GUI_RTL)', rule)
         self.assertNotIn('FPC_WIN16_UNITS', rule)
+
+    def test_dos_helpers_build_with_the_msdos_rtl(self):
+        patch = (ROOT / 'tools/patches/fpc-msdos-maxheap-resize.patch').read_text()
+        self.assertIn('+%ifdef CALMIRA_MSDOS_MAXHEAP', patch)
+        self.assertIn('+        add dx, ax', patch)
+        prepare = (ROOT / 'tools/prepare_win16_rtl.py').read_text()
+        self.assertIn("'fpc-msdos-maxheap-resize.patch'", prepare)
+        build = (ROOT / 'tools/build_msdos_rtl.sh').read_text()
+        self.assertIn('NASM_OPT=-DCALMIRA_MSDOS_MAXHEAP', build)
+        self.assertIn('OS_TARGET=msdos', build)
+        makefile = (ROOT / 'makefile').read_text()
+        self.assertIn('-Tmsdos -Pi8086 -WmSmall -Mtp', makefile)
+        self.assertIn('dos-helpers-runtime-test \\', makefile)
+        for name in ('direxist', 'dosrun'):
+            source = (ROOT / f'src/{name}.pas').read_text()
+            self.assertIn('{$IFDEF FPC}', source)
+        test = (ROOT / 'tests/dos/test_dos_helpers.sh').read_text()
+        for text in ('DIREXIST rejects a file', 'COUNTTIP output matches Calmira 3.02',
+                     'DOSRUN leaves the started program its memory'):
+            self.assertIn(text, test)
+
+    def test_show_activates_as_delphi(self):
+        source = (ROOT / 'src/win16/native_form.pas').read_text()
+        self.assertIn('(SW_SHOWNORMAL, SW_SHOWMINNOACTIVE, SW_SHOWMAXIMIZED)', source)
+        self.assertIn('ShowWindow(Handle, ShowCommands[Requested]);', source)
+        test = (ROOT / 'tests/pascal/test_win16_forms.pas').read_text()
+        self.assertIn("Show activates a normal form, as Delphi''s SW_SHOWNORMAL", test)
+        catalog = (ROOT / 'locales/extra.json').read_text(encoding='utf-8')
+        self.assertIn('The Calmira Task Manager is not available because Calmira has terminated abnormally.', catalog)
+        taskman = (ROOT / 'src/ctaskman.dpr').read_text(errors='replace')
+        self.assertIn("LanguageText('TaskManager', 'Unavailable', DlgMsg)", taskman)
+

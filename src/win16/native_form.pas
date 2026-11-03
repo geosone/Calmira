@@ -388,6 +388,8 @@ begin
 end;
 procedure TNativeForm.DoClose(var Action: TNativeCloseAction);
 begin if Assigned(FOnClose) then FOnClose(Self, Action); end;
+const
+  ShowCommands: array[TWindowState] of Integer = (SW_SHOWNORMAL, SW_SHOWMINNOACTIVE, SW_SHOWMAXIMIZED);
 procedure TNativeForm.Show;
 var Requested: TWindowState;
 begin
@@ -399,7 +401,9 @@ begin
         Left, Top, Width, Height);
     if Visible then Exit;
     FPendingState := False;
-    Visible := True;
+    { As Delphi's CMShowingChanged: a normal or maximized form is activated
+      when shown (Calmira's Task Manager, shown on CTASKMAN's message). }
+    ShowWindow(Handle, ShowCommands[Requested]);
     if ReadWindowState <> Requested then ApplyWindowState(Requested);
     DoShow;
   finally FChangingForm := False; end;
