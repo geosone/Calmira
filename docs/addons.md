@@ -60,3 +60,6 @@ Its explicit source notice identifies David Burgess and December 2000.
 Imported trees remain unchanged so later ports can retain their authorship
 and licenses. An adopted feature needs an FPC build and Win3.1 runtime tests
 before being presented as an installed extension.
+
+[lost_features.md](lost_features.md) lists the features later versions dropped
+and which add-ons are worth porting.

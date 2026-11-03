@@ -157,14 +157,22 @@ begin Result := FItems.Objects[Index]; end;
 procedure TComboBoxStrings.PutObject(Index: Integer; AObject: TObject);
 begin FItems.Objects[Index] := AObject; end;
 procedure TComboBoxStrings.Put(Index: Integer; const S: AnsiString);
-var Selected: Integer; AObject: TObject;
+var Selected, Old: Integer; AObject: TObject;
 begin
-  Selected := FCombo.ItemIndex; AObject := FItems.Objects[Index];
+  { The selection stays on the same entry: on the replaced one at its new
+    place, otherwise on the entry that was selected before. }
+  Selected := FCombo.ItemIndex; AObject := FItems.Objects[Index]; Old := Index;
   Delete(Index);
-  { A sorted list places the new string itself. }
   if FCombo.FSorted then Index := Add(S) else Insert(Index, S);
   FItems.Objects[Index] := AObject;
-  if Selected >= 0 then FCombo.ItemIndex := Index;
+  if Selected < 0 then Exit;
+  if Selected = Old then Selected := Index
+  else
+  begin
+    if Selected > Old then Dec(Selected);
+    if Selected >= Index then Inc(Selected);
+  end;
+  if FCombo.ItemIndex <> Selected then FCombo.ItemIndex := Selected;
 end;
 procedure TComboBoxStrings.SetUpdateState(Updating: Boolean);
 begin

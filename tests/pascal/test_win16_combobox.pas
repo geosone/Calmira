@@ -10,7 +10,7 @@ type
     procedure Entered(Sender: TObject);
     procedure Exited(Sender: TObject);
   end;
-var Root: TCustomControl; Edit: TComboBox; List: TComboBox; Other: TEdit;
+var Root: TCustomControl; Edit: TComboBox; List: TComboBox; Detached: TComboBox; Other: TEdit;
   Observer: TObserver; Failed, Rejected: Boolean; I, PoolUser: Integer; Child: HWND;
   Marker: TObject;
 procedure LogLine(const Text: string);
@@ -72,8 +72,11 @@ begin
       'programmatic ItemIndex is quiet');
     Edit.Items.Insert(0, '*.bat');
     Check((NativeItems(Edit) = '*.bat,*.txt,*.ini') and (Edit.Items.Objects[2] = Marker), 'insert keeps objects');
+    Edit.ItemIndex := 2;
     Edit.Items[1] := '*.doc';
     Check(NativeItems(Edit) = '*.bat,*.doc,*.ini', 'replace item');
+    Check((Edit.ItemIndex = 2) and (Edit.Text = '*.ini'),
+      'replacing another item keeps the selection, as the language layer needs');
     Edit.Items.Delete(0);
     Check((NativeItems(Edit) = '*.doc,*.ini') and (Edit.Items.Count = 2), 'delete item');
     Edit.SetFocus;
@@ -96,6 +99,24 @@ begin
     List.SetBounds(170, 5, 150, 21); List.Parent := Root;
     Check(NativeItems(List) = 'Alpha,Beta,Gamma', 'sorted items');
     Check((List.Items.Add('Aardvark') = 0) and (NativeItems(List) = 'Aardvark,Alpha,Beta,Gamma'), 'sorted add');
+    List.ItemIndex := 2; List.Items[0] := 'Zeta';
+    Check((NativeItems(List) = 'Alpha,Beta,Gamma,Zeta') and (List.ItemIndex = 1) and (List.Text = 'Beta'),
+      'sorted replace keeps the selected entry');
+    List.Items[1] := 'Delta';
+    Check((NativeItems(List) = 'Alpha,Delta,Gamma,Zeta') and (List.ItemIndex = 1) and (List.Text = 'Delta'),
+      'sorted replace moves the selection with the replaced entry');
+    List.Items.Delete(List.Items.IndexOf('Zeta')); List.Items[1] := 'Beta'; List.Items.Add('Aardvark');
+    List.ItemIndex := -1;
+    Detached := TComboBox.Create(nil);
+    try
+      Detached.Style := csDropDownList;
+      Detached.Items.Add('Center'); Detached.Items.Add('Tile');
+      Detached.ItemIndex := 0;
+      Detached.Items[0] := 'Center'; Detached.Items[1] := 'Tile';
+      Detached.SetBounds(5, 60, 150, 21); Detached.Parent := Root;
+      Check((Detached.ItemIndex = 0) and (Detached.Text = 'Center'),
+        'detached replace keeps the selection (Desktop Properties pattern and Show)');
+    finally Detached.Free; end;
     Rejected := False;
     try List.Items.Insert(0, 'Zulu'); except on Exception do Rejected := True; end;
     Check(Rejected and (List.Items.Count = 4), 'insert into sorted list rejected');

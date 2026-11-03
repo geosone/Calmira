@@ -2319,3 +2319,23 @@ Addresses are looked up in the `-Xm` linker map, as before. Sizes now:
 
 The rest is code: FPC's huge-model RTL, and SysUtils in CTASKMAN and
 EXPLORER. `pack-win16` compresses the release files with UPX.
+
+## About Box Homepage
+
+The About box, the tip dialog and a new Favorites entry now link to the
+Calmira Reloaded repository, `https://github.com/geosone/Calmira`.
+`tools/rebrand_forms.py` replaces the link caption in `src/about.dfm`. The
+Favorites keep the links to the earlier authors. The start menu, its
+Settings, Find and Control Panel submenus match the original, including the
+submenu arrows.
+
+## Desktop Properties Selections
+
+On the Wallpaper page, Patterns showed the last pattern (Waffeleisen) and
+Show showed Tile, although WIN.INI has `Pattern=(Kein)` and no
+`TileWallpaper`. `FormCreate` selected the right entries. The language
+layer (`vcl/langui.pas`) then rewrites every list item, and
+`TComboBoxStrings.Put` moved the selection to each rewritten entry.
+`Put` now keeps the selection on the same entry, in combo boxes and list
+boxes, sorted or not. `test_win16_combobox` and `test_win16_listbox` cover
+it, including a combo box filled before its handle exists.

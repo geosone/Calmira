@@ -126,7 +126,7 @@ end;
 
 procedure TTipDialog.HomePageClick(Sender: TObject);
 begin
-  DefaultExec('http://huntertur.net/calmirar.html', '', '', SW_SHOWNORMAL);
+  DefaultExec('https://github.com/geosone/Calmira', '', '', SW_SHOWNORMAL);
 end;
 
 procedure TTipDialog.cbShowDailyTipsClick(Sender: TObject);

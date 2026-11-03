@@ -10,7 +10,7 @@ type
     procedure Draw(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
   end;
 var Root: TCustomControl; List, Multi, Drawn: TListBox; Observer: TObserver; Failed: Boolean;
-  Msg: TMsg; R: TRect; Rejected: Boolean; Pos: TPoint;
+  Msg: TMsg; R: TRect; Rejected: Boolean; Pos: TPoint; Selected: string;
 procedure TObserver.Click(Sender: TObject); begin Inc(Clicks); end;
 procedure TObserver.DblClick(Sender: TObject); begin Inc(DblClicks); end;
 procedure TObserver.Draw(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
@@ -62,6 +62,11 @@ begin
     Rejected := False;
     try List.Items.Insert(0, 'x'); except on ENativeWindowError do Rejected := True; end;
     Check(Rejected, 'sorted insert rejected');
+    List.ItemIndex := 1; Selected := List.Items[1]; List.Items[0] := 'zzz';
+    Check((List.Items[List.Items.Count - 1] = 'zzz') and (List.Items[List.ItemIndex] = Selected),
+      'sorted replace keeps the selected entry');
+    List.Items[List.Items.Count - 1] := 'aaa';
+    Check((List.Items[0] = 'aaa') and (List.Items[List.ItemIndex] = Selected), 'replace back');
     List.ItemIndex := 2;
     R := List.ItemRect(2);
     List.Perform(WM_LBUTTONDOWN, MK_LBUTTON, MakeLong(R.Left + 4, R.Top + 2));

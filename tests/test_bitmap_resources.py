@@ -71,6 +71,16 @@ class BitmapResourceTests(unittest.TestCase):
         for catalogue in sorted((ROOT / 'locales/translated').glob('*.json')):
             self.assertNotIn('Reborn', catalogue.read_text(encoding='utf-8'), catalogue.name)
 
+    def test_homepage_links_point_to_the_reloaded_repository(self):
+        url = 'https://github.com/geosone/Calmira'
+        self.assertIn(b'"' + url.encode(), (ROOT / 'src/about.dfm').read_bytes())
+        for unit in ('src/about.pas', 'src/tips.pas'):
+            source = (ROOT / unit).read_text(encoding='cp1252')
+            self.assertIn(f"'{url}'", source, unit)
+            self.assertNotIn('huntertur.net', source, unit)
+        menu = (ROOT / 'src/start.ini').read_text(encoding='cp1252')
+        self.assertIn(f'[Start\\F&avorites]\nCalmira Reloaded homepage={url};', menu.replace('\r\n', '\n'))
+
     def test_unrelated_historical_resources_remain_byte_identical(self):
         after = BITMAPS.parse((ROOT / 'src/bitmaps.res').read_bytes())
         self.assertEqual(len(after), 14)

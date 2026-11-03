@@ -1,7 +1,7 @@
 """Replace the remaining Calmira Reborn branding in the binary form files.
 
-The tip dialog embeds its title picture (bmp/tiptit.bmp) in src/tips.dfm, and
-two captions name the shell. Picture size and depth stay unchanged, so only
+The tip dialog embeds its title picture (bmp/tiptit.bmp) in src/tips.dfm, two
+captions name the shell and the About box links to the project homepage. Picture size and depth stay unchanged, so only
 the pixel array and the two counted strings change. --check reports, without
 writing, whether the forms are current.
 """
@@ -16,6 +16,8 @@ CAPTIONS = {
                      'Show this the first time you run Calmira Reloaded each day'),
     'src/deskprop.dfm': ('Changes will not take effect until Calmira Reborn is restarted.',
                          'Changes will not take effect until Calmira Reloaded is restarted.'),
+    'src/about.dfm': ('http://huntertur.net/calmirar.html',
+                      'https://github.com/geosone/Calmira'),
 }
 VA_STRING = 6
 

@@ -132,7 +132,7 @@ end;
 procedure TAboutBox.HomepageLabelClick(Sender: TObject);
 begin
   OKButton.Click;
-  OpenURL('http://huntertur.net/calmirar.html');
+  OpenURL('https://github.com/geosone/Calmira');
 end;
 
 procedure TAboutBox.AppLogoClick(Sender: TObject);
