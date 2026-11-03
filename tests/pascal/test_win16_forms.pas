@@ -1,7 +1,7 @@
 program FormsTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Controls, Forms, native_form, native_window,
-  native_application;
+uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Graphics, Controls, Forms, StdCtrls, Buttons,
+  native_form, native_window, native_application;
 type
   TMainForm = class(TForm)
   protected
@@ -17,6 +17,10 @@ type
     procedure ModalShow(Sender: TObject);
     procedure MinimizeHandler(Sender: TObject; var Action: TCloseAction);
     procedure Filter(var Msg: TMsg; var Handled: Boolean);
+  end;
+  TActiveProbe = class(TBitBtn)
+  public
+    property Active;
   end;
   TTeardownProbe = class(TComponent)
   public
@@ -231,9 +235,41 @@ begin
   Check(IsWindowVisible(Loose.Handle) and (R.Right - R.Left > 10) and (Loose.Width = R.Right - R.Left),
     'poDefault lets USER place and size the window');
   Loose.Free;
+  Loose := TChildForm.Create(nil); Loose.Position := poDefault; Loose.BorderStyle := bsNone;
+  Loose.SetBounds(0, 0, 150, 30); Loose.Show; GetWindowRect(Loose.Handle, R);
+  Check((R.Right - R.Left = 150) and (R.Bottom - R.Top = 30), 'poDefault keeps the size of an unsizeable form');
+  Loose.Free;
   Loose := TChildForm.Create(nil); Loose.Position := poDefaultPosOnly; Loose.SetBounds(0, 0, 150, 90);
   Loose.Show; GetWindowRect(Loose.Handle, R);
   Check((R.Right - R.Left = 150) and (R.Bottom - R.Top = 90), 'poDefaultPosOnly keeps the size');
+  Loose.Free;
+end;
+{ Calmira's buttons are bsNew TBitBtns; its Buttons.dcu drew them as Win95
+  buttons, and the active one (focused, or Default) bold. }
+procedure DefaultButtons;
+var First, Second: TActiveProbe; Edit: TEdit; DC: HDC; Outer, Inner, Corner: TColorRef;
+begin
+  Loose := TChildForm.Create(nil); Loose.SetBounds(40, 40, 260, 120);
+  First := TActiveProbe.Create(Loose); First.Parent := Loose; First.SetBounds(10, 10, 100, 25);
+  First.Style := bsNew; First.Caption := 'First'; First.TabOrder := 0;
+  Second := TActiveProbe.Create(Loose); Second.Parent := Loose; Second.SetBounds(120, 10, 100, 25);
+  Second.Style := bsNew; Second.Caption := 'Second'; Second.Default := True;
+  Edit := TEdit.Create(Loose); Edit.Parent := Loose; Edit.SetBounds(10, 50, 100, 22);
+  Loose.Show; SetActiveWindow(Loose.Handle); UpdateWindow(Loose.Handle);
+  Check(First.Focused, 'an activated form without ActiveControl focuses its first tab stop, as in Delphi');
+  Check(First.Active and not Second.Active, 'the focused button is the active one');
+  Edit.SetFocus; UpdateWindow(Loose.Handle);
+  Check(Second.Active and not First.Active, 'with focus off the buttons, the Default button is active');
+  SetActiveWindow(GetDesktopWindow); SetActiveWindow(Loose.Handle);
+  Check(Edit.Focused, 'reactivation restores the last focused control, as in Delphi');
+  DC := GetDC(First.Handle);
+  Outer := GetPixel(DC, 99, 24); Inner := GetPixel(DC, 98, 23); Corner := GetPixel(DC, 0, 0);
+  ReleaseDC(First.Handle, DC);
+  Check((Outer = ColorToRGB(clWindowFrame)) and (Inner = ColorToRGB(clBtnShadow)) and
+    (Corner = ColorToRGB(clBtnShadow)), 'bsNew draws the Win95 frame of Calmira''s Buttons unit');
+  First.SetFocus; UpdateWindow(Loose.Handle);
+  DC := GetDC(First.Handle); Corner := GetPixel(DC, 4, 3); Inner := GetPixel(DC, 5, 3); ReleaseDC(First.Handle, DC);
+  Check((Corner = 0) or (Inner = 0), 'the focus rectangle of a button is black dots on the face, as in Delphi');
   Loose.Free;
 end;
 procedure ParentForm;
@@ -282,7 +318,7 @@ begin
 end;
 begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
-  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiWindows; ParentForm; UtilityWindow; ModalFree; RunMain;
+  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiWindows; DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Check(StackGuardIntact, 'forms stack boundary');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');

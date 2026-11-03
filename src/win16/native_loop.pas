@@ -186,11 +186,11 @@ end;
 procedure TNativeMessageLoop.DrainMessages;
 var Child, Current: TNativeMessageLoop; Message: TMsg;
 begin
+  { As Delphi 1's ProcessMessages, a drain may run inside another drain or an
+    idle callback; each one gets its own frame. }
   Current := ActiveLoop;
   while Current <> nil do
   begin
-    if Current.FDraining or Current.FIdling then
-      raise ENativeLoopError.Create('Nested task pump');
     if Current.FTerminated and not FTerminated then
     begin FTerminated := True; FExitCode := Current.FExitCode; end;
     Current := Current.FPreviousActive;

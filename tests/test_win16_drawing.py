@@ -60,6 +60,10 @@ class Win16DrawingTests(unittest.TestCase):
         self.assertIn('if Value <> 0 then FreeContext;', core)
         self.assertIn('ContextCanvases.Count >= ContextCacheSize', core)
         self.assertIn('begin FreeContext; FFont.Free;', core)
+        self.assertIn('if FMemoryContext then Result := CreateCompatibleDC(0) else Result := 0;', core)
+        self.assertIn('if FMemoryContext then DeleteDC(Context);', core)
+        bitmap = (ROOT / 'src/win16/gdi_bitmap.pas').read_text()
+        self.assertIn('FCanvas.MemoryContext := True;', bitmap)
         paint = (ROOT / 'src/win16/native_paint.pas').read_text()
         self.assertIn('FCanvas := TWindowCanvas.Create(Self);', paint)
         controls = (ROOT / 'src/win16/controls.pas').read_text()
@@ -70,7 +74,8 @@ class Win16DrawingTests(unittest.TestCase):
         test = (ROOT / 'tests/pascal/test_win16_canvas_context.pas').read_text()
         for text in ('Handle stays 0 with a borrowed context', 'a graphic canvas is clipped to the control',
                      'destroying a window releases contexts', 'more canvases than common DCs',
-                     'the message loop releases contexts before idle'):
+                     'the message loop releases contexts before idle',
+                     'an empty bitmap canvas measures text on a memory DC, as in Delphi'):
             self.assertIn(text, test)
         makefile = (ROOT / 'makefile').read_text()
         self.assertIn('win16-canvas-context-runtime-test', makefile.split('win16-fixed-regression:', 1)[1].split('\n\n', 1)[0])

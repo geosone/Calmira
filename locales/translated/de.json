@@ -10,7 +10,7 @@
     "TComputer.ConfigDesktop.Caption": "&Desktop...",
     "TComputer.NewNetShort.Caption": "&Internet",
     "TComputer.SysProperties.Caption": "&System...",
-    "TDeskPropDlg.Label19.Caption": "Die Änderungen werden erst nach einem Neustart von Calmira Reborn wirksam.",
+    "TDeskPropDlg.Label19.Caption": "Die Änderungen werden erst nach einem Neustart von Calmira Reloaded wirksam.",
     "TDeskPropDlg.Label6.Caption": "Symbolabstand:",
     "TFilePropDlg.FilePropDlg.Caption": "Eigenschaften",
     "TFilePropDlg.SystemFile.Caption": "&System",
@@ -28,7 +28,7 @@
     "TStartPropDlg.Win95Menu.Caption": "Menü im &Windows 95-Stil mit Symbolen",
     "TSysPropDlg.Label13.Caption": "Browser:",
     "TSysPropDlg.Label7.Caption": "&Name:",
-    "TTipDialog.cbShowDailyTips.Caption": "Beim ersten Start von Calmira Reborn an jedem Tag anzeigen"
+    "TTipDialog.cbShowDailyTips.Caption": "Beim ersten Start von Calmira Reloaded an jedem Tag anzeigen"
   },
   "Strings": {
     "1059": "Möchten Sie Calmira Reloaded wirklich beenden?",

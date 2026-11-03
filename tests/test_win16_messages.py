@@ -87,6 +87,9 @@ class Win16MessageTests(unittest.TestCase):
             self.assertIn('PAutoDataSegHeader(Ptr(SSeg,0))', (first / 'rtl/win16/system.pp').read_text(encoding='latin1'))
             self.assertIn('procedure AppendStr(var Dest: OpenString; const S: ShortString);',
                           (first / 'rtl/objpas/sysutils/sysstr.inc').read_text(encoding='latin1'))
+            sysstr = (first / 'rtl/objpas/sysutils/sysstr.inc').read_text(encoding='latin1')
+            for text in ('   Result:=NullStr', "  if (S <> Nil) and (S^ <> '') then", '  DisposeStr(P);\n  P := NewStr(S);'):
+                self.assertIn(text, sysstr)
             self.assertIn('Procedure FmtStr(Var Res: OpenString; Const Fmt : String; Const args: Array of const);',
                           (first / 'rtl/objpas/sysutils/sysstrh.inc').read_text(encoding='latin1'))
             self.assertIn('TFileName = ShortString;',

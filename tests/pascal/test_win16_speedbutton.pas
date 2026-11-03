@@ -5,7 +5,9 @@ type
   TProbe = class(TSpeedButton)
   public
     Enters, Leaves, Pressed, Clicks: Integer;
+    PaintedBrush: TBrushStyle;
     function State: TButtonState;
+    procedure Paint; override;
     procedure Click; override;
     procedure CMButtonPressed(var Message: TMessage); message CM_BUTTONPRESSED;
     procedure CMMouseEnter(var Message: TMessage); message CM_MOUSEENTER;
@@ -19,6 +21,7 @@ var Root: TCustomControl; A, B, C: TProbe; Observer: TObserver; Failed: Boolean;
   Surface: TControlCanvas; DC: HDC; Pixel1, Pixel2, Pixel3: TColorRef;
   Origin: TPoint; Start: LongInt; Msg: TMsg;
 function TProbe.State: TButtonState; begin Result := FState; end;
+procedure TProbe.Paint; begin inherited Paint; PaintedBrush := Canvas.Brush.Style; end;
 procedure TProbe.Click; begin Inc(Clicks); inherited Click; end;
 procedure TProbe.CMButtonPressed(var Message: TMessage); begin Inc(Pressed); inherited; end;
 procedure TProbe.CMMouseEnter(var Message: TMessage); begin Inc(Enters); inherited; end;
@@ -133,6 +136,8 @@ begin
       Check((Pixel1 = RGB(255, 0, 0)) and (Pixel2 = RGB(255, 0, 0)) and (Pixel3 <> RGB(255, 0, 0)),
         'control canvas polyline at graphic origin, clipped');
     finally Surface.Free; end;
+    B.PaintedBrush := bsSolid; B.Invalidate; UpdateWindow(Root.Handle);
+    Check(B.PaintedBrush = bsClear, 'Paint leaves a clear brush for descendants, as in Delphi 1');
     Check(Root.CallbackErrors = 0, 'no native callback errors');
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
   A.Free; B.Free; C.Free; Root.Free; Observer.Free;

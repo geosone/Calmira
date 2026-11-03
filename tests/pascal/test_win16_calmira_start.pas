@@ -77,7 +77,8 @@ end;
 
 var
   Instance: THandle;
-  Welcome, Computer, Bin, Tip: HWND;
+  Welcome, Computer, Bin, Tip, Bar, Manager: HWND;
+  R: TRect;
   CalmiraTask: THandle;
 begin
   LogLine('Calmira start');
@@ -95,9 +96,20 @@ begin
       (GetWindowTask(Computer) = CalmiraTask), 'My Computer is a desktop icon of Calmira');
     Check((Bin <> 0) and IsIconic(Bin) and (GetWindowTask(Bin) = CalmiraTask),
       'Recycle Bin is a desktop icon of Calmira');
+    Check((Find('Calmira Explorer') <> 0) and (Find('MS-DOS Prompt') <> 0) and
+      (GetWindowTask(Find('MS-DOS Prompt')) = CalmiraTask), 'the desktop shortcuts carry their captions');
+    Manager := FindWindow('Progman', nil); GetWindowRect(Manager, R);
+    Check((Manager <> 0) and IsIconic(Manager) and (R.Top >= GetSystemMetrics(SM_CYSCREEN)),
+      'Program Manager has a taskbar button, so its icon moves off the desktop');
     Check(StartEntry('Start\&Programs', 'Program Manager*') <> '',
       'Program Manager groups are synchronised into the Start menu');
     Check(Find('Error') = 0, 'no error box while starting');
+    Bar := Find('Taskbar');
+    if Bar <> 0 then GetWindowRect(Bar, R);
+    Check((Bar <> 0) and IsWindowVisible(Bar) and (GetWindowTask(Bar) = CalmiraTask) and
+      (R.Left = 0) and (R.Right = GetSystemMetrics(SM_CXSCREEN)) and
+      (R.Bottom >= GetSystemMetrics(SM_CYSCREEN)) and (R.Top < GetSystemMetrics(SM_CYSCREEN) - 20),
+      'the taskbar is shown along the bottom of the screen');
     PostMessage(Welcome, WM_CLOSE, 0, 0);
     Tip := WaitFor('Tip of the Day', 15);
     Check((Tip <> 0) and (GetWindowTask(Tip) = CalmiraTask) and (Find('Welcome') = 0),

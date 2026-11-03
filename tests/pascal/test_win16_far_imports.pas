@@ -1,7 +1,7 @@
 program TestWin16FarImports;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
 uses WinTypes, WinProcs, SysUtils, far_import_probe;
-var Failed: Boolean; Before, Ticks: LongInt;
+var Failed: Boolean; Before, Ticks: LongInt; Name, Target: PString;
 procedure LogLine(const Text: string);
 var F: HFILE; S: string;
 begin
@@ -25,6 +25,14 @@ begin
     Check(CompareText(ExtractFileName(ProbeParamStr(0)), 'GDITEST.EXE') = 0,
       'ParamStr links in Delphi mode');
     Check(ProbeParamStr(99) = '', 'ParamStr beyond ParamCount is empty');
+    { Calmira's TReference starts every field at NullStr and fills it with AssignStr. }
+    Name := NullStr; Target := NullStr;
+    AssignStr(Name, 'Calmira Explorer'); AssignStr(Target, 'C:\');
+    Check((Name <> NullStr) and (Name^ = 'Calmira Explorer') and (Target^ = 'C:\') and (NullStr^ = ''),
+      'AssignStr allocates a new string, as in Delphi 1');
+    AssignStr(Name, ''); DisposeStr(Target); DisposeStr(NullStr);
+    Check((Name = NullStr) and (NewStr('') = NullStr) and (NullStr^ = ''),
+      'empty strings share NullStr, which is never disposed');
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');
 end.

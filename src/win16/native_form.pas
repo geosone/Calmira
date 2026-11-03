@@ -31,6 +31,7 @@ type
     FWindowState: TWindowState;
     FResizeWidth, FResizeHeight: Integer;
     FInitialControl: TCustomControl;
+    FLastFocus: HWND;
     FOnShow, FOnHide: TNotifyEvent;
     FOnActivate, FOnDeactivate: TNotifyEvent;
     FOnResize: TNotifyEvent;
@@ -43,6 +44,7 @@ type
     procedure HideWindow;
     procedure WMClose(var M: TMessage); message WM_CLOSE;
     procedure WMActivate(var M: TWMActivate); message WM_ACTIVATE;
+    procedure RestoreFocus;
     procedure WMSize(var M: TMessage); message WM_SIZE;
     procedure WMNCDestroy(var M: TMessage); message WM_NCDESTROY;
     procedure SetNormalBounds(X, Y, AWidth, AHeight: Integer);
@@ -298,7 +300,23 @@ begin
   if Assigned(FOnShow) then FOnShow(Self);
   if WindowState <> wsMinimized then
     if ContainsControl(FInitialControl) then
+    begin
       if FInitialControl.CanFocus then FInitialControl.SetFocus;
+    end;
+end;
+procedure TNativeForm.RestoreFocus;
+var Current: TCustomControl;
+begin
+  Current := FindControl(GetFocus);
+  if (Current <> nil) and (Current <> Self) then Exit;
+  if (FLastFocus <> 0) and IsChild(Handle, FLastFocus) then
+  begin
+    Current := FindControl(FLastFocus);
+    if (Current <> nil) and (Current <> Self) and Current.CanFocus then
+    begin Current.SetFocus; Exit; end;
+  end;
+  if ContainsControl(FInitialControl) and FInitialControl.CanFocus then FInitialControl.SetFocus
+  else FocusNext(True);
 end;
 procedure TNativeForm.DoHide;
 begin if Assigned(FOnHide) then FOnHide(Self); end;
@@ -336,13 +354,22 @@ begin if Assigned(FOnActivate) then FOnActivate(Self); end;
 procedure TNativeForm.DoDeactivate;
 begin if Assigned(FOnDeactivate) then FOnDeactivate(Self); end;
 procedure TNativeForm.WMActivate(var M: TWMActivate);
+var Current: TCustomControl;
 begin
   if FActivationDepth >= 32 then raise ENativeWindowError.Create('Form activation recursion');
   Inc(FActivationDepth);
   try
     { Preserve USER's focus/default processing even when an event raises.
       Notify each native transition, including nested cross-form activation. }
+    if M.Active = WA_INACTIVE then
+    begin
+      Current := FindControl(GetFocus);
+      if (Current <> nil) and (Current <> Self) then FLastFocus := Current.Handle;
+    end;
     DefaultHandler(M);
+    { As Delphi's SetActive: the form's active control, by default its first
+      tab stop, takes the focus, so a focused button becomes the active one. }
+    if (M.Active <> WA_INACTIVE) and not M.Minimized and IsWindowVisible(Handle) then RestoreFocus;
     case M.Active of
       WA_INACTIVE: DoDeactivate;
       WA_ACTIVE, WA_CLICKACTIVE: DoActivate;

@@ -576,18 +576,17 @@ begin
     if Length > 255 then Length := 255;
     Move(Params.Caption^, Title[1], Length);
     Title[0] := Chr(Length);
-    { As Delphi 1's TForm.CreateParams; USER places the window. }
+    { As Delphi 1's TForm.CreateParams; USER places the window. It sizes
+      only a sizeable frame: a popup would get no size at all. }
     case FPosition of
       poDesigned: ;
-      poDefault:
+      poDefault, poDefaultPosOnly, poDefaultSizeOnly:
         begin
-          Params.X := CW_USEDEFAULT; Params.Y := CW_USEDEFAULT;
-          Params.Width := CW_USEDEFAULT; Params.Height := CW_USEDEFAULT;
+          if FPosition <> poDefaultSizeOnly then
+          begin Params.X := CW_USEDEFAULT; Params.Y := CW_USEDEFAULT; end;
+          if (FPosition <> poDefaultPosOnly) and (FBorderStyle = bsSizeable) then
+          begin Params.Width := CW_USEDEFAULT; Params.Height := CW_USEDEFAULT; end;
         end;
-      poDefaultPosOnly:
-        begin Params.X := CW_USEDEFAULT; Params.Y := CW_USEDEFAULT; end;
-      poDefaultSizeOnly:
-        begin Params.Width := CW_USEDEFAULT; Params.Height := CW_USEDEFAULT; end;
       poScreenCenter:
         begin
           Params.X := (GetSystemMetrics(SM_CXSCREEN) - Params.Width) div 2;

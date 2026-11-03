@@ -308,5 +308,8 @@ begin
     else SetTextColor(DC, ColorToRGB(Font.Color));
     DrawText(DC, Buffer, Length(FCaption), TextArea, DT_LEFT or DT_SINGLELINE);
   end;
+  { Delphi 1's DrawButtonText always leaves a clear brush. Calmira's flat
+    TStyleSpeed then frames the button with Rectangle over the glyph. }
+  Canvas.Brush.Style := bsClear;
 end;
 end.

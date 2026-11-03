@@ -149,15 +149,15 @@ begin
     PostAppMessage(GetCurrentTask, Probe, 0, 0);
     try App.ProcessMessages; except on Exception do Rejected := True; end;
     Driver.FailFilter := False; PostAppMessage(GetCurrentTask, Probe, 0, 0); App.ProcessMessages;
-    Check(Rejected and (Driver.Calls = 1) and (Driver.Guards = 3),
-      'filter failure releases application drain guards and recursive pumps remain rejected');
+    Check(Rejected and (Driver.Calls = 1) and (Driver.Guards = 2),
+      'filter failure releases the drain; a nested drain runs, bounded pumps and Run are rejected');
     Before := Driver.Guards; App.HookMainWindow(Driver.Hook);
     SendMessage(App.Handle, Probe, 0, 0); App.UnhookMainWindow(Driver.Hook);
     App.OnHelp := Driver.Help; Check(App.HelpContext(1), 'suppressed help callback completes'); App.OnHelp := nil;
     App.OnException := Driver.ExceptionRaised;
     try raise Exception.Create('explicit exception'); except on Exception do App.HandleException(Main); end;
     App.OnException := nil;
-    Check(Driver.Guards = Before + 3, 'sent transport help and exception callbacks reject parameterless reentry');
+    Check(Driver.Guards = Before, 'sent transport, help and exception callbacks may drain, as in Delphi');
     Dialog := TDialog.Create(nil); Dialog.SetBounds(40, 40, 180, 100); Dialog.OnShow := Driver.DialogStart;
     DialogButton := TButton.Create(Dialog); DialogButton.Parent := Dialog;
     DialogButton.Default := True; DialogButton.ModalResult := mrOK;
@@ -174,8 +174,8 @@ begin
     Successor.Free; Successor := nil;
     Setup; Main.OnShow := nil; App.OnIdle := Driver.Idle; Before := Driver.Guards;
     Check(App.Run = -62, 'idle service can still terminate root after application drain recovery');
-    Check((Driver.IdleCalls = 1) and (Driver.Guards = Before + 1) and (Driver.FactoryGuards = 2),
-      'parameterless pump rejects active idle and factory construction callbacks');
+    Check((Driver.IdleCalls = 1) and (Driver.Guards = Before) and (Driver.FactoryGuards = 0),
+      'OnIdle and form constructors may drain, as in Delphi (Calmira does in TTaskbar.FormCreate)');
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Cleanup; Successor.Free;
   Check(StackGuardIntact, 'application pump stack boundary');

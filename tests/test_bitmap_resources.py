@@ -3,6 +3,8 @@ import importlib.util
 import hashlib
 from pathlib import Path
 import struct
+import subprocess
+import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -57,6 +59,17 @@ class BitmapResourceTests(unittest.TestCase):
                 dib = BITMAPS.dib((ROOT / f'bmp/{name.lower()}.bmp').read_bytes())
                 self.assertEqual(records[name], dib)
                 self.assertEqual(struct.unpack_from('<ii', dib, 4), size)
+
+    def test_forms_carry_the_reloaded_tip_title_and_captions(self):
+        result = subprocess.run([sys.executable, '-I', str(ROOT / 'tools/rebrand_forms.py'), '--check'],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        for form in sorted((ROOT / 'src').glob('*.dfm')):
+            self.assertNotIn(b'Reborn', form.read_bytes(), form.name)
+        self.assertIn(b'Calmira Reloaded each day', (ROOT / 'src/tips.dfm').read_bytes())
+        self.assertNotIn('Reborn', (ROOT / 'src/settings.pas').read_text(encoding='cp1252').split('\n', 5)[5])
+        for catalogue in sorted((ROOT / 'locales/translated').glob('*.json')):
+            self.assertNotIn('Reborn', catalogue.read_text(encoding='utf-8'), catalogue.name)
 
     def test_unrelated_historical_resources_remain_byte_identical(self):
         after = BITMAPS.parse((ROOT / 'src/bitmaps.res').read_bytes())

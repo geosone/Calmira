@@ -104,3 +104,25 @@ class Win16ButtonTests(unittest.TestCase):
         self.assertIn('PostMessage(CancelButton.Handle, WM_LBUTTONUP', common)
         self.assertIn('procedure TProgressProbe.CancelClicked', common)
         self.assertIn('native Cancel stops progress at step 5', common)
+
+    def test_active_button_and_win95_face_follow_calmiras_buttons_unit(self):
+        button = (ROOT / 'src/win16/native_button.pas').read_text()
+        bitbtn = (ROOT / 'src/win16/buttons.pas').read_text()
+        form = (ROOT / 'src/win16/native_form.pas').read_text()
+        probe = (ROOT / 'tests/pascal/test_win16_forms.pas').read_text()
+        self.assertIn('if M.Msg = CM_FOCUSCHANGED then', button)
+        self.assertIn('SetButtonStyle(TObject(M.LParam) = Self)', button)
+        self.assertIn('if FActive then Result := BS_DEFPUSHBUTTON', button)
+        self.assertIn('if FStyle = bsNew then', bitbtn)
+        self.assertIn('Edge(Canvas, R, clBtnShadow, clWindowFrame); Edge(Canvas, R, clBtnHighlight, clBtnShadow);', bitbtn)
+        self.assertIn('if Active then TextFont.Style := TextFont.Style + [fsBold];', bitbtn)
+        self.assertIn('SetBkColor(Item.hDC, ColorToRGB(clBtnFace));', bitbtn)
+        self.assertIn('procedure TNativeForm.RestoreFocus;', form)
+        self.assertIn('else FocusNext(True);', form)
+        for text in ('the focused button is the active one',
+                     'with focus off the buttons, the Default button is active',
+                     'an activated form without ActiveControl focuses its first tab stop, as in Delphi',
+                     'reactivation restores the last focused control, as in Delphi',
+                     "bsNew draws the Win95 frame of Calmira''s Buttons unit",
+                     'the focus rectangle of a button is black dots on the face, as in Delphi'):
+            self.assertIn(text, probe)

@@ -413,15 +413,16 @@ begin
   finally FRunning := False; FPumping := False; end;
 end;
 procedure TNativeApplication.ProcessMessages;
-var WasPumping: Boolean;
+var WasPumping, WasDraining: Boolean;
 begin
   CheckReady;
-  if FDraining or FCreatingForm or FWindow.Dispatching or FHandlingException or
-    FHelping or FLoop.Idling or (FPumping and not FRunning) then
+  { Delphi 1 drains the queue from anywhere: message handlers, OnIdle, form
+    constructors and other drains. Only the bounded pump excludes it. }
+  if FPumping and not FRunning and not FDraining then
     raise ENativeApplicationError.Create('Application pump already running');
-  WasPumping := FPumping; FPumping := True; FDraining := True;
+  WasPumping := FPumping; WasDraining := FDraining; FPumping := True; FDraining := True;
   try FLoop.DrainMessages;
-  finally FDraining := False; FPumping := WasPumping; end;
+  finally FDraining := WasDraining; FPumping := WasPumping; end;
 end;
 function TNativeApplication.ProcessMessages(Limit: Word): Word;
 begin

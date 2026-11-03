@@ -12,13 +12,14 @@ class DrainTests(unittest.TestCase):
         self.assertIn('procedure ProcessMessages; overload;', source)
         body = source.split('procedure TNativeApplication.ProcessMessages;', 1)[1].split(
             'function TNativeApplication.ProcessMessages(', 1)[0]
-        for text in ('CheckReady', 'FDraining or FCreatingForm or FWindow.Dispatching',
-                     'FHandlingException', 'FHelping or FLoop.Idling',
-                     '(FPumping and not FRunning)', 'WasPumping := FPumping',
+        # Delphi 1 drains from handlers, OnIdle, constructors and other drains.
+        for text in ('CheckReady', 'if FPumping and not FRunning and not FDraining then',
+                     'WasPumping := FPumping; WasDraining := FDraining',
                      'FDraining := True', 'FLoop.DrainMessages',
-                     'finally FDraining := False; FPumping := WasPumping'):
+                     'finally FDraining := WasDraining; FPumping := WasPumping'):
             self.assertIn(text, body)
-        for text in ('FRunning :=', 'FMainForm.Show', '65535', 'ProcessMessages(0)'):
+        for text in ('FRunning :=', 'FMainForm.Show', '65535', 'ProcessMessages(0)',
+                     'FCreatingForm', 'FWindow.Dispatching', 'FHandlingException', 'FHelping', 'Idling'):
             self.assertNotIn(text, body)
 
     def test_drain_uses_scoped_frame_and_live_current_filter(self):
@@ -32,18 +33,17 @@ class DrainTests(unittest.TestCase):
                      'if not Child.Deliver(Message) then Break',
                      'ActiveLoop := Child.FPreviousActive', 'Child.Free'):
             self.assertIn(text, body)
-        for text in ('GetMessage(', 'PrepareWait(', 'FOnIdle(', '65535', 'Result < Limit'):
+        for text in ('GetMessage(', 'Nested task pump', 'PrepareWait(', 'FOnIdle(', '65535', 'Result < Limit'):
             self.assertNotIn(text, body)
         forward = source.split('function TNativeMessageLoop.ForwardFilter(', 1)[1].split(
             'function TNativeMessageLoop.Deliver(', 1)[0]
         self.assertIn('if Assigned(FOnMessage) then Result := FOnMessage(Message)', forward)
 
-    def test_recursion_idle_and_termination_are_checked_across_ancestor_chain(self):
+    def test_termination_is_checked_across_ancestor_chain(self):
         source = (ROOT / 'src/win16/native_loop.pas').read_text()
         body = source.split('procedure TNativeMessageLoop.DrainMessages;', 1)[1].split(
             'function TNativeMessageLoop.ProcessMessages(', 1)[0]
         for text in ('Current := ActiveLoop', 'while Current <> nil',
-                     'Current.FDraining or Current.FIdling',
                      'Current := Current.FPreviousActive',
                      'FTerminated := True; FExitCode := Current.FExitCode',
                      'if FTerminated then Exit', 'finally',
@@ -79,11 +79,13 @@ class DrainTests(unittest.TestCase):
                      'signed quit reaches modal root and unrelated caller',
                      'modal quit inside drain filter prevents later native dispatch'):
             self.assertIn(text, loop)
+        for text in ('a drain inside a drain runs, as in Delphi', 'an idle callback may drain, as in Delphi'):
+            self.assertIn(text, loop)
         for text in ('real Cancel click while long operation callback is active',
                      'actual modal default-button routing without root filter',
-                     'sent transport help and exception callbacks reject',
-                     'filter failure releases application drain guards',
-                     'rejects active idle and factory construction callbacks',
+                     'sent transport, help and exception callbacks may drain, as in Delphi',
+                     'filter failure releases the drain; a nested drain runs',
+                     'OnIdle and form constructors may drain, as in Delphi',
                      'successor sees sentinel without leaked quit'):
             self.assertIn(text, app)
         make = (ROOT / 'makefile').read_text()

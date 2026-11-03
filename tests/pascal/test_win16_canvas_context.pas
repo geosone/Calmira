@@ -14,7 +14,7 @@ type
     procedure Idle(Sender: TObject; var Done: Boolean);
   end;
 var Root, Child: TCustomControl; Boxes: array[0..5] of TBox; Box: TBox; Failed: Boolean;
-  Loop: TNativeMessageLoop; Probe: TIdleProbe; Width1: Integer; I: Integer; Own: HDC;
+  Loop: TNativeMessageLoop; Probe: TIdleProbe; Width1: Integer; I: Integer; Own: HDC; Empty: TBitmap;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
 begin
@@ -104,6 +104,19 @@ begin
     Check(True, 'more canvases than common DCs draw without exhausting USER');
     for I := 0 to High(Boxes) do begin Boxes[I].Free; Boxes[I] := nil; end;
     Check(not DeviceContextsInUse, 'freeing canvases releases their contexts');
+
+    { Calmira's MinimizeString measures text on a new, empty TBitmap. }
+    Empty := TBitmap.Create;
+    try
+      Empty.Canvas.Font.Name := 'System';
+      Check((Empty.Canvas.TextWidth('Calmira') > 0) and Empty.Empty and (Empty.Canvas.Handle = 0),
+        'an empty bitmap canvas measures text on a memory DC, as in Delphi');
+      Empty.Width := 4; Empty.Height := 4;
+      Empty.Canvas.Pixels[1, 1] := clRed;
+      Check((Empty.Canvas.Handle <> 0) and (Empty.Canvas.Pixels[1, 1] = RGB(255, 0, 0)),
+        'sizing the bitmap gives its canvas the bitmap DC');
+    finally Empty.Free; end;
+    Check(not DeviceContextsInUse, 'a freed bitmap leaves no memory DC borrowed');
 
     Box := TBox.Create(nil); Box.SetBounds(20, 30, 40, 20); Box.Parent := Root;
     Probe := TIdleProbe.Create;

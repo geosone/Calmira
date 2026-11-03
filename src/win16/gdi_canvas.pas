@@ -110,6 +110,7 @@ type
     FOnChange: TNotifyEvent;
     FHandle: HDC;
     FContext: HDC;
+    FMemoryContext: Boolean;
     FPen: TGDIPen;
     FBrush: TGDIBrush;
     FFont: TGDIFont;
@@ -169,6 +170,9 @@ type
     { The DC handed in by the owner (painting, owner draw), or 0. Drawing
       without one uses AcquireContext, which leaves Handle at 0. }
     property Handle: HDC read FHandle write SetHandle;
+    { Without Handle, draw on a memory DC instead of failing, as Delphi's
+      TBitmapCanvas does for an empty bitmap (e.g. to measure text). }
+    property MemoryContext: Boolean read FMemoryContext write FMemoryContext;
     property Pen: TGDIPen read FPen write SetPen;
     property Brush: TGDIBrush read FBrush write SetBrush;
     property Font: TGDIFont read FFont write SetFont;
@@ -431,9 +435,13 @@ end;
 function DeviceContextsInUse: Boolean;
 begin Result := (ContextCanvases <> nil) and (ContextCanvases.Count > 0); end;
 function TGDICanvas.AcquireContext: HDC;
-begin Result := 0; end;
+begin
+  if FMemoryContext then Result := CreateCompatibleDC(0) else Result := 0;
+end;
 procedure TGDICanvas.ReleaseContext(Context: HDC);
-begin end;
+begin
+  if FMemoryContext then DeleteDC(Context);
+end;
 procedure TGDICanvas.FreeContext;
 var Context: HDC;
 begin

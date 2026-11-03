@@ -96,6 +96,7 @@ end;
 constructor TGDIBitmap.Create;
 begin
   inherited Create; FCanvas := CreateCanvas; FCanvas.OnChange := CanvasChanged;
+  FCanvas.MemoryContext := True;
   FTransparentColor := clWhite;
 end;
 function TGDIBitmap.GetWidth: SmallInt;

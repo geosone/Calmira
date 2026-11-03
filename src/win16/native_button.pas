@@ -11,7 +11,7 @@ type
     FCaption: string;
     FOnClick: TNotifyEvent;
     FDrawing: Boolean;
-    FDefault, FCancel: Boolean;
+    FDefault, FCancel, FActive: Boolean;
     FModalResult: TModalResult;
     procedure SetDefault(Value: Boolean);
     procedure SetCaption(const Value: string);
@@ -25,7 +25,12 @@ type
     function ControlCommand(Code: Word): Boolean; override;
     function ControlDrawItem(var Item: TDrawItemStruct): Boolean; override;
     procedure DrawButton(var Item: TDrawItemStruct); virtual;
+    { Delphi's SetButtonStyle: the active button takes Enter and shows the
+      default frame. }
+    procedure SetButtonStyle(ADefault: Boolean);
     property Drawing: Boolean read FDrawing;
+    { The focused button, or the Default one while no button has focus. }
+    property Active: Boolean read FActive;
   public
     constructor Create(AOwner: TComponent); override;
     procedure DefaultHandler(var Message); override;
@@ -56,12 +61,18 @@ end;
 function TButton.NativeClassName: PChar;
 begin RegisterNativeSuperclass('BUTTON', ButtonClass, ButtonProcedure); Result := ButtonClass; end;
 function TButton.ButtonStyle: Word;
-begin if FDefault then Result := BS_DEFPUSHBUTTON else Result := BS_PUSHBUTTON; end;
+begin if FActive then Result := BS_DEFPUSHBUTTON else Result := BS_PUSHBUTTON; end;
+procedure TButton.SetButtonStyle(ADefault: Boolean);
+begin
+  if ADefault = FActive then Exit;
+  FActive := ADefault;
+  if Handle <> 0 then Perform(BM_SETSTYLE, ButtonStyle, 1);
+end;
 procedure TButton.SetDefault(Value: Boolean);
 begin
   if Value = FDefault then Exit;
   FDefault := Value;
-  if Handle <> 0 then Perform(BM_SETSTYLE, ButtonStyle, 1);
+  SetButtonStyle(Value or Focused);
 end;
 function TButton.ControlDialogKey(Key: Word): Boolean;
 begin
@@ -98,7 +109,14 @@ procedure TButton.WndProc(var M: TMessage);
 begin
   { USER owns native button painting; owner-draw uses WM_DRAWITEM on its parent. }
   if (M.Msg = WM_PAINT) or (M.Msg = WM_ERASEBKGND) then DefaultHandler(M)
-  else inherited WndProc(M);
+  else
+  begin
+    { As Delphi's TButton.CMFocusChanged. }
+    if M.Msg = CM_FOCUSCHANGED then
+      if TObject(M.LParam) is TButton then SetButtonStyle(TObject(M.LParam) = Self)
+      else SetButtonStyle(FDefault);
+    inherited WndProc(M);
+  end;
 end;
 procedure TButton.FontChanged;
 var NativeFont: HFONT;

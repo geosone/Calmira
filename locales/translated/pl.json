@@ -26,7 +26,7 @@
     "TDeskPropDlg.Label16.Caption": "&Pokaż:",
     "TDeskPropDlg.Label17.Caption": "Elementy &systemowe",
     "TDeskPropDlg.Label18.Caption": "Podgląd ikony",
-    "TDeskPropDlg.Label19.Caption": "Zmiany zostaną zastosowane po ponownym uruchomieniu Calmira Reborn.",
+    "TDeskPropDlg.Label19.Caption": "Zmiany zostaną zastosowane po ponownym uruchomieniu Calmira Reloaded.",
     "TDeskPropDlg.Label20.Caption": "&Widoczne skróty",
     "TDeskPropDlg.SpecIcons.Items.Strings.0": "Moje dokumenty",
     "TDeskPropDlg.TabPanel.Tabs.Strings.0": "Tapeta",
@@ -91,7 +91,7 @@
     "TSysRefEditDlg.TabPanel.Tabs.Strings.0": "Ogólne",
     "TSysRefEditDlg.TargetLabel.Caption": "Folder:",
     "TTipDialog.HomePage.Caption": "Strona &domowa",
-    "TTipDialog.cbShowDailyTips.Caption": "Pokazuj przy pierwszym uruchomieniu Calmira Reborn każdego dnia",
+    "TTipDialog.cbShowDailyTips.Caption": "Pokazuj przy pierwszym uruchomieniu Calmira Reloaded każdego dnia",
     "TfrmMyDocs.frmMyDocs.Caption": "Moje dokumenty"
   },
   "Help": {

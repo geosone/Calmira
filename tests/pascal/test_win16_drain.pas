@@ -10,7 +10,7 @@ type
   end;
   TD = object
     Calls, Left, Guards, IdleCalls, ModalCalls: Integer;
-    FailFilter, CheckGuards, SwapFilter, QuitInFilter: Boolean;
+    FailFilter, CheckGuards, SwapFilter, QuitInFilter, Nested: Boolean;
     function Filter(var M: TMsg): Boolean;
     function ModalFilter(var M: TMsg): Boolean;
     function ModalCondition: Boolean;
@@ -45,6 +45,7 @@ end;
 procedure TTarget.Seen(var M: TMessage);
 begin Inc(Calls); end;
 function TD.Filter(var M: TMsg): Boolean;
+var Previous: Integer;
 begin
   Result := M.message = Probe;
   if not Result then Exit;
@@ -61,8 +62,8 @@ begin
   end;
   if CheckGuards then
   begin
-    try Root.DrainMessages; except on ENativeLoopError do Inc(Guards); end;
-    try Peer.DrainMessages; except on ENativeLoopError do Inc(Guards); end;
+    CheckGuards := False; Previous := Calls; Enqueue; Root.DrainMessages;
+    Nested := Calls = Previous + 1; Peer.DrainMessages;
     try Peer.ProcessMessages(1); except on ENativeLoopError do Inc(Guards); end;
   end;
   if Left > 0 then begin Dec(Left); Enqueue; end;
@@ -93,8 +94,7 @@ end;
 procedure TD.Idle(Sender: TObject; var Done: Boolean);
 begin
   Inc(IdleCalls);
-  try Root.DrainMessages; except on ENativeLoopError do Inc(Guards); end;
-  try Peer.DrainMessages; except on ENativeLoopError do Inc(Guards); end;
+  Root.DrainMessages; Peer.DrainMessages;
   Done := True; PostQuitMessage(-47);
 end;
 function TD.QuitCondition: Boolean;
@@ -140,10 +140,10 @@ begin
     Check((Driver.Calls = Before + 1) and (Driver.ModalCalls = 1), 'drain observes source filter reassignment on the next message');
     Root.OnMessage := Driver.Filter;
     Driver.CheckGuards := True; Enqueue; Root.DrainMessages; Driver.CheckGuards := False;
-    Check(Driver.Guards = 3, 'same peer drain and bounded recursion cannot steal active drain queue');
+    Check(Driver.Nested and (Driver.Guards = 1), 'a drain inside a drain runs, as in Delphi; bounded recursion is rejected');
     Root.OnStart := Driver.Start;
     Check(Root.Run = -47, 'root resumes after startup drain and wakes for signed idle quit');
-    Check((Driver.IdleCalls = 1) and (Driver.Guards = 5), 'draining from active idle provider is rejected across loop objects');
+    Check((Driver.IdleCalls = 1) and (Driver.Guards = 1), 'an idle callback may drain, as in Delphi');
     Retired := Root; Root := nil; Cleanup; Setup; Root.OnStart := Driver.QuitStart;
     Before := Driver.Calls;
     Check(Root.Run = -73, 'quit consumed in nested drain ends suspended root run');

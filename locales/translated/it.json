@@ -29,7 +29,7 @@
     "TDeskPropDlg.Label16.Caption": "&Mostra:",
     "TDeskPropDlg.Label17.Caption": "Elementi di &sistema",
     "TDeskPropDlg.Label18.Caption": "Anteprima icona",
-    "TDeskPropDlg.Label19.Caption": "Le modifiche avranno effetto dopo il riavvio di Calmira Reborn.",
+    "TDeskPropDlg.Label19.Caption": "Le modifiche avranno effetto dopo il riavvio di Calmira Reloaded.",
     "TDeskPropDlg.Label20.Caption": "Collegamenti &visibili",
     "TDeskPropDlg.SpecIcons.Items.Strings.0": "Documenti",
     "TDeskPropDlg.TabPanel.Tabs.Strings.0": "Sfondo",
@@ -143,7 +143,7 @@
     "TTaskbar.TrayRemove.Caption": "&Rimuovi",
     "TTipDialog.HomePage.Caption": "Pagina &iniziale",
     "TTipDialog.Label1.Caption": "Benvenuto in",
-    "TTipDialog.cbShowDailyTips.Caption": "Mostra al primo avvio giornaliero di Calmira Reborn",
+    "TTipDialog.cbShowDailyTips.Caption": "Mostra al primo avvio giornaliero di Calmira Reloaded",
     "TfrmMyDocs.frmMyDocs.Caption": "Documenti"
   },
   "Help": {

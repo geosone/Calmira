@@ -33,7 +33,7 @@
     "TDeskPropDlg.Label16.Caption": "&Weergave:",
     "TDeskPropDlg.Label17.Caption": "&Systeemonderdelen",
     "TDeskPropDlg.Label18.Caption": "Voorbeeld van pictogram",
-    "TDeskPropDlg.Label19.Caption": "Wijzigingen worden pas actief nadat Calmira Reborn opnieuw is gestart.",
+    "TDeskPropDlg.Label19.Caption": "Wijzigingen worden pas actief nadat Calmira Reloaded opnieuw is gestart.",
     "TDeskPropDlg.Label20.Caption": "&Zichtbare snelkoppelingen",
     "TDeskPropDlg.SpecIcons.Items.Strings.0": "Mijn documenten",
     "TDeskPropDlg.TabPanel.Tabs.Strings.0": "Achtergrond",
@@ -166,7 +166,7 @@
     "TTaskPropDlg.TabPanel.Tabs.Strings.0": "Algemeen",
     "TTaskPropDlg.TabPanel.Tabs.Strings.1": "Aanvullend",
     "TTaskPropDlg.TabPanel.Tabs.Strings.2": "Uitsluitingen",
-    "TTipDialog.cbShowDailyTips.Caption": "Tonen bij de eerste start van Calmira Reborn op elke dag",
+    "TTipDialog.cbShowDailyTips.Caption": "Tonen bij de eerste start van Calmira Reloaded op elke dag",
     "TfrmMyDocs.frmMyDocs.Caption": "Mijn documenten"
   },
   "Help": {

@@ -7,7 +7,8 @@ interface
 uses Classes, WinTypes, Graphics, native_button, native_speedbutton;
 type
   TButtonLayout = native_speedbutton.TButtonLayout;
-  { Delphi 1 BitBtn/MessageDlg look; only the new 3D look is drawn. }
+  { Delphi 1 BitBtn/MessageDlg look. bsNew is drawn as Calmira's modified
+    Buttons unit draws it; the others keep a plain raised bevel. }
   TButtonStyle = (bsAutoDetect, bsWin31, bsNew);
   { Standard buttons: Kind sets the translated caption, ModalResult and
     Default or Cancel. Delphi's stock glyphs are not provided at run time;
@@ -36,6 +37,7 @@ type
     procedure SetSpacing(Value: Integer);
     procedure SetNumGlyphs(Value: Integer);
     procedure SetLayout(Value: TButtonLayout);
+    procedure SetStyle(Value: TButtonStyle);
   protected
     function ButtonStyle: Word; override;
     procedure DrawButton(var Item: TDrawItemStruct); override;
@@ -46,8 +48,7 @@ type
     procedure Click; override;
   published
     property Kind: TBitBtnKind read FKind write SetKind default bkCustom;
-    { Stored only: the new 3D look is always drawn. }
-    property Style: TButtonStyle read FStyle write FStyle default bsAutoDetect;
+    property Style: TButtonStyle read FStyle write SetStyle default bsAutoDetect;
     property Glyph: Graphics.TBitmap read FGlyph write SetGlyph;
     property Margin: Integer read FMargin write SetMargin default -1;
     property Spacing: Integer read FSpacing write SetSpacing default 4;
@@ -129,6 +130,8 @@ begin
 end;
 procedure TBitBtn.SetLayout(Value: TButtonLayout);
 begin if Value <> FLayout then begin FLayout := Value; Invalidate; end; end;
+procedure TBitBtn.SetStyle(Value: TButtonStyle);
+begin if Value <> FStyle then begin FStyle := Value; Invalidate; end; end;
 function Coordinate(Value: LongInt): SmallInt;
 begin
   if (Value < -32768) or (Value > 32767) then
@@ -150,13 +153,25 @@ procedure TBitBtn.DrawButton(var Item: TDrawItemStruct);
 var R, TextArea, Source, Target: TRect; Frame, GW, GH, TW, TH, Gap, Shift: Integer;
   GroupW, GroupH, GX, GY, TX, TY, StartX, StartY, FreeSpace: LongInt;
   Pressed, Disabled: Boolean; Key: TColor; Buffer: array[0..255] of Char;
+  TextFont: Graphics.TFont;
 begin
   R := Item.rcItem; Pressed := Item.itemState and ODS_SELECTED <> 0;
   Disabled := Item.itemState and (ODS_DISABLED or ODS_GRAYED) <> 0;
   Canvas.Brush.Style := bsSolid; Canvas.Brush.Color := clBtnFace; Canvas.FillRect(R);
-  if Pressed then Edge(Canvas, R, clBtnShadow, clBtnHighlight)
-  else Edge(Canvas, R, clBtnHighlight, clBtnShadow);
-  Edge(Canvas, R, clBtnFace, clBtnFace);
+  if FStyle = bsNew then
+  begin
+    { Calmira's Buttons.dcu draws bsNew as a Win95 button (VCL readme). }
+    if Pressed then
+    begin Edge(Canvas, R, clWindowFrame, clBtnHighlight); Edge(Canvas, R, clBtnShadow, clBtnFace); end
+    else
+    begin Edge(Canvas, R, clBtnShadow, clWindowFrame); Edge(Canvas, R, clBtnHighlight, clBtnShadow); end;
+  end
+  else
+  begin
+    if Pressed then Edge(Canvas, R, clBtnShadow, clBtnHighlight)
+    else Edge(Canvas, R, clBtnHighlight, clBtnShadow);
+    Edge(Canvas, R, clBtnFace, clBtnFace);
+  end;
   if (R.Right <= R.Left) or (R.Bottom <= R.Top) then Exit;
   GW := 0; GH := 0; Frame := 0;
   if not FGlyph.Empty then
@@ -166,10 +181,15 @@ begin
     if Disabled and (FNumGlyphs >= 2) then Frame := 1
     else if Pressed and (FNumGlyphs >= 3) then Frame := 2;
   end;
+  { The active (default) button has a bold caption, as in Delphi 1. }
+  TextFont := Graphics.TFont.Create;
+  try
+  TextFont.Assign(Font);
+  if Active then TextFont.Style := TextFont.Style + [fsBold];
   TW := 0; TH := 0;
   if Caption <> '' then
   begin
-    if SelectObject(Item.hDC, Font.Handle) = 0 then raise ENativeWindowError.Create('Cannot select button font');
+    if SelectObject(Item.hDC, TextFont.Handle) = 0 then raise ENativeWindowError.Create('Cannot select button font');
     StrPCopy(Buffer, Caption); TextArea := Graphics.Rect(0, 0, 0, 0);
     if DrawText(Item.hDC, Buffer, Length(Caption), TextArea, DT_CALCRECT or DT_SINGLELINE) = 0 then
       raise ENativeWindowError.Create('Cannot measure button caption');
@@ -222,12 +242,21 @@ begin
   if TW > 0 then
   begin
     TextArea := Graphics.Rect(Coordinate(TX), Coordinate(TY), Coordinate(TX + TW), Coordinate(TY + TH));
-    StrPCopy(Buffer, Caption); SelectObject(Item.hDC, Font.Handle); SetBkMode(Item.hDC, TRANSPARENT);
+    StrPCopy(Buffer, Caption); SelectObject(Item.hDC, TextFont.Handle); SetBkMode(Item.hDC, TRANSPARENT);
     if Disabled then SetTextColor(Item.hDC, ColorToRGB(clGrayText))
     else SetTextColor(Item.hDC, ColorToRGB(Font.Color));
     DrawText(Item.hDC, Buffer, Length(Caption), TextArea, DT_LEFT or DT_SINGLELINE);
   end;
+  finally
+    SelectObject(Item.hDC, GetStockObject(SYSTEM_FONT)); TextFont.Free;
+  end;
   if Item.itemState and ODS_FOCUS <> 0 then
-  begin R := Item.rcItem; InflateRect(R, -3, -3); Canvas.DrawFocusRect(R); end;
+  begin
+    { Delphi's canvas sets the background colour from its brush, so the
+      inverted pattern turns the clBtnFace dots black. }
+    R := Item.rcItem; InflateRect(R, -3, -3);
+    SetTextColor(Item.hDC, RGB(0, 0, 0)); SetBkColor(Item.hDC, ColorToRGB(clBtnFace));
+    WinProcs.DrawFocusRect(Item.hDC, @R);
+  end;
 end;
 end.

@@ -1950,4 +1950,70 @@ Seen but not fixed yet:
   last tip, so this is the next slice. The start probe uses
   `WinProcs.GetTickCount`.
 - The My Documents and shortcut icons have no captions. The taskbar has not
-  been checked on screen yet.
+  been checked on screen yet. (Both fixed in the next section.)
+
+## Taskbar and Desktop Shortcuts
+
+CALMIRA.EXE now shows its taskbar with task buttons, and the desktop
+shortcuts have their own icons and captions. This was found by running the
+original Calmira Reborn release (`calmirar.zip`, 2024-05-28) beside our build
+under the same Windows 3.11 image.
+- **Taskbar position.** USER gave the taskbar (`poDefault`, no frame) a
+  default size of zero. Delphi passes `CW_USEDEFAULT` for the size only for a
+  sizeable frame, so the port now does too.
+- **`AssignStr` (RTL, `fpc-win16-delphi1-strings.patch`).** FPC's `AssignStr`
+  writes `P^ := S` into the existing string. Delphi 1 frees it and allocates
+  a new one, and `NewStr('')` returns the shared `NullStr`. `TReference`
+  starts every field at `NullStr`, so in FPC all its fields wrote into the
+  same `EmptyStr`, and the last one (an empty icon file) erased the caption
+  and target. `NewStr`, `DisposeStr` and `AssignStr` now behave as in
+  Delphi 1.
+- **`Application.ProcessMessages` from anywhere.** Delphi 1 drains the queue
+  from message handlers, `OnIdle`, form constructors and other drains. The
+  port rejected that. `TTaskButton.AssignGlyph` drains while
+  `TTaskbar.FormCreate` adds the first buttons, so no button was added. Only
+  the port's bounded `ProcessMessages(Limit)` and a nested `Run` are still
+  rejected.
+- **Empty bitmap canvas.** Delphi's bitmap canvas always has a memory DC.
+  `MinimizeString` measures the button caption on a new, empty `TBitmap`.
+  The port's canvas now borrows a memory DC when it has no bitmap.
+- **Quick launch glyphs.** Delphi 1's `DrawButtonText` leaves a clear brush.
+  Calmira's flat `TStyleSpeed` then frames its button with `Rectangle`, which
+  in the port filled over the glyph. `TSpeedButton.Paint` now ends with a
+  clear brush.
+- **Buttons as in Calmira's `Buttons` unit.** Calmira was built with a
+  modified `Buttons.dcu` that draws `bsNew` like Windows 95: a black and
+  white outer frame and a grey and white inner bevel. The active button has a
+  bold caption and black focus dots. That is the focused button, or the
+  `Default` one while no button has the focus (Delphi's `CM_FOCUSCHANGED`
+  and `SetButtonStyle`). Enter clicks the active button, so Enter in the
+  Welcome box opens the license, as in the original.
+- **First focus.** As in Delphi's `SetActive`, an activated form gives the
+  focus back to its last focused control, or else to its first tab stop.
+- **Branding.** `tools/rebrand_forms.py` puts `bmp/tiptit.bmp` (now
+  "Calmira Reloaded", 156x20, 4-bit as before) into `src/tips.dfm`. It
+  also renames the two captions that named the shell, and updates the size
+  of each form resource. `--check` reports stale forms. The translations
+  and the default colour scheme ("Calmira Reloaded Blue (HiColor)") follow.
+
+Covered by:
+- the start test (shortcut captions; Program Manager's icon leaves the
+  desktop once it has a taskbar button);
+- `win16-far-imports` (`AssignStr`, `NullStr`);
+- `win16-canvas-context` (empty bitmap canvas);
+- `win16-drain` and `win16-application-pump`, which now check the Delphi
+  behaviour instead of the old rejections.
+- `win16-speedbutton` (clear brush after `Paint`);
+- `win16-forms` (active button, Win95 frame, focus dots, first focus,
+  focus after reactivation);
+- `test_bitmap_resources` (no "Reborn" in forms or translations, embedded
+  tip title matches the bitmap).
+
+Still different from the original:
+- The clock shows 12:00 AM (the `SysUtils` date bugs above).
+- Every form is a top-level window of its own. In Delphi they are owned by
+  the visible, zero-sized `TApplication` window, so Windows' task list shows
+  only "Calmira". Window classes are `CalmiraNativeWindow` instead of the
+  form class names.
+- The taskbar button of the active task is not drawn bold.
+- System resources are lower (67% against 81% free).

@@ -23,7 +23,47 @@
  Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
 --- a/rtl/objpas/sysutils/sysstr.inc
 +++ b/rtl/objpas/sysutils/sysstr.inc
-@@ -84,6 +84,13 @@
+@@ -22,7 +22,12 @@
+ function NewStr(const S: string): PString;
+ begin
+   if (S='') then
++{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
++   { Delphi 1 returns the shared empty string, so P^ is always valid. }
++   Result:=NullStr
++{$else CALMIRA_WIN16_DELPHI1_STRINGS}
+    Result:=nil
++{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
+   else
+    begin
+      new(result);
+@@ -51,7 +56,12 @@
+ 
+ procedure DisposeStr(S: PString);
+ begin
++{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
++  { As Delphi 1: an empty string (NullStr) was never allocated. }
++  if (S <> Nil) and (S^ <> '') then
++{$else CALMIRA_WIN16_DELPHI1_STRINGS}
+   if S <> Nil then
++{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
+    begin
+      dispose(s);
+      S:=nil;
+@@ -68,7 +78,13 @@
+ 
+ procedure AssignStr(var P: PString; const S: string);
+ begin
++{$ifdef CALMIRA_WIN16_DELPHI1_STRINGS}
++  { Delphi 1 allocates a new string: P may be the shared NullStr. }
++  DisposeStr(P);
++  P := NewStr(S);
++{$else CALMIRA_WIN16_DELPHI1_STRINGS}
+   P^ := s;
++{$endif CALMIRA_WIN16_DELPHI1_STRINGS}
+ end ;
+ 
+ {   AppendStr appends S to Dest   }
+@@ -84,6 +100,13 @@
    Result:=C in LeadBytes;
  end;
  
@@ -37,7 +77,7 @@
  function IsLeadChar(B: Byte): Boolean; inline;
  
  
-@@ -1253,6 +1260,14 @@
+@@ -1253,6 +1276,14 @@
    FmtStr(Res,Fmt,Args,DefaultFormatSettings);
  end;
  

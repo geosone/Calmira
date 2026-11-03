@@ -89,7 +89,7 @@
     "TDeskPropDlg.Label16.Caption": "&Mostrar:",
     "TDeskPropDlg.Label17.Caption": "Elementos del &sistema",
     "TDeskPropDlg.Label18.Caption": "Vista previa del icono",
-    "TDeskPropDlg.Label19.Caption": "Los cambios se aplicarán al reiniciar Calmira Reborn.",
+    "TDeskPropDlg.Label19.Caption": "Los cambios se aplicarán al reiniciar Calmira Reloaded.",
     "TDeskPropDlg.Label2.Caption": "Fuente general",
     "TDeskPropDlg.Label20.Caption": "Accesos directos &visibles",
     "TDeskPropDlg.Label3.Caption": "&Elemento de pantalla",
@@ -467,7 +467,7 @@
     "TTipDialog.Label1.Caption": "Bienvenido a",
     "TTipDialog.Label4.Caption": "¿Sabía que...",
     "TTipDialog.TipLabel.Caption": "...no se encontró el archivo de sugerencias (TIPS.TXT) en la carpeta de Calmira.",
-    "TTipDialog.cbShowDailyTips.Caption": "Mostrar al iniciar Calmira Reborn por primera vez cada día",
+    "TTipDialog.cbShowDailyTips.Caption": "Mostrar al iniciar Calmira Reloaded por primera vez cada día",
     "TfrmMyDocs.frmMyDocs.Caption": "Mis documentos"
   },
   "Help": {
