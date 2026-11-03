@@ -61,6 +61,7 @@ type
     { CreateParams work area while the window is created. }
     FCreation: Pointer;
     procedure ApplyClientSize;
+    function NativeClassName: PChar; override;
     procedure PrepareCreation(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt);
     function GetFormClientWidth: Integer;
@@ -88,9 +89,10 @@ type
     procedure DoClose(var Action: TCloseAction); override;
     procedure DoActivate; override;
     { Called before the window is created. Caption, Style, the bounds and
-      WndParent are honoured; WndParent may only be 0 or the desktop window,
-      which both leave the form unowned. Changing ExStyle, Param or the
-      window class raises ENativeWindowError. }
+      WndParent are honoured. WndParent starts as the application window,
+      which owns the form as in Delphi; 0 or the desktop window leave it
+      unowned. Changing ExStyle, Param or the window class raises
+      ENativeWindowError. }
     procedure CreateParams(var Params: TCreateParams); virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure Paint; override;
@@ -547,6 +549,31 @@ begin
 end;
 procedure TForm.CreateParams(var Params: TCreateParams);
 begin end;
+var FormClassNames: TStringList;
+{ As Delphi, each form class registers a window class of its own name, such
+  as TTaskbar, which Calmira's exclude list and other programs see. }
+function TForm.NativeClassName: PChar;
+var Index: Integer; Name: string; Buffer: PChar;
+begin
+  Name := ClassName;
+  if FormClassNames = nil then FormClassNames := TStringList.Create;
+  Index := FormClassNames.IndexOf(Name);
+  if Index >= 0 then begin Result := PChar(FormClassNames.Objects[Index]); Exit; end;
+  GetMem(Buffer, Length(Name) + 1); StrPCopy(Buffer, Name);
+  try
+    EnsureNativeWindowClass(Buffer);
+    FormClassNames.AddObject(Name, TObject(Buffer));
+  except FreeMem(Buffer, Length(Name) + 1); raise; end;
+  Result := Buffer;
+end;
+{ Delphi's TForm.CreateParams sets WndParent to Application.Handle. }
+function ApplicationOwner: HWND;
+begin
+  Result := 0;
+  if Application = nil then Exit;
+  try Result := Application.Handle;
+  except on ENativeApplicationError do Result := 0; end;
+end;
 { Fills FCreation; kept out of CreateHandle so that its frame is gone
   before the native window sends its creation messages. }
 procedure TForm.PrepareCreation(Parent: HWND; const Caption: string; Style: DWORD;
@@ -561,7 +588,7 @@ begin
     Params.Style := LongInt((Style and not DWORD(WS_OVERLAPPEDWINDOW or WS_DLGFRAME or WS_BORDER or WS_POPUP)) or
       FrameStyle);
     Params.X := X; Params.Y := Y; Params.Width := Width; Params.Height := Height;
-    Params.WndParent := Parent;
+    if Parent = 0 then Params.WndParent := ApplicationOwner else Params.WndParent := Parent;
     StrPLCopy(Params.WinClassName, NativeClassName, High(Params.WinClassName));
     GetClassInfo(HInstance, NativeClassName, Params.WindowClass);
     OriginalClass := Params.WindowClass;
@@ -571,7 +598,10 @@ begin
       not CompareMem(@OriginalClass, @Params.WindowClass, SizeOf(OriginalClass)) then
       raise ENativeWindowError.Create('Only Caption, Style, bounds and WndParent can change in CreateParams');
     if Params.WndParent = GetDesktopWindow then Params.WndParent := 0;
-    if Params.WndParent <> 0 then raise ENativeWindowError.Create('Owned forms are not provided');
+    if Params.WndParent <> 0 then
+      if not IsWindow(Params.WndParent) or
+        (DWORD(GetWindowLong(Params.WndParent, GWL_STYLE)) and WS_CHILD <> 0) then
+        raise ENativeWindowError.Create('A form owner must be a top-level window');
     Length := StrLen(Params.Caption);
     if Length > 255 then Length := 255;
     Move(Params.Caption^, Title[1], Length);
@@ -605,7 +635,7 @@ procedure TForm.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
   X, Y, Width, Height: SmallInt);
 begin
   PrepareCreation(Parent, Caption, Style, X, Y, Width, Height);
-  inherited CreateHandle(0, PFormCreation(FCreation)^.Title, DWORD(PFormCreation(FCreation)^.Params.Style),
+  inherited CreateHandle(PFormCreation(FCreation)^.Params.WndParent, PFormCreation(FCreation)^.Title, DWORD(PFormCreation(FCreation)^.Params.Style),
     PFormCreation(FCreation)^.Params.X, PFormCreation(FCreation)^.Params.Y,
     PFormCreation(FCreation)^.Params.Width, PFormCreation(FCreation)^.Params.Height);
   FreeMem(FCreation, SizeOf(TFormCreation)); FCreation := nil;
@@ -1067,4 +1097,13 @@ finalization
   UtilityWindows.Free; UtilityWindows := nil;
   Application.Free; Application := nil;
   Screen.Free; Screen := nil;
+  { USER keeps its own copy of each registered class name. }
+  if FormClassNames <> nil then
+    while FormClassNames.Count > 0 do
+    begin
+      FreeMem(PChar(FormClassNames.Objects[FormClassNames.Count - 1]),
+        Length(FormClassNames[FormClassNames.Count - 1]) + 1);
+      FormClassNames.Delete(FormClassNames.Count - 1);
+    end;
+  FormClassNames.Free; FormClassNames := nil;
 end.

@@ -6,6 +6,8 @@ unit gdi_canvas;
 interface
 uses Classes, SysUtils, WinTypes;
 type
+  { Pen 'P', brush 'B' or font 'F', the numbers and a font's face name. }
+  TSharedKey = string[47];
   TColor = LongInt;
   EGDIError = class(Exception);
   TPenStyle = (psSolid, psDash, psDot, psDashDot, psDashDotDot, psClear, psInsideFrame);
@@ -40,8 +42,8 @@ type
     procedure ReleaseHandle;
     { As Delphi's resource managers: objects with the same description share
       one GDI object, counted by reference. Returns 0 when none exists yet. }
-    function AcquireShared(const Key: string): HGDIOBJ;
-    procedure AddShared(const Key: string; Value: HGDIOBJ);
+    function AcquireShared(const Key: TSharedKey): HGDIOBJ;
+    procedure AddShared(const Key: TSharedKey; Value: HGDIOBJ);
     procedure Changed;
   public
     destructor Destroy; override;
@@ -246,12 +248,19 @@ end;
 type
   PSharedObject = ^TSharedObject;
   TSharedObject = record
-    Key: string[47];
+    Key: TSharedKey;
     Handle: HGDIOBJ;
     References: Word;
   end;
 var SharedObjects: TList;
-function TGDIResource.AcquireShared(const Key: string): HGDIOBJ;
+{ Short strings throughout: IntToStr and AnsiString concatenation would put
+  256-byte temporaries on the stack of every owner-drawn paint. }
+procedure AddNumber(var Key: TSharedKey; Value: LongInt);
+var Digits: string[11];
+begin
+  Str(Value, Digits); Key := Key + Digits + ',';
+end;
+function TGDIResource.AcquireShared(const Key: TSharedKey): HGDIOBJ;
 var I: Integer; Entry: PSharedObject;
 begin
   Result := 0;
@@ -267,7 +276,7 @@ begin
     end;
   end;
 end;
-procedure TGDIResource.AddShared(const Key: string; Value: HGDIOBJ);
+procedure TGDIResource.AddShared(const Key: TSharedKey; Value: HGDIOBJ);
 var Entry: PSharedObject;
 begin
   if SharedObjects = nil then SharedObjects := TList.Create;
@@ -322,14 +331,14 @@ end;
 procedure TGDIPen.SetStyle(Value: TPenStyle);
 begin if Value <> FStyle then begin ReleaseHandle; FStyle := Value; Changed; end; end;
 function TGDIPen.GetHandle: HPEN;
-var Key: string; Value: HPEN;
+var Key: TSharedKey; Value: HPEN;
 begin
   if FHandle = 0 then
   begin
     if FStyle = psClear then FHandle := GetStockObject(NULL_PEN)
     else
     begin
-      Key := 'P' + IntToStr(Ord(FStyle)) + ',' + IntToStr(FWidth) + ',' + IntToStr(ColorToRGB(FColor));
+      Key := 'P'; AddNumber(Key, Ord(FStyle)); AddNumber(Key, FWidth); AddNumber(Key, ColorToRGB(FColor));
       if AcquireShared(Key) = 0 then
       begin
         Value := CreatePen(Ord(FStyle), FWidth, ColorToRGB(FColor));
@@ -379,7 +388,7 @@ begin
   if Value <> FStyle then begin ReleaseHandle; FStyle := Value; Changed; end;
 end;
 function TGDIBrush.GetHandle: HBRUSH;
-var Key: string; Value: HBRUSH;
+var Key: TSharedKey; Value: HBRUSH;
 begin
   if FHandle = 0 then
   begin
@@ -389,7 +398,7 @@ begin
     if FStyle = bsClear then FHandle := GetStockObject(NULL_BRUSH)
     else
     begin
-      Key := 'B' + IntToStr(Ord(FStyle)) + ',' + IntToStr(ColorToRGB(FColor));
+      Key := 'B'; AddNumber(Key, Ord(FStyle)); AddNumber(Key, ColorToRGB(FColor));
       if AcquireShared(Key) = 0 then
       begin
         if FStyle = bsSolid then Value := CreateSolidBrush(ColorToRGB(FColor))
@@ -473,7 +482,7 @@ begin
   try FOnChange(Self); finally FNotifying := False; end;
 end;
 function TGDIFont.GetHandle: HFONT;
-var Description: TLogFont; Key: string; Value: HFONT;
+var Description: TLogFont; Key: TSharedKey; Value: HFONT; I: Integer;
 begin
   if FHandle = 0 then
   begin
@@ -486,9 +495,12 @@ begin
     Description.lfStrikeOut := Ord(fsStrikeOut in FStyle);
     Description.lfCharSet := DEFAULT_CHARSET;
     StrPCopy(Description.lfFaceName, FName);
-    Key := 'F' + IntToStr(FHeight) + ',' + IntToStr(Description.lfWeight) +
-      Chr(48 + Description.lfItalic) + Chr(48 + Description.lfUnderline) +
-      Chr(48 + Description.lfStrikeOut) + ',' + FName;
+    Key := 'F'; AddNumber(Key, FHeight); AddNumber(Key, Description.lfWeight);
+    Key := Key + Chr(48 + Description.lfItalic) + Chr(48 + Description.lfUnderline) +
+      Chr(48 + Description.lfStrikeOut);
+    I := 0;
+    while (I < LF_FACESIZE) and (Description.lfFaceName[I] <> #0) and (Length(Key) < High(Key)) do
+    begin Key := Key + Description.lfFaceName[I]; Inc(I); end;
     if AcquireShared(Key) = 0 then
     begin
       Value := CreateFontIndirect(Description);

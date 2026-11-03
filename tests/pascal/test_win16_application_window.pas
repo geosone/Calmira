@@ -17,6 +17,8 @@ var App: TNativeApplication; Main: TNativeForm; Driver, Peer: TD;
   Failed, Rejected: Boolean; Raw: HWND; Buffer: array[0..255] of Char;
   Queue: TMsg; TitleValue: string; I: Integer; Info: TWndClass; Task: HTASK;
 {$I win16_stack_guard.inc}
+function Bounds(Wnd: HWND): WinTypes.TRect;
+begin GetWindowRect(Wnd, Result); end;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
 begin
@@ -127,7 +129,8 @@ begin
   Setup; Raw := App.Handle;
   GetClassName(Raw, Buffer, SizeOf(Buffer));
   Check((StrPas(Buffer) = 'TApplication') and (FindWindow('TApplication', 'Calmira') = Raw) and
-    (Main.Handle = 0) and not IsWindowVisible(Raw) and (GetParent(Raw) = 0), 'independent hidden application identity');
+    (Main.Handle = 0) and IsWindowVisible(Raw) and IsRectEmpty(Bounds(Raw)) and (GetParent(Raw) = 0),
+    'independent zero-sized application identity, visible as in Delphi 1');
   Check(SendMessage(Raw, WM_GETTEXTLENGTH, 0, 0) = 7, 'native default handler');
   App.Title := 'Renamed'; GetWindowText(Raw, Buffer, SizeOf(Buffer));
   Check((App.Title = 'Renamed') and (StrPas(Buffer) = 'Renamed'), 'native and stored title agree');

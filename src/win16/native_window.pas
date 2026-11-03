@@ -135,6 +135,8 @@ var Corner: TPoint; Parent: HWND;
 begin
   if FHandle = 0 then raise ENativeWindowError.Create('Missing native window');
   GetWindowRect(FHandle, Result);
+  { GetParent returns the owner of a top-level window. }
+  if DWORD(GetWindowLong(FHandle, GWL_STYLE)) and WS_CHILD = 0 then Exit;
   Parent := GetParent(FHandle);
   if Parent = 0 then Exit;
   Corner.X := Result.Left; Corner.Y := Result.Top; WinProcs.ScreenToClient(Parent, Corner);

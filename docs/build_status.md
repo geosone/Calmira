@@ -2072,5 +2072,47 @@ Covered by `win16-speedbutton` (the sender gets `CM_BUTTONPRESSED`) and
 - a changed font gets its own handle;
 - a shared font survives when one of its users is freed.
 
-Still different from the original: forms are not owned by the
-`TApplication` window, and window classes are `CalmiraNativeWindow`.
+
+## Window Hierarchy and Message Dialogs
+
+The window list of CALMIRA.EXE (class, owner, visible, enabled) now matches
+the original line for line after start-up:
+
+- **The `TApplication` window is visible and zero-sized** at the centre of
+  the screen (`WS_POPUP`, caption, system menu, minimize box), as Delphi 1's
+  `TApplication.CreateHandle`. It was hidden at 0,0.
+- **It owns the forms.** `TForm.CreateParams` starts with `WndParent` set to
+  `Application.Handle`; 0 or the desktop window leave a form unowned, which
+  is what Calmira's taskbar asks for. A child window as owner raises
+  `ENativeWindowError`. `GetControlBounds` no longer converts a top-level
+  window's rectangle into its owner's client coordinates.
+- **Focus moves on to a form.** When the application window gets the focus,
+  for example after the active form was closed, it posts itself a message
+  and gives the focus to its topmost visible, enabled form, as Delphi's
+  `WM_SETFOCUS`/`CM_ENTER`.
+- **Each form class has a window class of its own name** (`TTaskbar`,
+  `TAboutBox`, `TComputer` and so on). These names are what Calmira's
+  exclude list and other programs see.
+- **`ShowModal` disables the task's other windows**, as Delphi's
+  `DisableTaskWindows`, and enables them again afterwards. A form that
+  already has an owner keeps it. The original shows the desktop icons
+  disabled behind the Welcome box; ours now does too. The taskbar re-enables
+  itself in `WM_ENABLE`, as in the original.
+- **Message dialogs look like Delphi 1's:** a dialog frame, the System font
+  and `TBitBtn` buttons in `MsgDlgButtonStyle` (Calmira sets `bsNew`).
+
+`TBitBtn` paints through pens, brushes and fonts. Their shared-object keys
+are now short strings built with `Str`. Before, with `{$H-}`, every
+`IntToStr` and concatenation put a 256-byte temporary on the stack. The
+scripted modal loops of `win16-dialogs` still need about 6 KiB of stack, so
+that test now links with 16 KiB, as CALMIRA.EXE does (Delphi 1's default).
+
+Covered by:
+- `win16-forms`: the application window, owner, class name, focus hand-over,
+  an unowned desktop form, and the disabled task windows during `ShowModal`;
+- `win16-timer`: another form as `WndParent` becomes the owner, and a child
+  window as owner raises;
+- `win16-dialogs`: font, button class and style, and owner of a message
+  dialog.
+
+Still different from the original: USER resources 85% free against 87%.

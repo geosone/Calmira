@@ -22,7 +22,8 @@ class Win16TimerTests(unittest.TestCase):
         forms = (ROOT / 'src/win16/forms.pas').read_text()
         for text in ('procedure CreateParams(var Params: TCreateParams); virtual;',
                      'if Params.WndParent = GetDesktopWindow then Params.WndParent := 0;',
-                     "raise ENativeWindowError.Create('Owned forms are not provided');",
+                     "raise ENativeWindowError.Create('A form owner must be a top-level window');",
+                     'if Parent = 0 then Params.WndParent := ApplicationOwner else Params.WndParent := Parent;',
                      "raise ENativeWindowError.Create('Only Caption, Style, bounds and WndParent can change in CreateParams');"):
             self.assertIn(text, forms)
 
@@ -30,7 +31,8 @@ class Win16TimerTests(unittest.TestCase):
         probe = (ROOT / 'tests/pascal/test_win16_timer.pas').read_text()
         for text in ('an enabled timer with OnTimer ticks', 'Interval 0 stops the timer',
                      'without OnTimer nothing runs', 'a failing OnTimer is reported and the timer goes on',
-                     'the desktop as WndParent leaves the form unowned', 'an owner window raises'):
+                     'the desktop as WndParent leaves the form unowned',
+                     'another form as WndParent owns the form, as in Delphi', 'a child window as owner raises'):
             self.assertIn(text, probe)
         makefile = (ROOT / 'makefile').read_text()
         self.assertIn('win16-timer-runtime-test',

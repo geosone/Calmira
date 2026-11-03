@@ -18,6 +18,11 @@ type
     procedure MinimizeHandler(Sender: TObject; var Action: TCloseAction);
     procedure Filter(var Msg: TMsg; var Handled: Boolean);
   end;
+  { Unowned, as Calmira's taskbar: WndParent := GetDesktopWindow. }
+  TDesktopForm = class(TForm)
+  protected
+    procedure CreateParams(var Params: TCreateParams); override;
+  end;
   TActiveProbe = class(TBitBtn)
   public
     property Active;
@@ -27,7 +32,7 @@ type
     destructor Destroy; override;
   end;
 var MainForm: TMainForm; Child, Modal, Loose: TChildForm; Foreign: TNativeForm;
-  Freed, Rejected, Failed, ShownMain: Boolean; Count, ModalCode, Filtered, Utility: Integer; UtilityHandle: HWND;
+  Freed, Rejected, Failed, ShownMain, TaskDisabled: Boolean; Count, ModalCode, Filtered, Utility: Integer; UtilityHandle: HWND;
 {$I win16_stack_guard.inc}
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
@@ -74,8 +79,15 @@ begin
   if (Msg.hwnd = Handle) and (Msg.message = WM_CLOSE) then
   begin Inc(Filtered); Handled := True; end;
 end;
+procedure TDesktopForm.CreateParams(var Params: TCreateParams);
+begin
+  inherited CreateParams(Params);
+  Params.WndParent := GetDesktopWindow;
+end;
 procedure TChildForm.ModalShow(Sender: TObject);
 begin
+  TaskDisabled := (Loose <> nil) and not IsWindowEnabled(Loose.Handle) and
+    not IsWindowEnabled(Application.Handle) and IsWindowEnabled(Handle);
   ModalResult := mrOk;
 end;
 destructor TTeardownProbe.Destroy;
@@ -244,6 +256,36 @@ begin
   Check((R.Right - R.Left = 150) and (R.Bottom - R.Top = 90), 'poDefaultPosOnly keeps the size');
   Loose.Free;
 end;
+{ Delphi 1: the visible, zero-sized TApplication window in the middle of the
+  screen owns every form; each form class is a window class of its name. }
+procedure WindowHierarchy;
+var App: HWND; R: TRect; Name: array[0..31] of Char; Desk: TDesktopForm; Other: TChildForm;
+begin
+  App := Application.Handle; GetWindowRect(App, R);
+  Check(IsWindowVisible(App) and (R.Left = GetSystemMetrics(SM_CXSCREEN) div 2) and
+    (R.Top = GetSystemMetrics(SM_CYSCREEN) div 2) and (R.Right = R.Left) and (R.Bottom = R.Top),
+    'the application window is visible and zero-sized in the middle of the screen');
+  Loose := TChildForm.Create(nil);
+  Check(GetParent(Loose.Handle) = App, 'a form is owned by the application window');
+  GetClassName(Loose.Handle, Name, SizeOf(Name));
+  Check(StrComp(Name, 'TChildForm') = 0, 'the window class is the form class name');
+  Other := TChildForm.Create(nil);
+  GetClassName(Other.Handle, Name, SizeOf(Name));
+  Check(StrComp(Name, 'TChildForm') = 0, 'a second form of the class shares its window class');
+  Other.Free;
+  Loose.SetBounds(30, 40, 150, 90); Loose.Show;
+  Check((Loose.Left = 30) and (Loose.Top = 40), 'an owned form keeps screen coordinates');
+  SetActiveWindow(Loose.Handle); SetActiveWindow(App);
+  Application.ProcessMessages;
+  Check(GetActiveWindow = Loose.Handle, 'the focused application window hands the focus on to its top form');
+  Loose.Free;
+  RegisterFormLoader(TDesktopForm, NoComponents);
+  Desk := TDesktopForm.Create(nil);
+  GetClassName(Desk.Handle, Name, SizeOf(Name));
+  Check((GetParent(Desk.Handle) = 0) and (StrComp(Name, 'TDesktopForm') = 0),
+    'WndParent := GetDesktopWindow leaves a form unowned, as Calmira''s taskbar');
+  Desk.Free;
+end;
 { Calmira's buttons are bsNew TBitBtns; its Buttons.dcu drew them as Win95
   buttons, and the active one (focused, or Default) bold. }
 procedure DefaultButtons;
@@ -303,7 +345,11 @@ begin
   Application.CreateForm(TChildForm, Modal);
   Modal.SetBounds(100, 100, 200, 120); Modal.OnShow := Modal.ModalShow;
   Modal.OnClose := Modal.CloseHandler; Modal.FreeMode := True; Freed := False;
+  Loose := TChildForm.Create(nil); Loose.SetBounds(20, 20, 150, 90); Loose.Show; TaskDisabled := False;
   ModalCode := Modal.ShowModal;
+  Check(TaskDisabled and IsWindowEnabled(Loose.Handle) and IsWindowEnabled(Application.Handle),
+    'a modal form disables the task''s other windows while it runs, as Delphi''s DisableTaskWindows');
+  Loose.Free; Freed := False;
   Check((ModalCode = mrOk) and not Freed and (Modal <> nil) and not Modal.Visible,
     'modal caFree returns the result before the deferred free');
   Application.ProcessMessages;
@@ -318,7 +364,7 @@ begin
 end;
 begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
-  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiWindows; DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
+  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiWindows; WindowHierarchy; DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Check(StackGuardIntact, 'forms stack boundary');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');

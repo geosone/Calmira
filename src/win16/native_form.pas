@@ -290,7 +290,9 @@ end;
 procedure TNativeForm.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
   X, Y, Width, Height: SmallInt);
 begin
-  if (Parent <> 0) or (Style and WS_CHILD <> 0) then
+  { Parent is the owner: a top-level window, never a child. }
+  if (Style and WS_CHILD <> 0) or ((Parent <> 0) and
+    (DWORD(GetWindowLong(Parent, GWL_STYLE)) and WS_CHILD <> 0)) then
     raise ENativeWindowError.Create('Invalid form parent');
   inherited CreateHandle(Parent, Caption, Style, X, Y, Width, Height);
   FCaption := Caption;

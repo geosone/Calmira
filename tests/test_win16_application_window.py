@@ -16,12 +16,31 @@ class ApplicationWindowTests(unittest.TestCase):
                      'Native window class collision'):
             self.assertIn(text, register)
 
-    def test_hidden_identity_is_separate_lazy_and_not_a_main_form_alias(self):
+    def test_zero_sized_identity_is_separate_lazy_and_not_a_main_form_alias(self):
         source = (ROOT / 'src/win16/native_application_window.pas').read_text()
         app = (ROOT / 'src/win16/native_application.pas').read_text()
         self.assertIn("ApplicationClassName = 'TApplication'", source)
         self.assertIn("FTitle := 'Calmira'", source)
-        self.assertIn('CreateHandle(0, Title, WS_POPUP, 0, 0, 0, 0)', source)
+        # Delphi 1: visible, zero-sized, in the middle of the screen, owning the forms.
+        self.assertIn('CreateHandle(0, Title, WS_POPUP or WS_CAPTION or WS_CLIPSIBLINGS or WS_SYSMENU or WS_MINIMIZEBOX,', source)
+        self.assertIn('GetSystemMetrics(SM_CXSCREEN) div 2, GetSystemMetrics(SM_CYSCREEN) div 2, 0, 0);', source)
+        self.assertIn('ShowWindow(Handle, SW_SHOWNA);', source)
+        self.assertIn('if Message.Msg = WM_SETFOCUS then PostMessage(Handle, WM_ACTIVATEFORM, 0, 0)', source)
+        self.assertIn('if not IsIconic(Handle) and (GetFocus = Handle) then', source)
+        forms = (ROOT / 'src/win16/forms.pas').read_text()
+        self.assertIn('EnsureNativeWindowClass(Buffer);', forms)
+        modal = (ROOT / 'src/win16/native_modal.pas').read_text()
+        self.assertIn('TaskWindows := DisableTaskWindows(Handle);', modal)
+        self.assertIn('EnableTaskWindows(TaskWindows);', modal)
+        probe = (ROOT / 'tests/pascal/test_win16_forms.pas').read_text()
+        for text in ('the application window is visible and zero-sized in the middle of the screen',
+                     'a form is owned by the application window', 'the window class is the form class name',
+                     'the focused application window hands the focus on to its top form',
+                     "a modal form disables the task''s other windows while it runs"):
+            self.assertIn(text, probe)
+        dialogs = (ROOT / 'src/win16/dialogs.pas').read_text()
+        self.assertIn("Form.Font.Name := 'System'; Form.Font.Size := 10;", dialogs)
+        self.assertIn('Bitmap := TBitBtn.Create(Form); Bitmap.Style := MsgDlgButtonStyle;', dialogs)
         self.assertIn('FWindow.EnsureHandle; Result := FWindow.Handle', app)
         self.assertNotIn('Result := FMainForm.Handle', app)
         self.assertIn('FWindow := TNativeApplicationWindow.Create(nil)', app)

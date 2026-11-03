@@ -17,7 +17,7 @@ begin
 end;
 procedure RunSteps;
 var Answer: Word; Text: string; ShortHeight: Integer; Catalog: TCatalog;
-  Previous: TFormTextProvider;
+  Previous: TFormTextProvider; Form: TForm; Bitmap: TBitBtn;
 begin
   Script(akKey, VK_RETURN, '');
   Answer := MessageDlg('Hello', mtInformation, [mbOK], 0);
@@ -52,6 +52,15 @@ begin
   Script(akKey, VK_ESCAPE, '');
   Answer := MessageDlg('Help?', mtConfirmation, [mbHelp, mbOK, mbCancel], 0);
   Check((Answer = mrCancel) and (Driver.Children = 'OK|Cancel|&Help'), 'Delphi 1 button order puts Help last');
+  Form := CreateMessageDialog('Look', mtInformation, [mbOK]);
+  try
+    Bitmap := nil;
+    for I := 0 to Form.ComponentCount - 1 do
+      if Form.Components[I] is TBitBtn then Bitmap := TBitBtn(Form.Components[I]);
+    Check((Form.BorderStyle = bsDialog) and (Form.Font.Name = 'System') and (Bitmap <> nil) and
+      (Bitmap.Style = bsNew) and (GetParent(Form.Handle) = Application.Handle),
+      'Delphi 1 message dialogs: System font, TBitBtns in MsgDlgButtonStyle, owned by the application');
+  finally Form.Free; end;
   Script(akKey, VK_RETURN, '');
   ShowMessage('Plain');
   Check(Driver.Acted and (Driver.Caption = Application.Title) and (Driver.Children = 'OK'), 'ShowMessage');

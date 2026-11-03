@@ -412,8 +412,11 @@ streamer or global Forms.Application is introduced by this factory.
 
 `native_application_window.pas` supplies the separate, lazy `Application.Handle`
 transport. The explicit TNativeApplication object still requires Initialize;
-reading Handle creates an invisible, zero-size, parentless WS_POPUP, not the main
-form. Its module-local class is `TApplication` and its initial Title is `Calmira`,
+reading Handle creates a visible, zero-size, parentless captioned WS_POPUP at
+the centre of the screen, as Delphi 1 does, not the main form. Forms are owned by
+it unless CreateParams sets WndParent to 0 or the desktop, and each form class
+registers a window class of its own name. When it gets the focus it hands it to
+its topmost enabled form. Its module-local class is `TApplication` and its initial Title is `Calmira`,
 matching the original helper programs' FindWindow contract. Changing Title changes
 discovery too. Titles retain the 255-byte ANSI interface, reject embedded NULs
 and are checked against USER after SetWindowText (a procedure in the Win16 API).

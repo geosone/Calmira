@@ -42,6 +42,8 @@ implementation
 uses WinProcs;
 type PWindowHook = ^TNativeWindowHook;
 const ApplicationClassName = 'TApplication';
+  { Posted to itself: hand the focus on to a form, as Delphi's CM_ENTER. }
+  WM_ACTIVATEFORM = WM_USER + $7000;
 function SameHook(A, B: TNativeWindowHook): Boolean;
 begin
   Result := (TMethod(A).Code = TMethod(B).Code) and (TMethod(A).Data = TMethod(B).Data);
@@ -82,7 +84,24 @@ procedure TNativeApplicationWindow.EnsureHandle;
 begin
   if Handle <> 0 then Exit;
   CheckMutable;
-  CreateHandle(0, Title, WS_POPUP, 0, 0, 0, 0);
+  { As Delphi 1's TApplication.CreateHandle: a zero-sized captioned popup in
+    the middle of the screen. It owns the forms and stands for the program in
+    Windows' task list. }
+  CreateHandle(0, Title, WS_POPUP or WS_CAPTION or WS_CLIPSIBLINGS or WS_SYSMENU or WS_MINIMIZEBOX,
+    GetSystemMetrics(SM_CXSCREEN) div 2, GetSystemMetrics(SM_CYSCREEN) div 2, 0, 0);
+  ShowWindow(Handle, SW_SHOWNA);
+end;
+{ The topmost visible, enabled window this one owns, as Delphi's
+  FindTopMostWindow. }
+function TopOwnedWindow(Owner: HWND): HWND;
+begin
+  Result := GetWindow(GetDesktopWindow, GW_CHILD);
+  while Result <> 0 do
+  begin
+    if (GetWindow(Result, GW_OWNER) = Owner) and IsWindowVisible(Result) and
+      IsWindowEnabled(Result) then Exit;
+    Result := GetWindow(Result, GW_HWNDNEXT);
+  end;
 end;
 procedure TNativeApplicationWindow.HookMainWindow(Hook: TNativeWindowHook);
 var Index: Integer; Item: PWindowHook;
@@ -105,7 +124,7 @@ begin
   end;
 end;
 procedure TNativeApplicationWindow.WndProc(var Message: TMessage);
-var Index: Integer;
+var Index: Integer; Window: HWND;
 begin
   { Native association/teardown belongs to the base and cannot be swallowed. }
   if (Message.Msg = WM_NCCREATE) or (Message.Msg = WM_CREATE) or
@@ -117,6 +136,20 @@ begin
     { Newest hook first. Mutation is rejected until every nested send returns. }
     for Index := FHooks.Count - 1 downto 0 do
       if PWindowHook(FHooks[Index])^(Message) then Exit;
+    { The zero-sized window itself cannot be used. As Delphi's application
+      window (WM_SETFOCUS posting CM_ENTER), hand the focus on to the form on
+      top, for instance when the active form was closed or hidden. }
+    if Message.Msg = WM_SETFOCUS then PostMessage(Handle, WM_ACTIVATEFORM, 0, 0)
+    else if Message.Msg = WM_ACTIVATEFORM then
+    begin
+      Message.Result := 0;
+      if not IsIconic(Handle) and (GetFocus = Handle) then
+      begin
+        Window := TopOwnedWindow(Handle);
+        if Window <> 0 then WinProcs.SetFocus(Window);
+      end;
+      Exit;
+    end;
     if Message.Msg = WM_CLOSE then
     begin
       Message.Result := 0;

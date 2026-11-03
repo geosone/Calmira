@@ -207,14 +207,19 @@ end;
 procedure PrepareForm(Form: TForm; const Caption: string);
 begin
   Form.Caption := Caption;
-  { Children pick this up through ParentFont. }
-  Form.Font.Name := 'MS Sans Serif'; Form.Font.Height := -11;
+  { As Delphi 1's dialogs: a dialog frame and TFont's default, the System
+    font. Children pick this up through ParentFont. }
+  Form.BorderStyle := bsDialog;
+  Form.Font.Name := 'System'; Form.Font.Size := 10;
   Form.Font.Style := []; Form.Font.Color := clBlack;
 end;
 function AddButton(Form: TForm; const Caption: string; X, Y: Integer;
   ModalCode: TModalResult): TButton;
+var Bitmap: TBitBtn;
 begin
-  Result := TButton.Create(Form); Result.Parent := Form;
+  { Delphi 1's message buttons are TBitBtns in MsgDlgButtonStyle. }
+  Bitmap := TBitBtn.Create(Form); Bitmap.Style := MsgDlgButtonStyle;
+  Result := Bitmap; Result.Parent := Form;
   Result.SetBounds(X, Y, MsgDlgBtnSize.X, MsgDlgBtnSize.Y);
   Result.Caption := Caption;
   Result.ModalResult := ModalCode;

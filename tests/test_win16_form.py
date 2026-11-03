@@ -25,7 +25,9 @@ class Win16FormTests(unittest.TestCase):
         self.assertIn('IFNDEF WIN16', source)
         self.assertIn('TNativeForm = class(TCustomControl)', source)
         self.assertIn('WS_OVERLAPPEDWINDOW or WS_CLIPCHILDREN or WS_CLIPSIBLINGS', source)
-        self.assertIn('if (Parent <> 0) or (Style and WS_CHILD <> 0)', source)
+        # Parent is the owner of a top-level form, never a child window.
+        self.assertIn("raise ENativeWindowError.Create('Invalid form parent');", source)
+        self.assertIn('if (Style and WS_CHILD <> 0) or ((Parent <> 0) and', source)
         self.assertNotIn('unit Forms;', source)
         self.assertNotIn('ShowModal', source)
 

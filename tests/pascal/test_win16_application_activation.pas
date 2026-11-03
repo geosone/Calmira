@@ -18,6 +18,8 @@ var App: TNativeApplication; Main, Peer: TNativeForm; Driver: TD;
   Failed, Rejected, ActiveBefore: Boolean; Before: Integer; Raw: HWND; Queue: TMsg;
   I, PoolGDI, PoolUSER: Integer;
 {$I win16_stack_guard.inc}
+function Bounds(Wnd: HWND): WinTypes.TRect;
+begin GetWindowRect(Wnd, Result); end;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
 begin
@@ -103,8 +105,8 @@ begin
   Main.OnActivate := Driver.FormActivated; Peer.OnActivate := Driver.FormActivated;
   App.OnActivate := Driver.Activated; App.OnDeactivate := Driver.Deactivated;
   Raw := App.Handle; App.HookMainWindow(Driver.Hook);
-  Check(IsWindow(Raw) and not IsWindowVisible(Raw) and App.Active,
-    'event registration creates independent hidden notification HWND');
+  Check(IsWindow(Raw) and IsWindowVisible(Raw) and IsRectEmpty(Bounds(Raw)) and App.Active,
+    'event registration creates the independent zero-sized notification HWND, as Delphi 1');
   Before := Driver.Activations + Driver.Deactivations;
   SetActiveWindow(Peer.Handle); SetActiveWindow(Main.Handle);
   Check((Driver.Activations + Driver.Deactivations = Before) and
@@ -137,7 +139,7 @@ begin
   Check(DestroyWindow(Raw) and not IsWindow(Raw), 'activation transport native HWND destroyed');
   Raw := App.Handle; Before := Driver.Activations;
   SendMessage(Raw, WM_ACTIVATEAPP, 1, 0);
-  Check(IsWindow(Raw) and not IsWindowVisible(Raw) and (Driver.Activations = Before + 1) and
+  Check(IsWindow(Raw) and IsWindowVisible(Raw) and (Driver.Activations = Before + 1) and
     (App.WindowCallbackErrors = 0), 'notification HWND recreation retains activation callbacks and hooks');
 end;
 procedure IndependentTask;

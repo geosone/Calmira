@@ -1002,10 +1002,12 @@ win16-drag-runtime-test: win16-drag
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-drag/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: win16-dialogs win16-dialogs-runtime-test
+# Owner-drawn TBitBtn message buttons inside the scripted modal loops need
+# about 6 KiB of stack; CALMIRA.EXE gets 16 KiB as well, Delphi 1's default.
 win16-dialogs: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-dialogs/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -koption -kstack=16k -Fu$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-dialogs/units -FE$(BUILD_DIR)/tests/win16-dialogs \
 		-oGDITEST.EXE tests/pascal/test_win16_dialogs.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-dialogs/GDITEST.EXE

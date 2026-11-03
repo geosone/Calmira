@@ -152,7 +152,7 @@ end;
 procedure TBitBtn.DrawButton(var Item: TDrawItemStruct);
 var R, TextArea, Source, Target: TRect; Frame, GW, GH, TW, TH, Gap, Shift: Integer;
   GroupW, GroupH, GX, GY, TX, TY, StartX, StartY, FreeSpace: LongInt;
-  Pressed, Disabled: Boolean; Key: TColor; Buffer: array[0..255] of Char;
+  Pressed, Disabled: Boolean; Key: TColor; Text: AnsiString;
   TextFont: Graphics.TFont;
 begin
   R := Item.rcItem; Pressed := Item.itemState and ODS_SELECTED <> 0;
@@ -190,8 +190,8 @@ begin
   if Caption <> '' then
   begin
     if SelectObject(Item.hDC, TextFont.Handle) = 0 then raise ENativeWindowError.Create('Cannot select button font');
-    StrPCopy(Buffer, Caption); TextArea := Graphics.Rect(0, 0, 0, 0);
-    if DrawText(Item.hDC, Buffer, Length(Caption), TextArea, DT_CALCRECT or DT_SINGLELINE) = 0 then
+    Text := Caption; TextArea := Graphics.Rect(0, 0, 0, 0);
+    if DrawText(Item.hDC, PChar(Text), Length(Text), TextArea, DT_CALCRECT or DT_SINGLELINE) = 0 then
       raise ENativeWindowError.Create('Cannot measure button caption');
     TW := TextArea.Right; TH := TextArea.Bottom;
   end;
@@ -242,10 +242,10 @@ begin
   if TW > 0 then
   begin
     TextArea := Graphics.Rect(Coordinate(TX), Coordinate(TY), Coordinate(TX + TW), Coordinate(TY + TH));
-    StrPCopy(Buffer, Caption); SelectObject(Item.hDC, TextFont.Handle); SetBkMode(Item.hDC, TRANSPARENT);
+    Text := Caption; SelectObject(Item.hDC, TextFont.Handle); SetBkMode(Item.hDC, TRANSPARENT);
     if Disabled then SetTextColor(Item.hDC, ColorToRGB(clGrayText))
     else SetTextColor(Item.hDC, ColorToRGB(Font.Color));
-    DrawText(Item.hDC, Buffer, Length(Caption), TextArea, DT_LEFT or DT_SINGLELINE);
+    DrawText(Item.hDC, PChar(Text), Length(Text), TextArea, DT_LEFT or DT_SINGLELINE);
   end;
   finally
     SelectObject(Item.hDC, GetStockObject(SYSTEM_FONT)); TextFont.Free;

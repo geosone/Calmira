@@ -86,15 +86,50 @@ begin
   end;
   Result := True;
 end;
+{ As Delphi's DisableTaskWindows: every visible, enabled top-level window of
+  this task is disabled while a modal form runs. }
+function DisableTaskWindows(Modal: HWND): TList;
+var Window: HWND;
+begin
+  Result := TList.Create;
+  try
+    Window := GetWindow(GetDesktopWindow, GW_CHILD);
+    while Window <> 0 do
+    begin
+      if (Window <> Modal) and (GetWindowTask(Window) = GetCurrentTask) and
+        IsWindowVisible(Window) and IsWindowEnabled(Window) then
+        Result.Add(Pointer(LongInt(Window)));
+      Window := GetWindow(Window, GW_HWNDNEXT);
+    end;
+  except Result.Free; raise; end;
+end;
+procedure DisableWindows(List: TList);
+var I: Integer;
+begin
+  for I := 0 to List.Count - 1 do EnableWindow(HWND(LongInt(List[I])), False);
+end;
+procedure EnableTaskWindows(List: TList);
+var I: Integer; Window: HWND;
+begin
+  if List = nil then Exit;
+  for I := List.Count - 1 downto 0 do
+  begin
+    Window := HWND(LongInt(List[I]));
+    if IsWindow(Window) then EnableWindow(Window, True);
+  end;
+  List.Free;
+end;
 function TNativeModalForm.ShowModal(OwnerWindow: HWND): TModalResult;
 var PreviousModal: TNativeModalForm; OldFocus, OldActive, OldOwner, Candidate: HWND;
-  DisabledOwner: Boolean;
+  DisabledOwner, KeepOwner: Boolean; TaskWindows: TList;
 begin
   if FModalRunning or Visible or Painting or (Canvas.Handle <> 0) then
     raise ENativeWindowError.Create('Invalid modal operation');
   if ActiveModal <> nil then
     if ActiveModal.FPreparing then raise ENativeWindowError.Create('Invalid modal operation');
-  if OwnerWindow = 0 then
+  { A form owned by the application window keeps its owner, as in Delphi. }
+  KeepOwner := (OwnerWindow = 0) and (Handle <> 0) and (GetParent(Handle) <> 0);
+  if (OwnerWindow = 0) and not KeepOwner then
   begin
     Candidate := GetActiveWindow;
     if (Candidate <> 0) and (Candidate <> Handle) then
@@ -109,6 +144,7 @@ begin
       raise ENativeWindowError.Create('Invalid modal operation');
   end;
   OldFocus := GetFocus; OldActive := GetActiveWindow; OldOwner := 0; DisabledOwner := False;
+  TaskWindows := nil;
   FModalLoop := TNativeMessageLoop.Create;
   PreviousModal := ActiveModal; ActiveModal := Self;
   FModalRunning := True; FPreparing := True; FModalResult := mrNone;
@@ -118,8 +154,13 @@ begin
       CreateHandle(0, Caption, WS_OVERLAPPEDWINDOW or WS_CLIPCHILDREN or WS_CLIPSIBLINGS,
         Left, Top, Width, Height);
     OldOwner := GetParent(Handle);
-    SetWindowWord(Handle, GWW_HWNDPARENT, OwnerWindow);
-    if GetParent(Handle) <> OwnerWindow then raise ENativeWindowError.Create('Modal owner link failed');
+    if not KeepOwner then
+    begin
+      SetWindowWord(Handle, GWW_HWNDPARENT, OwnerWindow);
+      if GetParent(Handle) <> OwnerWindow then raise ENativeWindowError.Create('Modal owner link failed');
+    end;
+    TaskWindows := DisableTaskWindows(Handle);
+    DisableWindows(TaskWindows);
     if OwnerWindow <> 0 then
       if IsWindowEnabled(OwnerWindow) then
       begin DisabledOwner := True; EnableWindow(OwnerWindow, False); end;
@@ -147,6 +188,7 @@ begin
         SetWindowWord(Handle, GWW_HWNDPARENT, OldOwner);
       end;
       if DisabledOwner and IsWindow(OwnerWindow) then EnableWindow(OwnerWindow, True);
+      EnableTaskWindows(TaskWindows);
       try
         FModalLoop.Free; FModalLoop := nil;
         if UsableWindow(OldActive) then SetActiveWindow(OldActive);

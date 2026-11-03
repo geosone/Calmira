@@ -65,9 +65,12 @@ class Win16DrawingTests(unittest.TestCase):
         self.assertIn('FCanvas.MemoryBitmap := FHandle;', bitmap_source)
         self.assertNotIn('FDC', bitmap_source)
         # Fonts, pens and brushes share GDI objects, as Delphi's resource managers.
-        for text in ('function TGDIResource.AcquireShared(const Key: string): HGDIOBJ;',
-                     'procedure ReleaseShared(Value: HGDIOBJ);', "Key := 'F' + IntToStr(FHeight)"):
+        # Short-string keys: no 256-byte temporaries on owner-draw stacks.
+        for text in ('function TGDIResource.AcquireShared(const Key: TSharedKey): HGDIOBJ;',
+                     'TSharedKey = string[47];', 'Str(Value, Digits);',
+                     'procedure ReleaseShared(Value: HGDIOBJ);', "Key := 'F'; AddNumber(Key, FHeight);"):
             self.assertIn(text, core)
+        self.assertNotIn('IntToStr', core[core.index('procedure AddNumber'):core.index('procedure ReleaseShared')])
         probe = (ROOT / 'tests/pascal/test_win16_canvas_context.pas').read_text()
         for text in ("a bitmap gives its DC back at idle, as Delphi''s FreeMemoryContexts",
                      'fonts with the same description share one GDI font, as in Delphi'):

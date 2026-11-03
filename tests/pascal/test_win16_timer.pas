@@ -20,7 +20,7 @@ type
   protected
     procedure CreateParams(var Params: TCreateParams); override;
   end;
-var Events: TEvents; Timer: TTimer; Desk: TDesktopForm; Bad: TBadForm; Failed, Raised: Boolean;
+var Inner: HWND; Events: TEvents; Timer: TTimer; Desk: TDesktopForm; Bad: TBadForm; Failed, Raised: Boolean;
   Buffer: array[0..63] of Char; Before: Integer;
 procedure LogLine(const Text: string);
 var F: HFILE; S: string;
@@ -109,7 +109,12 @@ begin
     Check(Desk.Left = 40, 'CreateParams can move the window');
     Check(GetWindow(Desk.Handle, GW_OWNER) = 0, 'the desktop as WndParent leaves the form unowned');
     TryBad(0, 0, 'extended styles raise');
-    TryBad(1, Desk.Handle, 'an owner window raises');
+    Bad := TBadForm.CreateNew(nil); Bad.Change := 1; Bad.OwnerWnd := Desk.Handle; Bad.Show;
+    Check(GetWindow(Bad.Handle, GW_OWNER) = Desk.Handle, 'another form as WndParent owns the form, as in Delphi');
+    Bad.Free; Bad := nil;
+    Inner := CreateWindow('BUTTON', 'x', WS_CHILD, 0, 0, 10, 10, Desk.Handle, 1, HInstance, nil);
+    TryBad(1, Inner, 'a child window as owner raises');
+    DestroyWindow(Inner);
     TryBad(2, 0, 'another window class raises');
     Desk.Free; Desk := nil;
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.ClassName + ' ' + E.Message); end; end;
