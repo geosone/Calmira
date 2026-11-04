@@ -781,7 +781,9 @@ begin
       so on Calmira's highlighted captions (clHighlightText on clHighlight)
       the dots alternate yellow and black, as in the original. }
     SetTextColor(DC, ColorToRGB(FFont.Color));
-    if FBrush.Style = bsClear then SetBkColor(DC, not ColorToRGB(FBrush.Color) and $FFFFFF)
+    { Over a clear brush the background stays white: the original's
+      focused tab shows grey dots on the button face. }
+    if FBrush.Style = bsClear then SetBkColor(DC, $FFFFFF)
     else SetBkColor(DC, ColorToRGB(FBrush.Color));
     WinProcs.DrawFocusRect(DC, @Area);
   finally EndDraw(State); end;

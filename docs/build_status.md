@@ -2462,3 +2462,20 @@ Two things show around the selected icon:
 The buttons of a message dialog sit eight pixels apart, as measured on
 the original's "move to the Bin" confirmation, not six. That
 confirmation is now pixel-identical.
+
+## Focused Tab Dots
+
+The previous slice made `DrawFocusRect` take the background colour from
+a clear brush too. That background maps to black on the 16-colour
+display, so the focus rectangle around a properties dialog's active tab
+vanished. Over a clear brush, the background now stays white. The
+original's grey dots are back, and the icon caption keeps its yellow and
+black dots. "Folder Properties" now matches the original, with two
+exceptions:
+
+- the folder size, which differs only because the executables differ;
+- the "Cancel" caption, one pixel to the left.
+
+The "Cancel" offset is still open. The original rounds the centring of
+76-pixel buttons differently from that of 77-pixel ones, and no single
+rule explains both without Delphi 1's Buttons source.

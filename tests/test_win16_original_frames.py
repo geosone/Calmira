@@ -60,6 +60,8 @@ class OriginalFrameTests(unittest.TestCase):
         canvas = source('gdi_canvas.pas')
         self.assertIn('SetTextColor(DC, ColorToRGB(FFont.Color));', canvas)
         self.assertNotIn('SetTextColor(DC, 0); SetBkColor(DC, $FFFFFF);', canvas)
+        self.assertIn('if FBrush.Style = bsClear then SetBkColor(DC, $FFFFFF)\n'
+                      '    else SetBkColor(DC, ColorToRGB(FBrush.Color));', canvas)
 
     def test_grid_keeps_its_focused_cell_while_its_form_is_inactive(self):
         grids = source('grids.pas')
