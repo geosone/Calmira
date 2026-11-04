@@ -97,6 +97,19 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('DropDown;\n        AdjustDropDown;', combo)
         self.assertIn('if Count < 1 then Count := 1;', combo)
 
+    def test_caption_is_new_before_wm_settext(self):
+        self.assertIn('  FCaption := Value;\n  if Handle <> 0 then\n'
+                      '  begin StrPCopy(Buffer, Value); SetWindowText(Handle, Buffer); end;',
+                      source('native_form.pas'))
+
+    def test_outline_draws_its_own_focus_and_notifies_before_selecting(self):
+        outline = source('outline.pas')
+        self.assertIn('DefaultDrawing := False;', outline)
+        self.assertIn('FNotifyBeforeSelect := True;', outline)
+        grids = source('grids.pas')
+        self.assertIn('if FNotifyBeforeSelect then inherited MouseDown(Button, Shift, X, Y);', grids)
+        self.assertIn('if not FNotifyBeforeSelect then inherited MouseDown(Button, Shift, X, Y);', grids)
+
 
 if __name__ == '__main__':
     unittest.main()

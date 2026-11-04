@@ -455,6 +455,13 @@ begin
   FItemSeparator := '\';
   { As in Delphi 1: one column, no fixed cells, no grid lines. }
   inherited Options := [];
+  { The outline draws its cells, focus rectangle included: the grid's own
+    full-width focus rectangle would cancel an owner-drawn one. }
+  DefaultDrawing := False;
+  { Calmira's tree keeps the selection when a +/- box is clicked: its
+    OnMouseDown notes SelectedItem before the press moves it, and its
+    OnMouseMove puts it back. }
+  FNotifyBeforeSelect := True;
   FixedCols := 0; FixedRows := 0; ColCount := 1; RowCount := 1;
   DefaultRowHeight := 16;
 end;

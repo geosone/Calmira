@@ -289,9 +289,11 @@ procedure TNativeForm.SetCaption(const Value: string);
 var Buffer: array[0..255] of Char;
 begin
   if Pos(#0, Value) <> 0 then raise ENativeWindowError.Create('Invalid form caption');
+  { Caption is new before WM_SETTEXT, as Delphi's reads the window text:
+    Calmira's forms paint their own title from Caption while handling it. }
+  FCaption := Value;
   if Handle <> 0 then
   begin StrPCopy(Buffer, Value); SetWindowText(Handle, Buffer); end;
-  FCaption := Value;
 end;
 procedure TNativeForm.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
   X, Y, Width, Height: SmallInt);

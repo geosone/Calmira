@@ -2512,3 +2512,20 @@ and the Run dialog:
 
 The combo box, common dialog and original-frame tests cover these
 changes.
+
+## Explorer Title and Tree
+
+- **Title.** After a folder change, the Explorer's title read "WINDOWS"
+  instead of "Exploring WINDOWS". Calmira paints its own title bar in
+  `WM_SETTEXT` from `Caption`. Our setter stored the new caption only
+  after `SetWindowText`, so every change painted the previous title. The
+  caption is now stored first, as Delphi's reads the window text.
+- **Tree focus.** The grid drew its own full-width focus rectangle over
+  the owner-drawn tree. That cancelled Calmira's rectangle around the
+  folder name and left a dotted line across the row. `TOutline` draws
+  its own cells, so its `DefaultDrawing` is now off.
+- **Selection.** Clicking a tree's +/- box no longer moves the selection
+  to that folder. Calmira notes `SelectedItem` in `OnMouseDown` and
+  restores it in `OnMouseMove`, which only works if `OnMouseDown` runs
+  before the press moves the current row. The outline now raises the
+  event first.

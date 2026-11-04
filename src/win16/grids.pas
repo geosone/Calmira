@@ -61,6 +61,10 @@ type
     FOptions: TGridOptions;
     FScrollBars: TScrollStyle;
     FGridState: TGridState;
+  protected
+    { OnMouseDown before the press moves the current cell (TOutline). }
+    FNotifyBeforeSelect: Boolean;
+  private
     FOnClick, FOnDblClick: TNotifyEvent;
     function Extent(const Axis: TGridAxisDrawInfo; Index: Longint): Integer;
     procedure CalcDrawInfo(var DrawInfo: TGridDrawInfo);
@@ -1003,6 +1007,7 @@ begin
     if not Focused then SetFocus;
     if not Focused then begin MouseCapture := False; Exit; end;
   end;
+  if FNotifyBeforeSelect then inherited MouseDown(Button, Shift, X, Y);
   if (Button = mbLeft) and (ssDouble in Shift) then DblClick
   else if Button = mbLeft then
   begin
@@ -1017,7 +1022,7 @@ begin
       SetTimer(Handle, SelectTimer, 60, nil);
     end;
   end;
-  inherited MouseDown(Button, Shift, X, Y);
+  if not FNotifyBeforeSelect then inherited MouseDown(Button, Shift, X, Y);
 end;
 procedure TCustomGrid.MouseMove(Shift: TShiftState; X, Y: Integer);
 var DrawInfo: TGridDrawInfo; CellHit: TGridCoord;
