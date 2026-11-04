@@ -2619,3 +2619,27 @@ filter runs as the loop's `PreFilter`, called from the same frame as the
 dialog keys, so a nested modal dialog opened by a key needs no more stack.
 The password test keeps its 4 KB stack with 74 bytes to spare, as before. The
 hints runtime test feeds a mouse move through it.
+
+## Combo Box Strip and Modal Owners
+
+The Run dialog's drop-down combo showed a white strip between its edit and
+its button; the original shows the dialog's face colour there. As Delphi's
+TCustomComboBox, the combo box now answers its own `CN_CTLCOLOR` with the
+parent's brush in the drop-down styles, and its edit and list ask the combo
+box itself (`WM_CTLCOLOR`) for its colour, so they stay white.
+
+Tools > Go to... brought My Computer over the folder window it was opened
+from. Calmira creates Go To Folder's handle only in `ShowModal`, which then
+re-owned the stay-on-top dialog to the active folder window; USER moves an
+owner behind its topmost owned window's group. `ShowModal` now creates the
+handle first, so a form owned by the application keeps that owner, as in
+Delphi.
+
+Tests: `win16-combobox-runtime-test` checks the strip pixel against the
+face colour and the edit against the window colour;
+`win16-dialogs-runtime-test` shows a stay-on-top form without a handle
+modally over another form and checks it stays owned by the application.
+Both fail with the previous sources. `win16-incsrch-modal-runtime-test`
+no longer expects the implicit owner to be the active window: the dialog
+stays owned by the application window, and the active window is disabled
+with the task's other windows.

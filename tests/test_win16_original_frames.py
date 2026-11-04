@@ -154,6 +154,18 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('if Assigned(FOnShow) and IsWindowVisible(Handle) then\n      RedrawWindow(Handle, nil, 0, RDW_INVALIDATE or RDW_ERASE or RDW_FRAME or RDW_ALLCHILDREN);',
                       source('native_form.pas'))
 
+    def test_drop_down_combo_strip_takes_parent_colour(self):
+        combo = source('native_combobox.pas')
+        self.assertIn("procedure CNCtlColor(var M: TMessage); message CN_CTLCOLOR;", combo)
+        self.assertIn("if (FStyle in [csDropDown, csSimple]) and (Parent <> nil) then\n    M.Result := TParentAccess(Parent).CtlColorBrush(HDC(M.WParam))", combo)
+        self.assertIn("procedure WMCtlColor(var M: TMessage); message WM_CTLCOLOR;", combo)
+
+    def test_modal_form_created_before_choosing_its_owner(self):
+        modal = source('native_modal.pas')
+        create = modal.index("  if Handle = 0 then\n    CreateHandle(0, Caption,")
+        keep = modal.index("  KeepOwner := (OwnerWindow = 0) and (Handle <> 0)")
+        self.assertLess(create, keep)
+
     def test_modal_dialogs_pass_messages_to_the_application(self):
         modal = source('native_modal.pas')
         self.assertIn('FModalLoop.PreFilter := ModalMessageFilter;\n    FModalLoop.OnMessage := ProcessDialogMessage;', modal)

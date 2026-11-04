@@ -123,7 +123,13 @@ begin
     raise ENativeWindowError.Create('Invalid modal operation');
   if ActiveModal <> nil then
     if ActiveModal.FPreparing then raise ENativeWindowError.Create('Invalid modal operation');
-  { A form owned by the application window keeps its owner, as in Delphi. }
+  { A form owned by the application window keeps its owner, as in Delphi.
+    Created first: Calmira's Go To Folder gets its handle only here, and,
+    re-owned by the folder window, a stay-on-top dialog dragged that window
+    behind every other form. }
+  if Handle = 0 then
+    CreateHandle(0, Caption, WS_OVERLAPPEDWINDOW or WS_CLIPCHILDREN or WS_CLIPSIBLINGS,
+      Left, Top, Width, Height);
   { The owner, not GetParent: USER answers GetParent with the owner only for
     popups, and forms are overlapped as in the original. }
   KeepOwner := (OwnerWindow = 0) and (Handle <> 0) and (GetWindow(Handle, GW_OWNER) <> 0);

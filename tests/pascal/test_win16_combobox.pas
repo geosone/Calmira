@@ -1,6 +1,6 @@
 program TestWin16ComboBox;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Win31, Classes, SysUtils, Controls, native_combobox, native_edit;
+uses WinTypes, WinProcs, Win31, Classes, SysUtils, Graphics, Controls, native_combobox, native_edit;
 type
   TObserver = class
     Changes, Clicks, Drops, Enters, Exits: Integer;
@@ -52,11 +52,31 @@ var Msg: TMsg;
 begin
   while PeekMessage(Msg, 0, 0, 0, PM_REMOVE) do begin TranslateMessage(Msg); DispatchMessage(Msg); end;
 end;
+{ The strip between a drop-down combo's edit and its button, as the
+  original's Run dialog shows it: in the parent's colour, not white. }
+procedure GapColour(Combo: TComboBox);
+var EditWnd: HWND; R, C: TRect; DC: HDC; X, Y: Integer; Face, Gap, Inside: TColorRef;
+begin
+  EditWnd := GetWindow(Combo.Handle, GW_CHILD);
+  GetWindowRect(EditWnd, R); GetClientRect(Combo.Handle, C);
+  ScreenToClient(Combo.Handle, PPoint(@R)^); ScreenToClient(Combo.Handle, PPoint(@R.Right)^);
+  InvalidateRect(Combo.Handle, nil, True); UpdateWindow(Combo.Handle);
+  UpdateWindow(EditWnd);
+  DC := GetDC(Combo.Handle);
+  X := C.Right - GetSystemMetrics(SM_CXVSCROLL) - 1; Y := (C.Top + C.Bottom) div 2;
+  Gap := GetPixel(DC, X, Y); ReleaseDC(Combo.Handle, DC);
+  DC := GetDC(EditWnd); Inside := GetPixel(DC, 1, 1); ReleaseDC(EditWnd, DC);
+  Face := GetNearestColor(GetDC(0), ColorToRGB(clBtnFace));
+  LogLine(Format('combo gap %x at %d, edit right %d, inside %x', [Gap, X, R.Right, Inside]));
+  Check((X >= R.Right) and (Gap = Face) and (Inside = GetNearestColor(GetDC(0), ColorToRGB(clWindow))),
+    'the strip beside the button takes the parent colour, the edit stays white');
+end;
 begin
   LogLine('STEP native combo box');
   Observer := TObserver.Create; Marker := TObject.Create;
   try
     Root := TCustomControl.Create(nil);
+    Root.Color := clBtnFace;
     Root.CreateHandle(0, 'Combo parent', WS_POPUP or WS_VISIBLE or WS_CLIPCHILDREN, 10, 10, 360, 200);
     Edit := TComboBox.Create(nil); Edit.OnChange := Observer.Changed; Edit.OnClick := Observer.Clicked;
     Edit.OnDropDown := Observer.Dropped; Edit.OnEnter := Observer.Entered; Edit.OnExit := Observer.Exited;
@@ -67,6 +87,7 @@ begin
     Check((NativeItems(Edit) = '*.txt,*.ini') and (Edit.Text = '*.*') and (Edit.Items.Objects[1] = Marker) and
       (Observer.Changes = 0), 'creation loads items and text quietly');
     Check((Edit.Height < 40) and (Edit.Width = 150), 'closed height, list height kept by USER');
+    GapColour(Edit);
     { As Delphi's AdjustDropDown: two items open a two-line list, not
       DropDownCount empty lines. }
     Edit.DroppedDown := True;

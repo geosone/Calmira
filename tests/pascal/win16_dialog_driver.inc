@@ -12,6 +12,7 @@ type
     Caption, Children, FocusText: string[60];
     SelStart, SelEnd: Word;
     Width, Height: Integer;
+    Owner: HWND;
     procedure Idle(Sender: TObject; var Done: Boolean);
     function Hook(var Message: TMessage): Boolean;
   end;
@@ -49,7 +50,7 @@ begin
   Dialog := GetActiveWindow;
   if Acted or (Dialog = 0) or (Dialog = MainForm.Handle) then Exit;
   Acted := True;
-  Caption := WindowText(Dialog); Children := '';
+  Caption := WindowText(Dialog); Children := ''; Owner := GetWindow(Dialog, GW_OWNER);
   { Creation order: as in Delphi, a later child lies above an earlier one. }
   Child := GetWindow(Dialog, GW_CHILD);
   if Child <> 0 then Child := GetWindow(Child, GW_HWNDLAST);

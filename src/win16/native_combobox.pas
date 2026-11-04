@@ -72,6 +72,11 @@ type
     procedure FontChanged; override;
     function NativeClassName: PChar; override;
     procedure WndProc(var M: TMessage); override;
+    { As Delphi's TCustomComboBox: the edit and the list ask the combo box
+      for its own colour; the combo box itself, in the drop-down styles,
+      takes its parent's, so the strip beside the button is not white. }
+    procedure WMCtlColor(var M: TMessage); message WM_CTLCOLOR;
+    procedure CNCtlColor(var M: TMessage); message CN_CTLCOLOR;
     function ControlCommand(Code: Word): Boolean; override;
     function OwnsNativeChild(Window: HWND): Boolean; override;
     function GetFocused: Boolean; override;
@@ -272,6 +277,17 @@ end;
 function TCustomComboBox.ListHeight: Integer;
 begin
   Result := FDropDownCount * (Abs(Font.Height) + 4) + 2;
+end;
+type TParentAccess = class(TCustomControl);
+procedure TCustomComboBox.WMCtlColor(var M: TMessage);
+begin
+  M.Result := CtlColorBrush(HDC(M.WParam));
+end;
+procedure TCustomComboBox.CNCtlColor(var M: TMessage);
+begin
+  if (FStyle in [csDropDown, csSimple]) and (Parent <> nil) then
+    M.Result := TParentAccess(Parent).CtlColorBrush(HDC(M.WParam))
+  else M.Result := CtlColorBrush(HDC(M.WParam));
 end;
 procedure TCustomComboBox.WndProc(var M: TMessage);
 begin

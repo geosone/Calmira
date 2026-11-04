@@ -38,8 +38,10 @@ end;
 procedure TObserver.Shown(Sender: TObject);
 begin
   Dialog.FormShow(Sender);
+  { Without an explicit owner the dialog stays owned by the application
+  window, as in Delphi; the task's other windows are disabled instead. }
   Blocked := not IsWindowEnabled(Owner.Handle) and Dialog.ModalRunning and
-    (GetWindow(Dialog.Handle, GW_OWNER) = Owner.Handle);
+    (GetWindow(Dialog.Handle, GW_OWNER) <> 0);
   if Key = VK_RETURN then
   begin
     PostMessage(Dialog.Edit.Handle, WM_KEYDOWN, Ord('W'), $00110001);

@@ -17,7 +17,7 @@ begin
 end;
 procedure RunSteps;
 var Answer: Word; Text: string; ShortHeight: Integer; Catalog: TCatalog;
-  Previous: TFormTextProvider; Form: TForm; Bitmap, First, Second: TBitBtn;
+  Previous: TFormTextProvider; Form, Back: TForm; Bitmap, First, Second: TBitBtn;
 begin
   Script(akKey, VK_RETURN, '');
   Answer := MessageDlg('Hello', mtInformation, [mbOK], 0);
@@ -74,6 +74,21 @@ begin
       (Abs(Second.Left - First.Left) = MsgDlgBtnSize.X + 8) and (Second.Top = First.Top),
       'message buttons sit 8 pixels apart, as in the original');
   finally Form.Free; end;
+  { Calmira's Go To Folder gets its handle in ShowModal. As in Delphi it
+    stays owned by the application, not by the folder window it was opened
+    from: a stay-on-top dialog owned by that window pushed it behind the
+    other forms. }
+  Back := TForm.CreateNew(nil); Form := TForm.CreateNew(nil);
+  try
+    Back.SetBounds(40, 40, 200, 120); Back.Show; SetActiveWindow(Back.Handle);
+    Form.BorderStyle := bsDialog; Form.FormStyle := fsStayOnTop; Form.Caption := 'Go';
+    Form.SetBounds(60, 60, 200, 120);
+    Bitmap := TBitBtn.Create(Form); Bitmap.Kind := bkCancel; Bitmap.SetBounds(10, 10, 80, 25);
+    Bitmap.Parent := Form;
+    Script(akKey, VK_ESCAPE, '');
+    Check((Form.ShowModal = mrCancel) and Driver.Acted and (Driver.Caption = 'Go') and
+      (Driver.Owner = Application.Handle), 'a form first created by ShowModal stays owned by the application');
+  finally Form.Free; Back.Free; end;
   Script(akKey, VK_RETURN, '');
   ShowMessage('Plain');
   Check(Driver.Acted and (Driver.Caption = Application.Title) and (Driver.Children = 'OK'), 'ShowMessage');
