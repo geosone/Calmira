@@ -140,7 +140,9 @@ begin
     taRightJustify: Flags := Flags or DT_RIGHT;
     taCenter: Flags := Flags or DT_CENTER;
   end;
-  if FWordWrap then Flags := Flags or DT_WORDBREAK;
+  { As Delphi 1's TCustomLabel.Paint, which always breaks words: WordWrap
+    only changes how AutoSize measures (File System Properties' LFN note). }
+  Flags := Flags or DT_WORDBREAK;
   if not FShowAccelChar then Flags := Flags or DT_NOPREFIX;
   StrPCopy(Buffer, FCaption);
   State := SaveDC(Canvas.Handle);

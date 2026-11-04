@@ -97,10 +97,16 @@ begin
     LabelControl.Caption := ''; Flush; Ink := Scan(clBlue);
     Check(Ink.Count = 0, 'empty caption erases previous label text');
     LabelControl.Alignment := taLeftJustify; LabelControl.SetBounds(8, 8, 50, 80);
+    LabelControl.Caption := 'M'; Flush; LeftInk := Scan(clBlue);
     LabelControl.Caption := 'MMMM MMMM MMMM'; LabelControl.WordWrap := False; Flush;
-    LeftInk := Scan(clBlue); LabelControl.WordWrap := True; Flush; RightInk := Scan(clBlue);
+    RightInk := Scan(clBlue);
     Check((RightInk.Count > 0) and (RightInk.Bottom > LeftInk.Bottom + 10),
-      'word wrap produces actual additional native text lines');
+      'a fixed-size label breaks words without WordWrap, as Delphi 1 paints it');
+    LabelControl.WordWrap := True; Flush; Ink := Scan(clBlue);
+    Check(Ink.Bottom = RightInk.Bottom, 'WordWrap does not change a fixed-size label');
+    LabelControl.AutoSize := True; LabelControl.WordWrap := False;
+    Check((LabelControl.Width > 50) and (LabelControl.Height < RightInk.Bottom - LeftInk.Top), 'AutoSize without WordWrap measures one line');
+    LabelControl.AutoSize := False;
     LabelControl.SetBounds(8, 8, 120, 80); LabelControl.WordWrap := False;
     LabelControl.Caption := 'M'#13#10'M'; Flush; Ink := Scan(clBlue);
     Check(Ink.Bottom > LeftInk.Bottom + 10, 'explicit CRLF preserves multiline rendering without word wrap');

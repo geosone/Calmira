@@ -2576,3 +2576,12 @@ our range checks in `TSlider` compared it with the default maximum of 100.
 Delphi has no such checks. They are now skipped while the form loads, and
 `Value` is clamped against both limits afterwards. The slider runtime test
 loads the dialog's values in form order.
+
+## Labels Break Words Like Delphi 1
+
+The note under "Enable Long Filename support" in File System Properties
+ran off as one clipped line. That label has `AutoSize = False` and no
+`WordWrap`. Delphi 1's `TCustomLabel.Paint` always draws with
+`DT_WORDBREAK`, and `WordWrap` only affects how `AutoSize` measures. Our
+label now paints the same way, so the note wraps as in the original. The
+label runtime test checks both cases.

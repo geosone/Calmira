@@ -139,6 +139,12 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn("if csLoading in ComponentState then begin fMin := avalue; Exit; end;", slider)
         self.assertIn("if csLoading in ComponentState then begin fMax := avalue; Exit; end;", slider)
 
+    def test_labels_always_break_words_when_painting(self):
+        label = source('native_label.pas')
+        paint = label[label.index('procedure TLabel.Paint;'):]
+        self.assertIn('  Flags := Flags or DT_WORDBREAK;', paint)
+        self.assertNotIn('if FWordWrap then Flags := Flags or DT_WORDBREAK;', paint)
+
 
 if __name__ == '__main__':
     unittest.main()

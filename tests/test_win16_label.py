@@ -65,7 +65,7 @@ class Win16LabelTests(unittest.TestCase):
         source = (ROOT / 'tests/pascal/test_win16_label.pas').read_text()
         for text in ('windowless label paints real left-aligned ANSI glyphs',
                      'right alignment repositions glyphs',
-                     'word wrap produces actual additional native text lines',
+                     'a fixed-size label breaks words without WordWrap, as Delphi 1 paints it',
                      'direct font color change invalidates label',
                      'font assignment deep-copies state and survives source destruction',
                      'font notification suppresses recursion',
