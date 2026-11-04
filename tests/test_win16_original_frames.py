@@ -145,6 +145,11 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('  Flags := Flags or DT_WORDBREAK;', paint)
         self.assertNotIn('if FWordWrap then Flags := Flags or DT_WORDBREAK;', paint)
 
+    def test_disabled_bitbtn_captions_are_embossed(self):
+        buttons = source('buttons.pas')
+        self.assertIn('OffsetRect(TextArea, 1, 1);\n      SetTextColor(Item.hDC, ColorToRGB(clBtnHighlight));', buttons)
+        self.assertNotIn('ColorToRGB(clGrayText)', buttons)
+
 
 if __name__ == '__main__':
     unittest.main()

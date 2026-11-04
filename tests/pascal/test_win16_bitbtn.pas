@@ -103,6 +103,12 @@ begin
     Button.Height := 50; Button.Update; Ink := 0;
     for Y := 0 to 49 do for X := 0 to 79 do if Pixel(X, Y) = clBlue then Inc(Ink);
     Check(Ink > 0, 'owner-drawn caption uses configured font and text color');
+    Button.Enabled := False; Button.Update; Ink := 0; Before := 0;
+    for Y := 4 to 45 do for X := 4 to 75 do
+      if Pixel(X, Y) = ColorToRGB(clBtnHighlight) then Inc(Ink)
+      else if Pixel(X, Y) = ColorToRGB(clBtnShadow) then Inc(Before);
+    Check((Ink > 0) and (Before > 0), 'a disabled caption is embossed, as Delphi 1 draws it');
+    Button.Enabled := True; Before := Observer.Calls;
     Button.Layout := blGlyphLeft; Button.Update; RedBounds(LeftX, TopY);
     Button.Layout := blGlyphRight; Button.Update; RedBounds(RightX, BottomY);
     Check((LeftX < RightX) and (RightX < 80), 'glyph left and right layouts reposition supplied bitmap');

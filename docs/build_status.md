@@ -2585,3 +2585,12 @@ ran off as one clipped line. That label has `AutoSize = False` and no
 `DT_WORDBREAK`, and `WordWrap` only affects how `AutoSize` measures. Our
 label now paints the same way, so the note wraps as in the original. The
 label runtime test checks both cases.
+
+## Embossed Disabled Bitmap Button Captions
+
+Desktop Properties' Icons tab showed blank "Default Icon" and "Change
+Icon..." buttons while they were disabled. Like the speed buttons,
+`TBitBtn` (Calmira's `TPicBtn`) drew disabled text in `clGrayText`, which
+is the face colour in Windows 3.1's default scheme. It is now embossed
+too, as Delphi 1's `DrawButtonText` does it. The bitmap button runtime
+test checks this.
