@@ -133,6 +133,16 @@ begin
       'Selection sets anchor and current cell');
     Grid.Row := 2;
     Check((Grid.Selection.Left = Grid.Selection.Right) and (Grid.Selection.Top = 2), 'moving the focus collapses the selection');
+    { A drag starting from the press (Calmira's icon windows) takes the
+      mouse: the grid must stop selecting, or every later move selects. }
+    Grid.Row := 2; Grid.Col := 1;
+    SendMessage(Grid.Handle, WM_LBUTTONDOWN, MK_LBUTTON, MakeLong(Grid.CellRect(1, 2).Left + 4, Grid.CellRect(1, 2).Top + 4));
+    SendMessage(Grid.Handle, WM_CANCELMODE, 0, 0);
+    SendMessage(Grid.Handle, WM_MOUSEMOVE, 0, MakeLong(Grid.CellRect(3, 4).Left + 4, Grid.CellRect(3, 4).Top + 4));
+    Check((Grid.Row = 2) and (Grid.Col = 1) and (GetCapture <> Grid.Handle),
+      'cancel mode ends the selection the press began');
+    SendMessage(Grid.Handle, WM_LBUTTONUP, 0, MakeLong(Grid.CellRect(3, 4).Left + 4, Grid.CellRect(3, 4).Top + 4));
+    Check((Grid.Row = 2) and (Grid.Col = 1), 'a later button-up selects nothing');
 
     Events.TopLefts := 0;
     Grid.Row := 15;

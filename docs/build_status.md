@@ -2479,3 +2479,13 @@ exceptions:
 The "Cancel" offset is still open. The original rounds the centring of
 76-pixel buttons differently from that of 77-pixel ones, and no single
 rule explains both without Delphi 1's Buttons source.
+
+## Selection No Longer Follows the Mouse
+
+After a click on an icon, the selection followed the mouse as it moved
+over other icons with no button held. Calmira starts a drag on every
+press. Our drag manager took the mouse capture, so the grid never saw
+the button go up and stayed in its cell-selecting mode. As in Delphi,
+starting a drag now sends `WM_CANCELMODE` to the window that held the
+mouse. The grid answers by ending the selection it began. The grids
+runtime test checks this.

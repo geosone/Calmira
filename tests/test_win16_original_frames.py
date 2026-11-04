@@ -73,6 +73,14 @@ class OriginalFrameTests(unittest.TestCase):
     def test_message_buttons_sit_eight_pixels_apart(self):
         self.assertIn('Margin = 12; IconSize = 32; ButtonGap = 8;', source('dialogs.pas'))
 
+    def test_a_drag_start_cancels_the_grids_selection_mode(self):
+        controls = source('controls.pas')
+        self.assertIn('if (Previous <> 0) and (Previous <> FCapture.Handle) then\n'
+                      '    SendMessage(Previous, WM_CANCELMODE, 0, 0);\n  SetCapture(FCapture.Handle);', controls)
+        grids = source('grids.pas')
+        self.assertIn('procedure WMCancelMode(var Msg: TMessage); message WM_CANCELMODE;', grids)
+        self.assertIn('KillTimer(Handle, SelectTimer);\n    FGridState := gsNormal;', grids)
+
 
 if __name__ == '__main__':
     unittest.main()

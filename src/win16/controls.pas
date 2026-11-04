@@ -1880,6 +1880,7 @@ begin
   if LookupNativeCursor(Index, Value) then WinProcs.SetCursor(Value);
 end;
 procedure TNativeDragManager.Start(Control: TControl; Immediate: Boolean);
+var Previous: HWND;
 begin
   if (DragSource <> nil) or (Control = nil) then Exit;
   { A graphic source pressed through its parent: that capture becomes ours. }
@@ -1890,6 +1891,13 @@ begin
   DragSource := Control;
   FTarget := nil; FAccepted := False; FActive := Immediate;
   GetCursorPos(FStart);
+  { As Delphi: the window that held the mouse, such as a grid selecting
+    cells, leaves that mode. It never sees the button go up, which ends
+    the drag here, so it would otherwise go on selecting as the mouse
+    moves. }
+  Previous := GetCapture;
+  if (Previous <> 0) and (Previous <> FCapture.Handle) then
+    SendMessage(Previous, WM_CANCELMODE, 0, 0);
   SetCapture(FCapture.Handle);
   PostMessage(FCapture.Handle, CM_RECAPTURE, 0, 0);
   if Immediate then Move(FStart);

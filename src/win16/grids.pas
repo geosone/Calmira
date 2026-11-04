@@ -112,6 +112,7 @@ type
     procedure WMVScroll(var Msg: TMessage); message WM_VSCROLL;
     procedure WMSize(var Msg: TMessage); message WM_SIZE;
     procedure WMTimer(var Msg: TMessage); message WM_TIMER;
+    procedure WMCancelMode(var Msg: TMessage); message WM_CANCELMODE;
   protected
     FSaveCellExtents: Boolean;
     { The original's icon windows show Delphi's Ctl3D frame around the grid. }
@@ -1045,6 +1046,18 @@ begin
     end;
     inherited MouseUp(Button, Shift, X, Y);
   finally FGridState := gsNormal; end;
+end;
+procedure TCustomGrid.WMCancelMode(var Msg: TMessage);
+begin
+  { As Delphi's CancelMode: a drag starting from the grid, or a menu or
+    dialog taking over, ends the cell selection the mouse began. }
+  if FGridState = gsSelecting then
+  begin
+    KillTimer(Handle, SelectTimer);
+    FGridState := gsNormal;
+    if MouseCapture then MouseCapture := False;
+  end;
+  inherited;
 end;
 procedure TCustomGrid.WMTimer(var Msg: TMessage);
 var P: TPoint; DrawInfo: TGridDrawInfo; Direction: TGridScrollDirection;
