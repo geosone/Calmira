@@ -13,6 +13,7 @@ PATCHES = [ROOT / 'tools/patches' / name for name in (
     'fpc-win16-message-dispatch.patch', 'fpc-win16-exception-tailcall.patch',
     'fpc-win16-gui-stdio.patch', 'fpc-win16-gui-error-buffer.patch',
     'fpc-win16-realloc-bounds.patch', 'fpc-win16-dos-no-strings.patch',
+    'fpc-win16-delphi1-doserror.patch',
     'fpc-win16-delphi1-strings.patch', 'fpc-win16-huge-startup.patch',
     'fpc-win16-const-rects.patch', 'fpc-win16-delphi1-types.patch',
     'fpc-win16-delphi1-resources.patch', 'fpc-win16-paramstra.patch',

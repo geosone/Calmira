@@ -84,6 +84,8 @@ class Win16MessageTests(unittest.TestCase):
             for name, content in extra.items():
                 self.assertEqual((source / name).read_bytes(), content, name)
             self.assertIn('CALMIRA_WIN16_DOS_NO_STRINGS', (first / 'rtl/win16/dos.pp').read_text(encoding='latin1'))
+            self.assertIn('{$ifdef CALMIRA_WIN16_DELPHI1_DOSERROR}\n     { As Delphi 1',
+                          (first / 'rtl/win16/dos.pp').read_text(encoding='latin1').replace('\r\n', '\n'))
             self.assertIn('set_unit_var __fpc_HInstance, 0, di', (first / 'rtl/win16/prt0comn.asm').read_text())
             self.assertIn('%ifdef CALMIRA_MSDOS_MAXHEAP\n        ; keep only data+bss+stack+maxheap',
                           (first / 'rtl/msdos/prt0comn.asm').read_text())

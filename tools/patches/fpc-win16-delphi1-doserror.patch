@@ -1,0 +1,17 @@
+--- a/rtl/win16/dos.pp
++++ b/rtl/win16/dos.pp
+@@ -152,6 +152,14 @@
+ begin
+   if (dosregs.flags and fcarry) <> 0 then
+    begin
++{$ifdef CALMIRA_WIN16_DELPHI1_DOSERROR}
++     { As Delphi 1's SysUtils and Turbo Pascal's Dos unit: the error the
++       call returned in AX. A drive that is not ready fails FindFirst with
++       3 (path not found), which Calmira checks; the extended error would
++       be 31 (general failure). }
++     doserror:=integer(dosregs.ax);
++     exit;
++{$endif CALMIRA_WIN16_DELPHI1_DOSERROR}
+      { I got a extended error = 0
+        while CarryFlag was set from Exec function }
+      SimpleDosError:=dosregs.ax;

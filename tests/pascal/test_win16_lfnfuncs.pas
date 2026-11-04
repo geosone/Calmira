@@ -42,6 +42,12 @@ begin
   H := LFileOpen('C:\GDITEST.EXE', fmOpenRead);
   Check(H > 0, 'LFileOpen without long names');
   if H > 0 then FileClose(H);
+  { As Delphi 1, the DOS error itself: Calmira reports an empty floppy
+    drive as a missing folder when FindFirst fails with path not found. }
+  SetErrorMode(SEM_FAILCRITICALERRORS);
+  Found := FindFirst('A:\*.*', faAnyFile, Rec.ShortData);
+  LogLine('FindFirst on an empty drive ' + IntToStr(Found));
+  Check(Found = -3, 'FindFirst on a drive without a disk fails with path not found');
 end;
 begin
   LogLine('STEP LFNFUNCS.DLL');
