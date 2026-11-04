@@ -46,6 +46,28 @@ class OriginalFrameTests(unittest.TestCase):
                       '    yet the original shows its file and toolbar hints. }\n  ShowHint := True;', forms)
         self.assertIn('Info.HintPos := ControlToScreen(Control, Point(0, ControlHeight(Control) + 6));', forms)
 
+    def test_input_query_matches_the_original_change_description(self):
+        dialogs = source('dialogs.pas')
+        self.assertIn('QueryWidth = 270; QueryHeight = 95; QueryLeft = MsgMargin; PromptTop = MsgMargin;', dialogs)
+        self.assertIn('EditTop = 28; EditWidth = 250; EditHeight = 20; QueryButtonTop = 58; QueryGap = 10;',
+                      dialogs)
+        self.assertIn('QueryButtonWidth = 77; QueryButtonHeight = 27;', dialogs)
+        buttons = source('buttons.pas')
+        self.assertIn('if Active then TextFont.Style := TextFont.Style + [fsBold]\n'
+                      '  else TextFont.Style := TextFont.Style - [fsBold];', buttons)
+
+    def test_focus_rectangles_take_the_canvas_colours(self):
+        canvas = source('gdi_canvas.pas')
+        self.assertIn('SetTextColor(DC, ColorToRGB(FFont.Color));', canvas)
+        self.assertNotIn('SetTextColor(DC, 0); SetBkColor(DC, $FFFFFF);', canvas)
+
+    def test_grid_keeps_its_focused_cell_while_its_form_is_inactive(self):
+        grids = source('grids.pas')
+        self.assertIn('Current := GridIsActive(Self);', grids)
+        self.assertIn('if Current and (CurRow = Row) and (CurCol = Col) then Include(State, gdFocused);', grids)
+        self.assertIn('else Result := (FLastFocus <> 0) and (FLastFocus = Control.Handle);',
+                      source('native_form.pas'))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -115,7 +115,7 @@ class Win16ButtonTests(unittest.TestCase):
         self.assertIn('if FActive then Result := BS_DEFPUSHBUTTON', button)
         self.assertIn('if FStyle = bsNew then', bitbtn)
         self.assertIn('Edge(Canvas, R, clBtnShadow, clWindowFrame); Edge(Canvas, R, clBtnHighlight, clBtnShadow);', bitbtn)
-        self.assertIn('if Active then TextFont.Style := TextFont.Style + [fsBold];', bitbtn)
+        self.assertIn('if Active then TextFont.Style := TextFont.Style + [fsBold]\n  else TextFont.Style := TextFont.Style - [fsBold];', bitbtn)
         self.assertIn('SetBkColor(Item.hDC, ColorToRGB(clBtnFace));', bitbtn)
         self.assertIn('procedure TNativeForm.RestoreFocus;', form)
         self.assertIn('else FocusNext(True);', form)

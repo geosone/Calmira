@@ -87,6 +87,9 @@ type
     property Active: Boolean read GetActive;
     { Live native focus only. Use InitialControl for deferred/hidden focus. }
     property ActiveControl: TCustomControl read GetActiveControl write SetActiveControl;
+    { Whether Control is the form's active control: the focused one while
+      the form is active, the one that had the focus while it is not. }
+    function IsActiveControl(Control: TCustomControl): Boolean;
     property OnCloseQuery: TNativeCloseQueryEvent read FOnCloseQuery write FOnCloseQuery;
     property OnClose: TNativeCloseEvent read FOnClose write FOnClose;
     { DFM ActiveControl's initial-focus policy, not a complete VCL focus model. }
@@ -329,6 +332,12 @@ function TNativeForm.GetActive: Boolean;
 begin
   Result := (Handle <> 0) and (GetWindowTask(Handle) = GetCurrentTask) and
     (GetActiveWindow = Handle);
+end;
+function TNativeForm.IsActiveControl(Control: TCustomControl): Boolean;
+begin
+  if (Control = nil) or not Control.HandleAllocated then Result := False
+  else if Active then Result := GetFocus = Control.Handle
+  else Result := (FLastFocus <> 0) and (FLastFocus = Control.Handle);
 end;
 function TNativeForm.GetActiveControl: TCustomControl;
 begin

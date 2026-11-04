@@ -317,28 +317,38 @@ begin
   MessageDlg(Msg, mtCustom, [mbOK], 0);
 end;
 function InputQuery(const ACaption, APrompt: string; var Value: string): Boolean;
-const FormWidth = 270; EditWidth = 246;
-var Form: TForm; Prompt: TLabel; Edit: TEdit; Button: TButton; ButtonTop: Integer;
+const
+  { Measured against the original's "Change description" query: client
+    270 x 95 with the message dialogs' margin of 10, the prompt above a
+    250 x 20 edit, and two centred 77 x 27 buttons. The buttons keep that
+    height whatever Calmira sets MsgDlgBtnSize to. }
+  QueryWidth = 270; QueryHeight = 95; QueryLeft = MsgMargin; PromptTop = MsgMargin;
+  EditTop = 28; EditWidth = 250; EditHeight = 20; QueryButtonTop = 58; QueryGap = 10;
+  QueryButtonWidth = 77; QueryButtonHeight = 27;
+var Form: TForm; Prompt: TLabel; Edit: TEdit; Button: TButton;
 begin
   Result := False;
   Form := TForm.Create(Application);
   try
     PrepareForm(Form, ACaption);
+    { The message dialogs' font, which the original's query shows too. }
+    Form.Font.Name := 'MS Sans Serif'; Form.Font.Size := 8; Form.Font.Style := [fsBold];
     Prompt := TLabel.Create(Form); Prompt.Parent := Form;
-    Prompt.SetBounds(Margin, Margin, EditWidth, 13); Prompt.Caption := APrompt;
+    Prompt.SetBounds(QueryLeft, PromptTop, EditWidth, 13); Prompt.Caption := APrompt;
     Edit := TEdit.Create(Form); Edit.Parent := Form;
-    Edit.SetBounds(Margin, Margin + 18, EditWidth, 23);
+    Edit.SetBounds(QueryLeft, EditTop, EditWidth, EditHeight);
     Edit.MaxLength := 255; Edit.Text := Value;
     Edit.TabOrder := 0; Prompt.FocusControl := Edit;
-    ButtonTop := Margin + 18 + 23 + Margin;
     Button := AddButton(Form, DialogText('OK', 'OK'),
-      (FormWidth - 2 * MsgDlgBtnSize.X - ButtonGap) div 2, ButtonTop, mrOk);
+      (QueryWidth - 2 * QueryButtonWidth - QueryGap) div 2, QueryButtonTop, mrOk);
+    Button.SetBounds(Button.Left, Button.Top, QueryButtonWidth, QueryButtonHeight);
     Button.Default := True; Button.TabOrder := 1;
     Button := AddButton(Form, DialogText('Cancel', 'Cancel'),
-      (FormWidth + ButtonGap) div 2, ButtonTop, mrCancel);
+      (QueryWidth + QueryGap) div 2, QueryButtonTop, mrCancel);
+    Button.SetBounds(Button.Left, Button.Top, QueryButtonWidth, QueryButtonHeight);
     Button.Cancel := True; Button.TabOrder := 2;
     Form.InitialControl := Edit;
-    FinishForm(Form, FormWidth, ButtonTop + MsgDlgBtnSize.Y + Margin);
+    FinishForm(Form, QueryWidth, QueryHeight);
     Edit.SelectAll;
     if Form.ShowModal = mrOk then begin Value := Edit.Text; Result := True; end;
   finally Form.Free; end;

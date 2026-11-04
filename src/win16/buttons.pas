@@ -185,7 +185,10 @@ begin
   TextFont := Graphics.TFont.Create;
   try
   TextFont.Assign(Font);
-  if Active then TextFont.Style := TextFont.Style + [fsBold];
+  { Only the active one: on a bold dialog font the others are drawn
+    regular, as the original's input query shows. }
+  if Active then TextFont.Style := TextFont.Style + [fsBold]
+  else TextFont.Style := TextFont.Style - [fsBold];
   TW := 0; TH := 0;
   if Caption <> '' then
   begin

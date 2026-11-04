@@ -777,7 +777,12 @@ begin
   if (Area.Right <= Area.Left) or (Area.Bottom <= Area.Top) then Exit;
   State := BeginDraw;
   try
-    SetTextColor(DC, 0); SetBkColor(DC, $FFFFFF);
+    { As Delphi's csBrushValid: USER's dotted pattern takes the DC colours,
+      so on Calmira's highlighted captions (clHighlightText on clHighlight)
+      the dots alternate yellow and black, as in the original. }
+    SetTextColor(DC, ColorToRGB(FFont.Color));
+    if FBrush.Style = bsClear then SetBkColor(DC, not ColorToRGB(FBrush.Color) and $FFFFFF)
+    else SetBkColor(DC, ColorToRGB(FBrush.Color));
     WinProcs.DrawFocusRect(DC, @Area);
   finally EndDraw(State); end;
   Changed;

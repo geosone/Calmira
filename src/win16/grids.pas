@@ -281,7 +281,19 @@ type
   end;
 
 implementation
-uses WinProcs;
+uses WinProcs, native_form;
+{ As Delphi's IsActiveControl: the grid draws its focused cell while it is
+  its form's active control, so the focus rectangle stays while a dialog
+  over the form has the focus, as in the original. }
+function GridIsActive(Grid: TCustomGrid): Boolean;
+var Owner: TCustomControl;
+begin
+  Result := Grid.Focused;
+  if Result then Exit;
+  Owner := Grid.Parent;
+  while (Owner <> nil) and not (Owner is TNativeForm) do Owner := Owner.Parent;
+  if Owner <> nil then Result := TNativeForm(Owner).IsActiveControl(Grid);
+end;
 function TCustomGrid.Ctl3DFramed: Boolean;
 begin Result := True; end;
 const
@@ -826,7 +838,7 @@ procedure TCustomGrid.WMGetDlgCode(var Msg: TWMGetDlgCode);
 begin Msg.Result := DLGC_WANTARROWS; end;
 
 procedure TCustomGrid.Paint;
-var DrawInfo: TGridDrawInfo; Sel: TGridRect; LineColor: TColor; FocusArea: TRect;
+var DrawInfo: TGridDrawInfo; Sel: TGridRect; LineColor: TColor; FocusArea: TRect; Current: Boolean;
   procedure DrawLines(DoHorz, DoVert: Boolean; Col, Row: Longint; Left, Top, Right, Bottom: Longint;
     Color: TColor);
   var Pos: Longint; Index: Longint;
@@ -870,7 +882,7 @@ var DrawInfo: TGridDrawInfo; Sel: TGridRect; LineColor: TColor; FocusArea: TRect
         if RectVisible(Canvas.Handle, Where) then
         begin
           State := IncludeState;
-          if Focused and (CurRow = Row) and (CurCol = Col) then Include(State, gdFocused);
+          if Current and (CurRow = Row) and (CurCol = Col) then Include(State, gdFocused);
           if PointInGridRect(CurCol, CurRow, Sel) then Include(State, gdSelected);
           if FDefaultDrawing then
           begin
@@ -896,6 +908,7 @@ var DrawInfo: TGridDrawInfo; Sel: TGridRect; LineColor: TColor; FocusArea: TRect
     end;
   end;
 begin
+  Current := GridIsActive(Self);
   CalcDrawInfo(DrawInfo);
   if (DrawInfo.Horz.EffectiveLineWidth > 0) or (DrawInfo.Vert.EffectiveLineWidth > 0) then
   begin
@@ -919,7 +932,7 @@ begin
     DrawInfo.Vert.GridBoundary, FFixedColor, [gdFixed]);
   DrawCells(LeftCol, TopRow, DrawInfo.Horz.FixedBoundary, DrawInfo.Vert.FixedBoundary,
     DrawInfo.Horz.GridBoundary, DrawInfo.Vert.GridBoundary, Color, []);
-  if (goRowSelect in FOptions) and FDefaultDrawing and Focused then
+  if (goRowSelect in FOptions) and FDefaultDrawing and Current then
   begin
     GridRectToScreenRect(Sel, FocusArea, False);
     Canvas.DrawFocusRect(FocusArea);

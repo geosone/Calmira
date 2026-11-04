@@ -2437,3 +2437,22 @@ and the toolbar no button hints. Calmira never sets
 same. A hint sits six pixels below its control, as the original's toolbar
 hints do. Calmira's file hints place themselves 16 pixels under the
 cursor. Both now match the original pixel for pixel.
+
+## Input Query and Kept Focus Rectangles
+
+The "Change description" query (File → Describe) is now pixel-identical
+to the original. Its client area is 270 × 95, with the message dialogs'
+bold MS Sans Serif and margin of 10. A 250 × 20 edit sits under the
+prompt, and two centred 77 × 27 buttons sit 10 pixels apart. Only the
+active button's caption is bold: on a bold dialog font, the others are
+drawn regular, as in the original. This also holds for message dialogs.
+
+Two things show around the selected icon:
+
+- `DrawFocusRect` now uses the canvas colours, as Delphi's does. On a
+  highlighted caption, the dots alternate yellow and black, as in the
+  original.
+- A grid draws its focused cell while it is its form's active control
+  (Delphi's `IsActiveControl`), not only while it has the focus. The
+  focus rectangle therefore stays while a dialog over the window is
+  open.
