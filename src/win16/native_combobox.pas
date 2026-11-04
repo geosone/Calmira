@@ -63,6 +63,7 @@ type
     function GetDroppedDown: Boolean;
     procedure SetDroppedDown(Value: Boolean);
     function ListHeight: Integer;
+    procedure AdjustDropDown;
     procedure SaveState;
     procedure LoadItems;
     procedure Notify(Event: TNotifyEvent);
@@ -250,6 +251,23 @@ procedure TCustomComboBox.DefaultHandler(var Message);
 begin
   with TMessage(Message) do
     Result := CallWindowProc(ComboProcedure, Handle, Msg, WParam, LParam);
+end;
+{ As Delphi's AdjustDropDown: the list opens as tall as its items, at least
+  one and at most DropDownCount, so an empty history list opens as one
+  line instead of covering the dialog. }
+procedure TCustomComboBox.AdjustDropDown;
+var Count, ItemH: Integer; Closed: TRect;
+begin
+  if (Handle = 0) or (FStyle = csSimple) then Exit;
+  Count := Perform(CB_GETCOUNT, 0, 0);
+  if Count > FDropDownCount then Count := FDropDownCount;
+  if Count < 1 then Count := 1;
+  ItemH := Perform(CB_GETITEMHEIGHT, 0, 0);
+  if ItemH <= 0 then Exit;
+  WinProcs.GetWindowRect(Handle, Closed);
+  SetWindowPos(Handle, 0, 0, 0, Closed.Right - Closed.Left,
+    Closed.Bottom - Closed.Top + Count * ItemH + 2,
+    SWP_NOMOVE or SWP_NOZORDER or SWP_NOACTIVATE or SWP_NOREDRAW);
 end;
 function TCustomComboBox.ListHeight: Integer;
 begin
@@ -499,7 +517,11 @@ begin
         Click;
         Change;
       end;
-    CBN_DROPDOWN: DropDown;
+    CBN_DROPDOWN:
+      begin
+        DropDown;
+        AdjustDropDown;
+      end;
     CBN_DBLCLK: DblClick;
     CBN_SETFOCUS: DoEnter;
     CBN_KILLFOCUS: DoExit;

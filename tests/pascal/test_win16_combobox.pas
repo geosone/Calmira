@@ -12,7 +12,7 @@ type
   end;
 var Root: TCustomControl; Edit: TComboBox; List: TComboBox; Detached: TComboBox; Other: TEdit;
   Observer: TObserver; Failed, Rejected: Boolean; I, PoolUser: Integer; Child: HWND;
-  Marker: TObject;
+  Marker: TObject; Dropped: TRect; ItemH: Integer;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
 begin
@@ -67,6 +67,14 @@ begin
     Check((NativeItems(Edit) = '*.txt,*.ini') and (Edit.Text = '*.*') and (Edit.Items.Objects[1] = Marker) and
       (Observer.Changes = 0), 'creation loads items and text quietly');
     Check((Edit.Height < 40) and (Edit.Width = 150), 'closed height, list height kept by USER');
+    { As Delphi's AdjustDropDown: two items open a two-line list, not
+      DropDownCount empty lines. }
+    Edit.DroppedDown := True;
+    SendMessage(Edit.Handle, WM_USER + 18 { CB_GETDROPPEDCONTROLRECT }, 0, LongInt(@Dropped));
+    ItemH := Edit.Perform(CB_GETITEMHEIGHT, 0, 0);
+    Check(Dropped.Bottom - Dropped.Top <= Edit.Height + 2 * ItemH + 4,
+      'the list opens as tall as its items');
+    Edit.DroppedDown := False; Observer.Drops := 0;
     Edit.ItemIndex := 1;
     Check((Edit.Text = '*.ini') and (Edit.Perform(CB_GETCURSEL, 0, 0) = 1) and (Observer.Changes = 0),
       'programmatic ItemIndex is quiet');

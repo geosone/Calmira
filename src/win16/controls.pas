@@ -1676,7 +1676,11 @@ end;
 function GetCaptureControl: TControl;
 var Window: TWinControl;
 begin
-  Result := nil;
+  { During a drag our capture window holds the mouse for the source, as
+    the source's own capture did in Delphi 1. Calmira shows no file hints
+    then. }
+  Result := DragSource;
+  if Result <> nil then Exit;
   Window := FindControl(GetCapture);
   if Window = nil then Exit;
   if Window.FCaptureControl <> nil then Result := Window.FCaptureControl else Result := Window;

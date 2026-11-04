@@ -22,6 +22,9 @@ procedure DoneCtl3D;
 function Ctl3DLoaded: Boolean;
 procedure Subclass3DWnd(Wnd: HWND);
 procedure Subclass3DDlg(Wnd: HWND; Flags: Word);
+{ Ctl3dSubclassDlgEx: the dialog window too, so CTL3D paints its grey
+  face and frame, as on a common dialog. }
+procedure Subclass3DDlgEx(Wnd: HWND; Flags: LongInt);
 procedure SetAutoSubClass(Enable: Boolean);
 
 implementation
@@ -31,10 +34,11 @@ type
   TCtl3DInstance = function(Instance: THandle): Bool;
   TCtl3DWindow = function(Wnd: HWND): Bool;
   TCtl3DDialog = function(Wnd: HWND; Flags: Word): Bool;
+  TCtl3DDialogEx = function(Wnd: HWND; Flags: LongInt): Bool;
 
 const
   { Export ordinals of CTL3DV2.DLL; CTL3D.DLL uses the same numbers. }
-  OrdRegister = 12; OrdUnregister = 13; OrdSubclassCtl = 3; OrdSubclassDlg = 2;
+  OrdRegister = 12; OrdUnregister = 13; OrdSubclassCtl = 3; OrdSubclassDlg = 2; OrdSubclassDlgEx = 21;
   OrdBtnWndProc = 7; OrdAutoSubclass = 16; OrdCtlColorEx = 18;
   OrdDlgFramePaint = 20; OrdUnAutoSubclass = 24;
 
@@ -106,6 +110,15 @@ begin
   InitCtl3D;
   if not Registered then Exit;
   @Subclass := Entry(OrdSubclassDlg);
+  if Assigned(Subclass) then Subclass(Wnd, Flags);
+end;
+
+procedure Subclass3DDlgEx(Wnd: HWND; Flags: LongInt);
+var Subclass: TCtl3DDialogEx;
+begin
+  InitCtl3D;
+  if not Registered then Exit;
+  @Subclass := Entry(OrdSubclassDlgEx);
   if Assigned(Subclass) then Subclass(Wnd, Flags);
 end;
 

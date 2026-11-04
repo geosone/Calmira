@@ -9,6 +9,7 @@ type
     Command: Word;
     FileText, Caption: string;
     OwnerDisabled: Boolean;
+    Bounds: TRect;
     procedure WndProc(var Msg: TMessage);
     procedure Arm(ACommand: Word; const AFileText: string);
   end;
@@ -43,6 +44,7 @@ begin
   Dialog := GetActiveWindow;
   GetWindowText(Dialog, Buf, SizeOf(Buf)); Caption := StrPas(Buf);
   OwnerDisabled := not IsWindowEnabled(Main.Handle);
+  GetWindowRect(Dialog, Bounds);
   if FileText <> '' then SetDlgItemText(Dialog, edt1, StrPCopy(Buf, FileText));
   PostMessage(Dialog, WM_COMMAND, Command, 0);
   Msg.Result := 0;
@@ -64,6 +66,10 @@ begin
     Okay := Open.Execute;
     Check(Okay and (AnsiUpperCase(Open.FileName) = 'C:\GDITEST.LOG'), 'Execute returns the chosen file');
     Check((Driver.Caption = 'Pick a log') and Driver.OwnerDisabled, 'the dialog shows Title and is modal to the active form');
+    with Driver.Bounds do
+      Check((Left = (GetSystemMetrics(SM_CXSCREEN) - (Right - Left)) div 2) and
+        (Top = (GetSystemMetrics(SM_CYSCREEN) - (Bottom - Top)) div 3),
+        'the dialog opens centred a third down, as Delphi 1''s hook places it');
     Check(IsWindowEnabled(Main.Handle), 'the owner is enabled again');
     Check((Open.Files.Count = 1) and (Open.Files[0] = Open.FileName) and (Open.FilterIndex = 2),
       'Files holds the single file; FilterIndex is kept');

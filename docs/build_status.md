@@ -2489,3 +2489,26 @@ the button go up and stayed in its cell-selecting mode. As in Delphi,
 starting a drag now sends `WM_CANCELMODE` to the window that held the
 mouse. The grid answers by ending the selection it began. The grids
 runtime test checks this.
+
+## Drag Hints, Drop-down Lists and Common Dialogs
+
+Three visible differences from the original, found in the icon window
+and the Run dialog:
+
+- **File hints during a drag.** Calmira hides file hints while
+  `GetCaptureControl` is set. During a drag our capture window holds the
+  mouse, so that function returned nil and hints popped up under the drag
+  cursor. It now returns the drag source.
+- **Combo box drop-down height.** An empty combo box, such as the Run
+  dialog's history, opened a list eight empty lines tall over the dialog's
+  buttons. As Delphi's `AdjustDropDown`, the list now opens as tall as its
+  items: at least one line and at most `DropDownCount`.
+- **Common dialogs.** The open, save, colour and font dialogs now get
+  Delphi 1's hook. On `WM_INITDIALOG` it centres the dialog across the
+  screen, a third of the way down, and calls `Ctl3dSubclassDlgEx`
+  (ordinal 21), so CTL3D paints the dialog's grey face and frame. The
+  Run dialog's "Select program" and the desktop font dialog now look as
+  in the original.
+
+The combo box, common dialog and original-frame tests cover these
+changes.

@@ -137,7 +137,32 @@ type
     property Options: TFontDialogOptions read FOptions write FOptions default [fdEffects];
   end;
 implementation
-uses WinProcs, CommDlg, native_application, native_label, native_button, native_edit, form_text;
+uses WinProcs, CommDlg, native_application, native_label, native_button, native_edit, form_text,
+  native_ctl3d;
+var
+  { The running common dialog's Ctl3D, for the hook. }
+  HookCtl3D: Boolean;
+{ As Delphi 1's CenterWindow: centred across the screen, a third down. }
+procedure CenterWindow(Wnd: HWND);
+var Area: TRect;
+begin
+  GetWindowRect(Wnd, Area);
+  SetWindowPos(Wnd, 0,
+    (GetSystemMetrics(SM_CXSCREEN) - Area.Right + Area.Left) div 2,
+    (GetSystemMetrics(SM_CYSCREEN) - Area.Bottom + Area.Top) div 3,
+    0, 0, SWP_NOACTIVATE or SWP_NOSIZE or SWP_NOZORDER);
+end;
+{ Delphi 1's DialogHook: the common dialog gets CTL3D and opens centred. }
+function DialogHook(Wnd: HWND; Msg: Word; WParam: Word; LParam: LongInt): Word; export;
+begin
+  Result := 0;
+  if Msg = WM_INITDIALOG then
+  begin
+    if HookCtl3D then Subclass3DDlgEx(Wnd, $FFFF);
+    CenterWindow(Wnd);
+    Result := 1;
+  end;
+end;
 const
   DialogStyle = WS_POPUP or WS_CAPTION or WS_DLGFRAME or WS_SYSMENU;
   { The gap between message buttons, measured on the original's
@@ -411,6 +436,9 @@ begin
     if Option in FOptions then Info.Flags := Info.Flags or OpenFlags[Option];
   { The help button would need a hook. }
   Info.Flags := Info.Flags and not OFN_SHOWHELP;
+  Info.Flags := Info.Flags or OFN_ENABLEHOOK;
+  HookCtl3D := FCtl3D;
+  Info.lpfnHook := MakeProcInstance(@DialogHook, HInstance);
   if FFilter <> '' then
   begin
     { 'Text|*.TXT|All|*.*' becomes NUL-separated pairs ending in two NULs. }
@@ -432,7 +460,9 @@ begin
     StrPLCopy(Buffer, FFileName, Size - 1);
     Info.lpstrFile := Buffer;
     Info.nMaxFile := Size;
-    if Save then Result := GetSaveFileName(Info) else Result := GetOpenFileName(Info);
+    try
+      if Save then Result := GetSaveFileName(Info) else Result := GetOpenFileName(Info);
+    finally FreeProcInstance(Info.lpfnHook); end;
     if not Result then begin CheckDialogError; Exit; end;
     FFiles.Clear;
     if ofAllowMultiSelect in FOptions then
@@ -497,8 +527,11 @@ begin
   Info.Flags := CC_RGBINIT;
   for Option := Low(TColorDialogOption) to High(TColorDialogOption) do
     if Option in FOptions then Info.Flags := Info.Flags or ColorFlags[Option];
-  Info.Flags := Info.Flags and not CC_SHOWHELP;
-  Result := ChooseColor(Info);
+  Info.Flags := Info.Flags and not CC_SHOWHELP or CC_ENABLEHOOK;
+  HookCtl3D := FCtl3D;
+  Info.lpfnHook := MakeProcInstance(@DialogHook, HInstance);
+  try Result := ChooseColor(Info);
+  finally FreeProcInstance(Info.lpfnHook); end;
   if not Result then begin CheckDialogError; Exit; end;
   FColor := TColor(Info.rgbResult);
   FCustomColors.Clear;
@@ -546,7 +579,11 @@ begin
   if (FMinFontSize <> 0) or (FMaxFontSize <> 0) then Info.Flags := Info.Flags or CF_LIMITSIZE;
   Info.nSizeMin := FMinFontSize;
   Info.nSizeMax := FMaxFontSize;
-  Result := ChooseFont(Info);
+  Info.Flags := Info.Flags or CF_ENABLEHOOK;
+  HookCtl3D := FCtl3D;
+  Info.lpfnHook := MakeProcInstance(@DialogHook, HInstance);
+  try Result := ChooseFont(Info);
+  finally FreeProcInstance(Info.lpfnHook); end;
   if not Result then begin CheckDialogError; Exit; end;
   Style := [];
   if LogFont.lfWeight >= FW_BOLD then Include(Style, fsBold);

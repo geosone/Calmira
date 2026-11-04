@@ -81,6 +81,22 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('procedure WMCancelMode(var Msg: TMessage); message WM_CANCELMODE;', grids)
         self.assertIn('KillTimer(Handle, SelectTimer);\n    FGridState := gsNormal;', grids)
 
+    def test_common_dialogs_get_delphis_centring_ctl3d_hook(self):
+        dialogs = source('dialogs.pas')
+        self.assertIn('if HookCtl3D then Subclass3DDlgEx(Wnd, $FFFF);\n    CenterWindow(Wnd);', dialogs)
+        self.assertIn('(GetSystemMetrics(SM_CYSCREEN) - Area.Bottom + Area.Top) div 3', dialogs)
+        for flag in ('OFN_ENABLEHOOK', 'CC_ENABLEHOOK', 'CF_ENABLEHOOK'):
+            self.assertIn(flag, dialogs)
+        self.assertIn('OrdSubclassDlgEx = 21;', source('native_ctl3d.pas'))
+
+    def test_drag_source_counts_as_the_capture_control(self):
+        self.assertIn('Result := DragSource;\n  if Result <> nil then Exit;', source('controls.pas'))
+
+    def test_combo_lists_open_as_tall_as_their_items(self):
+        combo = source('native_combobox.pas')
+        self.assertIn('DropDown;\n        AdjustDropDown;', combo)
+        self.assertIn('if Count < 1 then Count := 1;', combo)
+
 
 if __name__ == '__main__':
     unittest.main()
