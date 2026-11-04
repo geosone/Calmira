@@ -71,6 +71,11 @@ begin
     Text := TLabel.Create(nil); Text.Parent := Panel; Text.Caption := 'Inherited';
     Button := TButton.Create(nil); Button.SetBounds(0, 40, 75, 23); Button.Parent := Panel;
     Edit := TEdit.Create(nil); Edit.SetBounds(0, 70, 100, 23); Edit.Parent := Panel;
+    Check((GetWindow(Panel.Handle, GW_CHILD) = Edit.Handle) and
+      (GetWindow(Edit.Handle, GW_HWNDNEXT) = Button.Handle),
+      'a later sibling lies above an earlier one, as in Delphi');
+    Button.Parent := nil; Button.Parent := Panel;
+    Check(GetWindow(Panel.Handle, GW_CHILD) = Button.Handle, 'a re-added sibling goes on top');
     Check(Panel.ParentFont and (Panel.Font.Height = -16) and (Panel.Canvas.Font.Height = -16),
       'a new child takes the parent font and keeps ParentFont');
     Check((Text.Font.Height = -16) and (Button.Font.Height = -16), 'grandchildren inherit too');

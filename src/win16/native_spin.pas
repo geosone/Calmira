@@ -147,7 +147,9 @@ var Half: Integer;
     Canvas.FillRect(Graphics.Rect(R.Left, R.Bottom - 1, R.Right, R.Bottom));
     Canvas.FillRect(Graphics.Rect(R.Right - 1, R.Top, R.Right, R.Bottom));
     if Enabled then Arrow := clBtnText else Arrow := clBtnShadow;
-    Size := (Bottom - Top) div 4;
+    { Delphi's spin glyphs are 7 x 4 triangles; smaller halves get less. }
+    Size := 4;
+    if Size > Bottom - Top - 4 then Size := Bottom - Top - 4;
     if Size > (ClientWidth - 4) div 2 then Size := (ClientWidth - 4) div 2;
     if Size < 1 then Size := 1;
     CX := ClientWidth div 2 + Ord(Down); CY := (Top + Bottom) div 2 + Ord(Down);

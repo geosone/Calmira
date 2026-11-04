@@ -50,6 +50,17 @@ begin
   Result := TProbe.Create(nil); Result.SetBounds(X, 10, 30, 30);
   Result.GroupIndex := Group; Result.Parent := Root;
 end;
+function CaptionPixels(Color: TColor): Integer;
+var DC: HDC; X, Y: Integer;
+begin
+  Result := 0;
+  InvalidateRect(Root.Handle, nil, True); UpdateWindow(Root.Handle);
+  DC := GetDC(Root.Handle);
+  for X := C.Left + 3 to C.Left + C.Width - 4 do
+    for Y := C.Top + 3 to C.Top + C.Height - 4 do
+      if GetPixel(DC, X, Y) = ColorToRGB(Color) then Inc(Result);
+  ReleaseDC(Root.Handle, DC);
+end;
 procedure Pump(Milliseconds: LongInt);
 begin
   Start := WinProcs.GetTickCount;
@@ -94,6 +105,10 @@ begin
     Check(not C.Down, 'ungrouped button cannot stay down');
     C.Enabled := False;
     Check(C.State = bsDisabled, 'disabled state');
+    C.Caption := 'Go';
+    Check((CaptionPixels(clBtnHighlight) > 0) and (CaptionPixels(clBtnShadow) > 0),
+      'a disabled caption is embossed, as Delphi 1 draws it');
+    C.Caption := '';
     ClickAt(100, 20);
     Check((C.Clicks = 1) and (Observer.ParentDowns = 2), 'disabled button passes clicks to the parent');
     C.Enabled := True;

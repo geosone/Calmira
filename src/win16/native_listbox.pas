@@ -76,6 +76,7 @@ type
     procedure LoadItems;
     procedure RequireLiveStyle;
     procedure WMSize(var M: TMessage); message WM_SIZE;
+    procedure CNCtlColor(var M: TMessage); message CN_CTLCOLOR;
   protected
     function Ctl3DFramed: Boolean; override;
     procedure FontChanged; override;
@@ -502,6 +503,13 @@ procedure TCustomListBox.SetColumnWidth;
 begin
   if (FColumns <> 0) and (Handle <> 0) then
     Perform(LB_SETCOLUMNWIDTH, (Width + FColumns - 3) div FColumns, 0);
+end;
+{ As Delphi's TWinControl.CNCtlColor: USER erases the space below the last
+  item with this brush, so a check list in the face colour shows no white
+  strip (Start Menu Properties' preferences). }
+procedure TCustomListBox.CNCtlColor(var M: TMessage);
+begin
+  M.Result := CtlColorBrush(HDC(M.WParam));
 end;
 procedure TCustomListBox.WMSize(var M: TMessage);
 begin

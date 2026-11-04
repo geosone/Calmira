@@ -163,6 +163,7 @@ type
       or when the control is freed, while the window and its contents still
       exist. }
     procedure CreateWnd; virtual;
+    procedure PlaceInZOrder;
     { Runs after CreateWnd: state that Delphi would have put on a window made
       earlier (by HandleNeeded) goes onto the new window here. }
     procedure WndCreated; virtual;
@@ -891,6 +892,24 @@ procedure TCustomControl.WndCreated;
 begin end;
 procedure TCustomControl.DestroyWnd;
 begin end;
+{ As Delphi's TWinControl.CreateHandle with PrecedingWindow: USER puts a new
+  child at the bottom, but a later sibling is drawn over an earlier one, so
+  the window goes just below the next sibling that has a handle, or on top.
+  Start Menu Properties' Full Rebuild check box lies over its tab panel. }
+procedure TCustomControl.PlaceInZOrder;
+var I: Integer; After: HWND; Sibling: TCustomControl;
+begin
+  if FParent = nil then Exit;
+  After := HWND_TOP;
+  I := FParent.FWindows.IndexOf(Self);
+  if I >= 0 then
+    for I := I + 1 to FParent.FWindows.Count - 1 do
+    begin
+      Sibling := TCustomControl(FParent.FWindows[I]);
+      if Sibling.Handle <> 0 then begin After := Sibling.Handle; Break; end;
+    end;
+  SetWindowPos(Handle, After, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+end;
 procedure TCustomControl.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
   X, Y, Width, Height: SmallInt);
 var I: Integer;
@@ -905,6 +924,7 @@ begin
   try
     inherited CreateHandle(Parent, Caption, Style, X, Y, Width, Height);
     try
+      PlaceInZOrder;
       ReadBounds;
       if FWindows <> nil then
         for I := 0 to FWindows.Count - 1 do

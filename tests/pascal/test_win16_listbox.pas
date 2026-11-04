@@ -39,6 +39,19 @@ begin
   if F = HFILE_ERROR then begin Failed := True; Exit; end;
   _llseek(F, 0, 2); Line := Text + #13#10; _lwrite(F, @Line[1], Length(Line)); _lclose(F);
 end;
+procedure Check(Okay: Boolean; const Text: string); forward;
+procedure CheckBackground;
+var DC: HDC; Brush: LongInt;
+begin
+  { USER erases below the last item with the brush WM_CTLCOLOR returns. }
+  List.Color := clBtnFace;
+  DC := GetDC(List.Handle);
+  Brush := SendMessage(Root.Handle, WM_CTLCOLOR, DC, MakeLong(List.Handle, CTLCOLOR_LISTBOX));
+  Check((Brush <> 0) and (GetBkColor(DC) = ColorToRGB(clBtnFace)),
+    'a list box erases in its own Color');
+  ReleaseDC(List.Handle, DC);
+  List.Color := clWindow;
+end;
 procedure Check(Okay: Boolean; const Text: string);
 begin
   if Okay then LogLine('PASS ' + Text)
@@ -63,6 +76,7 @@ begin
     List.OnClick := Observer.Click; List.OnDblClick := Observer.DblClick;
     Check((List.Perform(LB_GETCOUNT, 0, 0) = 3) and (List.ItemIndex = 1) and
       (List.Items.Objects[2] = Observer), 'items and selection reach the native list');
+    CheckBackground;
     List.Items.Insert(0, 'first'); List.Items.Delete(3);
     Check((List.Items.Count = 3) and (List.Items[0] = 'first') and (List.Perform(LB_GETCOUNT, 0, 0) = 3),
       'insert and delete stay mirrored');

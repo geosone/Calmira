@@ -1,6 +1,6 @@
 program TestWin16Spin;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Messages, Classes, SysUtils, Controls, native_edit, Spin;
+uses WinTypes, WinProcs, Messages, Classes, SysUtils, Graphics, Controls, native_edit, Spin;
 type
   TObserver = class
     Changes: Integer;
@@ -35,6 +35,17 @@ begin
   P := Spin.Button.ClientToScreen(Point(5, Y)); SetCursorPos(P.X, P.Y);
   Spin.Button.Perform(WM_LBUTTONDOWN, MK_LBUTTON, MakeLong(5, Y));
 end;
+function ArrowPixels: Integer;
+var DC: HDC; X, Y: Integer;
+begin
+  Result := 0;
+  InvalidateRect(Spin.Button.Handle, nil, True); UpdateWindow(Spin.Button.Handle);
+  DC := GetDC(Spin.Button.Handle);
+  for X := 0 to Spin.Button.ClientWidth - 1 do
+    for Y := 0 to Spin.Button.ClientHeight div 2 - 1 do
+      if GetPixel(DC, X, Y) = ColorToRGB(clBtnText) then Inc(Result);
+  ReleaseDC(Spin.Button.Handle, DC);
+end;
 procedure Release(Y: Integer);
 begin Spin.Button.Perform(WM_LBUTTONUP, 0, MakeLong(5, Y)); end;
 begin
@@ -53,6 +64,7 @@ begin
       (Spin.Button.Left = Spin.ClientWidth - Spin.Button.Width), 'button is a child at the right edge');
     Spin.Perform(EM_GETRECT, 0, LongInt(@R));
     Check(R.Right <= Spin.Button.Left, 'text area stops before the button');
+    Check(ArrowPixels >= 16, 'the up arrow is a 7 x 4 triangle, as Delphi''s glyph');
     Check(Spin.Perform(WM_GETDLGCODE, 0, 0) and DLGC_WANTALLKEYS = 0, 'Tab and Enter stay with the dialog');
     Spin.Value := 15;
     Check((Spin.Value = 10) and (Spin.Text = '10'), 'value clamps to MaxValue');

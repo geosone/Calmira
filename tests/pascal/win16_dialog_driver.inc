@@ -50,12 +50,14 @@ begin
   if Acted or (Dialog = 0) or (Dialog = MainForm.Handle) then Exit;
   Acted := True;
   Caption := WindowText(Dialog); Children := '';
+  { Creation order: as in Delphi, a later child lies above an earlier one. }
   Child := GetWindow(Dialog, GW_CHILD);
+  if Child <> 0 then Child := GetWindow(Child, GW_HWNDLAST);
   while Child <> 0 do
   begin
     if Children <> '' then Children := Children + '|';
     Children := Children + WindowText(Child);
-    Child := GetWindow(Child, GW_HWNDNEXT);
+    Child := GetWindow(Child, GW_HWNDPREV);
   end;
   GetClientRect(Dialog, Area); Width := Area.Right; Height := Area.Bottom;
   Focus := GetFocus; FocusText := WindowText(Focus);

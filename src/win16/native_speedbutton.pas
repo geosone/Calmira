@@ -317,7 +317,16 @@ begin
   begin
     TextArea := Graphics.Rect(TX, TY, TX + TW, TY + TH);
     StrPCopy(Buffer, FCaption); SelectObject(DC, Font.Handle); SetBkMode(DC, TRANSPARENT);
-    if FState = bsDisabled then SetTextColor(DC, ColorToRGB(clGrayText))
+    if FState = bsDisabled then
+    begin
+      { As Delphi 1's DrawButtonText: embossed, white under dark grey.
+        clGrayText is the face colour in Windows 3.1's default scheme. }
+      OffsetRect(TextArea, 1, 1);
+      SetTextColor(DC, ColorToRGB(clBtnHighlight));
+      DrawText(DC, Buffer, Length(FCaption), TextArea, DT_LEFT or DT_SINGLELINE);
+      OffsetRect(TextArea, -1, -1);
+      SetTextColor(DC, ColorToRGB(clBtnShadow));
+    end
     else SetTextColor(DC, ColorToRGB(Font.Color));
     DrawText(DC, Buffer, Length(FCaption), TextArea, DT_LEFT or DT_SINGLELINE);
   end;
