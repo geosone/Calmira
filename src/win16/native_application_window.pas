@@ -84,10 +84,10 @@ procedure TNativeApplicationWindow.EnsureHandle;
 begin
   if Handle <> 0 then Exit;
   CheckMutable;
-  { As Delphi 1's TApplication.CreateHandle: a zero-sized captioned popup in
-    the middle of the screen. It owns the forms and stands for the program in
-    Windows' task list. }
-  CreateHandle(0, Title, WS_POPUP or WS_CAPTION or WS_CLIPSIBLINGS or WS_SYSMENU or WS_MINIMIZEBOX,
+  { As Delphi 1's TApplication.CreateHandle: a zero-sized popup in the middle
+    of the screen, measured in the original as style $940A0000 (no caption).
+    It owns the forms and stands for the program in Windows' task list. }
+  CreateHandle(0, Title, WS_POPUP or WS_CLIPSIBLINGS or WS_SYSMENU or WS_MINIMIZEBOX,
     GetSystemMetrics(SM_CXSCREEN) div 2, GetSystemMetrics(SM_CYSCREEN) div 2, 0, 0);
   ShowWindow(Handle, SW_SHOWNA);
 end;

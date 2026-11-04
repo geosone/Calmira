@@ -144,6 +144,7 @@ type
     procedure RequireHandle;
     function BeginDraw: SmallInt;
     procedure EndDraw(State: SmallInt);
+    procedure DrawColors;
     procedure SelectFont;
     function GetPixel(X, Y: SmallInt): TColor;
     procedure SetPixel(X, Y: SmallInt; Value: TColor);
@@ -829,12 +830,23 @@ begin
   finally EndDraw(State); end;
   if Drawn then Changed;
 end;
+{ As Delphi's TBitmap.Draw, which requires csAllValid: a monochrome bitmap
+  takes the font colour for its 0 bits and the brush colour for its 1 bits
+  (Calmira's caption button glyphs). Inside BeginDraw, so EndDraw undoes it. }
+procedure TGDICanvas.DrawColors;
+begin
+  SetTextColor(DC, ColorToRGB(FFont.Color));
+  SetBkColor(DC, ColorToRGB(FBrush.Color));
+end;
 procedure TGDICanvas.Draw(X, Y: SmallInt; Graphic: TGDIGraphic);
 var State: SmallInt;
 begin
   if Graphic = nil then raise EGDIError.Create('Missing graphic');
   State := BeginDraw;
-  try Graphic.DrawTo(DC, X, Y); finally EndDraw(State); end;
+  try
+    DrawColors;
+    Graphic.DrawTo(DC, X, Y);
+  finally EndDraw(State); end;
   Changed;
 end;
 procedure TGDICanvas.StretchDraw(const Area: TRect; Graphic: TGDIGraphic);
@@ -847,7 +859,10 @@ begin
     raise EGDIError.Create('Invalid stretch destination size');
   if (W = 0) or (H = 0) or Graphic.Empty then Exit;
   State := BeginDraw;
-  try Graphic.StretchTo(DC, Area); finally EndDraw(State); end;
+  try
+    DrawColors;
+    Graphic.StretchTo(DC, Area);
+  finally EndDraw(State); end;
   Changed;
 end;
 procedure TGDICanvas.CopyTransparent(const Destination: TRect; Source: TGDICanvas;

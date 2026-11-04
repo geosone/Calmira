@@ -22,7 +22,12 @@ class ApplicationWindowTests(unittest.TestCase):
         self.assertIn("ApplicationClassName = 'TApplication'", source)
         self.assertIn("FTitle := 'Calmira'", source)
         # Delphi 1: visible, zero-sized, in the middle of the screen, owning the forms.
-        self.assertIn('CreateHandle(0, Title, WS_POPUP or WS_CAPTION or WS_CLIPSIBLINGS or WS_SYSMENU or WS_MINIMIZEBOX,', source)
+        # Measured in the original: $940A0000, a popup without a caption.
+        self.assertIn('CreateHandle(0, Title, WS_POPUP or WS_CLIPSIBLINGS or WS_SYSMENU or WS_MINIMIZEBOX,', source)
+        # Forms stay overlapped (the original's $16CF0000) and still owned:
+        # GetParent then answers 0, which Calmira's menu line relies on.
+        modal = (ROOT / 'src/win16/native_modal.pas').read_text()
+        self.assertNotIn('Style or WS_POPUP', modal)
         self.assertIn('GetSystemMetrics(SM_CXSCREEN) div 2, GetSystemMetrics(SM_CYSCREEN) div 2, 0, 0);', source)
         self.assertIn('ShowWindow(Handle, SW_SHOWNA);', source)
         self.assertIn('if Message.Msg = WM_SETFOCUS then PostMessage(Handle, WM_ACTIVATEFORM, 0, 0)', source)
@@ -34,7 +39,7 @@ class ApplicationWindowTests(unittest.TestCase):
         self.assertIn('EnableTaskWindows(TaskWindows);', modal)
         probe = (ROOT / 'tests/pascal/test_win16_forms.pas').read_text()
         for text in ('the application window is visible and zero-sized in the middle of the screen',
-                     'a form is owned by the application window', 'the window class is the form class name',
+                     'a form is an overlapped window owned by the application window, as in the original', 'the window class is the form class name',
                      'the focused application window hands the focus on to its top form',
                      "a modal form disables the task''s other windows while it runs"):
             self.assertIn(text, probe)

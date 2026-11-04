@@ -19,8 +19,6 @@ type
     procedure DoHide; override;
     procedure WndProc(var M: TMessage); override;
   public
-    procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
-      X, Y, Width, Height: SmallInt); override;
     function ShowModal(OwnerWindow: HWND = 0): TModalResult;
     procedure ApplyModalResult(Value: TModalResult); override;
     property ModalResult: TModalResult read FModalResult write SetModalResult;
@@ -31,12 +29,6 @@ type
 implementation
 uses SysUtils, WinProcs, native_window;
 var ActiveModal: TNativeModalForm;
-procedure TNativeModalForm.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
-  X, Y, Width, Height: SmallInt);
-begin
-  { Use popup semantics so Win3.x USER retains the requested native owner. }
-  inherited CreateHandle(Parent, Caption, Style or WS_POPUP, X, Y, Width, Height);
-end;
 procedure TNativeModalForm.SetModalResult(Value: TModalResult);
 begin
   if Value < 0 then raise ENativeWindowError.Create('Invalid modal operation');
@@ -128,7 +120,9 @@ begin
   if ActiveModal <> nil then
     if ActiveModal.FPreparing then raise ENativeWindowError.Create('Invalid modal operation');
   { A form owned by the application window keeps its owner, as in Delphi. }
-  KeepOwner := (OwnerWindow = 0) and (Handle <> 0) and (GetParent(Handle) <> 0);
+  { The owner, not GetParent: USER answers GetParent with the owner only for
+    popups, and forms are overlapped as in the original. }
+  KeepOwner := (OwnerWindow = 0) and (Handle <> 0) and (GetWindow(Handle, GW_OWNER) <> 0);
   if (OwnerWindow = 0) and not KeepOwner then
   begin
     Candidate := GetActiveWindow;
@@ -153,11 +147,11 @@ begin
     if Handle = 0 then
       CreateHandle(0, Caption, WS_OVERLAPPEDWINDOW or WS_CLIPCHILDREN or WS_CLIPSIBLINGS,
         Left, Top, Width, Height);
-    OldOwner := GetParent(Handle);
+    OldOwner := GetWindow(Handle, GW_OWNER);
     if not KeepOwner then
     begin
       SetWindowWord(Handle, GWW_HWNDPARENT, OwnerWindow);
-      if GetParent(Handle) <> OwnerWindow then raise ENativeWindowError.Create('Modal owner link failed');
+      if GetWindow(Handle, GW_OWNER) <> OwnerWindow then raise ENativeWindowError.Create('Modal owner link failed');
     end;
     TaskWindows := DisableTaskWindows(Handle);
     DisableWindows(TaskWindows);

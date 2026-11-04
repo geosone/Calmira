@@ -301,7 +301,9 @@ begin
     (R.Top = GetSystemMetrics(SM_CYSCREEN) div 2) and (R.Right = R.Left) and (R.Bottom = R.Top),
     'the application window is visible and zero-sized in the middle of the screen');
   Loose := TChildForm.Create(nil);
-  Check(GetParent(Loose.Handle) = App, 'a form is owned by the application window');
+  Check((GetWindow(Loose.Handle, GW_OWNER) = App) and (GetParent(Loose.Handle) = 0) and
+    (GetWindowLong(Loose.Handle, GWL_STYLE) and WS_POPUP = 0),
+    'a form is an overlapped window owned by the application window, as in the original');
   GetClassName(Loose.Handle, Name, SizeOf(Name));
   Check(StrComp(Name, 'TChildForm') = 0, 'the window class is the form class name');
   Other := TChildForm.Create(nil);

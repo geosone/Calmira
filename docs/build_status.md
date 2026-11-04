@@ -2367,12 +2367,15 @@ wallpaper page and the "Unable to run Notepad" error now match the original
 pixel for pixel, apart from the focus rectangle and one pixel in the
 "Cancel" caption.
 
-With our own Open386MAX `CTL3DV2.DLL`, which the package installs, the
-Desktop Properties frame differs from Microsoft's CTL3D in two pixels: the
-top inner shadow line and the left one each end one pixel too late, over
-the white edge. The fix belongs in `paintframe` in the Open386MAX
-`CTL3D.C`: end the top line at `w - d - 2` and start the white line under
-the caption at `d + 1`. The input query test now has Delphi's 16 KiB
+Our own Open386MAX `CTL3DV2.DLL`, which the package installs, now preserves
+both inner frame highlight corners. Upstream `paintframe` ends the top
+shadow at `w - d - 2` and starts the white line under the caption at
+`d + 1` (Open386MAX commit `60a751c48ae4c33ade202d4ad35893c6629bd040`).
+The vendored snapshot and its lock entry include this fix. The Windows 3.11
+runtime probe checks both corner pixels and their adjacent shadow pixels,
+for explicit and automatic subclassing. The old DLL fails the two corner
+checks; the corrected DLL passes, and the automatic-dialog screenshots
+differ in exactly those two pixels. The input query test now has Delphi's 16 KiB
 stack, as the dialogs test and `CALMIRA.EXE` do. The child frames make its
 scripted modal loop deeper than the default 4 KiB allows.
 
@@ -2399,3 +2402,28 @@ the known one-pixel offset of the "Cancel" caption:
   item's mark. Marks set before the window exists (`SetData` on a hidden
   page) are put back after `CreateWnd`. In Delphi, `Selected` creates the
   window earlier, before `TCheckList.CreateWnd` rereads `Items.Objects`.
+
+## Icon Window and Recycle Bin Details
+
+The Recycle Bin and the drive window now match the original pixel for
+pixel. The only exception is the total size in the status bar, because the
+executables differ. Measured differences fixed:
+
+- **Caption buttons.** Calmira draws its Win95 caption buttons from
+  monochrome bitmaps. `TCanvas.Draw` now sets the font colour as text
+  colour and the brush colour as background, as Delphi's `TBitmap.Draw`
+  (`csAllValid`), so the faces are button grey instead of white.
+- **Recycle Bin header.** `THeader` has Delphi's `BorderStyle`
+  (`bsSingle`, `WS_BORDER`), and its captions sit where the original's do.
+- **Icon grids.** `TCustomGrid` gets the Ctl3D sunken frame from its
+  parent, as the original's `TMultiGrid` shows.
+- **Menu line.** The window inventory (`make window-inventory`, which now
+  also logs the owner and the style) showed the original's forms as
+  overlapped windows (`$16CF0000`) owned by a `TApplication` window
+  without a caption (`$940A0000`). Ours were popups, so `GetParent`
+  returned the owner, and `TExtForm.WMNCPaint` drew its menu-coloured line
+  off the window. Forms are no longer forced to `WS_POPUP`; modal code
+  reads the owner with `GW_OWNER`.
+- **Latched toolbar buttons.** The dither fills the whole inner face, the
+  shadow runs the full top and left, and the glyph stays in place, as in
+  the original's view buttons.

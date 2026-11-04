@@ -59,7 +59,7 @@ begin
       if Form.Components[I] is TBitBtn then Bitmap := TBitBtn(Form.Components[I]);
     Check((Form.BorderStyle = bsDialog) and (Form.Font.Name = 'MS Sans Serif') and
       (Form.Font.Style = [fsBold]) and (Bitmap <> nil) and
-      (Bitmap.Style = bsNew) and (GetParent(Form.Handle) = Application.Handle) and
+      (Bitmap.Style = bsNew) and (GetWindow(Form.Handle, GW_OWNER) = Application.Handle) and
       (GetWindowLong(Form.Handle, GWL_EXSTYLE) and WS_EX_DLGMODALFRAME <> 0),
       'Delphi 1 message dialogs: bold MS Sans Serif, modal frame, TBitBtns in MsgDlgButtonStyle, owned by the application');
   finally Form.Free; end;

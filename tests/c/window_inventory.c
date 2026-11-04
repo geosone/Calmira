@@ -26,9 +26,10 @@ static void record(HWND window)
     for (i = 0; direct[i]; i++)
         if ((unsigned char)direct[i] < 32) direct[i] = ' ';
     GetWindowRect(window, &rect);
-    fprintf(output, "%04x parent=%04x id=%u class=%s module=%s "
+    fprintf(output, "%04x parent=%04x owner=%04x style=%08lx id=%u class=%s module=%s "
         "rect=%d,%d,%d,%d text=%s direct=%s\n", (unsigned)window,
-        (unsigned)GetParent(window), (unsigned)GetWindowWord(window, GWW_ID),
+        (unsigned)GetParent(window), (unsigned)GetWindow(window, GW_OWNER),
+        (unsigned long)GetWindowLong(window, GWL_STYLE), (unsigned)GetWindowWord(window, GWW_ID),
         cls, module, rect.left, rect.top, rect.right, rect.bottom, text, direct);
 }
 

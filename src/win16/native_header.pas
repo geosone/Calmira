@@ -6,7 +6,7 @@ unit native_header;
 {$mode delphi}{$H-}
 {$IFNDEF WIN16}{$FATAL This header requires Win16}{$ENDIF}
 interface
-uses Classes, WinTypes, Messages, Graphics, Controls;
+uses Classes, WinTypes, Messages, Graphics, Controls, control_base;
 type
   TSectionEvent = procedure(Sender: TObject; ASection, AWidth: Integer) of object;
   THeader = class(TCustomControl)
@@ -15,7 +15,9 @@ type
     FAllowResize: Boolean;
     FResizing, FMinWidth: Integer;
     FDragging: Boolean;
+    FBorderStyle: TBorderStyle;
     FOnSizing, FOnSized: TSectionEvent;
+    procedure SetBorderStyle(Value: TBorderStyle);
     function GetSections: TStrings;
     procedure SetSections(Value: TStrings);
     function GetWidth(Index: Integer): Integer;
@@ -32,9 +34,13 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
+      X, Y, Width, Height: SmallInt); override;
     property SectionWidth[Index: Integer]: Integer read GetWidth write SetWidth;
   published
     property AllowResize: Boolean read FAllowResize write FAllowResize default True;
+    { As Delphi 1's THeader.CreateParams: bsSingle gives WS_BORDER. }
+    property BorderStyle: TBorderStyle read FBorderStyle write SetBorderStyle default bsSingle;
     property Font;
     property Sections: TStrings read GetSections write SetSections;
     property OnSizing: TSectionEvent read FOnSizing write FOnSizing;
@@ -58,6 +64,7 @@ begin
   FAllowResize := True;
   FResizing := -1;
   FMinWidth := 8;
+  FBorderStyle := bsSingle;
   Color := clBtnFace;
   SetBounds(0, 0, 250, 25);
 end;
@@ -65,6 +72,24 @@ destructor THeader.Destroy;
 begin
   inherited Destroy;
   FSections.Free;
+end;
+procedure THeader.CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
+  X, Y, Width, Height: SmallInt);
+begin
+  if FBorderStyle = bsSingle then Style := Style or WS_BORDER;
+  inherited CreateHandle(Parent, Caption, Style, X, Y, Width, Height);
+end;
+procedure THeader.SetBorderStyle(Value: TBorderStyle);
+var Style: LongInt;
+begin
+  if FBorderStyle = Value then Exit;
+  FBorderStyle := Value;
+  if Handle = 0 then Exit;
+  Style := GetWindowLong(Handle, GWL_STYLE);
+  if Value = bsSingle then Style := Style or WS_BORDER else Style := Style and not WS_BORDER;
+  SetWindowLong(Handle, GWL_STYLE, Style);
+  SetWindowPos(Handle, 0, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOZORDER or
+    SWP_NOACTIVATE or SWP_FRAMECHANGED);
 end;
 function THeader.GetSections: TStrings;
 begin Result := FSections; end;
@@ -130,7 +155,9 @@ begin
     Canvas.FillRect(Graphics.Rect(R.Right - 1, R.Top, R.Right, R.Bottom));
     if I < FSections.Count then
     begin
-      InflateRect(R, -4, 0);
+      { Measured against the original Recycle Bin: an inset of three puts
+        the captions where Delphi's THeader draws them. }
+      InflateRect(R, -3, 0);
       { The caption background is the face colour: reading Canvas.Handle
         realizes the brush, so set it first rather than SetBkMode by hand. }
       Canvas.Brush.Color := clBtnFace;

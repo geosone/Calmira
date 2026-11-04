@@ -114,6 +114,8 @@ type
     procedure WMTimer(var Msg: TMessage); message WM_TIMER;
   protected
     FSaveCellExtents: Boolean;
+    { The original's icon windows show Delphi's Ctl3D frame around the grid. }
+    function Ctl3DFramed: Boolean; override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
@@ -280,6 +282,8 @@ type
 
 implementation
 uses WinProcs;
+function TCustomGrid.Ctl3DFramed: Boolean;
+begin Result := True; end;
 const
   { Delphi scales scroll positions to 0..127 so Longint counts fit. }
   ScrollMax = 127;

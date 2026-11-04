@@ -244,9 +244,18 @@ begin
   Canvas.Brush.Style := bsSolid; Canvas.Brush.Color := clBtnFace; Canvas.FillRect(R);
   { Delphi 1 frame: window frame, then the raised or sunken bevel. }
   Edge(Canvas, R, clWindowFrame, clWindowFrame);
-  if Pressed then Edge(Canvas, R, clBtnShadow, clBtnFace)
+  if Pressed then
+  begin
+    { Sunken: the shadow runs the full top and left, as in the original. }
+    Canvas.Brush.Color := clBtnShadow;
+    Canvas.FillRect(Graphics.Rect(R.Left, R.Top, R.Right, R.Top + 1));
+    Canvas.FillRect(Graphics.Rect(R.Left, R.Top, R.Left + 1, R.Bottom));
+    InflateRect(R, -1, -1);
+  end
   else Edge(Canvas, R, clBtnHighlight, clBtnShadow);
-  if FState = bsExclusive then DitherFace(DC, Graphics.Rect(R.Left + 1, R.Top + 1, R.Right, R.Bottom));
+  { Measured against the original toolbar: the dither covers everything
+    inside the frame and the shadow line, the face-coloured edge included. }
+  if FState = bsExclusive then DitherFace(DC, Graphics.Rect(R.Left, R.Top, R.Right + 1, R.Bottom + 1));
   GW := 0; GH := 0; Frame := 0;
   if not FGlyph.Empty and (FGlyph.Width mod FNumGlyphs = 0) then
   begin
@@ -286,7 +295,9 @@ begin
       blGlyphTop: Y := FMargin;
       blGlyphBottom: Y := Height - FMargin - GroupH;
     end;
-  Shift := Ord(Pressed); Inc(X, Shift); Inc(Y, Shift);
+  { Only a button held down moves its contents; a latched group button keeps
+    them in place, as the original's view buttons do. }
+  Shift := Ord(FState = bsDown); Inc(X, Shift); Inc(Y, Shift);
   GX := X; GY := Y; TX := X; TY := Y;
   case FLayout of
     blGlyphLeft: begin Inc(TX, GW + Gap); Inc(GY, (GroupH - GH) div 2); Inc(TY, (GroupH - TH) div 2); end;

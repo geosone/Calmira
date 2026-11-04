@@ -60,7 +60,7 @@ end;
 procedure TModalProbe.DoShow;
 var NativeOwner: HWND;
 begin
-  inherited DoShow; NativeOwner := GetParent(Handle);
+  inherited DoShow; NativeOwner := GetWindow(Handle, GW_OWNER);
   OwnerBlocked := (NativeOwner <> 0) and not IsWindowEnabled(NativeOwner);
   OwnerLinked := NativeOwner <> 0;
   if FailShow then raise Exception.Create('probe failure');
@@ -143,7 +143,7 @@ begin
     Check((ResultCode = mrOK) and Form.OwnerBlocked and Form.OwnerLinked and
       IsWindowEnabled(Owner.Handle) and (GetFocus = Focus.Handle), 'owner and focus restored');
     Check(not Form.Visible and not Form.ModalRunning and (Form.Queries = 1) and
-      (Form.Hides = 1) and (GetParent(Form.Handle) = 0), 'result closes via lifecycle');
+      (Form.Hides = 1) and (GetWindow(Form.Handle, GW_OWNER) = 0), 'result closes via lifecycle');
     Focus.OnEnter := Form.FocusReentry; Before := Form.Rejections;
     Check((Form.ShowModal(Owner.Handle) = mrOK) and (Form.Rejections = Before + 1),
       'focus cleanup rejects reentry');

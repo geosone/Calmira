@@ -39,7 +39,7 @@ procedure TObserver.Shown(Sender: TObject);
 begin
   Dialog.FormShow(Sender);
   Blocked := not IsWindowEnabled(Owner.Handle) and Dialog.ModalRunning and
-    (GetParent(Dialog.Handle) = Owner.Handle);
+    (GetWindow(Dialog.Handle, GW_OWNER) = Owner.Handle);
   if Key = VK_RETURN then
   begin
     PostMessage(Dialog.Edit.Handle, WM_KEYDOWN, Ord('W'), $00110001);

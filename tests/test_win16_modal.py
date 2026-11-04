@@ -30,7 +30,7 @@ class Win16ModalTests(unittest.TestCase):
     def test_modal_form_validates_owner_and_preserves_enable_focus_and_native_owner(self):
         source = (ROOT / 'src/win16/native_modal.pas').read_text()
         for text in ('class(TNativeForm)', 'GetWindowTask(OwnerWindow) <> GetCurrentTask',
-                     'GWL_STYLE)) and WS_CHILD <> 0', 'Style or WS_POPUP',
+                     'GWL_STYLE)) and WS_CHILD <> 0', 'if GetWindow(Handle, GW_OWNER) <> OwnerWindow then raise',
                      'SetWindowWord(Handle, GWW_HWNDPARENT, OwnerWindow)',
                      'if IsWindowEnabled(OwnerWindow) then',
                      'DisabledOwner := True; EnableWindow(OwnerWindow, False)',

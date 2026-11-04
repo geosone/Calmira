@@ -39,6 +39,22 @@ static BOOL FAR PASCAL dialog_proc(HWND dialog, UINT msg,
         SetTimer(dialog, 1, 6000, NULL);
         return TRUE;
     case WM_TIMER:
+        {
+            RECT frame;
+            HDC dc = GetWindowDC(dialog);
+            int d = GetSystemMetrics(SM_CXDLGFRAME);
+            int y = d + GetSystemMetrics(SM_CYCAPTION) - 1;
+            GetWindowRect(dialog, &frame);
+            check(GetPixel(dc, frame.right-frame.left-d-2, d) ==
+                GetSysColor(COLOR_BTNHIGHLIGHT), "top-right inner corner highlight");
+            check(GetPixel(dc, frame.right-frame.left-d-3, d) ==
+                GetSysColor(COLOR_BTNSHADOW), "top shadow adjacent pixel");
+            check(GetPixel(dc, d+1, y) == GetSysColor(COLOR_BTNHIGHLIGHT),
+                "caption-left corner highlight");
+            check(GetPixel(dc, d+1, y-1) == GetSysColor(COLOR_BTNSHADOW),
+                "left shadow adjacent pixel");
+            ReleaseDC(dialog, dc);
+        }
         KillTimer(dialog, 1);
         edit = GetDlgItem(dialog, 102);
         check(GetProp(edit, "Ctl3dK") != NULL, automatic ?
