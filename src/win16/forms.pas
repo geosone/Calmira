@@ -794,6 +794,7 @@ begin
   { Always filtered: Hint and OnHint follow the mouse even without pop-ups. }
   TNativeApplication(Self).OnMessage := MessageFilter;
   ModalMessageFilter := MessageFilter;
+  CallbackExceptionHandler := HandleException;
   { As Delphi 1's TApplication.Create. Calmira never turns pop-up hints on,
     yet the original shows its file and toolbar hints. }
   ShowHint := True;
@@ -1075,6 +1076,7 @@ begin
   FHiddenForms.Free; FHiddenForms := nil;
   TNativeApplication(Self).OnMessage := nil;
   ModalMessageFilter := nil;
+  CallbackExceptionHandler := nil;
   FHintWindow.Free; FHintWindow := nil;
   FReleases.Free; FReleases := nil;
   inherited Destroy;
@@ -1090,7 +1092,9 @@ end;
 procedure BroadcastFocusChanged(Control, Focused: TCustomControl);
 var I: Integer;
 begin
-  Control.Perform(CM_FOCUSCHANGED, 0, LongInt(Focused));
+  { Delphi's Perform needs no window; ours sends to one. A control without a
+    handle yet (a notebook page not shown) has nothing to repaint. }
+  if Control.Handle <> 0 then Control.Perform(CM_FOCUSCHANGED, 0, LongInt(Focused));
   for I := 0 to Control.ControlCount - 1 do
     if Control.Controls[I] is TCustomControl then
       BroadcastFocusChanged(TCustomControl(Control.Controls[I]), Focused);

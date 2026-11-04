@@ -426,9 +426,11 @@ begin
       Image.Clear;
       Check((Image.Handle = 0) and (Image.Canvas.Handle <> 0) and (Image.Width = 0),
         'clear releases the bitmap; the canvas keeps a memory DC, as Delphi''s TBitmapCanvas');
+      { As Delphi's TBitmap.Draw: an empty bitmap draws nothing. Calmira
+        draws one at start-up; an error there now reaches OnException. }
       Rejected := False;
       try Image.DrawTo(MemoryDC, 0, 0); except on EGDIError do Rejected := True; end;
-      Check(Rejected, 'drawing empty bitmap rejected');
+      Check(not Rejected, 'drawing an empty bitmap draws nothing');
       CheckBitmapEditing;
       CheckGraphicsDrawing;
       CheckSelectedObjects;

@@ -13,6 +13,7 @@ type
   TObserver = class
     Calls: Integer;
     procedure Clicked(Sender: TObject);
+    procedure Caught(Sender: TObject);
   end;
 var Root: TCustomControl; Button, Plain: TPicProbe; Source: Graphics.TBitmap;
   Observer: TObserver; Failed, Rejected: Boolean; I, X, Y, Ink, Before, PoolUSER, PoolGDI: Integer;
@@ -31,6 +32,9 @@ begin
   if Okay then LogLine('PASS ' + Text)
   else begin Failed := True; LogLine('FAIL ' + Text); end;
 end;
+var CaughtText: string; PreviousHandler: TNativeCallbackExceptionHandler;
+procedure TObserver.Caught(Sender: TObject);
+begin CaughtText := Exception(ExceptObject).Message; end;
 procedure TObserver.Clicked(Sender: TObject);
 begin Inc(Calls); end;
 procedure TPicProbe.FinishLoading;
@@ -129,9 +133,15 @@ begin
     Button.TestReentry := True; Button.Repaint; Button.TestReentry := False;
     Check((Button.Rejections = 2) and not Button.HasDrawDC and (Root.CallbackErrors = 0),
       'owner-draw guards parent update and activation while releasing borrowed DC');
-    Before := Root.CallbackErrors; Button.FailDraw := True; Button.Repaint; Button.FailDraw := False;
-    Check((Root.CallbackErrors > Before) and (Root.LastCallbackError = 'bitmap button paint failure') and
-      not Button.HasDrawDC, 'owner-draw failure is contained by parent and releases DC and rendering guard');
+    { As Delphi's MainWndProc the failure goes to the application's handler
+      (Application.HandleException with Forms); the parent contains it. }
+    CaughtText := ''; PreviousHandler := CallbackExceptionHandler;
+    CallbackExceptionHandler := Observer.Caught;
+    try
+      Before := Root.CallbackErrors; Button.FailDraw := True; Button.Repaint; Button.FailDraw := False;
+    finally CallbackExceptionHandler := PreviousHandler; end;
+    Check((Root.CallbackErrors = Before) and (CaughtText = 'bitmap button paint failure') and
+      not Button.HasDrawDC, 'owner-draw failure reaches the application handler and releases DC and rendering guard');
     Button.Repaint; RedBounds(LeftX, TopY);
     Check(LeftX < 80, 'bitmap button paint recovers after callback failure');
     Saved := Button.Glyph; Button.Glyph := nil; Button.Update;

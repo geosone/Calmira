@@ -56,7 +56,11 @@ class ApplicationExceptionTests(unittest.TestCase):
         window = (ROOT / 'src/win16/native_window.pas').read_text()
         loop = (ROOT / 'src/win16/native_loop.pas').read_text()
         self.assertIn('Instance.RecordCallbackException(E)', window)
-        self.assertNotIn('HandleException', window)
+        # As Delphi's MainWndProc: a handler's exception is presented through
+        # the hook Forms sets, inside the native boundary; it never unwinds
+        # through USER, and without the hook it is only recorded.
+        self.assertIn('if not PresentCallbackException(Instance) then Instance.RecordCallbackException(E);', window)
+        self.assertNotIn('Application', window.split('function PresentCallbackException', 1)[1].split('end;', 1)[0])
         self.assertNotIn('HandleException', loop)
         self.assertNotIn('OnException', loop)
         idle = (ROOT / 'tests/pascal/test_win16_application_idle.pas').read_text()

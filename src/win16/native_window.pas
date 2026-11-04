@@ -35,6 +35,12 @@ type
     property CallbackErrors: Word read FCallbackErrors;
     property LastCallbackError: string read FLastCallbackError;
   end;
+  TNativeCallbackExceptionHandler = procedure(Sender: TObject) of object;
+var
+  { As Delphi's MainWndProc: an exception from a message handler goes to
+    Application.HandleException (set by Forms), which shows it. Without
+    one, or if it fails, the window only records it. }
+  CallbackExceptionHandler: TNativeCallbackExceptionHandler;
 procedure RegisterNativeSuperclass(SourceName, PrivateName: PChar; var Original: WNDPROC);
 procedure EnsureNativeWindowClass(Name: PChar);
 { The managed object behind a window of this task, or nil for foreign windows. }
@@ -45,6 +51,20 @@ const WindowClassName = 'CalmiraNativeWindow';
 var ClassRegistered: Boolean;
   { Child control IDs; WM_MEASUREITEM names a control only by its ID. }
   NextChildId: Word;
+
+{ Called only inside the except block, so ExceptObject is the failure. Its
+  own frame keeps the exception frame off every callback's stack. }
+function PresentCallbackException(Instance: TNativeWindow): Boolean;
+begin
+  Result := False;
+  if not Assigned(CallbackExceptionHandler) then Exit;
+  try
+    CallbackExceptionHandler(Instance);
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
 
 function NativeWindowProc(Window: HWND; Id: UINT; WP: WPARAM;
   LP: LPARAM): LRESULT; export;
@@ -72,8 +92,11 @@ begin
       else Instance.WndProc(Message);
     except
       on E: Exception do
-      begin Instance.RecordCallbackException(E); Message.Result := 0;
-        if Id = WM_CREATE then Message.Result := -1; end;
+      begin
+        Message.Result := 0;
+        if Id = WM_CREATE then Message.Result := -1;
+        if not PresentCallbackException(Instance) then Instance.RecordCallbackException(E);
+      end;
       else
       begin Instance.RecordCallbackError('Non-Exception callback failure'); Message.Result := 0;
         if Id = WM_CREATE then Message.Result := -1; end;

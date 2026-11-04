@@ -2666,3 +2666,35 @@ it would (`SelectOnEnter`): an edit with `AutoSelect` selects all, a combo
 box with an edit selects its text, as USER does when it gets the focus.
 `win16-forms-runtime-test` fills an edit and a combo box in `OnShow` and
 checks the selection; it fails with the previous sources.
+
+## Empty Floppy Drives and Errors in Message Handlers
+
+Opening drive A: without a disk showed an empty folder window; the
+original reports "a:\ not found. The folder has been deleted or the drive
+is not ready." Two differences hid the error:
+
+- Calmira's folder scan treats `FindFirst = -3` (path not found) as a
+  missing folder. Delphi 1's `FindFirst`, like Turbo Pascal's Dos unit,
+  returns the error the DOS call left in AX, which is 3 here. FPC's Win16
+  Dos unit asks DOS for the extended error instead, 31 (general failure).
+  `tools/patches/fpc-win16-delphi1-doserror.patch` keeps the AX error under
+  `CALMIRA_WIN16_DELPHI1_DOSERROR`. `win16-lfnfuncs-runtime-test` checks
+  `FindFirst('A:\*.*')` returns -3. LFNFUNCS.DLL links the RTL too and must
+  be rebuilt with it.
+- The resulting `EScanError` was raised while a double-click was handled.
+  Window procedures caught such exceptions and only counted them. As
+  Delphi's `MainWndProc`, they now go to `Application.HandleException`, so
+  Calmira's `OnException` shows them. `win16-forms-runtime-test` raises in
+  a message handler and checks `Application.OnException` gets it.
+
+This brought up an error the window procedure had hidden at start-up:
+Calmira draws an empty bitmap. As Delphi's `TBitmap.Draw`, an empty bitmap
+now draws nothing instead of raising; `win16-gdi-runtime-test` checks it.
+
+Two test fixtures showed what had been hidden too. The tab panel test
+raised "Missing native window": focus changes are broadcast with `Perform`,
+which here sends to a window, and a notebook page not yet shown has none.
+Delphi's `Perform` needs no window; the broadcast now skips controls
+without a handle and still reaches their children. The bitmap button
+test raises in its owner-draw on purpose; it now checks the failure
+reaches the application's handler while the parent still contains it.

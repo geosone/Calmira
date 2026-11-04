@@ -177,6 +177,13 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn("procedure TEdit.SelectOnEnter;\nbegin\n  if FAutoSelect then SelectAll;", source('native_edit.pas'))
         self.assertIn("Perform(CB_SETEDITSEL, 0, MakeLong(0, $FFFF));", source('native_combobox.pas'))
 
+    def test_message_handler_exceptions_reach_the_application(self):
+        window = source('native_window.pas')
+        self.assertIn("if not PresentCallbackException(Instance) then Instance.RecordCallbackException(E);", window)
+        self.assertIn("CallbackExceptionHandler := HandleException;", source('forms.pas'))
+        bitmap = source('gdi_bitmap.pas')
+        self.assertIn("{ As Delphi's TBitmap.Draw, an empty bitmap draws nothing. }\n  if FHandle = 0 then Exit;", bitmap)
+
     def test_modal_dialogs_pass_messages_to_the_application(self):
         modal = source('native_modal.pas')
         self.assertIn('FModalLoop.PreFilter := ModalMessageFilter;\n    FModalLoop.OnMessage := ProcessDialogMessage;', modal)

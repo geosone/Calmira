@@ -87,7 +87,7 @@ class Win16ButtonTests(unittest.TestCase):
                      'disabled native state selects supplied disabled glyph frame',
                      'explicit right margin is measured inward',
                      'explicit bottom margin is measured inward',
-                     'owner-draw failure is contained by parent and releases DC',
+                     'owner-draw failure reaches the application handler and releases DC',
                      'bitmap button redraw and activation cycles retain USER and GDI resources'):
             self.assertIn(text, source)
 

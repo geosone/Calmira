@@ -18,6 +18,8 @@ type
     procedure ModalShow(Sender: TObject);
     procedure DarkenShow(Sender: TObject);
     procedure FillShow(Sender: TObject);
+    procedure WMBoom(var M: TMessage); message WM_USER + 77;
+    procedure Caught(Sender: TObject; E: Exception);
     procedure MinimizeHandler(Sender: TObject; var Action: TCloseAction);
     procedure Filter(var Msg: TMsg; var Handled: Boolean);
   end;
@@ -88,6 +90,24 @@ begin
   Params.WndParent := GetDesktopWindow;
 end;
 { As Calmira's shut-down dialog: OnShow darkens the whole screen. }
+var CaughtText: string;
+procedure TChildForm.WMBoom(var M: TMessage);
+begin raise Exception.Create('Folder not found'); end;
+procedure TChildForm.Caught(Sender: TObject; E: Exception);
+begin CaughtText := E.Message; end;
+{ Calmira reports an empty floppy drive by raising EScanError while a
+  double-click is handled. As Delphi's MainWndProc, the exception goes to
+  Application.HandleException and so to Calmira's OnException. }
+function HandlerExceptionsReachApplication: Boolean;
+var Form: TChildForm;
+begin
+  Form := TChildForm.Create(nil); Form.SetBounds(60, 60, 120, 80);
+  CaughtText := ''; Application.OnException := Form.Caught;
+  try
+    SendMessage(Form.Handle, WM_USER + 77, 0, 0);
+    Result := (CaughtText = 'Folder not found') and (Form.CallbackErrors = 0);
+  finally Application.OnException := nil; Form.Free; end;
+end;
 procedure TChildForm.FillShow(Sender: TObject);
 begin
   if Filled <> nil then Filled.Text := 'c:\calmira\calmira.exe';
@@ -455,6 +475,7 @@ begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
   try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiBounds; DelphiWindows; WindowHierarchy; ShowOverPaint;
     Check(ShowSelects(False) and ShowSelects(True), 'text OnShow puts into the focused edit or combo box is selected');
+    Check(HandlerExceptionsReachApplication, 'an exception in a message handler reaches Application.OnException');
     DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Check(StackGuardIntact, 'forms stack boundary');

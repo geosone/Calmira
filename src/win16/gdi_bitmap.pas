@@ -321,7 +321,9 @@ end;
 procedure TGDIBitmap.DrawTo(Destination: HDC; X, Y: SmallInt);
 var Target, Source: TRect;
 begin
-  if (Destination = 0) or (FHandle = 0) then raise EGDIError.Create('Missing bitmap or destination DC');
+  if Destination = 0 then raise EGDIError.Create('Missing bitmap or destination DC');
+  { As Delphi's TBitmap.Draw, an empty bitmap draws nothing. }
+  if FHandle = 0 then Exit;
   if FTransparent then
   begin
     if (LongInt(X) + FWidth > 32767) or (LongInt(Y) + FHeight > 32767) then
@@ -337,8 +339,8 @@ end;
 procedure TGDIBitmap.StretchTo(Destination: HDC; const Area: TRect);
 var W, H: LongInt; State: SmallInt; Source: TRect; Snapshot: TGDIBitmap;
 begin
-  if (Destination = 0) or (FHandle = 0) then
-    raise EGDIError.Create('Missing bitmap or destination DC');
+  if Destination = 0 then raise EGDIError.Create('Missing bitmap or destination DC');
+  if FHandle = 0 then Exit;
   W := LongInt(Area.Right) - Area.Left; H := LongInt(Area.Bottom) - Area.Top;
   if (W < 0) or (H < 0) or (W > 32767) or (H > 32767) then
     raise EGDIError.Create('Invalid stretch destination size');
