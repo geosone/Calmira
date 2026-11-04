@@ -17,7 +17,7 @@ begin
 end;
 procedure RunSteps;
 var Answer: Word; Text: string; ShortHeight: Integer; Catalog: TCatalog;
-  Previous: TFormTextProvider; Form: TForm; Bitmap: TBitBtn;
+  Previous: TFormTextProvider; Form: TForm; Bitmap, First, Second: TBitBtn;
 begin
   Script(akKey, VK_RETURN, '');
   Answer := MessageDlg('Hello', mtInformation, [mbOK], 0);
@@ -62,6 +62,17 @@ begin
       (Bitmap.Style = bsNew) and (GetWindow(Form.Handle, GW_OWNER) = Application.Handle) and
       (GetWindowLong(Form.Handle, GWL_EXSTYLE) and WS_EX_DLGMODALFRAME <> 0),
       'Delphi 1 message dialogs: bold MS Sans Serif, modal frame, TBitBtns in MsgDlgButtonStyle, owned by the application');
+  finally Form.Free; end;
+  Form := CreateMessageDialog('Gap', mtConfirmation, [mbYes, mbNo]);
+  try
+    First := nil; Second := nil;
+    for I := 0 to Form.ComponentCount - 1 do
+      if Form.Components[I] is TBitBtn then
+        if First = nil then First := TBitBtn(Form.Components[I])
+        else Second := TBitBtn(Form.Components[I]);
+    Check((First <> nil) and (Second <> nil) and
+      (Abs(Second.Left - First.Left) = MsgDlgBtnSize.X + 8) and (Second.Top = First.Top),
+      'message buttons sit 8 pixels apart, as in the original');
   finally Form.Free; end;
   Script(akKey, VK_RETURN, '');
   ShowMessage('Plain');

@@ -2456,3 +2456,9 @@ Two things show around the selected icon:
   (Delphi's `IsActiveControl`), not only while it has the focus. The
   focus rectangle therefore stays while a dialog over the window is
   open.
+
+## Message Dialog Button Gap
+
+The buttons of a message dialog sit eight pixels apart, as measured on
+the original's "move to the Bin" confirmation, not six. That
+confirmation is now pixel-identical.

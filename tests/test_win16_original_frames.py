@@ -68,6 +68,9 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('else Result := (FLastFocus <> 0) and (FLastFocus = Control.Handle);',
                       source('native_form.pas'))
 
+    def test_message_buttons_sit_eight_pixels_apart(self):
+        self.assertIn('Margin = 12; IconSize = 32; ButtonGap = 8;', source('dialogs.pas'))
+
 
 if __name__ == '__main__':
     unittest.main()

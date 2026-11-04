@@ -140,7 +140,9 @@ implementation
 uses WinProcs, CommDlg, native_application, native_label, native_button, native_edit, form_text;
 const
   DialogStyle = WS_POPUP or WS_CAPTION or WS_DLGFRAME or WS_SYSMENU;
-  Margin = 12; IconSize = 32; ButtonGap = 6;
+  { The gap between message buttons, measured on the original's
+    Yes/No confirmation. }
+  Margin = 12; IconSize = 32; ButtonGap = 8;
   { Message dialogs, measured on Delphi 1's: 10 pixels around the icon and
     the text, which is centred beside a taller icon; the buttons 10 pixels
     below them and 8 pixels above the bottom edge. }
