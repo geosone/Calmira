@@ -257,6 +257,8 @@ end;
 procedure TSlider.SetMin(avalue: Integer);
 begin
 {$IFDEF FPC}
+  { A form sets Minimum before Maximum: check only outside loading. }
+  if csLoading in ComponentState then begin fMin := avalue; Exit; end;
   if (avalue >= fMax) or (LongInt(fMax) - avalue > 32767) then
     raise ERangeError.Create('Invalid slider minimum');
 {$ENDIF}
@@ -271,6 +273,7 @@ end;
 procedure TSlider.SetMax(avalue: Integer);
 begin
 {$IFDEF FPC}
+  if csLoading in ComponentState then begin fMax := avalue; Exit; end;
   if (avalue <= fMin) or (LongInt(avalue) - fMin > 32767) then
     raise ERangeError.Create('Invalid slider maximum');
 {$ENDIF}

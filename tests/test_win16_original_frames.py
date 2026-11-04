@@ -116,6 +116,29 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('SetBounds(X, Y, Width, Height);\n  FPosition := poDesigned;', forms)
         self.assertIn('FPendingState := False;\n    PlaceOnShow;', source('native_form.pas'))
 
+    def test_later_siblings_lie_above_earlier_ones(self):
+        controls = source('controls.pas')
+        self.assertIn('procedure TCustomControl.PlaceInZOrder;', controls)
+        self.assertIn('After := HWND_TOP;', controls)
+        self.assertIn('inherited CreateHandle(Parent, Caption, Style, X, Y, Width, Height);\n    try\n      PlaceInZOrder;', controls)
+
+    def test_list_boxes_erase_in_their_colour(self):
+        self.assertIn('procedure TCustomListBox.CNCtlColor(var M: TMessage);\nbegin\n  M.Result := CtlColorBrush(HDC(M.WParam));',
+                      source('native_listbox.pas'))
+
+    def test_spin_arrows_are_delphi_sized(self):
+        self.assertIn('Size := 4;\n    if Size > Bottom - Top - 4 then', source('native_spin.pas'))
+
+    def test_disabled_speed_button_captions_are_embossed(self):
+        speed = source('native_speedbutton.pas')
+        self.assertIn('OffsetRect(TextArea, 1, 1);\n      SetTextColor(DC, ColorToRGB(clBtnHighlight));', speed)
+        self.assertNotIn('ColorToRGB(clGrayText)', speed)
+
+    def test_sliders_load_minimum_before_maximum(self):
+        slider = (WIN16.parent.parent / 'vcl' / 'slider.pas').read_text(encoding='cp1252')
+        self.assertIn("if csLoading in ComponentState then begin fMin := avalue; Exit; end;", slider)
+        self.assertIn("if csLoading in ComponentState then begin fMax := avalue; Exit; end;", slider)
+
 
 if __name__ == '__main__':
     unittest.main()

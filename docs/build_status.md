@@ -2539,3 +2539,40 @@ before `OnCreate`. As Delphi's `CMShowingChanged`, a `poScreenCenter` form
 is now centred just before it is first shown. It then becomes
 `poDesigned`, so it stays where the user moves it. The dialog now opens
 where the original's does.
+
+## Sibling Z-Order, List Box Background and Spin Arrows
+
+Start Menu Properties showed three obvious differences from the original:
+
+- **Missing check box.** "Full Rebuild" was hidden under the tab panel.
+  USER puts each new child window at the bottom of the z-order, so an
+  earlier sibling covered a later one. As Delphi's `CreateHandle` with
+  `PrecedingWindow`, a new child now goes just below the next later sibling
+  that has a handle, or on top. Tab order still follows the control list.
+- **White strip under the check list.** List boxes did not answer
+  `CN_CTLCOLOR`, so USER erased the space below the last item in white.
+  They now erase in their own `Color`, as Delphi's `TWinControl` does.
+- **Tiny spin arrows.** The spin button's arrows were 2-pixel dots. They
+  are now 7 × 4 triangles, the size of Delphi's spin glyphs.
+
+The parent, list box and spin runtime tests check each of these.
+
+## Embossed Disabled Speed Button Captions
+
+On System Properties' Advanced tab, the disabled "Remove" and "Modify..."
+buttons showed no caption. A disabled speed button drew its caption in
+`clGrayText`, which is the face colour in Windows 3.1's default scheme. As
+Delphi 1's `DrawButtonText`, the caption is now embossed: white, offset
+one pixel, under dark grey. Calmira disables these buttons when a whole
+section is selected; the original keeps them looking enabled at first,
+which is not worth matching. The dialog test driver now lists children in
+creation order, since a later child now lies above an earlier one.
+
+## Sliders Load Minimum Before Maximum
+
+File System Properties did not open: it raised "Invalid slider minimum".
+Its delay slider's form sets `Minimum = 500` before `Maximum = 3000`, and
+our range checks in `TSlider` compared it with the default maximum of 100.
+Delphi has no such checks. They are now skipped while the form loads, and
+`Value` is clamped against both limits afterwards. The slider runtime test
+loads the dialog's values in form order.

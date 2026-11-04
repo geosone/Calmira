@@ -7,7 +7,8 @@ type
     Count: Integer;
     procedure Change(Sender: TObject);
   end;
-var ParentWindow: TNativeInputWindow; S: TSlider; Observer: TObserver;
+type TSliderAccess = class(TSlider) end;
+var Loaded: TSliderAccess; ParentWindow: TNativeInputWindow; S: TSlider; Observer: TObserver;
   Failed, Rejected: Boolean; Before, I, PoolGDI, PoolUSER: Integer;
   TestArea: TRect; TestPoint: TPoint;
 procedure LogLine(const Text: string);
@@ -94,6 +95,13 @@ begin
     Rejected := False;
     try S.Maximum := S.Minimum; except on Exception do Rejected := True; end;
     Check(Rejected and (S.Maximum = 100), 'zero slider range is rejected before division');
+    Loaded := TSliderAccess.Create(nil);
+    try
+      { File System Properties' delay slider: Minimum 500 comes before Maximum 3000. }
+      Loaded.Loading; Loaded.Minimum := 500; Loaded.Maximum := 3000; Loaded.Value := 500; Loaded.Loaded;
+      Check((Loaded.Minimum = 500) and (Loaded.Maximum = 3000) and (Loaded.Value = 500),
+        'a form may load Minimum above the default Maximum');
+    finally Loaded.Free; end;
     Rejected := False;
     try S.ThumbHeight := 0; except on Exception do Rejected := True; end;
     Check(Rejected and (S.ThumbHeight = 10), 'invalid thumb height preserves previous geometry');
