@@ -205,6 +205,9 @@ type
     function ClientToScreen(const Position: TPoint): TPoint; override;
     function ScreenToClient(const Position: TPoint): TPoint; override;
     function FindControl(Window: HWND): TCustomControl;
+    { What entering the control selects (an edit's AutoSelect). A form runs
+      it for the focused control after OnShow, as Delphi enters it then. }
+    procedure SelectOnEnter; virtual;
     function HandleAllocated: Boolean;
     { Makes AControl a child of this control. }
     procedure InsertControl(AControl: TControl);
@@ -898,6 +901,8 @@ begin end;
   Start Menu Properties' Full Rebuild check box lies over its tab panel.
   Later means inserted later (FControls), not a later tab order (FWindows):
   a folder window's grid, first in tab order, lies over its header. }
+procedure TCustomControl.SelectOnEnter;
+begin end;
 procedure TCustomControl.PlaceInZOrder;
 var I: Integer; After: HWND; Sibling: TObject;
 begin

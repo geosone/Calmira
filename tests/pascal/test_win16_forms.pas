@@ -12,10 +12,12 @@ type
   TChildForm = class(TForm)
   public
     FreeMode: Boolean;
+    Filled: TEdit; FilledCombo: TComboBox;
     destructor Destroy; override;
     procedure CloseHandler(Sender: TObject; var Action: TCloseAction);
     procedure ModalShow(Sender: TObject);
     procedure DarkenShow(Sender: TObject);
+    procedure FillShow(Sender: TObject);
     procedure MinimizeHandler(Sender: TObject; var Action: TCloseAction);
     procedure Filter(var Msg: TMsg; var Handled: Boolean);
   end;
@@ -86,6 +88,11 @@ begin
   Params.WndParent := GetDesktopWindow;
 end;
 { As Calmira's shut-down dialog: OnShow darkens the whole screen. }
+procedure TChildForm.FillShow(Sender: TObject);
+begin
+  if Filled <> nil then Filled.Text := 'c:\calmira\calmira.exe';
+  if FilledCombo <> nil then FilledCombo.Text := 'c:\calmira\calmira.exe';
+end;
 procedure TChildForm.DarkenShow(Sender: TObject);
 var DC: HDC;
 begin
@@ -299,6 +306,27 @@ begin
   Check((R.Right - R.Left = 150) and (R.Bottom - R.Top = 90), 'poDefaultPosOnly keeps the size');
   Loose.Free;
 end;
+{ Calmira's Select Icon puts the file name into its combo box in OnShow;
+  Delphi enters the focused control afterwards, so the text is selected. }
+function ShowSelects(UseCombo: Boolean): Boolean;
+var Sel: LongInt; Form: TChildForm;
+begin
+  Form := TChildForm.Create(nil); Form.SetBounds(60, 60, 220, 100);
+  if UseCombo then
+  begin
+    Form.FilledCombo := TComboBox.Create(Form); Form.FilledCombo.SetBounds(8, 8, 180, 21);
+    Form.FilledCombo.Parent := Form;
+  end
+  else
+  begin
+    Form.Filled := TEdit.Create(Form); Form.Filled.SetBounds(8, 8, 180, 21); Form.Filled.Parent := Form;
+  end;
+  Form.OnShow := Form.FillShow; Form.Show; Application.ProcessMessages;
+  if UseCombo then Sel := Form.FilledCombo.Perform(CB_GETEDITSEL, 0, 0)
+  else Sel := Form.Filled.Perform(EM_GETSEL, 0, 0);
+  Result := (LoWord(Sel) = 0) and (HiWord(Sel) = 22);
+  Form.Free;
+end;
 procedure ShowOverPaint;
 var Button: TButton; DC: HDC; Face, Caption: TColorRef;
 begin
@@ -425,7 +453,9 @@ begin
 end;
 begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
-  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiBounds; DelphiWindows; WindowHierarchy; ShowOverPaint; DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
+  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiBounds; DelphiWindows; WindowHierarchy; ShowOverPaint;
+    Check(ShowSelects(False) and ShowSelects(True), 'text OnShow puts into the focused edit or combo box is selected');
+    DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Check(StackGuardIntact, 'forms stack boundary');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');

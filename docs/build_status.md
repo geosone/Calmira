@@ -2654,3 +2654,15 @@ It now uses `FControls`, kept in insertion order, as Delphi's stacking
 follows `InsertControl`. `win16-parent-runtime-test` attaches a header and a
 grid with the grid moved to tab order 0 and checks the grid lies on top; it
 fails with the previous sources.
+
+## Text Set in OnShow Is Selected
+
+Select Icon showed its file name unselected; the original selects it.
+Here `OnShow` runs after the window is shown and activated, so the combo
+box had already taken the focus, selecting its old text, when `OnShow`
+replaced it. Delphi enters the focused control after `OnShow`. A form now
+asks the control that kept the focus through `OnShow` to select as entering
+it would (`SelectOnEnter`): an edit with `AutoSelect` selects all, a combo
+box with an edit selects its text, as USER does when it gets the focus.
+`win16-forms-runtime-test` fills an edit and a combo box in `OnShow` and
+checks the selection; it fails with the previous sources.

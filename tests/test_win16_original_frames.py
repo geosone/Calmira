@@ -170,6 +170,13 @@ class OriginalFrameTests(unittest.TestCase):
         keep = modal.index("  KeepOwner := (OwnerWindow = 0) and (Handle <> 0)")
         self.assertLess(create, keep)
 
+    def test_focused_control_is_entered_after_on_show(self):
+        form = source('native_form.pas')
+        self.assertIn("Focus := GetFocus;\n    DoShow;", form)
+        self.assertIn("if Control <> nil then Control.SelectOnEnter;", form)
+        self.assertIn("procedure TEdit.SelectOnEnter;\nbegin\n  if FAutoSelect then SelectAll;", source('native_edit.pas'))
+        self.assertIn("Perform(CB_SETEDITSEL, 0, MakeLong(0, $FFFF));", source('native_combobox.pas'))
+
     def test_modal_dialogs_pass_messages_to_the_application(self):
         modal = source('native_modal.pas')
         self.assertIn('FModalLoop.PreFilter := ModalMessageFilter;\n    FModalLoop.OnMessage := ProcessDialogMessage;', modal)

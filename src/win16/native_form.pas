@@ -406,7 +406,7 @@ begin if Assigned(FOnClose) then FOnClose(Self, Action); end;
 const
   ShowCommands: array[TWindowState] of Integer = (SW_SHOWNORMAL, SW_SHOWMINNOACTIVE, SW_SHOWMAXIMIZED);
 procedure TNativeForm.Show;
-var Requested: TWindowState;
+var Requested: TWindowState; Focus: HWND; Control: TCustomControl;
 begin
   CheckChanging; FChangingForm := True;
   try
@@ -421,7 +421,15 @@ begin
       when shown (Calmira's Task Manager, shown on CTASKMAN's message). }
     ShowWindow(Handle, ShowCommands[Requested]);
     if ReadWindowState <> Requested then ApplyWindowState(Requested);
+    Focus := GetFocus;
     DoShow;
+    { Delphi enters the focused control after OnShow: text OnShow put into
+      an edit or combo box is selected (Calmira's Select Icon file name). }
+    if Assigned(FOnShow) and (Focus <> 0) and (GetFocus = Focus) then
+    begin
+      Control := FindControl(Focus);
+      if Control <> nil then Control.SelectOnEnter;
+    end;
     { Delphi runs OnShow before the window appears; here it is already
       erased. What OnShow drew over the screen (Calmira's shut-down dialog
       darkens it) is painted over by the frame and every child again. }

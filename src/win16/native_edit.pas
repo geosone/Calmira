@@ -58,6 +58,7 @@ type
       X, Y, Width, Height: SmallInt); override;
     procedure Clear;
     procedure SelectAll;
+    procedure SelectOnEnter; override;
     procedure ClearSelection;
     procedure CopyToClipboard;
     procedure CutToClipboard;
@@ -155,6 +156,10 @@ begin
   Style := GetWindowLong(Handle, GWL_STYLE);
   if Value then Style := Style or ES_OEMCONVERT else Style := Style and not LongInt(ES_OEMCONVERT);
   SetWindowLong(Handle, GWL_STYLE, Style);
+end;
+procedure TEdit.SelectOnEnter;
+begin
+  if FAutoSelect then SelectAll;
 end;
 procedure TEdit.DoEnter;
 begin

@@ -76,6 +76,8 @@ type
       for its own colour; the combo box itself, in the drop-down styles,
       takes its parent's, so the strip beside the button is not white. }
     procedure WMCtlColor(var M: TMessage); message WM_CTLCOLOR;
+    { USER selects a combo box's text when it gets the focus. }
+    procedure SelectOnEnter; override;
     procedure CNCtlColor(var M: TMessage); message CN_CTLCOLOR;
     function ControlCommand(Code: Word): Boolean; override;
     function OwnsNativeChild(Window: HWND): Boolean; override;
@@ -279,6 +281,11 @@ begin
   Result := FDropDownCount * (Abs(Font.Height) + 4) + 2;
 end;
 type TParentAccess = class(TCustomControl);
+procedure TCustomComboBox.SelectOnEnter;
+begin
+  if (Handle <> 0) and (FStyle in [csDropDown, csSimple]) then
+    Perform(CB_SETEDITSEL, 0, MakeLong(0, $FFFF));
+end;
 procedure TCustomComboBox.WMCtlColor(var M: TMessage);
 begin
   M.Result := CtlColorBrush(HDC(M.WParam));
