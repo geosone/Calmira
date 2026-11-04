@@ -110,6 +110,12 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('if FNotifyBeforeSelect then inherited MouseDown(Button, Shift, X, Y);', grids)
         self.assertIn('if not FNotifyBeforeSelect then inherited MouseDown(Button, Shift, X, Y);', grids)
 
+    def test_screen_centred_forms_centre_when_first_shown(self):
+        forms = source('forms.pas')
+        self.assertIn('procedure TForm.PlaceOnShow;', forms)
+        self.assertIn('SetBounds(X, Y, Width, Height);\n  FPosition := poDesigned;', forms)
+        self.assertIn('FPendingState := False;\n    PlaceOnShow;', source('native_form.pas'))
+
 
 if __name__ == '__main__':
     unittest.main()

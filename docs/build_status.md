@@ -2529,3 +2529,13 @@ changes.
   restores it in `OnMouseMove`, which only works if `OnMouseDown` runs
   before the press moves the current row. The outline now raises the
   event first.
+
+## Screen-centred Forms Centre When Shown
+
+"Find Files" opened at its design position, half off the screen. It is
+`poScreenCenter`, but its `OnCreate` restores the saved bounds, which
+default to the design ones. We centred only when the window was created,
+before `OnCreate`. As Delphi's `CMShowingChanged`, a `poScreenCenter` form
+is now centred just before it is first shown. It then becomes
+`poDesigned`, so it stays where the user moves it. The dialog now opens
+where the original's does.

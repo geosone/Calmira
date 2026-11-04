@@ -61,6 +61,8 @@ type
     function CloseQuery: Boolean; virtual;
     procedure DoClose(var Action: TNativeCloseAction); virtual;
     procedure DoShow; virtual;
+    { Just before the window is first shown, as Delphi's CMShowingChanged. }
+    procedure PlaceOnShow; virtual;
     procedure DoHide; virtual;
     procedure DoActivate; virtual;
     procedure DoDeactivate; virtual;
@@ -305,6 +307,8 @@ begin
   inherited CreateHandle(Parent, Caption, Style, X, Y, Width, Height);
   FCaption := Caption;
 end;
+procedure TNativeForm.PlaceOnShow;
+begin end;
 procedure TNativeForm.DoShow;
 begin
   if Assigned(FOnShow) then FOnShow(Self);
@@ -412,6 +416,7 @@ begin
         Left, Top, Width, Height);
     if Visible then Exit;
     FPendingState := False;
+    PlaceOnShow;
     { As Delphi's CMShowingChanged: a normal or maximized form is activated
       when shown (Calmira's Task Manager, shown on CTASKMAN's message). }
     ShowWindow(Handle, ShowCommands[Requested]);

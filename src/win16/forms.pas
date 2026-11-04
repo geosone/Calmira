@@ -89,6 +89,7 @@ type
   protected
     procedure DoClose(var Action: TCloseAction); override;
     procedure DoActivate; override;
+    procedure PlaceOnShow; override;
     { Called before the window is created. Caption, Style, the bounds and
       WndParent are honoured. WndParent starts as the application window,
       which owns the form as in Delphi; 0 or the desktop window leave it
@@ -567,6 +568,20 @@ begin
     if biMinimize in Icons then Result := Result or WS_MINIMIZEBOX;
     if biMaximize in Icons then Result := Result or WS_MAXIMIZEBOX;
   end;
+end;
+{ As Delphi's CMShowingChanged: a poScreenCenter form is centred when first
+  shown, after OnCreate (where Calmira's Find dialog restores its design
+  bounds), and then keeps where it is moved. }
+procedure TForm.PlaceOnShow;
+var X, Y: Integer;
+begin
+  if FPosition <> poScreenCenter then Exit;
+  X := (GetSystemMetrics(SM_CXSCREEN) - Width) div 2;
+  Y := (GetSystemMetrics(SM_CYSCREEN) - Height) div 2;
+  if X < 0 then X := 0;
+  if Y < 0 then Y := 0;
+  SetBounds(X, Y, Width, Height);
+  FPosition := poDesigned;
 end;
 procedure TForm.CreateParams(var Params: TCreateParams);
 begin end;
