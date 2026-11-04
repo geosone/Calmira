@@ -1,8 +1,8 @@
 # Open386MAX CTL3D source snapshot
 
 Source: https://github.com/geosone/Open386MAX
-Branch: `v9`
-Commit: `82d33fc5861e5c4ff8b21d480e8730f11b312379`
+Branch: `main`
+Commit: `60a751c48ae4c33ade202d4ad35893c6629bd040`
 License: GNU GPL version 3; see `LICENSE` and the source header.
 
 Imported files:
