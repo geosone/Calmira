@@ -26,6 +26,10 @@ type
     property TaskQuit: Boolean read FTaskQuit;
     property TaskExitCode: SmallInt read FTaskExitCode;
   end;
+var
+  { As Delphi's ShowModal, which pumps through Application.HandleMessage:
+    the application's hints and OnMessage see a modal dialog's messages. }
+  ModalMessageFilter: TNativeMessageFilter;
 implementation
 uses SysUtils, WinProcs, native_window;
 var ActiveModal: TNativeModalForm;
@@ -166,13 +170,14 @@ begin
         if not FocusNext(True) then SetFocus;
     end;
     FPreparing := False;
+    FModalLoop.PreFilter := ModalMessageFilter;
     FModalLoop.OnMessage := ProcessDialogMessage;
     FModalLoop.RunModal(ContinueModal);
     FTaskQuit := FModalLoop.Terminated; FTaskExitCode := FModalLoop.ExitCode;
     if FModalLoop.Terminated or (FModalResult = mrNone) then FModalResult := mrCancel;
     Result := FModalResult;
   finally
-    FPreparing := True; FModalLoop.OnMessage := nil;
+    FPreparing := True; FModalLoop.OnMessage := nil; FModalLoop.PreFilter := nil;
     try
       if (Handle <> 0) and Visible then Hide else Visible := False;
     finally

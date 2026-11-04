@@ -2606,3 +2606,16 @@ focus a control in it. Instead, a form with an `OnShow` handler now
 invalidates its frame and every child afterwards, and the dialog looks
 as in the original. The forms runtime test darkens the screen in
 `OnShow` and checks the caption and a button.
+
+## Hints in Modal Dialogs
+
+Modal dialogs showed no pop-up hints, such as Disk Properties' byte
+counts or the filter hint in File System Properties. Their message loop
+handled only dialog keys. Delphi's `ShowModal` pumps through
+`Application.HandleMessage`, so hints and `Application.OnMessage` see a
+modal dialog's messages. The modal loop now passes each message to the
+application's filter (`ModalMessageFilter`) before the dialog keys. The
+filter runs as the loop's `PreFilter`, called from the same frame as the
+dialog keys, so a nested modal dialog opened by a key needs no more stack.
+The password test keeps its 4 KB stack with 74 bytes to spare, as before. The
+hints runtime test feeds a mouse move through it.

@@ -1,6 +1,6 @@
 program TestWin16Hints;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Messages, Classes, SysUtils, Graphics, Controls, Forms, native_window;
+uses WinTypes, WinProcs, Messages, Classes, SysUtils, Graphics, Controls, Forms, native_window, native_modal;
 type
   TPanel = class(TCustomControl)
   public
@@ -69,6 +69,15 @@ begin
   SetCursorPos(P.X, P.Y);
   PostMessage(Control.Handle, WM_MOUSEMOVE, 0, MakeLong(X, Y));
 end;
+{ What a modal dialog's loop does with a mouse move. }
+procedure ModalMove(Control: TCustomControl; X, Y: Integer);
+var P: TPoint; Msg: TMsg;
+begin
+  P := Control.ClientToScreen(Point(X, Y)); SetCursorPos(P.X, P.Y);
+  FillChar(Msg, SizeOf(Msg), 0);
+  Msg.hwnd := Control.Handle; Msg.message := WM_MOUSEMOVE; Msg.lParam := MakeLong(X, Y);
+  if Assigned(ModalMessageFilter) then ModalMessageFilter(Msg);
+end;
 function HintVisible: Boolean;
 begin Result := (Shown <> nil) and (Shown.Handle <> 0) and IsWindowVisible(Shown.Handle); end;
 begin
@@ -102,6 +111,9 @@ begin
     Check(Application.Hint = 'Long text', 'a control without a hint uses its parent''s');
     MoveTo(Plain, 3, 3); Pump(50);
     Check((Application.Hint = 'Quiet') and (Events.HintCalls = 2), 'OnHint runs when the hint changes');
+    ModalMove(Tipped, 50, 30);
+    Check(Application.Hint = 'Long text', 'a modal dialog''s mouse moves reach the hints, as through Delphi''s HandleMessage');
+    MoveTo(Plain, 3, 3); Pump(50); Events.HintCalls := 2;
     Check(Application.ShowHint and (ActivateCount = 0),
       'pop-up hints are on by default, as Delphi 1 (Calmira never turns them on)');
 

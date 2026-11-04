@@ -37,7 +37,7 @@ class DrainTests(unittest.TestCase):
             self.assertNotIn(text, body)
         forward = source.split('function TNativeMessageLoop.ForwardFilter(', 1)[1].split(
             'function TNativeMessageLoop.Deliver(', 1)[0]
-        self.assertIn('if Assigned(FOnMessage) then Result := FOnMessage(Message)', forward)
+        self.assertIn('if not Result and Assigned(FOnMessage) then Result := FOnMessage(Message)', forward)
 
     def test_termination_is_checked_across_ancestor_chain(self):
         source = (ROOT / 'src/win16/native_loop.pas').read_text()

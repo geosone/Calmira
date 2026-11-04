@@ -179,6 +179,7 @@ type
     procedure SetShowHint(Value: Boolean);
     function HintHook(var Message: TMessage): Boolean;
     procedure HintMouseMove;
+    procedure MouseHintChanged(Control: TControl);
     procedure StartHintTimer(Pause: Integer);
     procedure ShowHintNow;
     procedure SetIcon(Value: TIcon);
@@ -792,6 +793,7 @@ begin
   FHiddenForms := TList.Create;
   { Always filtered: Hint and OnHint follow the mouse even without pop-ups. }
   TNativeApplication(Self).OnMessage := MessageFilter;
+  ModalMessageFilter := MessageFilter;
   { As Delphi 1's TApplication.Create. Calmira never turns pop-up hints on,
     yet the original shows its file and toolbar hints. }
   ShowHint := True;
@@ -946,16 +948,19 @@ begin
   KillTimer(Handle, HintTimer);
   ShowHintNow;
 end;
+{ Its two string temporaries leave the stack before the hint timer work:
+  modal dialogs run this too, on their 4 KB test stacks. }
+procedure TApplication.MouseHintChanged(Control: TControl);
+begin
+  FMouseControl := Control;
+  Hint := GetLongHint(ControlHint(Control));
+end;
 procedure TApplication.HintMouseMove;
 var P: TPoint; Control: TControl;
 begin
   GetCursorPos(P);
   Control := FindDragTarget(P, True);
-  if Control <> FMouseControl then
-  begin
-    FMouseControl := Control;
-    Hint := GetLongHint(ControlHint(Control));
-  end;
+  if Control <> FMouseControl then MouseHintChanged(Control);
   if not FShowHint then Exit;
   Control := HintControlAt(P);
   if Control = nil then CancelHint
@@ -1069,6 +1074,7 @@ begin
   FMinimizeHooked := False;
   FHiddenForms.Free; FHiddenForms := nil;
   TNativeApplication(Self).OnMessage := nil;
+  ModalMessageFilter := nil;
   FHintWindow.Free; FHintWindow := nil;
   FReleases.Free; FReleases := nil;
   inherited Destroy;

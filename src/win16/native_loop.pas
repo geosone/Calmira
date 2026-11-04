@@ -14,7 +14,7 @@ type
   private
     FTerminated: Boolean;
     FExitCode: SmallInt;
-    FOnMessage: TNativeMessageFilter;
+    FOnMessage, FPreFilter: TNativeMessageFilter;
     FOnStart: TNotifyEvent;
     FPreviousActive: TNativeMessageLoop;
     FOnIdle: TNativeIdleEvent;
@@ -36,6 +36,9 @@ type
     { True consumes the message before translation. The receiver must outlive
       this assignment; clear it before freeing a form. WM_QUIT bypasses it. }
     property OnMessage: TNativeMessageFilter read FOnMessage write FOnMessage;
+    { Asked before OnMessage, from the same frame: a modal dialog's loop runs
+      the application's filter here without nesting its dialog keys deeper. }
+    property PreFilter: TNativeMessageFilter read FPreFilter write FPreFilter;
     { Run startup occurs inside the active root pump, before waiting for input.
       Modal dialogs opened by startup callbacks must inherit WM_QUIT. }
     property OnStart: TNotifyEvent read FOnStart write FOnStart;
@@ -96,7 +99,8 @@ end;
 function TNativeMessageLoop.ForwardFilter(var Message: TMsg): Boolean;
 begin
   Result := False;
-  if Assigned(FOnMessage) then Result := FOnMessage(Message);
+  if Assigned(FPreFilter) then Result := FPreFilter(Message);
+  if not Result and Assigned(FOnMessage) then Result := FOnMessage(Message);
 end;
 function TNativeMessageLoop.Deliver(var Message: TMsg): Boolean;
 var Previous: TNativeMessageLoop;
@@ -119,6 +123,8 @@ begin
     if FPreviousActive <> nil then PostAppMessage(GetCurrentTask, WM_NULL, 0, 0);
     Exit;
   end;
+  if Assigned(FPreFilter) then
+    if FPreFilter(Message) then Exit;
   if Assigned(FOnMessage) then
     if FOnMessage(Message) then Exit;
   { A filter can open a modal child that consumes quit for this suspended
