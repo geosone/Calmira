@@ -60,6 +60,22 @@ begin
   Menu.Free;
   Check((Panel.PopupMenu = nil) and (Text.PopupMenu = nil), 'a freed menu is cleared from its controls');
 end;
+{ A folder window's header comes before its grid in the form, but the grid
+  is first in tab order. The grid still lies over the header, as in Delphi,
+  where the stacking follows insertion and not the tab order. }
+procedure TabbedOrder;
+var Holder, Header, Grid: TCustomControl;
+begin
+  Holder := TCustomControl.Create(nil); Holder.SetBounds(0, 0, 200, 100);
+  Header := TCustomControl.Create(nil); Header.SetBounds(0, 0, 200, 18); Header.Parent := Holder;
+  Grid := TCustomControl.Create(nil); Grid.SetBounds(0, 14, 200, 80); Grid.Parent := Holder;
+  Grid.TabOrder := 0;
+  Holder.Parent := Root;
+  Check((Grid.TabOrder = 0) and (GetWindow(Holder.Handle, GW_CHILD) = Grid.Handle) and
+    (GetWindow(Grid.Handle, GW_HWNDNEXT) = Header.Handle),
+    'stacking follows insertion, not tab order');
+  Grid.Free; Header.Free; Holder.Free;
+end;
 begin
   LogLine('STEP parent properties');
   Sink := TSink.Create;
@@ -76,6 +92,7 @@ begin
       'a later sibling lies above an earlier one, as in Delphi');
     Button.Parent := nil; Button.Parent := Panel;
     Check(GetWindow(Panel.Handle, GW_CHILD) = Button.Handle, 'a re-added sibling goes on top');
+    TabbedOrder;
     Check(Panel.ParentFont and (Panel.Font.Height = -16) and (Panel.Canvas.Font.Height = -16),
       'a new child takes the parent font and keeps ParentFont');
     Check((Text.Font.Height = -16) and (Button.Font.Height = -16), 'grandchildren inherit too');

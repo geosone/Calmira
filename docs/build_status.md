@@ -2643,3 +2643,14 @@ Both fail with the previous sources. `win16-incsrch-modal-runtime-test`
 no longer expects the implicit owner to be the active window: the dialog
 stays owned by the application window, and the active window is disabled
 with the task's other windows.
+
+## Stacking Follows Insertion, Not Tab Order
+
+In a folder window's Details view the column header covered the top of the
+first row. The header comes before the grid in the form, so in Delphi the
+grid lies over it, but the grid is first in tab order. `PlaceInZOrder`
+looked for the next later sibling in `FWindows`, which `TabOrder` reorders.
+It now uses `FControls`, kept in insertion order, as Delphi's stacking
+follows `InsertControl`. `win16-parent-runtime-test` attaches a header and a
+grid with the grid moved to tab order 0 and checks the grid lies on top; it
+fails with the previous sources.

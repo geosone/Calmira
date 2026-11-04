@@ -121,6 +121,10 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('procedure TCustomControl.PlaceInZOrder;', controls)
         self.assertIn('After := HWND_TOP;', controls)
         self.assertIn('inherited CreateHandle(Parent, Caption, Style, X, Y, Width, Height);\n    try\n      PlaceInZOrder;', controls)
+        place = controls[controls.index('procedure TCustomControl.PlaceInZOrder;'):]
+        place = place[:place.index('\nend;')]
+        self.assertIn('I := FParent.FControls.IndexOf(Self);', place)
+        self.assertNotIn('FWindows', place)
 
     def test_list_boxes_erase_in_their_colour(self):
         self.assertIn('procedure TCustomListBox.CNCtlColor(var M: TMessage);\nbegin\n  M.Result := CtlColorBrush(HDC(M.WParam));',

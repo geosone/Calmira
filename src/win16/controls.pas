@@ -895,18 +895,21 @@ begin end;
 { As Delphi's TWinControl.CreateHandle with PrecedingWindow: USER puts a new
   child at the bottom, but a later sibling is drawn over an earlier one, so
   the window goes just below the next sibling that has a handle, or on top.
-  Start Menu Properties' Full Rebuild check box lies over its tab panel. }
+  Start Menu Properties' Full Rebuild check box lies over its tab panel.
+  Later means inserted later (FControls), not a later tab order (FWindows):
+  a folder window's grid, first in tab order, lies over its header. }
 procedure TCustomControl.PlaceInZOrder;
-var I: Integer; After: HWND; Sibling: TCustomControl;
+var I: Integer; After: HWND; Sibling: TObject;
 begin
   if FParent = nil then Exit;
   After := HWND_TOP;
-  I := FParent.FWindows.IndexOf(Self);
+  I := FParent.FControls.IndexOf(Self);
   if I >= 0 then
-    for I := I + 1 to FParent.FWindows.Count - 1 do
+    for I := I + 1 to FParent.FControls.Count - 1 do
     begin
-      Sibling := TCustomControl(FParent.FWindows[I]);
-      if Sibling.Handle <> 0 then begin After := Sibling.Handle; Break; end;
+      Sibling := TObject(FParent.FControls[I]);
+      if (Sibling is TCustomControl) and (TCustomControl(Sibling).Handle <> 0) then
+      begin After := TCustomControl(Sibling).Handle; Break; end;
     end;
   SetWindowPos(Handle, After, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
 end;
