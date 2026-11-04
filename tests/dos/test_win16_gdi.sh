@@ -50,3 +50,6 @@ mcopy -i "$partition" ::/GDITEST.LOG "$work/GDITEST.LOG"
 tr -d '\r' < "$work/GDITEST.LOG"
 grep -q '^RESULT PASS' "$work/GDITEST.LOG"
 if grep -q '^FAIL ' "$work/GDITEST.LOG"; then exit 1; fi
+# A passing run keeps its log and screenshot; the 128 MiB disk copy only
+# matters for a failure, so a regression no longer leaves one per suite.
+rm -f "$work/test.img"
