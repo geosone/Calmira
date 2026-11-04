@@ -40,6 +40,12 @@ class OriginalFrameTests(unittest.TestCase):
         app = source('native_application_window.pas')
         self.assertIn('WS_POPUP or WS_CLIPSIBLINGS or WS_SYSMENU or WS_MINIMIZEBOX', app)
 
+    def test_pop_up_hints_are_on_by_default_below_their_control(self):
+        forms = source('forms.pas')
+        self.assertIn('  { As Delphi 1\'s TApplication.Create. Calmira never turns pop-up hints on,\n'
+                      '    yet the original shows its file and toolbar hints. }\n  ShowHint := True;', forms)
+        self.assertIn('Info.HintPos := ControlToScreen(Control, Point(0, ControlHeight(Control) + 6));', forms)
+
 
 if __name__ == '__main__':
     unittest.main()

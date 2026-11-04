@@ -2427,3 +2427,13 @@ executables differ. Measured differences fixed:
 - **Latched toolbar buttons.** The dither fills the whole inner face, the
   shadow runs the full top and left, and the glyph stays in place, as in
   the original's view buttons.
+
+## Pop-up Hints On by Default
+
+Icon windows showed no file hints (description, date, time, attributes)
+and the toolbar no button hints. Calmira never sets
+`Application.ShowHint`, yet the original shows both, so Delphi 1's
+`TApplication` turns pop-up hints on when it is created. Ours now does the
+same. A hint sits six pixels below its control, as the original's toolbar
+hints do. Calmira's file hints place themselves 16 pixels under the
+cursor. Both now match the original pixel for pixel.

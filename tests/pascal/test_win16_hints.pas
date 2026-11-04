@@ -102,8 +102,11 @@ begin
     Check(Application.Hint = 'Long text', 'a control without a hint uses its parent''s');
     MoveTo(Plain, 3, 3); Pump(50);
     Check((Application.Hint = 'Quiet') and (Events.HintCalls = 2), 'OnHint runs when the hint changes');
-    Check(not Application.ShowHint and (ActivateCount = 0), 'pop-up hints are off by default');
+    Check(Application.ShowHint and (ActivateCount = 0),
+      'pop-up hints are on by default, as Delphi 1 (Calmira never turns them on)');
 
+    { A new hint window class takes effect when the hints are turned on. }
+    Application.ShowHint := False;
     HintWindowClass := TProbeHint;
     Application.HintPause := 100;
     Application.ShowHint := True;
@@ -112,8 +115,8 @@ begin
     Pump(300);
     Check(ActivateCount = 1, 'moves inside the control do not restart the hint');
     Check(HintVisible and (ShownText = 'Short'), 'the short hint pops up after HintPause');
-    Below := Tipped.ClientToScreen(Point(0, 40));
-    Check((ShownRect.Left = Below.X) and (ShownRect.Top = Below.Y), 'the hint appears below the control');
+    Below := Tipped.ClientToScreen(Point(0, 40 + 6));
+    Check((ShownRect.Left = Below.X) and (ShownRect.Top = Below.Y), 'the hint appears six pixels below the control, as in the original');
     Check(Shown.Color = Application.HintColor, 'the hint uses HintColor');
     Check(Inner.ShowHint and (FindDragTarget(Inner.ClientToScreen(Point(3, 3)), False) = Inner),
       'a child inherits ShowHint through ParentShowHint');

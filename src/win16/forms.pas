@@ -777,6 +777,9 @@ begin
   FHiddenForms := TList.Create;
   { Always filtered: Hint and OnHint follow the mouse even without pop-ups. }
   TNativeApplication(Self).OnMessage := MessageFilter;
+  { As Delphi 1's TApplication.Create. Calmira never turns pop-up hints on,
+    yet the original shows its file and toolbar hints. }
+  ShowHint := True;
 end;
 function ControlParent(Control: TControl): TControl;
 begin
@@ -961,7 +964,9 @@ begin
   if (FHintWindow = nil) or (Control = nil) or (Control <> FHintControl) then
   begin CancelHint; Exit; end;
   Info.HintControl := Control;
-  Info.HintPos := ControlToScreen(Control, Point(0, ControlHeight(Control)));
+  { Six pixels below the control, measured against the original's toolbar
+    hints, as Delphi's ClientToScreen(Point(0, Height + 6)). }
+  Info.HintPos := ControlToScreen(Control, Point(0, ControlHeight(Control) + 6));
   Info.HintMaxWidth := Screen.Width;
   Info.HintColor := FHintColor;
   Info.CursorRect := ControlClientRect(Control);
