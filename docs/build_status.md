@@ -2594,3 +2594,15 @@ Icon..." buttons while they were disabled. Like the speed buttons,
 is the face colour in Windows 3.1's default scheme. It is now embossed
 too, as Delphi 1's `DrawButtonText` does it. The bitmap button runtime
 test checks this.
+
+## Forms Repaint Over What OnShow Drew
+
+The shut-down dialog darkens the screen in its `OnShow`. Delphi runs
+`OnShow` before the window appears, so the dialog then paints cleanly on
+top. Ours ran it after `ShowWindow`, when the frame had been drawn and the
+children erased. The checkerboard therefore stayed over the caption and
+behind the radio buttons. Moving `OnShow` earlier would break forms that
+focus a control in it. Instead, a form with an `OnShow` handler now
+invalidates its frame and every child afterwards, and the dialog looks
+as in the original. The forms runtime test darkens the screen in
+`OnShow` and checks the caption and a button.

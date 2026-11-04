@@ -422,6 +422,11 @@ begin
     ShowWindow(Handle, ShowCommands[Requested]);
     if ReadWindowState <> Requested then ApplyWindowState(Requested);
     DoShow;
+    { Delphi runs OnShow before the window appears; here it is already
+      erased. What OnShow drew over the screen (Calmira's shut-down dialog
+      darkens it) is painted over by the frame and every child again. }
+    if Assigned(FOnShow) and IsWindowVisible(Handle) then
+      RedrawWindow(Handle, nil, 0, RDW_INVALIDATE or RDW_ERASE or RDW_FRAME or RDW_ALLCHILDREN);
   finally FChangingForm := False; end;
 end;
 procedure TNativeForm.ChangeView(Action: TControlViewAction);

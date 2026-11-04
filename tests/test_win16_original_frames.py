@@ -150,6 +150,10 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('OffsetRect(TextArea, 1, 1);\n      SetTextColor(Item.hDC, ColorToRGB(clBtnHighlight));', buttons)
         self.assertNotIn('ColorToRGB(clGrayText)', buttons)
 
+    def test_forms_repaint_over_what_on_show_drew(self):
+        self.assertIn('if Assigned(FOnShow) and IsWindowVisible(Handle) then\n      RedrawWindow(Handle, nil, 0, RDW_INVALIDATE or RDW_ERASE or RDW_FRAME or RDW_ALLCHILDREN);',
+                      source('native_form.pas'))
+
 
 if __name__ == '__main__':
     unittest.main()

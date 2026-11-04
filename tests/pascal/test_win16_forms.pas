@@ -15,6 +15,7 @@ type
     destructor Destroy; override;
     procedure CloseHandler(Sender: TObject; var Action: TCloseAction);
     procedure ModalShow(Sender: TObject);
+    procedure DarkenShow(Sender: TObject);
     procedure MinimizeHandler(Sender: TObject; var Action: TCloseAction);
     procedure Filter(var Msg: TMsg; var Handled: Boolean);
   end;
@@ -83,6 +84,13 @@ procedure TDesktopForm.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
   Params.WndParent := GetDesktopWindow;
+end;
+{ As Calmira's shut-down dialog: OnShow darkens the whole screen. }
+procedure TChildForm.DarkenShow(Sender: TObject);
+var DC: HDC;
+begin
+  DC := GetDC(0); PatBlt(DC, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), BLACKNESS);
+  ReleaseDC(0, DC);
 end;
 procedure TChildForm.ModalShow(Sender: TObject);
 begin
@@ -291,6 +299,19 @@ begin
   Check((R.Right - R.Left = 150) and (R.Bottom - R.Top = 90), 'poDefaultPosOnly keeps the size');
   Loose.Free;
 end;
+procedure ShowOverPaint;
+var Button: TButton; DC: HDC; Face, Caption: TColorRef;
+begin
+  Loose := TChildForm.Create(nil); Loose.SetBounds(60, 60, 200, 100);
+  Button := TButton.Create(Loose); Button.SetBounds(8, 8, 75, 23); Button.Parent := Loose;
+  Loose.OnShow := Loose.DarkenShow; Loose.Show; Application.ProcessMessages;
+  DC := GetDC(Button.Handle); Face := GetPixel(DC, 4, 4); ReleaseDC(Button.Handle, DC);
+  DC := GetWindowDC(Loose.Handle);
+  Caption := GetPixel(DC, 30, GetSystemMetrics(SM_CYFRAME) + 2); ReleaseDC(Loose.Handle, DC);
+  Check((Face = DWORD(ColorToRGB(clBtnFace))) and (Caption <> 0),
+    'what OnShow draws over the screen is painted over by the frame and children');
+  Loose.Free;
+end;
 { Delphi 1: the visible, zero-sized TApplication window in the middle of the
   screen owns every form; each form class is a window class of its name. }
 procedure WindowHierarchy;
@@ -404,7 +425,7 @@ begin
 end;
 begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
-  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiBounds; DelphiWindows; WindowHierarchy; DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
+  try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiBounds; DelphiWindows; WindowHierarchy; ShowOverPaint; DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Check(StackGuardIntact, 'forms stack boundary');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');
