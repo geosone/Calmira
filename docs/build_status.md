@@ -2777,3 +2777,24 @@ were missing:
 
 `win16-forms-runtime-test` checks a menu shortcut and a pop-up shortcut on
 a form made with `Create`.
+
+## Desktop Icons After a Window Closes
+
+Closing a folder or Explorer window that covered the desktop icons left
+parts of it inside the icons, and no icon became active; the original
+repaints them and activates the next window (the topmost icon, shaded).
+After the delete confirmation the Explorer also stayed inactive.
+
+- A minimized form without a class icon is erased like a client area.
+  `WM_ERASEBKGND` only reported success, since a shown form fills its
+  background while painting; a minimized one only draws its icon. As
+  Delphi's `TWinControl.WMEraseBkgnd`, a minimized form now fills the area
+  with `Color`.
+- As Delphi's `CMShowingChanged`, hiding a form runs `OnHide` first, while
+  the window still shows, and then activates the topmost other visible,
+  enabled window of the program (always-on-top windows such as the taskbar
+  excepted). Calmira's progress box disables the other forms while it shows
+  and enables them in `OnHide`; before, USER chose the taskbar because the
+  folder below was still disabled.
+
+`win16-forms-runtime-test` checks both.

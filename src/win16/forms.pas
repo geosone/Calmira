@@ -75,6 +75,7 @@ type
     procedure IconChanged(Sender: TObject);
     function IconHandle: HICON;
     procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
+    procedure WMEraseBkgnd(var Message: TMessage); message WM_ERASEBKGND;
     procedure WMQueryDragIcon(var Message: TMessage); message WM_QUERYDRAGICON;
     procedure WMSysCommand(var Message: TWMSysCommand); message WM_SYSCOMMAND;
     procedure WMCommand(var Message: TWMCommand); message WM_COMMAND;
@@ -478,6 +479,14 @@ begin
   try DrawIcon(DC, 0, 0, IconHandle);
   finally EndPaint(Handle, PS); end;
   Message.Result := 0;
+end;
+{ A minimized form without a class icon is erased like a client area; as
+  Delphi's TWinControl.WMEraseBkgnd, fill it with Color, or the icon is drawn
+  over whatever covered it last (a closed folder window). }
+procedure TForm.WMEraseBkgnd(var Message: TMessage);
+begin
+  if (Handle <> 0) and IsIconic(Handle) then EraseWithColor(Message)
+  else inherited;
 end;
 procedure TForm.Paint;
 begin

@@ -42,6 +42,7 @@ type
     procedure SetCaption(const Value: string);
     procedure CheckChanging;
     procedure HideWindow;
+    procedure ConcealWindow;
     procedure WMClose(var M: TMessage); message WM_CLOSE;
     procedure WMActivate(var M: TWMActivate); message WM_ACTIVATE;
     procedure RestoreFocus;
@@ -488,18 +489,57 @@ begin
     if Value then Show else Hide
   else inherited Visible := Value;
 end;
+{ The topmost visible, enabled window of this task other than Window, as
+  Delphi's FindTopMostWindow: always-on-top windows (Calmira's taskbar) and
+  the zero-sized application window are skipped. }
+function TopMostTaskWindow(Window: HWND): HWND;
+var Task: THandle; Area: TRect;
+begin
+  Task := GetWindowTask(Window);
+  Result := GetWindow(GetDesktopWindow, GW_CHILD);
+  while Result <> 0 do
+  begin
+    if (Result <> Window) and (GetWindowTask(Result) = Task) and IsWindowVisible(Result) and
+      IsWindowEnabled(Result) and (GetWindowLong(Result, GWL_EXSTYLE) and WS_EX_TOPMOST = 0) then
+    begin
+      GetWindowRect(Result, Area);
+      if not IsRectEmpty(Area) then Exit;
+    end;
+    Result := GetWindow(Result, GW_HWNDNEXT);
+  end;
+end;
 procedure TNativeForm.HideWindow;
-var Current: HWND;
 begin
   if (Handle = 0) or not Visible then Exit;
   FWindowState := GetWindowState; FPendingState := True;
+  { As Delphi's CMShowingChanged, OnHide runs while the window still shows:
+    Calmira's progress box enables the other forms there. The window is
+    hidden even when OnHide fails. }
+  try
+    DoHide;
+  finally
+    if (Handle <> 0) and Visible then ConcealWindow;
+  end;
+end;
+procedure TNativeForm.ConcealWindow;
+var Current, Next: HWND;
+begin
   { A hidden form must not leave its descendants owning global input state. }
   Current := GetCapture;
   if (Current = Handle) or IsChild(Handle, Current) then ReleaseCapture;
+  Next := 0;
+  if (GetActiveWindow = Handle) and not IsIconic(Handle) then Next := TopMostTaskWindow(Handle);
   Current := GetFocus;
   if (Current = Handle) or IsChild(Handle, Current) then WinProcs.SetFocus(0);
-  Visible := False;
-  DoHide;
+  if Next <> 0 then
+  begin
+    { Then the topmost other window is activated, not whatever USER picks. }
+    SetWindowPos(Handle, 0, 0, 0, 0, 0, SWP_HIDEWINDOW or SWP_NOSIZE or SWP_NOMOVE or
+      SWP_NOZORDER or SWP_NOACTIVATE);
+    Visible := False;
+    SetActiveWindow(Next);
+  end
+  else Visible := False;
 end;
 procedure TNativeForm.Hide;
 begin

@@ -18,7 +18,11 @@ class FormActivationTests(unittest.TestCase):
         getters = source.split('function TNativeForm.GetActive:', 1)[1].split(
             'procedure TNativeForm.SetActiveControl(', 1)[0]
         self.assertNotIn('SetActiveWindow(', getters)
-        self.assertEqual(source.count('SetActiveWindow('), 1)
+        # ChangeView brings a form to the front; hiding the active form hands
+        # activation to the topmost other window, as Delphi's CMShowingChanged.
+        self.assertEqual(source.count('SetActiveWindow('), 2)
+        conceal = source.split('procedure TNativeForm.ConcealWindow;', 1)[1].split('procedure TNativeForm.Hide;', 1)[0]
+        self.assertIn('SetActiveWindow(Next);', conceal)
         view = source.split('procedure TNativeForm.ChangeView(', 1)[1].split(
             'procedure TNativeForm.HideWindow;', 1)[0]
         self.assertIn('(Action = cvaFront) and Enabled then SetActiveWindow(Handle)', view)

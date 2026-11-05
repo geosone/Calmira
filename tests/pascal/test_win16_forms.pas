@@ -22,6 +22,7 @@ type
     procedure CountShow(Sender: TObject);
     procedure CountHide(Sender: TObject);
     procedure CountShortcut(Sender: TObject);
+    procedure EnableOthersHide(Sender: TObject);
     procedure WMBoom(var M: TMessage); message WM_USER + 77;
     procedure Caught(Sender: TObject; E: Exception);
     procedure MinimizeHandler(Sender: TObject; var Action: TCloseAction);
@@ -374,6 +375,27 @@ begin
 end;
 procedure TChildForm.CountShortcut(Sender: TObject);
 begin Inc(Shortcuts); end;
+var HideBelow: TChildForm;
+procedure TChildForm.EnableOthersHide(Sender: TObject);
+begin if HideBelow <> nil then EnableWindow(HideBelow.Handle, True); end;
+{ As Delphi's CMShowingChanged: OnHide runs first, then the topmost other
+  window is activated. Calmira's progress box disables the other forms while
+  shown and enables them in OnHide; the folder below must become active. }
+function HideActivatesTopmost: Boolean;
+var Top: TChildForm;
+begin
+  HideBelow := TChildForm.Create(nil); HideBelow.SetBounds(40, 40, 200, 100);
+  HideBelow.Show; Application.ProcessMessages;
+  Top := TChildForm.Create(nil); Top.SetBounds(80, 80, 200, 100);
+  Top.OnHide := Top.EnableOthersHide;
+  Top.Show; SetActiveWindow(Top.Handle); EnableWindow(HideBelow.Handle, False);
+  Application.ProcessMessages;
+  Top.Hide;
+  Result := GetActiveWindow = HideBelow.Handle;
+  Application.ProcessMessages;
+  Result := Result and (GetActiveWindow = HideBelow.Handle);
+  Top.Free; HideBelow.Free; HideBelow := nil;
+end;
 { As Delphi's key handling: Calmira's folder and Explorer windows are made
   with Create, and Del or F2 in their file pane are File menu shortcuts. }
 function ShortcutReachesCreatedForm: Boolean;
@@ -392,6 +414,22 @@ begin
   Result := Form.Shortcuts = 1;
   PostMessage(Edit.Handle, WM_KEYDOWN, VK_F2, 1); Application.ProcessMessages;
   Result := Result and (Form.Shortcuts = 2);
+  Form.Free;
+end;
+{ Calmira's desktop icons are minimized forms; uncovering one erases it
+  like a client area, as Delphi's TWinControl.WMEraseBkgnd does. }
+function IconErasesWithColor: Boolean;
+var Form: TChildForm; DC: HDC; Black: HBRUSH; Area: TRect;
+begin
+  Form := TChildForm.Create(nil); Form.SetBounds(60, 60, 200, 100);
+  Form.Color := clRed; Form.Show; Application.ProcessMessages;
+  ShowWindow(Form.Handle, SW_SHOWMINNOACTIVE); Application.ProcessMessages;
+  DC := GetDC(Form.Handle);
+  Black := GetStockObject(BLACK_BRUSH); SetRect(Area, 0, 0, 8, 8);
+  FillRect(DC, Area, Black);
+  Result := IsIconic(Form.Handle) and (Form.Perform(WM_ERASEBKGND, DC, 0) <> 0) and
+    (GetPixel(DC, 2, 2) = ColorToRGB(clRed));
+  ReleaseDC(Form.Handle, DC);
   Form.Free;
 end;
 { As Delphi's Screen: Calmira creates its folder windows with Create, not
@@ -538,6 +576,8 @@ begin
   try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiBounds; DelphiWindows; WindowHierarchy; ShowOverPaint;
     Check(ShowSelects(False) and ShowSelects(True), 'text OnShow puts into the focused edit or combo box is selected');
     Check(ScreenListsEveryForm, 'Screen lists and activates forms not made by CreateForm');
+    Check(HideActivatesTopmost, 'hiding the active form activates the topmost window after OnHide');
+    Check(IconErasesWithColor, 'a minimized form erases its icon area with Color');
     Check(ShortcutReachesCreatedForm, 'menu and pop-up shortcuts reach a form not made by CreateForm');
     Check(VisibleShowsAndHides, 'setting Visible shows and hides a form with OnShow and OnHide');
     Check(HandlerExceptionsReachApplication, 'an exception in a message handler reaches Application.OnException');

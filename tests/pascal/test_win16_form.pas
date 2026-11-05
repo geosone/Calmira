@@ -39,7 +39,8 @@ begin
 end;
 procedure TObserver.Hidden(Sender: TObject);
 begin
-  Inc(Hides); HideState := not Form.Visible and not IsWindowVisible(Form.Handle);
+  { As Delphi's CMShowingChanged: OnHide runs while the window still shows. }
+  Inc(Hides); HideState := IsWindowVisible(Form.Handle);
   if FailHide then raise Exception.Create('hide event failure');
 end;
 procedure TObserver.Query(Sender: TObject; var CanClose: Boolean);

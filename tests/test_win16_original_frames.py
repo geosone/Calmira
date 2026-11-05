@@ -191,6 +191,17 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('(Item >= 0) and Selected[Item] then\n  begin BeginDrag(False); Exit; end;', listbox)
         self.assertIn('DefaultHandler(M);\n  if FMultiSelect and Modifier then Exit;\n  BeginDrag(False);', listbox)
 
+    def test_minimized_form_erases_with_color(self):
+        forms = source('forms.pas')
+        self.assertIn('procedure WMEraseBkgnd(var Message: TMessage); message WM_ERASEBKGND;', forms)
+        self.assertIn('if (Handle <> 0) and IsIconic(Handle) then EraseWithColor(Message)', forms)
+
+    def test_hide_runs_onhide_first_and_activates_topmost(self):
+        form = source('native_form.pas')
+        self.assertIn('  try\n    DoHide;\n  finally\n    if (Handle <> 0) and Visible then ConcealWindow;\n  end;', form)
+        self.assertIn('Next := TopMostTaskWindow(Handle);', form)
+        self.assertIn('(GetWindowLong(Result, GWL_EXSTYLE) and WS_EX_TOPMOST = 0)', form)
+
     def test_keys_reach_every_form_and_popup_shortcuts(self):
         app = source('native_application.pas')
         self.assertNotIn('FForms.Count - 1 do\n  begin\n    Form := TNativeForm(FForms[Index]);\n'
