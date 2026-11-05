@@ -100,10 +100,10 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure Paint; override;
     procedure DblClick; override;
+    function PaintFrameFirst(var Message: TMessage): Boolean; override;
     { KeyPreview: the form's key events for a key sent to one of its controls. }
     function PreviewKey(var Message: TMsg): Boolean;
   public
-    procedure DefaultHandler(var Message); override;
     { Menu shortcuts come before the dialog keys. }
     function ProcessDialogMessage(var Message: TMsg): Boolean; override;
     { Runs the loaders registered for this class and its ancestors, as Delphi
@@ -600,14 +600,14 @@ function TForm.NativeExStyle: DWORD;
 begin
   if FBorderStyle = bsDialog then Result := WS_EX_DLGMODALFRAME else Result := 0;
 end;
-{ As Delphi 1: with CTL3D loaded, a Ctl3D dialog's frame is painted in 3D. }
-procedure TForm.DefaultHandler(var Message);
+{ As Delphi 1: with CTL3D loaded, a Ctl3D dialog's frame is painted in 3D,
+  before the form's own handlers see the message. Calmira's ExtForm draws
+  its own caption on WM_NCPAINT; Start Menu Properties keeps the 3D one. }
+function TForm.PaintFrameFirst(var Message: TMessage): Boolean;
 begin
-  with TMessage(Message) do
-    if ((Msg = WM_NCPAINT) or (Msg = WM_NCACTIVATE) or (Msg = WM_SETTEXT)) and
-      (FBorderStyle = bsDialog) and Ctl3D and (Handle <> 0) and Assigned(Ctl3DDlgFramePaint) then
-      Result := Ctl3DDlgFramePaint(Handle, Msg, WParam, LParam)
-    else inherited DefaultHandler(Message);
+  Result := (FBorderStyle = bsDialog) and Ctl3D and (Handle <> 0) and Assigned(Ctl3DDlgFramePaint);
+  if Result then
+    Message.Result := Ctl3DDlgFramePaint(Handle, Message.Msg, Message.WParam, Message.LParam);
 end;
 var FormClassNames: TStringList;
 { As Delphi, each form class registers a window class of its own name, such

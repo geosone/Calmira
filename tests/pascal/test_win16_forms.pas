@@ -1,7 +1,7 @@
 program FormsTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
 uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Graphics, Controls, Forms, StdCtrls, Buttons, Menus,
-  native_form, native_window, native_application;
+  native_form, native_window, native_application, native_ctl3d;
 type
   TMainForm = class(TForm)
   protected
@@ -32,6 +32,12 @@ type
   TDesktopForm = class(TForm)
   protected
     procedure CreateParams(var Params: TCreateParams); override;
+  end;
+  { As Calmira's ExtForm: paints its own caption on WM_NCPAINT. }
+  TCaptionForm = class(TForm)
+  public
+    NCPaints: Integer;
+    procedure WMNCPaint(var M: TMessage); message WM_NCPAINT;
   end;
   TActiveProbe = class(TBitBtn)
   public
@@ -161,6 +167,7 @@ procedure Creation;
 begin
   RegisterFormLoader(TMainForm, NoComponents);
   RegisterFormLoader(TChildForm, NoComponents);
+  RegisterFormLoader(TCaptionForm, NoComponents);
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TChildForm, Child);
   Check((Application.MainForm = MainForm) and (MainForm.Owner = Application) and
@@ -418,6 +425,27 @@ begin
 end;
 { Calmira's desktop icons are minimized forms; uncovering one erases it
   like a client area, as Delphi's TWinControl.WMEraseBkgnd does. }
+procedure TCaptionForm.WMNCPaint(var M: TMessage);
+begin Inc(NCPaints); inherited; end;
+{ As Delphi 1: CTL3D paints a Ctl3D dialog's frame before the form's own
+  handlers see WM_NCPAINT; Calmira's Start Menu Properties keeps the 3D
+  caption instead of ExtForm's. Other border styles reach the handler. }
+function Ctl3DFrameBeforeHandlers: Boolean;
+var Form: TCaptionForm;
+begin
+  Form := TCaptionForm.Create(nil);
+  Form.BorderStyle := bsDialog; Form.SetBounds(60, 60, 200, 100);
+  Form.Show; Application.ProcessMessages;
+  Form.NCPaints := 0; Form.Perform(WM_NCPAINT, 1, 0); Form.Perform(WM_NCACTIVATE, 1, 0);
+  Result := Form.Ctl3D and (Form.NCPaints = 0);
+  Form.Free;
+  Form := TCaptionForm.Create(nil);
+  Form.BorderStyle := bsSingle; Form.SetBounds(60, 60, 200, 100);
+  Form.Show; Application.ProcessMessages;
+  Form.NCPaints := 0; Form.Perform(WM_NCPAINT, 1, 0);
+  Result := Result and (Form.NCPaints = 1);
+  Form.Free;
+end;
 function IconErasesWithColor: Boolean;
 var Form: TChildForm; DC: HDC; Black: HBRUSH; Area: TRect;
 begin
@@ -577,6 +605,8 @@ begin
     Check(ShowSelects(False) and ShowSelects(True), 'text OnShow puts into the focused edit or combo box is selected');
     Check(ScreenListsEveryForm, 'Screen lists and activates forms not made by CreateForm');
     Check(HideActivatesTopmost, 'hiding the active form activates the topmost window after OnHide');
+    Check(native_ctl3d.Ctl3DLoaded, 'CTL3D is loaded');
+    Check(Ctl3DFrameBeforeHandlers, 'CTL3D paints a dialog frame before the form''s own handlers');
     Check(IconErasesWithColor, 'a minimized form erases its icon area with Color');
     Check(ShortcutReachesCreatedForm, 'menu and pop-up shortcuts reach a form not made by CreateForm');
     Check(VisibleShowsAndHides, 'setting Visible shows and hides a form with OnShow and OnHide');

@@ -174,6 +174,9 @@ type
     { Delphi's csFramed: with Ctl3D, the parent draws a sunken edge around
       the control (edits, list and combo boxes). }
     function Ctl3DFramed: Boolean; virtual;
+    { WM_NCPAINT, WM_NCACTIVATE and WM_SETTEXT before the message handlers:
+      True when the frame was painted (Delphi 1's CTL3D dialog frame). }
+    function PaintFrameFirst(var Message: TMessage): Boolean; virtual;
     procedure SetCtl3D(Value: Boolean);
     procedure SetParentCtl3D(Value: Boolean);
     procedure WMCommand(var M: TWMCommand); message WM_COMMAND;
@@ -1299,10 +1302,14 @@ begin
       begin CheckMouseControl; Message.Result := 0; Exit; end;
     WM_SETCURSOR:
       if GraphicCursor(Message) then Exit;
+    WM_NCPAINT, WM_NCACTIVATE, WM_SETTEXT:
+      if PaintFrameFirst(Message) then Exit;
     WM_DESTROY: DestroyWnd;
   end;
   inherited WndProc(Message);
 end;
+function TCustomControl.PaintFrameFirst(var Message: TMessage): Boolean;
+begin Result := False; end;
 function TCustomControl.GraphicCursor(var M: TMessage): Boolean;
 var Position: TPoint; Graphic: TGraphicControl; Value: HCURSOR;
 begin

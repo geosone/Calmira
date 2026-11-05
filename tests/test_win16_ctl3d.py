@@ -27,7 +27,15 @@ class Ctl3DTest(unittest.TestCase):
         forms = source('forms.pas')
         self.assertIn('bsDialog: Result := WS_CAPTION or WS_DLGFRAME or DS_MODALFRAME;', forms)
         self.assertIn('if FBorderStyle = bsDialog then Result := WS_EX_DLGMODALFRAME else Result := 0;', forms)
-        self.assertIn('Result := Ctl3DDlgFramePaint(Handle, Msg, WParam, LParam)', forms)
+        self.assertIn('Message.Result := Ctl3DDlgFramePaint(Handle, Message.Msg, Message.WParam, Message.LParam);', forms)
+        # Before the form's own handlers, as Delphi 1: ExtForm's caption
+        # must not paint over the CTL3D frame of Start Menu Properties.
+        frame = forms.split('function TForm.PaintFrameFirst(var Message: TMessage): Boolean;', 1)[1].split('\nend;', 1)[0]
+        self.assertIn('Ctl3DDlgFramePaint(Handle, Message.Msg, Message.WParam, Message.LParam)', frame)
+        self.assertNotIn('procedure TForm.DefaultHandler', forms)
+        # Within the existing WndProc case: no extra frame on the 4 KB test stacks.
+        self.assertIn('    WM_NCPAINT, WM_NCACTIVATE, WM_SETTEXT:\n      if PaintFrameFirst(Message) then Exit;',
+                      source('controls.pas'))
         self.assertIn('AdjustWindowRectEx(Result, Form.FrameStyle, Form.Menu <> nil, Form.NativeExStyle);', forms)
         self.assertIn("initialization\n  ReleaseMessage := RegisterWindowMessage('CalmiraFormRelease');\n"
                       "  { Loaded up front, on a shallow stack: CTL3D's start-up code runs on ours. }\n  InitCtl3D;", forms)

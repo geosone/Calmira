@@ -2798,3 +2798,21 @@ After the delete confirmation the Explorer also stayed inactive.
   folder below was still disabled.
 
 `win16-forms-runtime-test` checks both.
+
+## Start Menu Properties Caption
+
+Start Menu Properties showed the small left-aligned caption with a close
+button that Calmira's ExtForm draws on folder windows. In the original it
+has the CTL3D dialog caption: a system-menu box and a centred title.
+
+As Delphi 1, a Ctl3D form with `bsDialog` hands `WM_NCPAINT`,
+`WM_NCACTIVATE` and `WM_SETTEXT` to CTL3D's dialog frame painter before
+the form's own message handlers see them. This used to happen in
+`DefaultHandler`, so ExtForm's `WM_NCPAINT` handler ran first and painted
+its caption over CTL3D's. It now happens in the existing case of
+`TCustomControl.WndProc`, through `PaintFrameFirst`, which `TForm`
+overrides; a separate `WndProc` override overran the 4 KB stack of the
+password dialog test.
+
+`win16-forms-runtime-test` checks that a form's own `WM_NCPAINT` handler
+runs for `bsSingle` but not for a CTL3D dialog.
