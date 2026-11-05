@@ -2698,3 +2698,17 @@ Delphi's `Perform` needs no window; the broadcast now skips controls
 without a handle and still reaches their children. The bitmap button
 test raises in its owner-draw on purpose; it now checks the failure
 reaches the application's handler while the parent still contains it.
+
+## Advanced Tab Buttons in System Properties
+
+When the Advanced tab of System Properties first opened, Remove and
+Modify were greyed out; in the original they are enabled until an item is
+clicked. Calmira fills the tree and then calls `Click` inside
+`with Outline do`. In Delphi 1 `TCustomOutline.Click` is protected in unit
+Outline, so from the form that name is the form's own `Click`, which does
+nothing. FPC skips the hidden method but finds the visible `TControl.Click`
+of an ancestor and calls the outline's `OnClick`, which greys out both
+buttons for a top-level item. `sysprop.pas` now says `Self.Click`, as
+Delphi resolved it. No other bare `Click` in Calmira calls a protected
+method of a class from another unit.
+

@@ -184,6 +184,15 @@ class OriginalFrameTests(unittest.TestCase):
         bitmap = source('gdi_bitmap.pas')
         self.assertIn("{ As Delphi's TBitmap.Draw, an empty bitmap draws nothing. }\n  if FHandle = 0 then Exit;", bitmap)
 
+    def test_advanced_tab_click_resolves_as_in_delphi(self):
+        # TCustomOutline.Click is protected in Delphi 1's Outline unit, so the
+        # bare Click inside `with Outline do` is the form's. FPC would find the
+        # outline's and grey out Remove and Modify when the tab first opens.
+        sysprop = (WIN16.parent / 'sysprop.pas').read_text(encoding='cp1252').replace('\r\n', '\n')
+        self.assertIn('        EndUpdate;\n', sysprop)
+        self.assertIn('        Self.Click;\n', sysprop)
+        self.assertNotIn('        EndUpdate;\n        Click;\n', sysprop)
+
     def test_modal_dialogs_pass_messages_to_the_application(self):
         modal = source('native_modal.pas')
         self.assertIn('FModalLoop.PreFilter := ModalMessageFilter;\n    FModalLoop.OnMessage := ProcessDialogMessage;', modal)

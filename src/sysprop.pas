@@ -389,7 +389,10 @@ begin
           for j := 0 to strings.Count - 1 do AddChild(node, strings[j]);
         end;
         EndUpdate;
-        Click;
+        { Delphi 1 resolves this to the form's Click: TCustomOutline.Click is
+          protected in unit Outline. FPC would call the outline's, and
+          OutlineClick would disable Remove and Modify. }
+        Self.Click;
       end;
     finally
       sections.Free;
