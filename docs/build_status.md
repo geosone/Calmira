@@ -2749,3 +2749,14 @@ The drag ends USER's tracking with `WM_CANCELMODE`, which sends no
 `LBN_SELCHANGE`, so the list calls `Click` itself when the press changed the
 selection; the status bar shows "1 selected" while the button is still down,
 as in the original. `win16-listbox-runtime-test` covers both cases.
+
+## Shaded Desktop Icons
+
+A selected desktop icon (Recycle Bin, My Computer, shortcuts) stayed
+unshaded; the original covers it with a mesh in the selection colour.
+Calmira draws the mesh in `WM_PAINT` after the inherited handler, outside
+the paint phase, and `ShadeIcon` blits to `ACanvas.Handle`. Here
+`Canvas.Handle` stays 0 outside painting, so the blit went nowhere. As in
+`task.pas`, one `{$IFDEF FPC}` line in `vcl/miscutil.pas` uses
+`ContextHandle`, which is what Delphi's `Canvas.Handle` returns. The other
+`Canvas.Handle` calls in Calmira run while painting or on bitmap canvases.

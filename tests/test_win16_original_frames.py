@@ -205,6 +205,12 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn("if not FChangingForm and (Value <> inherited Visible) and (Value or (Handle <> 0)) then\n"
                       "    if Value then Show else Hide\n  else inherited Visible := Value;", form)
 
+    def test_shaded_icon_draws_outside_paint(self):
+        # Minimized windows shade their icon after the inherited WM_PAINT,
+        # where Canvas.Handle is 0; Delphi's Canvas.Handle is ContextHandle.
+        misc = (ROOT / 'vcl/miscutil.pas').read_text(encoding='cp1252').replace('\r\n', '\n')
+        self.assertIn('{$IFDEF FPC}\n    BitBlt(ACanvas.ContextHandle, X, Y, 32, 32, Handle, 0, 0, SRCAND);', misc)
+
     def test_advanced_tab_click_resolves_as_in_delphi(self):
         # TCustomOutline.Click is protected in Delphi 1's Outline unit, so the
         # bare Click inside `with Outline do` is the form's. FPC would find the

@@ -780,7 +780,11 @@ else
     SelectObject(Handle, IconMesh.Handle);
     PatBlt(Handle, 0, 0, 32, 32, $FA0089);
     { finally draw the mask over the original icon using AND }
+{$IFDEF FPC}
+    BitBlt(ACanvas.ContextHandle, X, Y, 32, 32, Handle, 0, 0, SRCAND);
+{$ELSE}
     BitBlt(ACanvas.Handle, X, Y, 32, 32, Handle, 0, 0, SRCAND);
+{$ENDIF}
   end;
 end;
 
