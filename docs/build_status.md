@@ -2722,3 +2722,16 @@ and setting `Visible` on a form only showed the window. As Delphi's
 hides the form as `Show` and `Hide` do, with `OnShow` and `OnHide`.
 `win16-forms-runtime-test` checks both events fire once.
 
+## Screen Lists Every Form
+
+A folder opened with "Open in new window" from the Explorer appeared
+centred; the original cascades it from the active window. Calmira places a
+new folder window relative to `Screen.ActiveForm` when that is a folder
+window. Folder and Explorer windows are made with `Create`, not
+`Application.CreateForm`, and `Screen` only knew the forms the application
+had created, so `ActiveForm` was nil. As Delphi's `Screen.Forms`, each form
+now enters a list of live forms when it is constructed and leaves it when
+it is destroyed; `Screen.Forms`, `FormCount` and `ActiveForm` use that list.
+`win16-forms-runtime-test` checks a form made with `Create` is listed and
+active.
+

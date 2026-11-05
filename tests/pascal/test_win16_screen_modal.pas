@@ -33,10 +33,8 @@ procedure TDialog.Probe(var M: TMessage);
 begin
   Inc(Driver.Probes);
   Check(not IsWindowEnabled(Main.Handle), 'modal owner disabled');
-  if Driver.Mode = 2 then
-    Check((View.ActiveForm = nil) and (View.ActiveControl = nil) and (View.FormCount = 1), 'unregistered modal does not impersonate owner')
-  else
-    Check((View.ActiveForm = Dialog) and (View.ActiveControl = DialogEdit) and
+  { As Delphi's Screen, a modal form is active whether or not it is registered. }
+  Check((View.ActiveForm = Dialog) and (View.ActiveControl = DialogEdit) and
       (View.Forms[0] = Dialog), 'registered modal is active front with edit focus');
   if Driver.Mode = 4 then PostQuitMessage(-71)
   else PostMessage(Handle, WM_CLOSE, 0, 0);

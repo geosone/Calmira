@@ -20,7 +20,7 @@ class NativeScreenTests(unittest.TestCase):
     def test_application_teardown_returns_empty_before_registry_access(self):
         source = (ROOT / 'src/win16/native_screen.pas').read_text()
         self.assertIn('not FApplication.ShuttingDown', source)
-        self.assertIn('if HasApplication then Result := FApplication.FormCount', source)
+        self.assertIn('if HasApplication then Result := LiveFormCount', source)
         app = (ROOT / 'src/win16/native_application.pas').read_text()
         self.assertIn('property TaskHandle: HTASK read FTask', app)
         self.assertIn('property ShuttingDown: Boolean read FShuttingDown', app)
@@ -63,10 +63,10 @@ class NativeScreenTests(unittest.TestCase):
         modal = (ROOT / 'tests/pascal/test_win16_screen_modal.pas').read_text()
         for text in ('bottom-of-pack cycle visits third form', 'reparented focus uses new native form',
                      'failed rebind preserves previous application', 'screen reads are empty during application teardown',
-                     'unregistered active frame is not misidentified', 'recreated HWND returns to native front',
+                     'a form not made by CreateForm is listed and active', 'recreated HWND returns to native front',
                      'screen outlives application without dangling binding'):
             self.assertIn(text, core)
-        for text in ('registered modal is active front with edit focus', 'unregistered modal does not impersonate owner',
+        for text in ('registered modal is active front with edit focus', 'As Delphi\'s Screen, a modal form is active whether or not it is registered.',
                      'modal exit restores actual owner and focus view', 'startup error restores screen state',
                      'modal signed quit reaches root'):
             self.assertIn(text, modal)

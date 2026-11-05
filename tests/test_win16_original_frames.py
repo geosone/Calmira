@@ -184,6 +184,14 @@ class OriginalFrameTests(unittest.TestCase):
         bitmap = source('gdi_bitmap.pas')
         self.assertIn("{ As Delphi's TBitmap.Draw, an empty bitmap draws nothing. }\n  if FHandle = 0 then Exit;", bitmap)
 
+    def test_screen_lists_every_live_form(self):
+        form = source('native_form.pas')
+        self.assertIn('LiveForms.Add(Self);', form)
+        self.assertIn('if LiveForms <> nil then LiveForms.Remove(Self);', form)
+        screen = source('native_screen.pas')
+        self.assertNotIn('FApplication.Forms', screen)
+        self.assertNotIn('FApplication.FormCount', screen)
+
     def test_form_visible_shows_and_hides_with_events(self):
         form = source('native_form.pas')
         self.assertIn('property Visible: Boolean read GetFormVisible write SetFormVisible;', form)

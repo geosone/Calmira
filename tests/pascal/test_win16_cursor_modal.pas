@@ -45,12 +45,10 @@ begin
   Inc(Driver.Probes); PointAt(DialogEdit.Handle);
   CursorMessage(DialogEdit.Handle, HTCLIENT);
   Check(not IsWindowEnabled(Main.Handle), 'cursor modal owner disabled');
-  if Driver.Mode = 2 then
-    Check(CurrentCursor = Beam, 'unregistered modal retains native cursor')
-  else Check(CurrentCursor = WaitCursor, 'registered modal inherits screen busy override');
+  { As Delphi's Screen.Cursor, every form of the task takes the override. }
+  Check(CurrentCursor = WaitCursor, 'modal inherits screen busy override');
   View.PushCursor(crNone); CursorMessage(DialogEdit.Handle, HTCLIENT);
-  if Driver.Mode = 2 then Check(CurrentCursor = Beam, 'unregistered modal ignores none override')
-  else Check(CurrentCursor = 0, 'modal nested none cursor');
+  Check(CurrentCursor = 0, 'modal nested none cursor');
   if Driver.Mode = 4 then begin PostQuitMessage(-81); Exit; end;
   View.PopCursor; View.Cursor := crDefault; CursorMessage(DialogEdit.Handle, HTCLIENT);
   Check(CurrentCursor = Beam, 'popup does not inherit owner control cursor');

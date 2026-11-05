@@ -86,7 +86,7 @@ class NativeCursorTests(unittest.TestCase):
                      'cursor mutation from hit-test callback is rejected', 'cursor display count is unchanged',
                      'second screen cannot steal cursor controller', 'application destruction cancels cursor policy'):
             self.assertIn(text, core)
-        for text in ('registered modal inherits screen busy override', 'unregistered modal retains native cursor',
+        for text in ('modal inherits screen busy override', 'every form of the task takes the override',
                      'popup does not inherit owner control cursor', 'modal startup failure preserves outer cursor',
                      'cursor modal signed quit reaches root'):
             self.assertIn(text, modal)

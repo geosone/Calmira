@@ -98,15 +98,15 @@ begin
   Inner.Free; Inner := nil; Check(View.ActiveControl = nil, 'freed focused control leaves no stale cache');
   Unregistered := TNativeForm.Create(nil); Unregistered.SetBounds(400, 20, 160, 100); Unregistered.Show;
   RaiseWindow(Unregistered);
-  Check((View.ActiveForm = nil) and (View.ActiveControl = nil) and (View.FormCount = 5), 'unregistered active frame is not misidentified');
+  { As Delphi's Screen.Forms: a form not made by CreateForm is listed too. }
+  Check((View.ActiveForm = Unregistered) and (View.ActiveControl = nil) and (View.FormCount = 6), 'a form not made by CreateForm is listed and active');
   Unregistered.Free; Unregistered := nil;
   RaiseWindow(A); A.Hide; Check(View.ActiveForm <> A, 'hidden form is not reported active'); A.Show;
   B.DestroyHandle;
   Check((View.Forms[3] = B) and (View.Forms[4] = Lazy), 'destroyed HWND returns to registration fallback');
   B.Show; RaiseWindow(B); Check(View.Forms[0] = B, 'recreated HWND returns to native front');
-  App.UnregisterForm(C); Check(View.FormCount = 4, 'unregister changes screen count immediately');
-  for I := 0 to View.FormCount - 1 do Check(View.Forms[I] <> C, 'unregistered form absent from ordered view');
-  C.Free; C := nil;
+  App.UnregisterForm(C); Check(View.FormCount = 5, 'an unregistered live form stays on the screen');
+  C.Free; C := nil; Check(View.FormCount = 4, 'freeing a form changes screen count immediately');
   App.CreateForm(TNativeForm, NewModel);
   Check((View.FormCount = 5) and (View.Forms[4] = NewModel), 'late lazy form is appended');
   View.Application := nil;

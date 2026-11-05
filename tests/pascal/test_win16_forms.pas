@@ -371,6 +371,21 @@ begin
   Result := Result and (Form.Hides = 1) and (Form.Shows = 1);
   Form.Free;
 end;
+{ As Delphi's Screen: Calmira creates its folder windows with Create, not
+  CreateForm, and cascades a new one from Screen.ActiveForm. }
+function ScreenListsEveryForm: Boolean;
+var Form: TChildForm; I, Before: Integer; Listed: Boolean;
+begin
+  Before := Screen.FormCount;
+  Form := TChildForm.Create(nil); Form.SetBounds(60, 60, 200, 100);
+  Form.Show; SetActiveWindow(Form.Handle); Application.ProcessMessages;
+  Listed := False;
+  for I := 0 to Screen.FormCount - 1 do
+    if Screen.Forms[I] = Form then Listed := True;
+  Result := Listed and (Screen.FormCount = Before + 1) and (Screen.ActiveForm = Form);
+  Form.Free;
+  Result := Result and (Screen.FormCount = Before);
+end;
 procedure ShowOverPaint;
 var Button: TButton; DC: HDC; Face, Caption: TColorRef;
 begin
@@ -499,6 +514,7 @@ begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
   try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiBounds; DelphiWindows; WindowHierarchy; ShowOverPaint;
     Check(ShowSelects(False) and ShowSelects(True), 'text OnShow puts into the focused edit or combo box is selected');
+    Check(ScreenListsEveryForm, 'Screen lists and activates forms not made by CreateForm');
     Check(VisibleShowsAndHides, 'setting Visible shows and hides a form with OnShow and OnHide');
     Check(HandlerExceptionsReachApplication, 'an exception in a message handler reaches Application.OnException');
     DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;

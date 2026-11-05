@@ -121,7 +121,7 @@ begin
   Foreign := TNativeForm.Create(nil); Foreign.SetBounds(320, 20, 180, 120); Foreign.Show;
   BringWindowToTop(Foreign.Handle); PointAt(Foreign.Handle, 10, 10); WinProcs.SetCursor(Arrow);
   View.Cursor := crHourGlass; CursorMessage(Foreign.Handle, HTCLIENT);
-  Check(CurrentCursor = Arrow, 'unregistered window does not receive screen override');
+  Check(CurrentCursor = WaitCursor, 'a form not made by CreateForm takes the screen override, as in Delphi');
   PointAt(Edit.Handle, 10, 10); Edit.MouseCapture := True;
   Check(CursorTarget = Edit.Handle, 'capture selects owning cursor target');
   CursorMessage(Edit.Handle, HTCLIENT); Check(CurrentCursor = WaitCursor, 'captured managed cursor remains scoped');

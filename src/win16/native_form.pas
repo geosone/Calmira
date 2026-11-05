@@ -71,6 +71,7 @@ type
     procedure Resize; virtual;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure SetBounds(X, Y, AWidth, AHeight: Integer); override;
     procedure CreateHandle(Parent: HWND; const Caption: string; Style: DWORD;
       X, Y, Width, Height: SmallInt); override;
@@ -100,6 +101,10 @@ type
     { DFM ActiveControl's initial-focus policy, not a complete VCL focus model. }
     property InitialControl: TCustomControl read FInitialControl write SetInitialControl;
   end;
+{ Every live form in creation order, as Delphi's Screen.Forms holds each form
+  whether or not Application.CreateForm made it (Calmira's folder windows). }
+function LiveFormCount: Integer;
+function LiveForm(Index: Integer): TNativeForm;
 implementation
 uses SysUtils, WinProcs, Win31, native_window;
 function TNativeFormHost.FormHelp(Value: TNativeForm; Context: LongInt): Boolean;
@@ -183,11 +188,26 @@ begin
   end
   else Result := DispatchDialogKey(Message.wParam);
 end;
+var LiveForms: TList;
+function LiveFormCount: Integer;
+begin
+  Result := 0;
+  if LiveForms <> nil then Result := LiveForms.Count;
+end;
+function LiveForm(Index: Integer): TNativeForm;
+begin Result := TNativeForm(LiveForms[Index]); end;
 constructor TNativeForm.Create(AOwner: TComponent);
 begin
+  if LiveForms = nil then LiveForms := TList.Create;
+  LiveForms.Add(Self);
   inherited Create(AOwner);
   FResizeWidth := -1; FResizeHeight := -1;
   Visible := False; SetBounds(0, 0, 320, 200);
+end;
+destructor TNativeForm.Destroy;
+begin
+  if LiveForms <> nil then LiveForms.Remove(Self);
+  inherited Destroy;
 end;
 procedure TNativeForm.CheckChanging;
 begin
@@ -511,4 +531,6 @@ begin
 end;
 procedure TNativeForm.WMClose(var M: TMessage);
 begin Close; M.Result := 0; end;
+finalization
+  LiveForms.Free; LiveForms := nil;
 end.

@@ -64,9 +64,9 @@ begin
   if not HasApplication or (Window = 0) or not IsWindow(Window) then Exit;
   if not IsWindowVisible(Window) then Exit;
   if GetWindowTask(Window) <> FTask then Exit;
-  for Index := 0 to FApplication.FormCount - 1 do
+  for Index := 0 to LiveFormCount - 1 do
   begin
-    Form := FApplication.Forms[Index];
+    Form := LiveForm(Index);
     if (Form.Handle <> 0) and ((Window = Form.Handle) or IsChild(Form.Handle, Window)) then
     begin Result := True; Exit; end;
   end;
@@ -136,7 +136,7 @@ end;
 function TNativeScreen.GetFormCount: Integer;
 begin
   Result := 0;
-  if HasApplication then Result := FApplication.FormCount;
+  if HasApplication then Result := LiveFormCount;
 end;
 procedure TNativeScreen.CollectForms(List: TList);
 var Window: HWND; Index: Integer; Form: TNativeForm;
@@ -148,17 +148,17 @@ begin
   while Window <> 0 do
   begin
     if GetWindowTask(Window) = FTask then
-      for Index := 0 to FApplication.FormCount - 1 do
+      for Index := 0 to LiveFormCount - 1 do
       begin
-        Form := FApplication.Forms[Index];
+        Form := LiveForm(Index);
         if Form.Handle = Window then begin List.Add(Form); Break; end;
       end;
     Window := GetWindow(Window, GW_HWNDNEXT);
   end;
-  { Retain every registered model exactly once, even without a top-level HWND. }
-  for Index := 0 to FApplication.FormCount - 1 do
+  { Retain every live form exactly once, even without a top-level HWND. }
+  for Index := 0 to LiveFormCount - 1 do
   begin
-    Form := FApplication.Forms[Index];
+    Form := LiveForm(Index);
     if List.IndexOf(Form) < 0 then List.Add(Form);
   end;
 end;
@@ -183,9 +183,9 @@ begin
   if (Window = 0) or not IsWindow(Window) then Exit;
   if (GetWindowTask(Window) <> FTask) or not IsWindowVisible(Window) or
     not IsWindowEnabled(Window) then Exit;
-  for Index := 0 to FApplication.FormCount - 1 do
+  for Index := 0 to LiveFormCount - 1 do
   begin
-    Form := FApplication.Forms[Index];
+    Form := LiveForm(Index);
     if Form.Handle = Window then begin Result := Form; Exit; end;
   end;
 end;
