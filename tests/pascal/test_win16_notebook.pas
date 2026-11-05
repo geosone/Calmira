@@ -10,7 +10,7 @@ type
   end;
 var DC: HDC; X, Y, Ink, Shadow: Integer; Pixel: TColorRef;
 var Root: TCustomControl; Book: TNotebook; Header: THeader; Edit: TEdit; Observer: TObserver;
-  Failed, Rejected: Boolean; I, PoolUser: Integer; Page: TPage;
+  Failed, Rejected: Boolean; I, PoolUser: Integer; Page: TPage; First, Outside: TEdit;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
 begin
@@ -69,7 +69,17 @@ begin
     Book.PageIndex := 1;
     Check(PageShown(1) and (Edit.Handle <> 0) and IsWindowVisible(Edit.Handle) and (Edit.Text = 'kept'),
       'page and children recreated');
-    Book.SetBounds(5, 40, 340, 180);
+    { Delphi 1 TNotebook.SetPageIndex: focus inside the notebook moves to the
+      first control of the new page (Calmira's property sheets). }
+    First := TEdit.Create(nil); First.SetBounds(10, 10, 100, 20);
+    First.Parent := TPage(Book.Pages.Objects[2]);
+    Book.PageIndex := 2; First.SetFocus;
+    Book.PageIndex := 1;
+    Check(GetFocus = Edit.Handle, 'a page change moves the focus from the old page to the first control of the new one');
+    Outside := TEdit.Create(nil); Outside.SetBounds(310, 5, 60, 20); Outside.Parent := Root;
+    Outside.SetFocus; Book.PageIndex := 2;
+    Check(GetFocus = Outside.Handle, 'a page change leaves a focus outside the notebook alone');
+    Book.PageIndex := 1;
     Check((TPage(Book.Pages.Objects[1]).Width = Book.ClientWidth) and
       (TPage(Book.Pages.Objects[2]).Height = Book.ClientHeight), 'resize fits all pages');
     Book.Pages.Delete(0);
@@ -123,6 +133,6 @@ begin
     Check(GetFreeSystemResources(GFSR_USERRESOURCES) >= PoolUser - 2, 'page handle cycling resource stability');
     Check((Root.CallbackErrors = 0) and (Header.CallbackErrors = 0) and (Book.CallbackErrors = 0), 'no native callback errors');
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
-  Edit.Free; Book.Free; Header.Free; Root.Free; Observer.Free;
+  First.Free; Outside.Free; Edit.Free; Book.Free; Header.Free; Root.Free; Observer.Free;
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');
 end.

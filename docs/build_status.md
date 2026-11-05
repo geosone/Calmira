@@ -2866,3 +2866,16 @@ a paint handle now uses those. Inside paint and on bitmaps the font and
 brush colours stay, as for the highlighted captions and tabs.
 
 `win16-outline-runtime-test` checks the dots outside paint.
+
+## Focus After a Tab Change
+
+In Desktop Properties, after the Patterns list had been opened, a click on
+another tab left no control focused; the original focuses the first control
+of the new page, such as the Icons list or the Cascaded radio button.
+
+Delphi's `TNotebook.SetPageIndex` moves a focus inside the notebook to the
+notebook while the pages change and then selects the first control of the
+new page. Ours left it on the old page, whose handles `TTabPanel` frees. Our
+notebook now does the same as Delphi; a focus outside the notebook stays.
+
+`win16-notebook-runtime-test` checks both cases.

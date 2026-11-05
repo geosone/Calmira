@@ -269,5 +269,15 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('ModalMessageFilter := MessageFilter;', source('forms.pas'))
 
 
+    def test_page_change_moves_the_focus_to_the_new_page(self):
+        # Delphi 1 TNotebook.SetPageIndex parks the focus on the notebook
+        # and selects the new page's first control; TTabPanel then frees the
+        # old page's handles, which otherwise takes the focus with them.
+        notebook = source('native_notebook.pas')
+        self.assertIn('Moving := (Handle <> 0) and (Focus <> 0) and IsChild(Handle, Focus);\n'
+                      '  if Moving then SetFocus;', notebook)
+        self.assertIn('if Moving and (GetFocus = Handle) then GetPage(Value).FocusNext(True);', notebook)
+
+
 if __name__ == '__main__':
     unittest.main()

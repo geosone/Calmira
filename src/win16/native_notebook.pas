@@ -181,12 +181,19 @@ begin
     if FPages[I] <> Page then TPage(FPages[I]).Visible := False;
 end;
 procedure TNotebook.SetPageIndex(Value: Integer);
+var Focus: HWND; Moving: Boolean;
 begin
   if csLoading in ComponentState then begin FLoadingPageIndex := Value; Exit; end;
   if Value = FPageIndex then Exit;
   if (Value < 0) or (Value >= FPages.Count) then Fail('Notebook page index out of range');
+  { Delphi 1: a focus inside the notebook moves to the notebook while the
+    pages change, then to the first control of the new page. }
+  Focus := GetFocus;
+  Moving := (Handle <> 0) and (Focus <> 0) and IsChild(Handle, Focus);
+  if Moving then SetFocus;
   FPageIndex := Value;
   ShowPage(GetPage(Value));
+  if Moving and (GetFocus = Handle) then GetPage(Value).FocusNext(True);
   if Assigned(FOnPageChanged) then FOnPageChanged(Self);
 end;
 function TNotebook.GetActivePage: string;
