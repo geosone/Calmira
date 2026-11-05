@@ -184,6 +184,13 @@ class OriginalFrameTests(unittest.TestCase):
         bitmap = source('gdi_bitmap.pas')
         self.assertIn("{ As Delphi's TBitmap.Draw, an empty bitmap draws nothing. }\n  if FHandle = 0 then Exit;", bitmap)
 
+    def test_automatic_drag_list_selects_as_in_delphi(self):
+        listbox = source('native_listbox.pas')
+        self.assertIn("(DragMode = dmAutomatic) and Enabled and not Dragging and (Handle <> 0) then\n"
+                      "        AutoDragPress(M)", listbox)
+        self.assertIn('(Item >= 0) and Selected[Item] then\n  begin BeginDrag(False); Exit; end;', listbox)
+        self.assertIn('DefaultHandler(M);\n  if FMultiSelect and Modifier then Exit;\n  BeginDrag(False);', listbox)
+
     def test_screen_lists_every_live_form(self):
         form = source('native_form.pas')
         self.assertIn('LiveForms.Add(Self);', form)

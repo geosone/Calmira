@@ -75,6 +75,7 @@ type
     procedure SaveState;
     procedure LoadItems;
     procedure RequireLiveStyle;
+    procedure AutoDragPress(var M: TMessage);
     procedure WMSize(var M: TMessage); message WM_SIZE;
     procedure CNCtlColor(var M: TMessage); message CN_CTLCOLOR;
   protected
@@ -278,10 +279,36 @@ begin
   with TMessage(Message) do
     Result := CallWindowProc(ListProcedure, Handle, Msg, WParam, LParam);
 end;
+procedure TCustomListBox.AutoDragPress(var M: TMessage);
+var Pos: TPoint; Item, Before, Count: Integer; Marked, Modifier: Boolean;
+begin
+  M.Result := 0;
+  Pos.X := SmallInt(LoWord(M.LParam)); Pos.Y := SmallInt(HiWord(M.LParam));
+  Item := ItemAtPos(Pos, True);
+  Modifier := M.WParam and (MK_SHIFT or MK_CONTROL) <> 0;
+  { Delphi 1: pressing a marked item of a multi-selection only drags, so the
+    whole selection travels. }
+  if FMultiSelect and ((M.WParam and MK_SHIFT = 0) or (M.WParam and MK_CONTROL <> 0)) and
+    (Item >= 0) and Selected[Item] then
+  begin BeginDrag(False); Exit; end;
+  Before := ItemIndex; Count := SelCount; Marked := (Item >= 0) and Selected[Item];
+  DefaultHandler(M);
+  if FMultiSelect and Modifier then Exit;
+  BeginDrag(False);
+  { The drag ends USER's tracking with WM_CANCELMODE, which never sends
+    LBN_SELCHANGE; Delphi's list still reports the new selection. }
+  if (ItemIndex <> Before) or (SelCount <> Count) or
+    ((Item >= 0) and (Selected[Item] <> Marked)) then Click;
+end;
 procedure TCustomListBox.WndProc(var M: TMessage);
 begin
   case M.Msg of
     WM_PAINT, WM_ERASEBKGND: DefaultHandler(M);
+    WM_LBUTTONDOWN:
+      { Delphi 1: an automatic drag source still lets USER select first. }
+      if (DragMode = dmAutomatic) and Enabled and not Dragging and (Handle <> 0) then
+        AutoDragPress(M)
+      else inherited WndProc(M);
     WM_DESTROY: begin SaveState; inherited WndProc(M); end;
   else inherited WndProc(M);
   end;

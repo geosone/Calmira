@@ -2735,3 +2735,17 @@ it is destroyed; `Screen.Forms`, `FormCount` and `ActiveForm` use that list.
 `win16-forms-runtime-test` checks a form made with `Create` is listed and
 active.
 
+
+## Find Results Select on Click
+
+Clicking a file in the Find results selected nothing, and the right-click
+menu, which needs a selected item, did not open. The result list is an
+automatic drag source (`DragMode = dmAutomatic`), and the press only began
+the drag. As Delphi 1's `TCustomListBox.WMLButtonDown`, the list box now
+lets USER select the item before the delayed drag starts. Pressing an item
+that is already part of a multi-selection only starts the drag, so the whole
+selection travels. Shift or Ctrl in a multi-selection selects without a drag.
+The drag ends USER's tracking with `WM_CANCELMODE`, which sends no
+`LBN_SELCHANGE`, so the list calls `Click` itself when the press changed the
+selection; the status bar shows "1 selected" while the button is still down,
+as in the original. `win16-listbox-runtime-test` covers both cases.

@@ -102,6 +102,17 @@ begin
     Observer.Clicks := 0;
     List.Perform(WM_KEYDOWN, VK_DOWN, 0); Pump;
     Check((List.ItemIndex = 3) and (Observer.Clicks = 1), 'keyboard selection fires OnClick');
+    { Delphi 1: a press on an automatic drag source still selects and reports
+      the change (Find results). }
+    List.DragMode := dmAutomatic; Observer.Clicks := 0;
+    R := List.ItemRect(1);
+    List.Perform(WM_LBUTTONDOWN, MK_LBUTTON, MakeLong(R.Left + 4, R.Top + 2)); Pump;
+    Check((List.ItemIndex = 1) and List.Dragging and (Observer.Clicks = 1),
+      'automatic drag source selects the pressed item');
+    List.EndDrag(False); Pump;
+    Check(Observer.Clicks = 1, 'ending the drag reports no second click');
+    List.DragMode := dmManual;
+    List.ItemIndex := 3;
     { Handle recreation keeps items and selection. }
     List.Parent := nil;
     Check((List.Handle = 0) and (List.ItemIndex = 3) and (List.Items.Count = 4), 'state survives handle loss');
@@ -123,6 +134,20 @@ begin
     Multi.Items[0] := 'eins'; Multi.Items[1] := 'zwei';
     Check((Multi.Items[0] = 'eins') and Multi.Selected[0] and not Multi.Selected[1] and
       (Multi.SelCount = 1), 'replaced entries keep their marks, as TCheckList ticks need');
+    Multi.OnClick := Observer.Click; Multi.DragMode := dmAutomatic; Observer.Clicks := 0;
+    R := Multi.ItemRect(1);
+    Multi.Perform(WM_LBUTTONDOWN, MK_LBUTTON, MakeLong(R.Left + 4, R.Top + 2)); Pump;
+    Check(Multi.Selected[1] and (Multi.SelCount = 1) and Multi.Dragging and (Observer.Clicks = 1),
+      'automatic drag of a multi-selection selects an unmarked item');
+    Multi.EndDrag(False);
+    Multi.Selected[2] := True; Observer.Clicks := 0;
+    R := Multi.ItemRect(2);
+    Multi.Perform(WM_LBUTTONDOWN, MK_LBUTTON, MakeLong(R.Left + 4, R.Top + 2)); Pump;
+    Check((Multi.SelCount = 2) and Multi.Dragging and (Observer.Clicks = 0),
+      'pressing a marked item drags the whole selection');
+    Multi.EndDrag(False);
+    Multi.DragMode := dmManual;
+    Multi.OnClick := nil;
     Marks := TObjectMarks.Create(nil);
     Marks.MultiSelect := True; Marks.ExtendedSelect := False;
     for Index := 0 to 19 do Marks.Items.Add('mark ' + IntToStr(Index));
