@@ -202,6 +202,17 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('Next := TopMostTaskWindow(Handle);', form)
         self.assertIn('(GetWindowLong(Result, GWL_EXSTYLE) and WS_EX_TOPMOST = 0)', form)
 
+    def test_hidden_form_keeps_active_control(self):
+        forms = source('forms.pas')
+        self.assertIn('property ActiveControl: TCustomControl read GetFormActiveControl write SetFormActiveControl;', forms)
+        self.assertIn('if Active and (WindowState <> wsMinimized) then inherited ActiveControl := Value\n  else DeferActiveControl(Value);', forms)
+        form = source('native_form.pas')
+        self.assertIn('  SetInitialControl(Value);\n  FLastFocus := 0;', form)
+
+    def test_grid_leaves_the_mouse_to_a_drag_begun_on_press(self):
+        grids = source('grids.pas')
+        self.assertIn('      if not Dragging then\n      begin\n        FGridState := gsSelecting;', grids)
+
     def test_keys_reach_every_form_and_popup_shortcuts(self):
         app = source('native_application.pas')
         self.assertNotIn('FForms.Count - 1 do\n  begin\n    Form := TNativeForm(FForms[Index]);\n'

@@ -1017,9 +1017,14 @@ begin
     begin
       if (ssShift in Shift) and (goRangeSelect in FOptions) then MoveAnchor(CellHit)
       else MoveCurrent(CellHit.X, CellHit.Y, True, True);
-      FGridState := gsSelecting;
-      MouseCapture := True;
-      SetTimer(Handle, SelectTimer, 60, nil);
+      { A drag OnMouseDown began holds the mouse; in Delphi it cancels the
+        selecting that came first (Calmira's Start Menu Properties). }
+      if not Dragging then
+      begin
+        FGridState := gsSelecting;
+        MouseCapture := True;
+        SetTimer(Handle, SelectTimer, 60, nil);
+      end;
     end;
   end;
   if not FNotifyBeforeSelect then inherited MouseDown(Button, Shift, X, Y);

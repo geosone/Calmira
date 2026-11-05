@@ -10,6 +10,7 @@ type
     procedure Collapse(Sender: TObject; Index: Longint);
     procedure Click(Sender: TObject);
     procedure DblClick(Sender: TObject);
+    procedure StartDrag(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
   end;
 var Root: TCustomControl; Tree: TScrollTree; Events: TEvents; Failed, Raised: Boolean;
@@ -43,6 +44,9 @@ end;
 procedure TEvents.Collapse(Sender: TObject; Index: Longint); begin Inc(Collapses); end;
 procedure TEvents.Click(Sender: TObject); begin Inc(Clicks); end;
 procedure TEvents.DblClick(Sender: TObject); begin Inc(DblClicks); end;
+{ As Calmira's Start Menu Properties: a press starts a pending drag. }
+procedure TEvents.StartDrag(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin if Button = mbLeft then Tree.BeginDrag(False); end;
 procedure TEvents.DrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
 begin
   Inc(Draws); LastDrawRow := Index;
@@ -158,6 +162,21 @@ begin
     SendMessage(Tree.Handle, WM_CHAR, Ord('+'), 0);
     Check(Tree.Items[1].Expanded, '+ opens the selected item');
 
+    Tree.OnMouseDown := Events.StartDrag;
+    SendMessage(Tree.Handle, WM_LBUTTONDOWN, MK_LBUTTON, MakeLong(40, 2 * 16 + 4));
+    { The drag holds the mouse: it, not the outline, sees the button go up.
+      An outline that took the capture back would go on selecting rows. }
+    Check(Tree.Dragging and (GetCapture <> 0) and (GetCapture <> Tree.Handle),
+      'a press that starts a pending drag leaves the mouse with the drag');
+    if Tree.Dragging then Tree.EndDrag(True);
+    Pump;
+    { Moving on over another row (to a toolbar button) selects nothing:
+      the drag took the press, as Delphi's WM_CANCELMODE ends selecting. }
+    SendMessage(Tree.Handle, WM_MOUSEMOVE, 0, MakeLong(40, 4)); Pump;
+    ReleaseCapture;
+    Check((Tree.Row = 2) and (Tree.SelectedItem = 3),
+      'a click that starts a pending drag selects the item and leaves no selecting state');
+    Tree.OnMouseDown := nil; Tree.SelectedItem := 1;
     Tree.Style := otOwnerDraw; Tree.OnDrawItem := Events.DrawItem;
     InvalidateRect(Tree.Handle, nil, True); UpdateWindow(Tree.Handle);
     Check((Events.Draws = 3) and (Events.LastDrawRow = 2) and (Events.FocusDraws = 1),

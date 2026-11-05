@@ -69,6 +69,9 @@ type
     procedure DoHide; virtual;
     procedure DoActivate; virtual;
     procedure DoDeactivate; virtual;
+    { Delphi's ActiveControl on a form that is not active: focused when the
+      form is next shown or activated, before the control last focused. }
+    procedure DeferActiveControl(Value: TCustomControl);
     procedure Resize; virtual;
   public
     constructor Create(AOwner: TComponent); override;
@@ -392,6 +395,11 @@ begin
   try
     if Value = nil then SetFocus else Value.SetFocus;
   finally FChangingActiveControl := False; end;
+end;
+procedure TNativeForm.DeferActiveControl(Value: TCustomControl);
+begin
+  SetInitialControl(Value);
+  FLastFocus := 0;
 end;
 procedure TNativeForm.DoActivate;
 begin if Assigned(FOnActivate) then FOnActivate(Self); end;

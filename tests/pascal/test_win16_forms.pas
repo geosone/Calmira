@@ -446,6 +446,21 @@ begin
   Result := Result and (Form.NCPaints = 1);
   Form.Free;
 end;
+{ As Delphi: ActiveControl on a hidden form is kept and focused when the
+  form shows, also over the control focused when it was last hidden
+  (Calmira's menu item properties dialog, created once and reused). }
+function HiddenActiveControlFocusesOnShow: Boolean;
+var Form: TChildForm; First, Second: TEdit;
+begin
+  Form := TChildForm.Create(nil); Form.SetBounds(60, 60, 200, 100);
+  First := TEdit.Create(Form); First.Parent := Form; First.SetBounds(5, 5, 100, 20);
+  Second := TEdit.Create(Form); Second.Parent := Form; Second.SetBounds(5, 35, 100, 20);
+  Form.Show; Application.ProcessMessages; Second.SetFocus; Form.Hide;
+  Form.ActiveControl := First;
+  Form.Show; Application.ProcessMessages;
+  Result := GetFocus = First.Handle;
+  Form.Free;
+end;
 function IconErasesWithColor: Boolean;
 var Form: TChildForm; DC: HDC; Black: HBRUSH; Area: TRect;
 begin
@@ -607,6 +622,7 @@ begin
     Check(HideActivatesTopmost, 'hiding the active form activates the topmost window after OnHide');
     Check(native_ctl3d.Ctl3DLoaded, 'CTL3D is loaded');
     Check(Ctl3DFrameBeforeHandlers, 'CTL3D paints a dialog frame before the form''s own handlers');
+    Check(HiddenActiveControlFocusesOnShow, 'ActiveControl set on a hidden form is focused when it shows');
     Check(IconErasesWithColor, 'a minimized form erases its icon area with Color');
     Check(ShortcutReachesCreatedForm, 'menu and pop-up shortcuts reach a form not made by CreateForm');
     Check(VisibleShowsAndHides, 'setting Visible shows and hides a form with OnShow and OnHide');

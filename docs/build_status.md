@@ -2816,3 +2816,24 @@ password dialog test.
 
 `win16-forms-runtime-test` checks that a form's own `WM_NCPAINT` handler
 runs for `bsSingle` but not for a CTL3D dialog.
+
+## Menu Item Properties
+
+The Properties button of Start Menu Properties showed "Invalid form focus"
+instead of the menu item dialog, and once that was fixed it edited
+"Programs" instead of the item clicked.
+
+- As Delphi, `ActiveControl` set on a `TForm` that is not active is kept
+  and focused when the form is next shown, ahead of the control focused
+  when it was last hidden. Calmira's menu item dialog, created once, sets it
+  before `ShowModal`. The native `TNativeForm` still rejects it.
+- Calmira starts a pending drag in the outline's `OnMouseDown`, which runs
+  before the grid selects the row. The grid then took the mouse back and
+  stayed selecting cells, since only the drag sees the button go up; the
+  next mouse move over the outline, on the way to a toolbar button,
+  selected that row. As in Delphi, where the drag start cancels selecting,
+  the grid no longer starts selecting when a drag holds the mouse.
+
+`win16-forms-runtime-test` and `win16-outline-runtime-test` check both. The
+hourglass Calmira sets with `SetCursor` before opening the dialog stays
+until the mouse moves; the original shows the arrow at once.

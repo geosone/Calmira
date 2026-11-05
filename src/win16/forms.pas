@@ -100,12 +100,17 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure Paint; override;
     procedure DblClick; override;
+    function GetFormActiveControl: TCustomControl;
+    procedure SetFormActiveControl(Value: TCustomControl);
     function PaintFrameFirst(var Message: TMessage): Boolean; override;
     { KeyPreview: the form's key events for a key sent to one of its controls. }
     function PreviewKey(var Message: TMsg): Boolean;
   public
     { Menu shortcuts come before the dialog keys. }
     function ProcessDialogMessage(var Message: TMsg): Boolean; override;
+    { As Delphi, also on a form that is not active: then kept and focused
+      when it shows (Calmira's menu item properties, before ShowModal). }
+    property ActiveControl: TCustomControl read GetFormActiveControl write SetFormActiveControl;
     { Runs the loaders registered for this class and its ancestors, as Delphi
       reads the form's DFM resources, then OnCreate. EResNotFound if the
       class has none. }
@@ -599,6 +604,13 @@ begin end;
 function TForm.NativeExStyle: DWORD;
 begin
   if FBorderStyle = bsDialog then Result := WS_EX_DLGMODALFRAME else Result := 0;
+end;
+function TForm.GetFormActiveControl: TCustomControl;
+begin Result := inherited ActiveControl; end;
+procedure TForm.SetFormActiveControl(Value: TCustomControl);
+begin
+  if Active and (WindowState <> wsMinimized) then inherited ActiveControl := Value
+  else DeferActiveControl(Value);
 end;
 { As Delphi 1: with CTL3D loaded, a Ctl3D dialog's frame is painted in 3D,
   before the form's own handlers see the message. Calmira's ExtForm draws
