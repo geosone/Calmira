@@ -1,6 +1,6 @@
 program FormsTest;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Graphics, Controls, Forms, StdCtrls, Buttons,
+uses WinTypes, WinProcs, Win31, Messages, Classes, SysUtils, Graphics, Controls, Forms, StdCtrls, Buttons, Menus,
   native_form, native_window, native_application;
 type
   TMainForm = class(TForm)
@@ -13,7 +13,7 @@ type
   public
     FreeMode: Boolean;
     Filled: TEdit; FilledCombo: TComboBox;
-    Shows, Hides: Integer;
+    Shows, Hides, Shortcuts: Integer;
     destructor Destroy; override;
     procedure CloseHandler(Sender: TObject; var Action: TCloseAction);
     procedure ModalShow(Sender: TObject);
@@ -21,6 +21,7 @@ type
     procedure FillShow(Sender: TObject);
     procedure CountShow(Sender: TObject);
     procedure CountHide(Sender: TObject);
+    procedure CountShortcut(Sender: TObject);
     procedure WMBoom(var M: TMessage); message WM_USER + 77;
     procedure Caught(Sender: TObject; E: Exception);
     procedure MinimizeHandler(Sender: TObject; var Action: TCloseAction);
@@ -371,6 +372,28 @@ begin
   Result := Result and (Form.Hides = 1) and (Form.Shows = 1);
   Form.Free;
 end;
+procedure TChildForm.CountShortcut(Sender: TObject);
+begin Inc(Shortcuts); end;
+{ As Delphi's key handling: Calmira's folder and Explorer windows are made
+  with Create, and Del or F2 in their file pane are File menu shortcuts. }
+function ShortcutReachesCreatedForm: Boolean;
+var Form: TChildForm; Edit: TEdit; Item: TMenuItem; Popup: TPopupMenu;
+begin
+  Form := TChildForm.Create(nil); Form.SetBounds(60, 60, 200, 120);
+  Item := NewItem('&Delete', ShortCut(VK_DELETE, []), False, True, Form.CountShortcut, 0, 'DeleteItem');
+  Form.Menu := NewMenu(Form, 'Bar', [NewSubMenu('&File', 0, 'FileItem', [Item])]);
+  Edit := TEdit.Create(Form); Edit.SetBounds(8, 8, 100, 24); Edit.Parent := Form;
+  { Delphi's IsMenuKey asks the focused control's pop-up menu first. }
+  Popup := NewPopupMenu(Form, 'Popup', paLeft, False,
+    [NewItem('&Rename', ShortCut(VK_F2, []), False, True, Form.CountShortcut, 0, 'RenameItem')]);
+  Edit.PopupMenu := Popup;
+  Form.Show; Edit.SetFocus; Application.ProcessMessages;
+  PostMessage(Edit.Handle, WM_KEYDOWN, VK_DELETE, 1); Application.ProcessMessages;
+  Result := Form.Shortcuts = 1;
+  PostMessage(Edit.Handle, WM_KEYDOWN, VK_F2, 1); Application.ProcessMessages;
+  Result := Result and (Form.Shortcuts = 2);
+  Form.Free;
+end;
 { As Delphi's Screen: Calmira creates its folder windows with Create, not
   CreateForm, and cascades a new one from Screen.ActiveForm. }
 function ScreenListsEveryForm: Boolean;
@@ -515,6 +538,7 @@ begin
   try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiBounds; DelphiWindows; WindowHierarchy; ShowOverPaint;
     Check(ShowSelects(False) and ShowSelects(True), 'text OnShow puts into the focused edit or combo box is selected');
     Check(ScreenListsEveryForm, 'Screen lists and activates forms not made by CreateForm');
+    Check(ShortcutReachesCreatedForm, 'menu and pop-up shortcuts reach a form not made by CreateForm');
     Check(VisibleShowsAndHides, 'setting Visible shows and hides a form with OnShow and OnHide');
     Check(HandlerExceptionsReachApplication, 'an exception in a message handler reaches Application.OnException');
     DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;

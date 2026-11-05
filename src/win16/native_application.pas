@@ -388,18 +388,24 @@ begin
   if FShowMainForm then FMainForm.Show;
 end;
 function TNativeApplication.Filter(var Message: TMsg): Boolean;
-var Index: Integer; Form: TNativeForm;
+var Index: Integer; Form: TNativeForm; Window: HWND;
 begin
   Result := False;
   if Assigned(FOnMessage) then
     if FOnMessage(Message) then begin Result := True; Exit; end;
-  { Locate first, invoke once, then return: an activation callback may remove
-    other registered forms. Never continue iterating through a changed list. }
-  for Index := 0 to FForms.Count - 1 do
+  { As Delphi, the nearest form around the window gets the keys, whether
+    CreateForm or Create made it (Calmira's folder windows). Locate first,
+    invoke once, then return: an activation callback may free other forms. }
+  Window := Message.hwnd;
+  while Window <> 0 do
   begin
-    Form := TNativeForm(FForms[Index]);
-    if Form.FindControl(Message.hwnd) <> nil then
-    begin Result := Form.ProcessDialogMessage(Message); Exit; end;
+    for Index := 0 to LiveFormCount - 1 do
+    begin
+      Form := LiveForm(Index);
+      if (Form.Handle = Window) and (Form.FindControl(Message.hwnd) <> nil) then
+      begin Result := Form.ProcessDialogMessage(Message); Exit; end;
+    end;
+    Window := GetParent(Window);
   end;
 end;
 function TNativeApplication.Run: SmallInt;

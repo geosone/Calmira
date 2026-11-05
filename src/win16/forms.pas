@@ -725,13 +725,23 @@ begin
   inherited;
 end;
 function TForm.ProcessDialogMessage(var Message: TMsg): Boolean;
-var Key: TWMKey;
+var Key: TWMKey; Control: TCustomControl;
 begin
-  if (FMenu <> nil) and ((Message.message = WM_KEYDOWN) or (Message.message = WM_SYSKEYDOWN)) then
+  if (Message.message = WM_KEYDOWN) or (Message.message = WM_SYSKEYDOWN) then
   begin
     Key.Msg := Message.message; Key.CharCode := Message.wParam;
     Key.KeyData := Message.lParam; Key.Result := 0;
-    if FMenu.IsShortCut(Key) then begin Result := True; Exit; end;
+    { As Delphi's IsMenuKey: the pop-up menus of the control and its parents
+      come first (Del and F2 in a Calmira folder are its object menu's). }
+    Control := FindControl(Message.hwnd);
+    while Control <> nil do
+    begin
+      if (Control.PopupMenu <> nil) and Control.PopupMenu.IsShortCut(Key) then
+      begin Result := True; Exit; end;
+      if Control = Self then Break;
+      Control := Control.Parent;
+    end;
+    if (FMenu <> nil) and FMenu.IsShortCut(Key) then begin Result := True; Exit; end;
   end;
   Result := inherited ProcessDialogMessage(Message);
   if not Result and FKeyPreview then Result := PreviewKey(Message);

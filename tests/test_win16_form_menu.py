@@ -10,7 +10,7 @@ class Win16FormMenuTests(unittest.TestCase):
         source = (ROOT / 'src/win16/forms.pas').read_text()
         for text in ('property Menu: TMainMenu read FMenu write SetMenu;',
                      'function ProcessDialogMessage(var Message: TMsg): Boolean; override;',
-                     'if FMenu.IsShortCut(Key) then begin Result := True; Exit; end;',
+                     'if (FMenu <> nil) and FMenu.IsShortCut(Key) then begin Result := True; Exit; end;',
                      "if (Message.Ctl = 0) and (FMenu <> nil) and FMenu.DispatchCommand(Message.ItemID) then",
                      'function KeyDataToShiftState(KeyData: LongInt): TShiftState;',
                      'property OnPaint: TNotifyEvent read FOnPaint write FOnPaint;'):

@@ -2760,3 +2760,20 @@ the paint phase, and `ShadeIcon` blits to `ACanvas.Handle`. Here
 `task.pas`, one `{$IFDEF FPC}` line in `vcl/miscutil.pas` uses
 `ContextHandle`, which is what Delphi's `Canvas.Handle` returns. The other
 `Canvas.Handle` calls in Calmira run while painting or on bitmap canvases.
+
+## Keyboard Shortcuts in Folder Windows
+
+Del and F2 on a file in a folder or Explorer window did nothing; the
+original asks to move the file to the bin or starts renaming it. Two things
+were missing:
+
+- The message loop gave keys only to forms made by `Application.CreateForm`.
+  Calmira makes its folder windows with `Create`. As in Delphi, the nearest
+  live form around the window now gets the keys, however it was made.
+- Del, F2, Enter and the other object shortcuts belong to the grid's pop-up
+  menu, not to the menu bar, whose items only show the key as text. As
+  Delphi's `IsMenuKey`, a form now asks the pop-up menus of the focused
+  control and its parents before its own menu.
+
+`win16-forms-runtime-test` checks a menu shortcut and a pop-up shortcut on
+a form made with `Create`.

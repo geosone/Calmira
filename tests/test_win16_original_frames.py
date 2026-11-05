@@ -191,6 +191,14 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('(Item >= 0) and Selected[Item] then\n  begin BeginDrag(False); Exit; end;', listbox)
         self.assertIn('DefaultHandler(M);\n  if FMultiSelect and Modifier then Exit;\n  BeginDrag(False);', listbox)
 
+    def test_keys_reach_every_form_and_popup_shortcuts(self):
+        app = source('native_application.pas')
+        self.assertNotIn('FForms.Count - 1 do\n  begin\n    Form := TNativeForm(FForms[Index]);\n'
+                         '    if Form.FindControl(Message.hwnd)', app)
+        self.assertIn('if (Form.Handle = Window) and (Form.FindControl(Message.hwnd) <> nil) then', app)
+        forms = source('forms.pas')
+        self.assertIn('if (Control.PopupMenu <> nil) and Control.PopupMenu.IsShortCut(Key) then', forms)
+
     def test_screen_lists_every_live_form(self):
         form = source('native_form.pas')
         self.assertIn('LiveForms.Add(Self);', form)
