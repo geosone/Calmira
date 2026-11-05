@@ -13,11 +13,14 @@ type
   public
     FreeMode: Boolean;
     Filled: TEdit; FilledCombo: TComboBox;
+    Shows, Hides: Integer;
     destructor Destroy; override;
     procedure CloseHandler(Sender: TObject; var Action: TCloseAction);
     procedure ModalShow(Sender: TObject);
     procedure DarkenShow(Sender: TObject);
     procedure FillShow(Sender: TObject);
+    procedure CountShow(Sender: TObject);
+    procedure CountHide(Sender: TObject);
     procedure WMBoom(var M: TMessage); message WM_USER + 77;
     procedure Caught(Sender: TObject; E: Exception);
     procedure MinimizeHandler(Sender: TObject; var Action: TCloseAction);
@@ -108,6 +111,10 @@ begin
     Result := (CaughtText = 'Folder not found') and (Form.CallbackErrors = 0);
   finally Application.OnException := nil; Form.Free; end;
 end;
+procedure TChildForm.CountShow(Sender: TObject);
+begin Inc(Shows); end;
+procedure TChildForm.CountHide(Sender: TObject);
+begin Inc(Hides); end;
 procedure TChildForm.FillShow(Sender: TObject);
 begin
   if Filled <> nil then Filled.Text := 'c:\calmira\calmira.exe';
@@ -347,6 +354,23 @@ begin
   Result := (LoWord(Sel) = 0) and (HiWord(Sel) = 22);
   Form.Free;
 end;
+{ As Delphi's CMShowingChanged: Calmira's taskbar is shown by its DFM's
+  Visible = True and makes its system-menu helper window in OnShow. }
+function VisibleShowsAndHides: Boolean;
+var Form: TChildForm;
+begin
+  Form := TChildForm.Create(nil); Form.SetBounds(60, 60, 200, 100);
+  Form.OnShow := Form.CountShow; Form.OnHide := Form.CountHide;
+  Form.Visible := True; Application.ProcessMessages;
+  Result := (Form.Shows = 1) and IsWindowVisible(Form.Handle);
+  Form.Visible := True;
+  Result := Result and (Form.Shows = 1) and (Form.Hides = 0);
+  Form.Visible := False;
+  Result := Result and (Form.Hides = 1) and not IsWindowVisible(Form.Handle);
+  Form.Visible := False;
+  Result := Result and (Form.Hides = 1) and (Form.Shows = 1);
+  Form.Free;
+end;
 procedure ShowOverPaint;
 var Button: TButton; DC: HDC; Face, Caption: TColorRef;
 begin
@@ -475,6 +499,7 @@ begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP global Forms layer');
   try Globals; Creation; ForeignForms; CloseFree; ReleaseEdges; MinimizeAndFilter; FrameProperties; MinimizedIcon; DelphiBounds; DelphiWindows; WindowHierarchy; ShowOverPaint;
     Check(ShowSelects(False) and ShowSelects(True), 'text OnShow puts into the focused edit or combo box is selected');
+    Check(VisibleShowsAndHides, 'setting Visible shows and hides a form with OnShow and OnHide');
     Check(HandlerExceptionsReachApplication, 'an exception in a message handler reaches Application.OnException');
     DefaultButtons; ParentForm; UtilityWindow; ModalFree; RunMain;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;

@@ -55,6 +55,8 @@ type
     function GetWindowState: TWindowState;
     procedure SetWindowState(Value: TWindowState);
     procedure ApplyWindowState(Value: TWindowState);
+    function GetFormVisible: Boolean;
+    procedure SetFormVisible(Value: Boolean);
   protected
     procedure ChangeView(Action: TControlViewAction); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -80,6 +82,7 @@ type
     { Assign to TNativeMessageLoop.OnMessage; no implicit task-global hook. }
     function ProcessDialogMessage(var Message: TMsg): Boolean; virtual;
     property Caption: string read FCaption write SetCaption;
+    property Visible: Boolean read GetFormVisible write SetFormVisible;
     property OnShow: TNotifyEvent read FOnShow write FOnShow;
     property OnHide: TNotifyEvent read FOnHide write FOnHide;
     property OnActivate: TNotifyEvent read FOnActivate write FOnActivate;
@@ -453,6 +456,17 @@ begin
       finally FChangingForm := False; end;
     end;
   end;
+end;
+{ As Delphi's TCustomForm.SetVisible and CMShowingChanged: Visible shows or
+  hides a form the way Show and Hide do, with OnShow and OnHide (Calmira's
+  taskbar, shown by its DFM, makes its system-menu helper window in OnShow). }
+function TNativeForm.GetFormVisible: Boolean;
+begin Result := inherited Visible; end;
+procedure TNativeForm.SetFormVisible(Value: Boolean);
+begin
+  if not FChangingForm and (Value <> inherited Visible) and (Value or (Handle <> 0)) then
+    if Value then Show else Hide
+  else inherited Visible := Value;
 end;
 procedure TNativeForm.HideWindow;
 var Current: HWND;

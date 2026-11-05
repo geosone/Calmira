@@ -2712,3 +2712,13 @@ buttons for a top-level item. `sysprop.pas` now says `Self.Click`, as
 Delphi resolved it. No other bare `Click` in Calmira calls a protected
 method of a class from another unit.
 
+## Task Button System Menu
+
+Right-clicking a taskbar button showed nothing; the original shows the
+window's system menu. Calmira tracks it with a helper window it makes in
+the taskbar's `OnShow`. The taskbar is shown by its DFM's `Visible = True`,
+and setting `Visible` on a form only showed the window. As Delphi's
+`TCustomForm`, `TNativeForm` now redeclares `Visible`: setting it shows or
+hides the form as `Show` and `Hide` do, with `OnShow` and `OnHide`.
+`win16-forms-runtime-test` checks both events fire once.
+

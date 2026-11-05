@@ -184,6 +184,12 @@ class OriginalFrameTests(unittest.TestCase):
         bitmap = source('gdi_bitmap.pas')
         self.assertIn("{ As Delphi's TBitmap.Draw, an empty bitmap draws nothing. }\n  if FHandle = 0 then Exit;", bitmap)
 
+    def test_form_visible_shows_and_hides_with_events(self):
+        form = source('native_form.pas')
+        self.assertIn('property Visible: Boolean read GetFormVisible write SetFormVisible;', form)
+        self.assertIn("if not FChangingForm and (Value <> inherited Visible) and (Value or (Handle <> 0)) then\n"
+                      "    if Value then Show else Hide\n  else inherited Visible := Value;", form)
+
     def test_advanced_tab_click_resolves_as_in_delphi(self):
         # TCustomOutline.Click is protected in Delphi 1's Outline unit, so the
         # bare Click inside `with Outline do` is the form's. FPC would find the
