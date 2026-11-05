@@ -213,6 +213,11 @@ class OriginalFrameTests(unittest.TestCase):
         grids = source('grids.pas')
         self.assertIn('      if not Dragging then\n      begin\n        FGridState := gsSelecting;', grids)
 
+    def test_graphic_button_releases_mouse_before_click(self):
+        controls = source('controls.pas')
+        route = controls.split('function TCustomControl.RouteGraphicMouse(var M: TMessage): Boolean;', 1)[1].split('\nend;', 1)[0]
+        self.assertLess(route.index('Released := True;'), route.index('Target.MouseMessage(M.Msg'))
+
     def test_keys_reach_every_form_and_popup_shortcuts(self):
         app = source('native_application.pas')
         self.assertNotIn('FForms.Count - 1 do\n  begin\n    Form := TNativeForm(FForms[Index]);\n'

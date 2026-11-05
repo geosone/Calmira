@@ -2837,3 +2837,18 @@ instead of the menu item dialog, and once that was fixed it edited
 `win16-forms-runtime-test` and `win16-outline-runtime-test` check both. The
 hourglass Calmira sets with `SetCursor` before opening the dialog stays
 until the mouse moves; the original shows the arrow at once.
+
+## Toolbar Buttons Opening Dialogs
+
+In Start Menu Properties, the first click in the Convert Program Groups
+dialog that the toolbar opens showed "Window cannot capture mouse".
+
+A control routing the mouse to a graphic child, such as a speed button,
+released the mouse only after the button's `MouseUp` and `Click`. The
+click opened the modal dialog while the toolbar page, now disabled, still
+held the mouse, so the next press went to it. As Delphi's `WMLButtonUp`,
+the mouse is now released before `MouseUp` and `Click`.
+
+`win16-speedbutton-runtime-test` checks that the click runs without the
+capture. In the dialog our list shows a focus rectangle on its first item
+where the original shows none; it is left as it is.

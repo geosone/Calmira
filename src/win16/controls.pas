@@ -1242,7 +1242,7 @@ begin
   end;
 end;
 function TCustomControl.RouteGraphicMouse(var M: TMessage): Boolean;
-var X, Y: Integer; Target: TGraphicControl;
+var X, Y: Integer; Target: TGraphicControl; Released: Boolean;
 begin
   Result := False;
   X := SmallInt(LoWord(M.LParam)); Y := SmallInt(HiWord(M.LParam));
@@ -1258,7 +1258,9 @@ begin
     WM_LBUTTONDBLCLK, WM_RBUTTONDBLCLK, WM_MBUTTONDBLCLK:
       begin FCaptureControl := Target; MouseCapture := True; end;
   end;
-  Target.MouseMessage(M.Msg, M.WParam, X - Target.FLeft, Y - Target.FTop);
+  { As Delphi's WMLButtonUp: the mouse is released before MouseUp and
+    Click, which may run a modal dialog (Calmira's toolbar buttons). }
+  Released := False;
   case M.Msg of
     WM_LBUTTONUP, WM_RBUTTONUP, WM_MBUTTONUP:
       if (M.WParam and (MK_LBUTTON or MK_RBUTTON or MK_MBUTTON) = 0) and
@@ -1266,9 +1268,11 @@ begin
       begin
         FCaptureControl := nil;
         MouseCapture := False;
-        SetMouseControl(GraphicAt(X, Y));
+        Released := True;
       end;
   end;
+  Target.MouseMessage(M.Msg, M.WParam, X - Target.FLeft, Y - Target.FTop);
+  if Released and (Handle <> 0) and (FCaptureControl = nil) then SetMouseControl(GraphicAt(X, Y));
   M.Result := 0;
   Result := True;
 end;

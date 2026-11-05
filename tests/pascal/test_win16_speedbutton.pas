@@ -5,6 +5,7 @@ type
   TProbe = class(TSpeedButton)
   public
     Enters, Leaves, Pressed, Clicks: Integer;
+    CapturedInClick: Boolean;
     PaintedBrush: TBrushStyle;
     function State: TButtonState;
     procedure Paint; override;
@@ -22,7 +23,11 @@ var Root: TCustomControl; A, B, C: TProbe; Observer: TObserver; Failed: Boolean;
   Origin: TPoint; Start: LongInt; Msg: TMsg;
 function TProbe.State: TButtonState; begin Result := FState; end;
 procedure TProbe.Paint; begin inherited Paint; PaintedBrush := Canvas.Brush.Style; end;
-procedure TProbe.Click; begin Inc(Clicks); inherited Click; end;
+procedure TProbe.Click;
+begin
+  Inc(Clicks); CapturedInClick := (GetCapture <> 0) or (GetCaptureControl <> nil);
+  inherited Click;
+end;
 procedure TProbe.CMButtonPressed(var Message: TMessage); begin Inc(Pressed); inherited; end;
 procedure TProbe.CMMouseEnter(var Message: TMessage); begin Inc(Enters); inherited; end;
 procedure TProbe.CMMouseLeave(var Message: TMessage); begin Inc(Leaves); inherited; end;
@@ -78,6 +83,13 @@ begin
     Mouse(WM_LBUTTONDOWN, MK_LBUTTON, 100, 20);
     Check((C.State = bsDown) and (Observer.ParentDowns = 0) and Root.MouseCapture,
       'press routes to the graphic child and captures');
+    { As Delphi: the capture is released before Click, which may run a
+      modal dialog (Calmira's Start Menu Properties toolbar). }
+    Mouse(WM_LBUTTONUP, 0, 100, 20);
+    Check((C.Clicks = 1) and not C.CapturedInClick and not Root.MouseCapture,
+      'the mouse is released before the click runs');
+    C.Clicks := 0;
+    Mouse(WM_LBUTTONDOWN, MK_LBUTTON, 100, 20);
     Mouse(WM_MOUSEMOVE, MK_LBUTTON, 200, 20);
     Check(C.State = bsUp, 'dragging off pops the button up');
     Mouse(WM_MOUSEMOVE, MK_LBUTTON, 95, 15);
