@@ -57,3 +57,5 @@ for profile in plain packed missing; do
         grep -Eq '^MODULE=C:\\TEMPHLP\\~?UPX' "$work/$profile/HLPATH.LOG"
     fi
 done
+# A passing run keeps its logs; the disk copy only matters for a failure.
+rm -f "$work"/*/test.img

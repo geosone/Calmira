@@ -70,3 +70,5 @@ for profile in W E; do
         fi
     done
 done
+# A passing run keeps its logs; the disk copy only matters for a failure.
+rm -f "$work"/*/test.img

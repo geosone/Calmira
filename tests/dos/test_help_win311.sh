@@ -32,3 +32,5 @@ for profile in ${HELP_PROFILES:-C M W B R Q G T}; do
     grep -q '^HELP_CALL=1' "$work/$profile/HELPTEST.LOG"
     grep -q '^RESULT PASS' "$work/$profile/HELPTEST.LOG"
 done
+# A passing run keeps its logs; the disk copy only matters for a failure.
+rm -f "$work"/*/test.img

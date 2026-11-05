@@ -48,3 +48,5 @@ for profile in plain packed; do
         grep -Fq 'ACTUAL=C:\IDENTPKG\IDENTITY.EXE' "$work/$profile/GDITEST.LOG"
     fi
 done
+# A passing run keeps its logs; the disk copy only matters for a failure.
+rm -f "$work"/*/test.img

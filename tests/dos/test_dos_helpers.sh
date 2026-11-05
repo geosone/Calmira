@@ -70,3 +70,5 @@ lines.append('RESULT ' + ('FAIL' if any(l.startswith('FAIL') for l in lines) els
 print('\n'.join(lines))
 PY
 grep -q '^RESULT PASS' "$work/GDITEST.LOG"
+# A passing run keeps its logs; the disk copy only matters for a failure.
+rm -f "$work/test.img"

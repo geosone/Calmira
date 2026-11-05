@@ -145,4 +145,6 @@ cmp "$work/REPORT.TXT" "$work/AFTER.TXT"
 cmp "$work/REPORT.TXT" "$work/AFTER2.TXT"
 cmp "$work/REPORT.TXT" "$work/COLLISION.TXT"
 cmp "$work/REPORT.TXT" "$work/HIDDEN.TXT"
+# A passing run keeps its logs; the disk copy only matters for a failure.
+if [ "$result" = 0 ]; then rm -f "$work/test.img"; fi
 exit "$result"

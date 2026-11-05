@@ -21,3 +21,5 @@ if [ -n "${QEMU_DATA_DIR:-}" ]; then set -- -L "$QEMU_DATA_DIR"; fi
 mcopy -o -i "$partition" ::/RTLTEST.LOG "$work/RTLTEST.LOG"
 tr -d '\r' < "$work/RTLTEST.LOG"
 grep -q '^RESULT PASS' "$work/RTLTEST.LOG"
+# A passing run keeps its logs; the disk copy only matters for a failure.
+rm -f "$work/test.img"
