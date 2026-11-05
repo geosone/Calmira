@@ -780,11 +780,21 @@ begin
     { As Delphi's csBrushValid: USER's dotted pattern takes the DC colours,
       so on Calmira's highlighted captions (clHighlightText on clHighlight)
       the dots alternate yellow and black, as in the original. }
-    SetTextColor(DC, ColorToRGB(FFont.Color));
-    { Over a clear brush the background stays white: the original's
-      focused tab shows grey dots on the button face. }
-    if FBrush.Style = bsClear then SetBkColor(DC, $FFFFFF)
-    else SetBkColor(DC, ColorToRGB(FBrush.Color));
+    { Outside paint Delphi draws on a fresh window context, in USER's
+      black and white: Calmira's drop focus has black dots although the
+      outline's brush is still clHighlight from the selected row. }
+    if (FHandle <> 0) or FMemoryContext or (FMemoryBitmap <> 0) then
+    begin
+      SetTextColor(DC, ColorToRGB(FFont.Color));
+      { Over a clear brush the background stays white: the original's
+        focused tab shows grey dots on the button face. }
+      if FBrush.Style = bsClear then SetBkColor(DC, $FFFFFF)
+      else SetBkColor(DC, ColorToRGB(FBrush.Color));
+    end
+    else
+    begin
+      SetTextColor(DC, $000000); SetBkColor(DC, $FFFFFF);
+    end;
     WinProcs.DrawFocusRect(DC, @Area);
   finally EndDraw(State); end;
   Changed;

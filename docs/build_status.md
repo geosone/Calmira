@@ -2852,3 +2852,17 @@ the mouse is now released before `MouseUp` and `Click`.
 `win16-speedbutton-runtime-test` checks that the click runs without the
 capture. In the dialog our list shows a focus rectangle on its first item
 where the original shows none; it is left as it is.
+
+## Drop Focus in Start Menu Properties
+
+Dragging an item in the Start Menu Properties outline marked the drop
+target with yellow dots where the original shows black ones.
+
+`DrawFocusRect` took its dot colours from the canvas font and brush, and
+Calmira leaves the brush clHighlight after drawing the selected row; USER's
+inverted dots then turn yellow on white. Outside paint, Delphi draws on a
+fresh window context in USER's black and white, so a window canvas without
+a paint handle now uses those. Inside paint and on bitmaps the font and
+brush colours stay, as for the highlighted captions and tabs.
+
+`win16-outline-runtime-test` checks the dots outside paint.

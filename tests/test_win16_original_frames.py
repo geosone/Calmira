@@ -60,8 +60,9 @@ class OriginalFrameTests(unittest.TestCase):
         canvas = source('gdi_canvas.pas')
         self.assertIn('SetTextColor(DC, ColorToRGB(FFont.Color));', canvas)
         self.assertNotIn('SetTextColor(DC, 0); SetBkColor(DC, $FFFFFF);', canvas)
+        # Inside paint and on bitmaps; outside paint USER's black and white.
         self.assertIn('if FBrush.Style = bsClear then SetBkColor(DC, $FFFFFF)\n'
-                      '    else SetBkColor(DC, ColorToRGB(FBrush.Color));', canvas)
+                      '      else SetBkColor(DC, ColorToRGB(FBrush.Color));', canvas)
 
     def test_grid_keeps_its_focused_cell_while_its_form_is_inactive(self):
         grids = source('grids.pas')
@@ -217,6 +218,11 @@ class OriginalFrameTests(unittest.TestCase):
         controls = source('controls.pas')
         route = controls.split('function TCustomControl.RouteGraphicMouse(var M: TMessage): Boolean;', 1)[1].split('\nend;', 1)[0]
         self.assertLess(route.index('Released := True;'), route.index('Target.MouseMessage(M.Msg'))
+
+    def test_focus_rect_outside_paint_uses_user_colours(self):
+        canvas = source('gdi_canvas.pas')
+        self.assertIn('if (FHandle <> 0) or FMemoryContext or (FMemoryBitmap <> 0) then', canvas)
+        self.assertIn('SetTextColor(DC, $000000); SetBkColor(DC, $FFFFFF);', canvas)
 
     def test_keys_reach_every_form_and_popup_shortcuts(self):
         app = source('native_application.pas')

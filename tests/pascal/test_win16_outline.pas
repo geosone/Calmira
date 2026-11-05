@@ -52,6 +52,26 @@ begin
   Inc(Draws); LastDrawRow := Index;
   if odFocused in State then Inc(FocusDraws);
 end;
+{ As Delphi outside paint: a fresh context, so the focus dots are black on
+  white whatever the canvas brush (Calmira's drop focus in Start Menu
+  Properties, drawn after a selected row left the brush clHighlight). }
+function DropDotsBlack: Boolean;
+var R: TRect; DC: HDC; X: Integer; Pixel: TColorRef;
+begin
+  Tree.Canvas.Brush.Color := clHighlight; Tree.Canvas.Font.Color := clHighlightText;
+  SetRect(R, 0, 2 * 16, 150, 3 * 16);
+  Tree.Canvas.DrawFocusRect(R);
+  Result := True;
+  DC := GetDC(Tree.Handle);
+  for X := R.Left + 2 to R.Right - 2 do
+  begin
+    Pixel := GetPixel(DC, X, R.Top) and $FFFFFF;
+    if (Pixel <> 0) and (Pixel <> $FFFFFF) then Result := False;
+  end;
+  ReleaseDC(Tree.Handle, DC);
+  Tree.Canvas.DrawFocusRect(R);
+  Tree.Canvas.Brush.Color := clWindow; Tree.Canvas.Font.Color := clWindowText;
+end;
 function Texts: string;
 var I: Longint;
 begin
@@ -162,6 +182,8 @@ begin
     SendMessage(Tree.Handle, WM_CHAR, Ord('+'), 0);
     Check(Tree.Items[1].Expanded, '+ opens the selected item');
 
+    InvalidateRect(Tree.Handle, nil, True); UpdateWindow(Tree.Handle);
+    Check(DropDotsBlack, 'a focus rectangle outside paint has black dots whatever the brush');
     Tree.OnMouseDown := Events.StartDrag;
     SendMessage(Tree.Handle, WM_LBUTTONDOWN, MK_LBUTTON, MakeLong(40, 2 * 16 + 4));
     { The drag holds the mouse: it, not the outline, sees the button go up.
