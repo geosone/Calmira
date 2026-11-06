@@ -307,5 +307,14 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('  if not IsWindow(Window) then Exit;\n  { EDIT has CS_DBLCLKS', edit)
 
 
+    def test_item_index_leaves_a_multiple_selection_alone(self):
+        # Delphi 1 SetItemIndex sends LB_SETCURSEL, which USER ignores in a
+        # multiple-selection list; the Recycle Bin clears ItemIndex and still
+        # shows the focus on its first item.
+        listbox = source('native_listbox.pas')
+        self.assertIn('  if not FMultiSelect then Perform(LB_SETCURSEL, Value, 0);', listbox)
+        self.assertNotIn('if FMultiSelect then Perform(LB_SETCARETINDEX, Value, 0)', listbox)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -2932,3 +2932,15 @@ menu item now reads the key from the text and finds the item by it as well
 as by `ShortCut`.
 
 `win16-loader-props-runtime-test` checks both keys of an item.
+
+## Focus in the Recycle Bin
+
+The Recycle Bin showed no focus rectangle on its first item; the original
+does.
+
+The bin's `UpdateBin` sets `ItemIndex := -1` on its multiple-selection list.
+Delphi 1 sends `LB_SETCURSEL`, which USER ignores in such a list, but we
+moved the caret to -1. `ItemIndex` now leaves a multiple-selection list
+alone, as Delphi's does.
+
+`win16-listbox-runtime-test` clears `ItemIndex` on a focused list.

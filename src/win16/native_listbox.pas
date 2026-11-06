@@ -413,8 +413,9 @@ begin
   if (Value < -1) or (Value >= FItems.Count) then Fail('List box index out of range');
   FItemIndex := Value;
   if Handle = 0 then Exit;
-  if FMultiSelect then Perform(LB_SETCARETINDEX, Value, 0)
-  else Perform(LB_SETCURSEL, Value, 0);
+  { As Delphi 1: LB_SETCURSEL, which USER ignores in a multiple-selection
+    list, so its caret and focus rectangle stay (Calmira's Recycle Bin). }
+  if not FMultiSelect then Perform(LB_SETCURSEL, Value, 0);
 end;
 function TCustomListBox.GetTopIndex: Integer;
 begin

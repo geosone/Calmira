@@ -3,7 +3,7 @@ program TestWin16ListBox;
 uses WinTypes, WinProcs, Messages, Classes, SysUtils, Graphics, Controls, control_base, native_window, StdCtrls;
 type
   TObserver = class
-    Clicks, DblClicks, Draws, SelectedDraws: Integer;
+    Clicks, DblClicks, Draws, SelectedDraws, FocusedDraws: Integer;
     LastIndex: Integer;
     procedure Click(Sender: TObject);
     procedure DblClick(Sender: TObject);
@@ -14,7 +14,7 @@ type
   protected
     procedure CreateWnd; override;
   end;
-var Root: TCustomControl; List, Multi, Drawn: TListBox; Marks: TObjectMarks; Index: Integer; Observer: TObserver; Failed: Boolean;
+var Root: TCustomControl; List, Multi, Drawn, Bin: TListBox; Marks: TObjectMarks; Index: Integer; Observer: TObserver; Failed: Boolean;
   Msg: TMsg; R: TRect; Rejected: Boolean; Pos: TPoint; Selected: string;
 procedure TObjectMarks.CreateWnd;
 var I: Integer;
@@ -28,6 +28,7 @@ procedure TObserver.Draw(Control: TWinControl; Index: Integer; Rect: TRect; Stat
 begin
   Inc(Draws); LastIndex := Index;
   if odSelected in State then Inc(SelectedDraws);
+  if odFocused in State then Inc(FocusedDraws);
   TListBox(Control).Canvas.FillRect(Rect);
   TListBox(Control).Canvas.TextOut(Rect.Left + 4, Rect.Top, '*' + TListBox(Control).Items[Index]);
 end;
@@ -172,6 +173,20 @@ begin
     Check((Observer.Draws >= 2) and (Observer.SelectedDraws >= 1) and (Drawn.ItemHeight = 20) and
       (R.Bottom - R.Top = 20), 'owner-draw fixed paints through OnDrawItem');
     Check(Drawn.Font.Color <> clHighlightText, 'selection colour does not leak into Font');
+    { As in Calmira's Recycle Bin, whose UpdateBin clears ItemIndex: Delphi 1
+      sends LB_SETCURSEL, which USER ignores in a multiple-selection list,
+      so the focused list still shows the focus on its first item. }
+    Bin := TListBox.Create(nil);
+    Bin.MultiSelect := True; Bin.Style := lbOwnerDrawFixed; Bin.ItemHeight := 15;
+    Bin.OnDrawItem := Observer.Draw; Bin.DragMode := dmAutomatic;
+    Bin.SetBounds(140, 120, 120, 60); Bin.Parent := Root;
+    Bin.Items.AddObject('trash', Observer);
+    Bin.ItemIndex := -1;
+    Observer.FocusedDraws := 0;
+    Bin.SetFocus; Pump;
+    Check(Bin.Focused and (Bin.Perform(LB_GETCARETINDEX, 0, 0) = 0) and (Observer.FocusedDraws > 0),
+      'clearing ItemIndex keeps the focus of a multiple-selection list on its first item');
+    Bin.Free;
     Check(Root.CallbackErrors = 0, 'no native callback errors');
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
   Drawn.Free; Multi.Free; List.Free; Root.Free; Observer.Free;
