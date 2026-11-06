@@ -325,5 +325,14 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertNotIn('Msg = WM_RBUTTONUP then', controls)
 
 
+    def test_show_brings_a_form_to_the_front(self):
+        # Delphi's TCustomForm.Show ends with BringToFront; the Recycle Bin,
+        # shown after My Computer, is activated when a dialog closes.
+        form = source('native_form.pas')
+        self.assertIn('if Visible then begin BringShownToFront; Exit; end;', form)
+        self.assertIn('    BringShownToFront;\n  finally FChangingForm := False; end;', form)
+        self.assertIn('SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);', form)
+
+
 if __name__ == '__main__':
     unittest.main()

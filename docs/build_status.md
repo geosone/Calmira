@@ -2957,3 +2957,17 @@ on the press, as in Delphi 1.
 
 `win16-parent-runtime-test` opens the menu with a right press and checks
 that a release alone opens nothing.
+
+## Window Order After a Dialog
+
+After closing Start Menu Properties, My Computer became the active desktop
+icon; the original activates the Recycle Bin.
+
+USER activates the topmost window when a dialog goes away. Delphi's
+`TCustomForm.Show` ends with `BringToFront`, so the bin, shown after My
+Computer, lies above it. Our `Show` left the z-order alone and skipped an
+already visible form. It now brings the form to the front, without
+activating it.
+
+`win16-forms-runtime-test` shows two minimized forms and checks which lies
+on top.

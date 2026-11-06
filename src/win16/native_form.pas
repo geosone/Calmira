@@ -46,6 +46,7 @@ type
     procedure WMClose(var M: TMessage); message WM_CLOSE;
     procedure WMActivate(var M: TWMActivate); message WM_ACTIVATE;
     procedure RestoreFocus;
+    procedure BringShownToFront;
     procedure WMSize(var M: TMessage); message WM_SIZE;
     procedure WMNCDestroy(var M: TMessage); message WM_NCDESTROY;
     procedure SetNormalBounds(X, Y, AWidth, AHeight: Integer);
@@ -446,7 +447,7 @@ begin
     if Handle = 0 then
       CreateHandle(0, FCaption, WS_OVERLAPPEDWINDOW or WS_CLIPCHILDREN or WS_CLIPSIBLINGS,
         Left, Top, Width, Height);
-    if Visible then Exit;
+    if Visible then begin BringShownToFront; Exit; end;
     FPendingState := False;
     PlaceOnShow;
     { As Delphi's CMShowingChanged: a normal or maximized form is activated
@@ -467,7 +468,18 @@ begin
       darkens it) is painted over by the frame and every child again. }
     if Assigned(FOnShow) and IsWindowVisible(Handle) then
       RedrawWindow(Handle, nil, 0, RDW_INVALIDATE or RDW_ERASE or RDW_FRAME or RDW_ALLCHILDREN);
+    BringShownToFront;
   finally FChangingForm := False; end;
+end;
+{ As Delphi's TCustomForm.Show, Visible := True; BringToFront: the form
+  goes on top even when it was already visible. Calmira shows its Recycle
+  Bin after My Computer, so USER activates the bin when a dialog closes.
+  Activation stays with ShowWindow and the modal loop; activating inside
+  Show, left Calmira's Welcome box unpainted at start. }
+procedure TNativeForm.BringShownToFront;
+begin
+  if (Handle <> 0) and IsWindowVisible(Handle) then
+    SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
 end;
 procedure TNativeForm.ChangeView(Action: TControlViewAction);
 begin

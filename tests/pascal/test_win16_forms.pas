@@ -461,6 +461,32 @@ begin
   Result := GetFocus = First.Handle;
   Form.Free;
 end;
+{ As Delphi's TCustomForm.Show (Visible := True; BringToFront): the form
+  shown last lies on top, even when it was created first or is already
+  visible. Calmira's Recycle Bin, shown after My Computer, is the window
+  USER activates when a dialog closes. }
+function Above(Upper, Lower: HWND): Boolean;
+var W: HWND;
+begin
+  Result := False; W := GetWindow(Lower, GW_HWNDPREV);
+  while W <> 0 do
+  begin
+    if W = Upper then begin Result := True; Exit; end;
+    W := GetWindow(W, GW_HWNDPREV);
+  end;
+end;
+function ShowBringsToFront: Boolean;
+var First, Second: TChildForm;
+begin
+  First := TChildForm.Create(nil); First.SetBounds(60, 60, 200, 100);
+  Second := TChildForm.Create(nil); Second.SetBounds(80, 80, 200, 100);
+  First.WindowState := wsMinimized; Second.WindowState := wsMinimized;
+  First.Show; Second.Show; Application.ProcessMessages;
+  Result := Above(Second.Handle, First.Handle);
+  First.Show; Application.ProcessMessages;
+  Result := Result and Above(First.Handle, Second.Handle);
+  Second.Free; First.Free;
+end;
 function IconErasesWithColor: Boolean;
 var Form: TChildForm; DC: HDC; Black: HBRUSH; Area: TRect;
 begin
@@ -623,6 +649,7 @@ begin
     Check(native_ctl3d.Ctl3DLoaded, 'CTL3D is loaded');
     Check(Ctl3DFrameBeforeHandlers, 'CTL3D paints a dialog frame before the form''s own handlers');
     Check(HiddenActiveControlFocusesOnShow, 'ActiveControl set on a hidden form is focused when it shows');
+    Check(ShowBringsToFront, 'Show brings a form to the front, as Delphi');
     Check(IconErasesWithColor, 'a minimized form erases its icon area with Color');
     Check(ShortcutReachesCreatedForm, 'menu and pop-up shortcuts reach a form not made by CreateForm');
     Check(VisibleShowsAndHides, 'setting Visible shows and hides a form with OnShow and OnHide');
