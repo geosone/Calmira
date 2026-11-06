@@ -279,5 +279,15 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('if Moving and (GetFocus = Handle) then GetPage(Value).FocusNext(True);', notebook)
 
 
+    def test_only_the_left_button_captures_for_graphic_children(self):
+        # Delphi 1 sets MouseCapture in WMLButtonDown and WMLButtonDblClk only.
+        # A right press on a taskbar button runs a popup menu that takes the
+        # button-up; a capture then kept every later press on that button.
+        controls = source('controls.pas')
+        self.assertIn('  case M.Msg of\n    WM_LBUTTONDOWN, WM_LBUTTONDBLCLK:\n'
+                      '      begin FCaptureControl := Target; MouseCapture := True; end;', controls)
+        self.assertNotIn('WM_RBUTTONDOWN, WM_MBUTTONDOWN,\n    WM_LBUTTONDBLCLK', controls)
+
+
 if __name__ == '__main__':
     unittest.main()

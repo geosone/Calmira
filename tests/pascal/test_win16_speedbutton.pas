@@ -88,6 +88,14 @@ begin
     Mouse(WM_LBUTTONUP, 0, 100, 20);
     Check((C.Clicks = 1) and not C.CapturedInClick and not Root.MouseCapture,
       'the mouse is released before the click runs');
+    { Delphi 1 captures the mouse for the left button only. A right press
+      whose MouseDown runs a popup menu (Calmira's taskbar buttons) never
+      sees its button-up and must not keep the next press elsewhere. }
+    Mouse(WM_RBUTTONDOWN, MK_RBUTTON, 100, 20);
+    Check(not Root.MouseCapture, 'a right press does not capture the mouse, as Delphi');
+    Mouse(WM_LBUTTONDOWN, MK_LBUTTON, 200, 20); Mouse(WM_LBUTTONUP, 0, 200, 20);
+    Check(Observer.ParentDowns = 1, 'the next press after a lost right button-up reaches its own control');
+    Observer.ParentDowns := 0;
     C.Clicks := 0;
     Mouse(WM_LBUTTONDOWN, MK_LBUTTON, 100, 20);
     Mouse(WM_MOUSEMOVE, MK_LBUTTON, 200, 20);

@@ -2879,3 +2879,17 @@ new page. Ours left it on the old page, whose handles `TTabPanel` frees. Our
 notebook now does the same as Delphi; a focus outside the notebook stays.
 
 `win16-notebook-runtime-test` checks both cases.
+
+## Right Click on the Start Button
+
+After the system menu of a taskbar button had been shown, a right click
+on the Start button showed that system menu again instead of the taskbar
+menu.
+
+A right press on a graphic child, such as a taskbar button, captured the
+mouse for it. Its `MouseDown` runs the popup menu, which takes the button-up,
+so the capture stayed and the next press anywhere on the taskbar went to
+the same button. As in Delphi 1, only the left button captures now.
+
+`win16-speedbutton-runtime-test` checks that a right press does not
+capture and that the next press reaches its own control.

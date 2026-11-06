@@ -1253,9 +1253,10 @@ begin
   end
   else Target := FCaptureControl;
   if Target = nil then Exit;
+  { As Delphi 1, only the left button captures: a right press may run a
+    popup menu that takes its button-up (Calmira's taskbar buttons). }
   case M.Msg of
-    WM_LBUTTONDOWN, WM_RBUTTONDOWN, WM_MBUTTONDOWN,
-    WM_LBUTTONDBLCLK, WM_RBUTTONDBLCLK, WM_MBUTTONDBLCLK:
+    WM_LBUTTONDOWN, WM_LBUTTONDBLCLK:
       begin FCaptureControl := Target; MouseCapture := True; end;
   end;
   { As Delphi's WMLButtonUp: the mouse is released before MouseUp and
