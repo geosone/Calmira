@@ -2893,3 +2893,17 @@ the same button. As in Delphi 1, only the left button captures now.
 
 `win16-speedbutton-runtime-test` checks that a right press does not
 capture and that the next press reaches its own control.
+
+## Focus During a Search
+
+After a search in Find Files, the Search for field kept the focus and its
+caret; in the original no control is focused until the user clicks one, and
+switching tabs does not focus the first field either.
+
+Find disables its notebook while it searches. Delphi's `CMEnabledChanged`
+first removes the focus from a control being disabled and hands it to the
+form; ours left it on the edit inside. A disabled child now gives the focus
+it or its children hold to the top-level window, as Delphi does.
+
+`win16-notebook-runtime-test` checks both a focus inside the disabled
+control and one elsewhere.

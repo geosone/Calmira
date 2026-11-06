@@ -1424,9 +1424,23 @@ begin
   else Result := DWORD(GetWindowLong(Handle, GWL_STYLE)) and WS_VISIBLE <> 0;
 end;
 procedure TCustomControl.SetEnabled(Value: Boolean);
+var Focus, Top: HWND;
 begin
   FEnabled := Value;
   if not Value then MouseCapture := False;
+  { As Delphi 1's CMEnabledChanged: a disabled child gives up the focus it
+    or its children hold to the top-level window (the form). }
+  if not Value and (Handle <> 0) and (FParent <> nil) then
+  begin
+    Focus := GetFocus;
+    if (Focus <> 0) and ((Focus = Handle) or IsChild(Handle, Focus)) then
+    begin
+      Top := Handle;
+      while (GetWindowLong(Top, GWL_STYLE) and WS_CHILD <> 0) and (GetParent(Top) <> 0) do
+        Top := GetParent(Top);
+      if Top <> Handle then WinProcs.SetFocus(Top);
+    end;
+  end;
   if Handle <> 0 then EnableWindow(Handle, Value);
 end;
 procedure TCustomControl.SetVisible(Value: Boolean);

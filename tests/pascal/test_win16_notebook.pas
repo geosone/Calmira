@@ -80,6 +80,14 @@ begin
     Outside.SetFocus; Book.PageIndex := 2;
     Check(GetFocus = Outside.Handle, 'a page change leaves a focus outside the notebook alone');
     Book.PageIndex := 1;
+    { Delphi 1 CMEnabledChanged: disabling a control that holds the focus
+      hands it to the form (Calmira's Find dialog while it searches). }
+    Edit.SetFocus; Book.Enabled := False;
+    Check(GetFocus = Root.Handle, 'disabling the notebook moves the focus inside it to the window');
+    Book.Enabled := True;
+    Outside.SetFocus; Book.Enabled := False;
+    Check(GetFocus = Outside.Handle, 'disabling the notebook leaves a focus elsewhere alone');
+    Book.Enabled := True;
     Check((TPage(Book.Pages.Objects[1]).Width = Book.ClientWidth) and
       (TPage(Book.Pages.Objects[2]).Height = Book.ClientHeight), 'resize fits all pages');
     Book.Pages.Delete(0);

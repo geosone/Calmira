@@ -289,5 +289,14 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertNotIn('WM_RBUTTONDOWN, WM_MBUTTONDOWN,\n    WM_LBUTTONDBLCLK', controls)
 
 
+    def test_disabling_a_control_hands_its_focus_to_the_form(self):
+        # Delphi 1 CMEnabledChanged calls RemoveFocus before EnableWindow;
+        # Find disables its notebook while it searches, leaving no caret.
+        controls = source('controls.pas')
+        self.assertIn('if not Value and (Handle <> 0) and (FParent <> nil) then', controls)
+        self.assertIn('if (Focus <> 0) and ((Focus = Handle) or IsChild(Handle, Focus)) then', controls)
+        self.assertIn('if Top <> Handle then WinProcs.SetFocus(Top);', controls)
+
+
 if __name__ == '__main__':
     unittest.main()
