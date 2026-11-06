@@ -172,7 +172,9 @@ procedure TNativeInputWindow.WMKeyUp(var M: TMessage); begin KeyMessage(M); end;
 procedure TNativeInputWindow.WMSysKeyDown(var M: TMessage); begin KeyMessage(M); end;
 procedure TNativeInputWindow.WMSysKeyUp(var M: TMessage); begin KeyMessage(M); end;
 procedure TNativeInputWindow.WMChar(var M: TMessage); begin CharMessage(M); end;
-procedure TNativeInputWindow.WMSysChar(var M: TMessage); begin CharMessage(M); end;
+{ As Delphi's TWinControl, only WM_CHAR is a KeyPress: Alt+T opens a folder
+  window's Tools menu without its icon grid also searching for a T. }
+procedure TNativeInputWindow.WMSysChar(var M: TMessage); begin DefaultHandler(M); end;
 procedure TNativeInputWindow.WMSetFocus(var M: TMessage);
 begin DefaultHandler(M); DoEnter; end;
 procedure TNativeInputWindow.WMKillFocus(var M: TMessage);

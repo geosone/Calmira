@@ -24,7 +24,7 @@ type
     procedure ExitEvent(Sender: TObject);
   end;
 var ParentWindow, A, B: TProbe; Observer: TObserver; Failed, Rejected: Boolean;
-  Saved, Fake: TKeyboardState; Raw: HWND; Before, I, Pool: Integer;
+  Saved, Fake: TKeyboardState; Raw: HWND; Before, I, Pool, Index: Integer;
 procedure LogLine(const Text: string);
 var F: HFILE; Buffer: array[0..255] of Char; Line: string;
 begin
@@ -118,8 +118,12 @@ begin
       'system key up keeps its native message and modifier context');
     Observer.Mode := 1; A.Perform(WM_CHAR, Ord('a'), 1);
     Check((Observer.Character = 'a') and (A.ForwardKey = Ord('z')), 'ANSI KeyPress can replace the forwarded character');
-    Before := A.ForwardCount; Observer.Mode := 2; A.Perform(WM_SYSCHAR, Ord('a'), 1);
-    Check(A.ForwardCount = Before, 'NUL KeyPress consumes system character');
+    { As Delphi: only WM_CHAR reaches KeyPress. Alt+T, which opens a folder
+      window's Tools menu, must not also search its icons for a T. }
+    Before := A.ForwardCount; Observer.Mode := 2; Index := Observer.Chars;
+    A.Perform(WM_SYSCHAR, Ord('a'), $20000001);
+    Check((Observer.Chars = Index) and (A.ForwardCount = Before + 1) and (A.ForwardId = WM_SYSCHAR),
+      'a system character is not a KeyPress');
     Observer.Mode := 0; A.Perform(WM_CHAR, $E4, 1);
     Check((Ord(Observer.Character) = $E4) and (A.ForwardKey = $E4),
       'single-byte ANSI KeyPress preserves the high character bit');

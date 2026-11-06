@@ -2971,3 +2971,15 @@ activating it.
 
 `win16-forms-runtime-test` shows two minimized forms and checks which lies
 on top.
+
+## Alt Keys in Folder Windows
+
+Alt+T or Alt+E in a folder or Explorer window opened the menu and also
+selected the first icon starting with that letter; the original only opens
+the menu.
+
+Our input windows passed `WM_SYSCHAR` to `KeyPress`, so Calmira's icon
+search saw the letter. As in Delphi, only `WM_CHAR` is a key press now.
+
+`win16-input-runtime-test` checks that a system character reaches no
+`KeyPress`.

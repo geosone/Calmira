@@ -334,5 +334,13 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);', form)
 
 
+    def test_a_system_character_is_not_a_key_press(self):
+        # Delphi calls KeyPress for WM_CHAR only; Alt+T in a folder window
+        # selected the icon starting with T as well as opening Tools.
+        native_input = source('native_input.pas')
+        self.assertIn('procedure TNativeInputWindow.WMSysChar(var M: TMessage); begin DefaultHandler(M); end;', native_input)
+        self.assertNotIn('WMSysChar(var M: TMessage); begin CharMessage(M); end;', native_input)
+
+
 if __name__ == '__main__':
     unittest.main()
