@@ -316,5 +316,14 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertNotIn('if FMultiSelect then Perform(LB_SETCARETINDEX, Value, 0)', listbox)
 
 
+    def test_popup_menu_opens_on_the_right_press(self):
+        # Delphi 1 opens PopupMenu on WM_RBUTTONDOWN; opened on the release,
+        # USER highlights the item under the cursor (the Recycle Bin menu).
+        controls = source('controls.pas')
+        self.assertIn('        if Message.Msg = WM_RBUTTONDOWN then\n        begin', controls.replace('\r\n', '\n'))
+        self.assertIn('  if Msg = WM_RBUTTONDOWN then\n  begin\n    Position.X := X;', controls.replace('\r\n', '\n'))
+        self.assertNotIn('Msg = WM_RBUTTONUP then', controls)
+
+
 if __name__ == '__main__':
     unittest.main()

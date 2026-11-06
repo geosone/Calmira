@@ -3,8 +3,9 @@ program TestWin16Parent;
 uses WinTypes, WinProcs, Messages, Classes, SysUtils, Graphics, Controls, StdCtrls, Menus, native_window;
 type
   TSink = class
-    Clicked: TObject; MouseUps: Integer;
+    Clicked: TObject; MouseUps, MouseDowns: Integer;
     procedure Click(Sender: TObject);
+    procedure MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   end;
 var Root, Panel: TCustomControl; Sink: TSink; Text: TLabel; Button: TButton; Edit: TEdit;
@@ -24,6 +25,8 @@ begin
 end;
 procedure TSink.Click(Sender: TObject);
 begin Clicked := Sender; end;
+procedure TSink.MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin Inc(MouseDowns); end;
 procedure TSink.MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin Inc(MouseUps); end;
 procedure Pump;
@@ -37,7 +40,7 @@ begin
   { Queue the key first; TrackPopupMenu's own loop consumes it. }
   Menu.Items.Handle;
   PostMessage(PopupListWindow, WM_CHAR, Ord('s'), 0);
-  SendMessage(Window, WM_RBUTTONUP, 0, MakeLong(5, 5));
+  SendMessage(Window, WM_RBUTTONDOWN, MK_RBUTTON, MakeLong(5, 5));
   Pump;
 end;
 procedure PopupMenus;
@@ -46,13 +49,18 @@ begin
   Menu := NewPopupMenu(nil, 'Context', paLeft, True, [
     NewItem('&First', 0, False, True, Sink.Click, 0, ''),
     NewItem('&Second', 0, False, True, Sink.Click, 0, '')]);
-  Panel.PopupMenu := Menu; Panel.OnMouseUp := Sink.MouseUp;
+  Panel.PopupMenu := Menu; Panel.OnMouseUp := Sink.MouseUp; Panel.OnMouseDown := Sink.MouseDown;
+  { Delphi 1 opens the menu on the right press, so USER tracks it with the
+    button down and highlights nothing until the mouse moves. }
   RightClick(Panel.Handle, Menu);
-  Check((Sink.Clicked = Menu.Items[1]) and (Menu.PopupComponent = Panel) and (Sink.MouseUps = 0),
-    'a right-button release opens PopupMenu instead of MouseUp');
-  Menu.AutoPopup := False; Sink.Clicked := nil;
+  Check((Sink.Clicked = Menu.Items[1]) and (Menu.PopupComponent = Panel) and (Sink.MouseDowns = 0),
+    'a right-button press opens PopupMenu instead of MouseDown');
+  Sink.Clicked := nil;
   SendMessage(Panel.Handle, WM_RBUTTONUP, 0, MakeLong(5, 5)); Pump;
-  Check((Sink.Clicked = nil) and (Sink.MouseUps = 1), 'without AutoPopup MouseUp is reported');
+  Check((Sink.Clicked = nil) and (Sink.MouseUps = 1), 'a right-button release opens no menu');
+  Menu.AutoPopup := False; Sink.MouseUps := 0;
+  SendMessage(Panel.Handle, WM_RBUTTONDOWN, MK_RBUTTON, MakeLong(5, 5)); Pump;
+  Check((Sink.Clicked = nil) and (Sink.MouseDowns = 1), 'without AutoPopup MouseDown is reported');
   Menu.AutoPopup := True; Sink.Clicked := nil;
   Text.SetBounds(0, 0, 60, 20); Text.PopupMenu := Menu;
   RightClick(Root.Handle, Menu);

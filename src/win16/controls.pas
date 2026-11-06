@@ -437,8 +437,10 @@ end;
 procedure TGraphicCanvas.ReleaseContext(Context: HDC);
 begin ReleaseDC(FWindow, Context); FWindow := 0; end;
 
-{ Delphi 1: releasing the right button over a control whose PopupMenu has
-  AutoPopup opens the menu at the cursor instead of reporting MouseUp. }
+{ Delphi 1: pressing the right button over a control whose PopupMenu has
+  AutoPopup opens the menu at the cursor instead of reporting MouseDown.
+  USER then tracks it with the button down and highlights no item until
+  the mouse moves (Calmira's Recycle Bin list). }
 function PopupAt(Control: TControl; Menu: TPopupMenu; const Position: TPoint): Boolean;
 begin
   Result := (Menu <> nil) and Menu.AutoPopup;
@@ -1292,7 +1294,7 @@ begin
     WM_MOUSEMOVE..WM_MBUTTONDBLCLK:
       begin
         if RouteGraphicMouse(Message) then Exit;
-        if Message.Msg = WM_RBUTTONUP then
+        if Message.Msg = WM_RBUTTONDOWN then
         begin
           Position.X := SmallInt(LoWord(Message.LParam));
           Position.Y := SmallInt(HiWord(Message.LParam));
@@ -1478,7 +1480,7 @@ end;
 procedure TGraphicControl.MouseMessage(Msg, Keys: Word; X, Y: Integer);
 var Shift: TShiftState; Button: TMouseButton; Position: TPoint;
 begin
-  if Msg = WM_RBUTTONUP then
+  if Msg = WM_RBUTTONDOWN then
   begin
     Position.X := X; Position.Y := Y;
     if PopupAt(Self, FPopupMenu, ClientToScreen(Position)) then Exit;

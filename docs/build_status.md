@@ -1183,9 +1183,9 @@ The full regression passed (`build/tests/parent-regression.log`, 82 suites, exit
   `TComboBox` supports `csOwnerDrawFixed`/`csOwnerDrawVariable` with
   `ItemHeight` (default 16), `OnDrawItem`, `OnMeasureItem` and default
   text drawing, plus `OnDblClick` (`CBN_DBLCLK`).
-- `PopupMenu` on TCustomControl and TGraphicControl: releasing the right button
+- `PopupMenu` on TCustomControl and TGraphicControl: pressing the right button
   opens an `AutoPopup` menu at the cursor with `PopupComponent` set, instead
-  of reporting MouseUp. A freed menu is cleared from its controls.
+  of reporting MouseDown. A freed menu is cleared from its controls.
 - `CreateWnd`/`DestroyWnd` are virtual hooks around the native window:
   CreateWnd runs after a child window and its native state (for example list
   items) exist, and DestroyWnd runs at `WM_DESTROY` or when the control is
@@ -2944,3 +2944,16 @@ moved the caret to -1. `ItemIndex` now leaves a multiple-selection list
 alone, as Delphi's does.
 
 `win16-listbox-runtime-test` clears `ItemIndex` on a focused list.
+
+## Right Click in the Recycle Bin
+
+The Recycle Bin's context menu opened with its first item highlighted; the
+original highlights nothing until the mouse moves.
+
+Delphi 1 opens a control's `PopupMenu` when the right button is pressed, so
+USER tracks the menu with the button down. We opened it on the release, and
+USER then highlights the item under the cursor at once. The menu now opens
+on the press, as in Delphi 1.
+
+`win16-parent-runtime-test` opens the menu with a right press and checks
+that a release alone opens nothing.
