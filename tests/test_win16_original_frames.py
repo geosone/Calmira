@@ -298,5 +298,14 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('if Top <> Handle then WinProcs.SetFocus(Top);', controls)
 
 
+    def test_an_edit_freed_by_its_own_handler_is_left_alone(self):
+        # Calmira's rename edit frees itself in OnKeyPress on Escape; reading
+        # the text of the freed edit afterwards raised a GPF.
+        edit = source('native_edit.pas')
+        self.assertIn('  Window := Handle;', edit)
+        self.assertIn('  else inherited WndProc(M);\n', edit)
+        self.assertIn('  if not IsWindow(Window) then Exit;\n  { EDIT has CS_DBLCLKS', edit)
+
+
 if __name__ == '__main__':
     unittest.main()

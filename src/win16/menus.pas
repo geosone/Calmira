@@ -25,6 +25,8 @@ type
     FCommand: Word;
     FShortCut: TShortCut;
     FShortCutText: string;
+    { The key ShortCutText names, which Calmira's Menus.dcu makes work too. }
+    FTextShortCut: TShortCut;
     FHelpContext: LongInt;
     FHint: string;
     FItems: TList;
@@ -404,6 +406,7 @@ procedure TMenuItem.SetShortCutText(const Value: string);
 begin
   if FShortCutText = Value then Exit;
   FShortCutText := Value;
+  FTextShortCut := TextToShortCut(Value);
   MenuChanged;
 end;
 procedure TMenuItem.SetGroupIndex(Value: Byte);
@@ -454,7 +457,9 @@ begin
     case Kind of
       fkCommand: if Result.FCommand = Value then Exit;
       fkHandle: if (Result.FHandle <> 0) and (Result.FHandle = Value) then Exit;
-      fkShortCut: if (Result.FShortCut <> scNone) and (Result.FShortCut = Value) then Exit;
+      fkShortCut:
+        if ((Result.FShortCut <> scNone) and (Result.FShortCut = Value)) or
+          ((Result.FTextShortCut <> scNone) and (Result.FTextShortCut = Value)) then Exit;
     end;
     Result := FindIn(Result, Value, Kind);
     if Result <> nil then Exit;

@@ -4,12 +4,14 @@ uses WinTypes, WinProcs, Win31, Classes, SysUtils, Graphics, Controls,
   native_edit, native_window;
 type
   TObserver = class
-    Calls: Integer;
+    Calls, Exits: Integer;
     Fail, Reenter: Boolean;
+    procedure Gone(Sender: TObject);
+    procedure Escape(Sender: TObject; var Key: Char);
     procedure Changed(Sender: TObject);
     procedure Character(Sender: TObject; var Key: Char);
   end;
-var Root, Peer: TCustomControl; Edit: TEdit; Observer: TObserver;
+var Root, Peer: TCustomControl; Edit, Floating: TEdit; Observer: TObserver;
   Failed, Rejected: Boolean; I, Before, PoolUser, PoolGDI: Integer;
   Raw: HWND; Buffer: array[0..300] of Char; Font: TFont;
 {$I win16_stack_guard.inc}
@@ -33,6 +35,12 @@ begin
   Inc(Calls);
   if Reenter then Edit.Text := 'nested';
   if Fail then raise Exception.Create('edit change failure');
+end;
+procedure TObserver.Gone(Sender: TObject); begin Inc(Exits); end;
+procedure TObserver.Escape(Sender: TObject; var Key: Char);
+begin
+  { Calmira's rename edit frees itself when Escape is pressed. }
+  if Key = #27 then begin Key := #0; Floating.Free; Floating := nil; Root.SetFocus; end;
 end;
 procedure TObserver.Character(Sender: TObject; var Key: Char);
 begin if Key = 'x' then Key := 'Z' else if Key = '!' then Key := #0; end;
@@ -140,6 +148,14 @@ begin
     Before := Observer.Calls; Edit.CreateControl(Root.Handle); Edit.Text := 'legacy';
     Edit.SelectAll; Edit.Perform(WM_CHAR, Ord('L'), 1);
     Check((Edit.Text = 'L') and (Observer.Calls = Before + 2), 'legacy native parent change fallback');
+    { Delphi 1: an edit may free itself in its own OnKeyPress, as Calmira's
+      rename edit does on Escape; nothing may touch it afterwards. }
+    Floating := TEdit.Create(nil); Floating.SetBounds(5, 40, 80, 20); Floating.Parent := Root;
+    Floating.OnExit := Observer.Gone; Floating.OnKeyPress := Observer.Escape;
+    Floating.SetFocus; Raw := Floating.Handle;
+    SendMessage(Raw, WM_CHAR, 27, 1);
+    Check((Floating = nil) and not IsWindow(Raw) and (Observer.Exits = 0),
+      'an edit freed in its own OnKeyPress returns safely, without OnExit');
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
   Edit.Free; Root.Free; Peer.Free; Observer.Free; Font.Free;
   Check(StackGuardIntact, 'stack boundary');

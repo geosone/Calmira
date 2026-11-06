@@ -174,6 +174,11 @@ begin
   Check(ItemText(0) = '&Open'#9'Enter', 'ShortCutText is shown after the caption');
   Check(ItemText(1) = '&Copy'#9'Ctrl+C', 'a ShortCut alone shows its key');
   Check(ItemText(2) = '&Paste'#9'Shift+Ins', 'ShortCutText takes precedence over ShortCut');
+  { Calmira's Menus.dcu also makes the text a working key: Ins creates a
+    folder and Ctrl+R runs a program through the folder window's menu. }
+  Check(Popup.FindItem(ShortCut(VK_RETURN, []), fkShortCut) = Open, 'ShortCutText works as a shortcut');
+  Check((Popup.FindItem(ShortCut(VK_INSERT, [ssShift]), fkShortCut) = Paste) and
+    (Popup.FindItem(ShortCut(Ord('V'), [ssCtrl]), fkShortCut) = Paste), 'both the text and ShortCut work');
   Popup.HelpContext := 7;
   Check(Popup.HelpContext = 7, 'TPopupMenu.HelpContext');
   Check((Popup.GetHelpContext(Copy.Command, True) = 12) and (Popup.GetHelpContext(Child.Command, True) = 40) and

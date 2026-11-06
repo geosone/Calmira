@@ -58,7 +58,10 @@ class Win16LoaderPropertyTests(unittest.TestCase):
         for text in ('property ShortCutText: string read FShortCutText write SetShortCutText;',
                      "if Item.FShortCutText <> '' then Caption := Caption + #9 + Item.FShortCutText",
                      'function GetHelpContext(Value: Word; ByCommand: Boolean): LongInt;',
-                     'property HelpContext: LongInt read GetPopupHelpContext write SetPopupHelpContext default 0;'):
+                     'property HelpContext: LongInt read GetPopupHelpContext write SetPopupHelpContext default 0;',
+                     # Calmira's Menus.dcu makes the text a working key (Ins, Ctrl+R, Ctrl+G).
+                     'FTextShortCut := TextToShortCut(Value);',
+                     '((Result.FTextShortCut <> scNone) and (Result.FTextShortCut = Value)) then Exit;'):
             self.assertIn(text, source)
 
     def test_loaders_always_see_graphics_and_controls(self):
@@ -72,7 +75,7 @@ class Win16LoaderPropertyTests(unittest.TestCase):
         for check in ('an AutoSize label fits its caption', 'a loading label keeps its streamed size',
                       "the parent shows a graphic control''s Cursor", 'TEdit.OnDblClick fires',
                       'BN_DOUBLECLICKED fires TRadioButton.OnDblClick', 'KeyPreview: clearing Key consumes it',
-                      'ShortCutText takes precedence over ShortCut',
+                      'ShortCutText takes precedence over ShortCut', 'ShortCutText works as a shortcut',
                       'GetHelpContext falls back to the parents and the popup menu'):
             self.assertIn(check, native)
 

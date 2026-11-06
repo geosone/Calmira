@@ -1684,8 +1684,8 @@ missing: the four forms that use `TNativeForm` (`askdrop`, `incsrch`,
   - `AutoScroll`, which is stored only, because forms never show scroll bars.
 - `Menus`:
   - `TMenuItem.ShortCutText` comes from Calmira's modified `Menus.dcu`. It is
-    display text after the caption, for keys the form handles itself, and
-    takes precedence over `ShortCut`'s text.
+    shown after the caption, takes precedence over `ShortCut`'s text and
+    works as a key as well (see "Menu Keys from ShortCutText").
   - `TPopupMenu.HelpContext` is stored on the root item.
   - `TMenu.GetHelpContext` falls back to the parent items.
 
@@ -2907,3 +2907,28 @@ it or its children hold to the top-level window, as Delphi does.
 
 `win16-notebook-runtime-test` checks both a focus inside the disabled
 control and one elsewhere.
+
+## Escape While Renaming
+
+Pressing Escape while renaming an icon in a folder window raised a general
+protection fault.
+
+Calmira's rename edit frees itself in its own `OnKeyPress`. After the
+handler our `TEdit.WndProc` still read the edit's text to report changes,
+from the freed object. As Delphi's edit, it now touches nothing once its
+window is gone.
+
+`win16-edit-runtime-test` frees an edit from its own `OnKeyPress`.
+
+## Menu Keys from ShortCutText
+
+In a folder window Ins, Ctrl+R and Ctrl+G did nothing; the original creates
+a folder, and opens Run Program and Go To Folder.
+
+These keys are only named by `ShortCutText` in the window's main menu.
+Calmira's modified `Menus.dcu` makes that text a working key, which is also
+why Calmira passes Enter and Del from the menu on to its rename edit. Our
+menu item now reads the key from the text and finds the item by it as well
+as by `ShortCut`.
+
+`win16-loader-props-runtime-test` checks both keys of an item.

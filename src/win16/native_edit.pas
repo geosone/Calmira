@@ -213,8 +213,9 @@ begin
   if Result then ReadChangedText;
 end;
 procedure TEdit.WndProc(var M: TMessage);
-var I: Integer; Source: PChar;
+var I: Integer; Source: PChar; Window: HWND;
 begin
+  Window := Handle;
   if (M.Msg = WM_SETTEXT) and (M.LParam <> 0) then
   begin
     { Inspect at most 256 bytes: never scan an unbounded foreign string. }
@@ -228,6 +229,9 @@ begin
   { USER owns EDIT painting and its local edit buffer. }
   if (M.Msg = WM_PAINT) or (M.Msg = WM_ERASEBKGND) then DefaultHandler(M)
   else inherited WndProc(M);
+  { As in Delphi, a handler may free the edit (Calmira's rename edit frees
+    itself in OnKeyPress on Escape): then nothing may touch it any more. }
+  if not IsWindow(Window) then Exit;
   { EDIT has CS_DBLCLKS and selects the word first, as in Delphi. }
   if M.Msg = WM_LBUTTONDBLCLK then DblClick;
   case M.Msg of
