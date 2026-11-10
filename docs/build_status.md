@@ -3063,3 +3063,21 @@ Existing installations keep their own `URLPrefixes` until it is changed in
 System Properties.
 
 `win16-delphi-asm-runtime-test` checks that an `https` address is a URL.
+
+## Opening the Explorer
+
+The Explorer took about six seconds to open; the original needs less than two.
+Loading the folder window and its menus made over a hundred language lookups,
+and each one read the catalogue from the start up to its key; the `[Forms]`
+section alone has some 800 lines.
+
+A catalogue is now read once into an index: a 16-bit hash, the section and
+the file position of each key, seven bytes an entry. A lookup reads only the
+line of its key. The rules stay as before: the first section of a name and
+the first key in it count. A catalogue the index cannot hold (more than 8000
+keys, 48 sections or a section name over 63 characters) is still read line by
+line. The Explorer now opens in under two seconds.
+
+`fpc-test` checks against `tests/fixtures/catalog_index.lng` that many lookups read
+the catalogue once, that repeated sections and keys are ignored, and that LF
+line ends, escapes and a last line without an end are read as before.

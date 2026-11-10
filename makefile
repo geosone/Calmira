@@ -133,6 +133,8 @@ fpc-test: languages
 	$(FPC_TEST_DIR)/test_program_groups
 	$(FPC) -Mdelphi -S2 -Fu./src/portable -Fu./vcl -FU$(FPC_TEST_DIR)/units \
 		-FE$(FPC_TEST_DIR) tests/pascal/test_language_catalog.pas
+	mkdir -p $(FPC_TEST_DIR)/lang
+	cp tests/fixtures/catalog_index.lng $(FPC_TEST_DIR)/lang/xx.LNG
 	$(FPC_TEST_DIR)/test_language_catalog
 	$(FPC) -Mdelphi -S2 -Fu./src/portable -Fu./vcl -FU$(FPC_TEST_DIR)/units \
 		-FE$(FPC_TEST_DIR) tests/pascal/test_langui.pas

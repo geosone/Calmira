@@ -1,0 +1,14 @@
+[Language]
+Code=xx
+
+[first]
+key=one
+key=ignored
+Escaped=a\nb
+[second]
+later=two
+unix=lf
+[first]
+later=three
+[last]
+end=no newline

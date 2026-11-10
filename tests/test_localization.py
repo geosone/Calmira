@@ -26,6 +26,17 @@ class LocalizationTests(unittest.TestCase):
         probe = (ROOT / 'tests/pascal/test_language_catalog.pas').read_text()
         self.assertIn('a lookup ends with its section', probe)
 
+    def test_catalogue_is_read_once_into_an_index(self):
+        # A folder window looks up every menu caption; reading the catalogue
+        # up to each key made the Explorer take seconds to open.
+        catalog = (ROOT / 'src/portable/language_catalog.pas').read_text()
+        for text in ('function CatalogueScans: LongInt;', 'procedure BuildIndex(Index: PCatalogueIndex);',
+                     'ReadValue := ReadIndexedValue(LanguageDirectory + Code', 'if not Handled then'):
+            self.assertIn(text, catalog)
+        probe = (ROOT / 'tests/pascal/test_language_catalog.pas').read_text()
+        self.assertIn('a catalogue is read once for many lookups', probe)
+        self.assertTrue((ROOT / 'tests/fixtures/catalog_index.lng').is_file())
+
     def test_placeholder_order_and_escaped_percent_are_preserved(self):
         self.assertEqual(LANGUAGES.placeholders('%d: %s (%%)'), ['%d', '%s'])
         self.assertNotEqual(LANGUAGES.placeholders('%d %s'), LANGUAGES.placeholders('%s %d'))
