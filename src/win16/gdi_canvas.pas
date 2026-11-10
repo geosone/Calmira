@@ -975,15 +975,18 @@ var Extent: TPoint;
 begin Extent := TextExtent(Text); Result := Extent.Y; end;
 function TGDICanvas.GetPixel(X, Y: SmallInt): TColor;
 begin RequireHandle; Result := WinProcs.GetPixel(DC, X, Y); end;
+{ Calmira recolours bitmaps pixel by pixel (ReplaceBitmapColors), so a
+  pixel costs no SaveDC/RestoreDC: only a raster mode other than copying is
+  set aside and put back. }
 procedure TGDICanvas.SetPixel(X, Y: SmallInt; Value: TColor);
-var State: SmallInt;
+var Context: HDC; Mode: SmallInt; Painted: Boolean;
 begin
-  State := BeginDraw;
-  try
-    SetROP2(DC, R2_COPYPEN);
-    if WinProcs.SetPixel(DC, X, Y, ColorToRGB(Value)) = DWORD($FFFFFFFF) then Exit;
-  finally EndDraw(State); end;
-  Changed;
+  RequireHandle; Context := DC;
+  Mode := GetROP2(Context);
+  if Mode <> R2_COPYPEN then SetROP2(Context, R2_COPYPEN);
+  Painted := WinProcs.SetPixel(Context, X, Y, ColorToRGB(Value)) <> DWORD($FFFFFFFF);
+  if Mode <> R2_COPYPEN then SetROP2(Context, Mode);
+  if Painted then Changed;
 end;
 procedure TGDICanvas.RefreshSystemColors;
 begin FPen.Invalidate; FBrush.Invalidate; FFont.Invalidate; end;

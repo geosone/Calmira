@@ -15,6 +15,7 @@ type
   end;
 var Root, Child: TCustomControl; Boxes: array[0..5] of TBox; Box: TBox; Failed: Boolean;
   Loop: TNativeMessageLoop; Probe: TIdleProbe; Width1: Integer; I: Integer; Own: HDC; Empty, Copy: TBitmap;
+  Recolour: TBitmap; X, Y: Integer; Start, GetTicks, SetTicks: LongInt; Mode: Integer;
   First, Second: TFont; Shared: HFONT; Description: TLogFont; Assigned: TCanvas; Face: array[0..31] of Char;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
@@ -126,6 +127,29 @@ begin
       finally Copy.Free; end;
     finally Empty.Free; end;
     Check(not DeviceContextsInUse, 'a freed bitmap leaves no memory DC borrowed');
+
+    { Calmira's ReplaceBitmapColors recolours the Explorer's tree images pixel
+      by pixel when a folder window opens: setting a pixel costs about as
+      much as reading one, and a raster mode the caller chose stays. }
+    Recolour := TBitmap.Create;
+    try
+      Recolour.Width := 96; Recolour.Height := 32;
+      Start := GetTickCount;
+      for X := 0 to 95 do for Y := 0 to 31 do
+        if Recolour.Canvas.Pixels[X, Y] = clRed then Recolour.Canvas.Pixels[X, Y] := clBlue;
+      GetTicks := GetTickCount - Start;
+      Start := GetTickCount;
+      for X := 0 to 95 do for Y := 0 to 31 do Recolour.Canvas.Pixels[X, Y] := clLime;
+      SetTicks := GetTickCount - Start;
+      LogLine('INFO pixels: read ' + IntToStr(GetTicks) + ' ms, set ' + IntToStr(SetTicks) + ' ms');
+      Check(SetTicks <= 2 * GetTicks + 110, 'setting a pixel costs about as much as reading one');
+      SetROP2(Recolour.Canvas.Handle, R2_NOT);
+      Recolour.Canvas.Pixels[2, 2] := clRed;
+      Mode := GetROP2(Recolour.Canvas.Handle);
+      Check((Recolour.Canvas.Pixels[2, 2] = RGB(255, 0, 0)) and (Mode = R2_NOT),
+        'a pixel is set as given and the raster mode stays');
+      SetROP2(Recolour.Canvas.Handle, R2_COPYPEN);
+    finally Recolour.Free; end;
 
     First := TFont.Create; Second := TFont.Create;
     try

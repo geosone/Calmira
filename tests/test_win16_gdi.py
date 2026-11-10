@@ -18,6 +18,18 @@ class Win16GDITests(unittest.TestCase):
             self.assertEqual(result.returncode, 2, result.stderr)
             self.assertIn('GDI_TEST_SECONDS must be 1..60', result.stderr)
 
+    def test_setting_a_pixel_saves_no_device_context(self):
+        # ReplaceBitmapColors sets thousands of pixels when a folder window
+        # opens; SaveDC/RestoreDC per pixel made the Explorer slow to open.
+        source = (ROOT / 'src/win16/gdi_canvas.pas').read_text()
+        body = source.split('procedure TGDICanvas.SetPixel(', 1)[1].split('\nend;', 1)[0]
+        self.assertNotIn('BeginDraw', body)
+        self.assertIn('Mode := GetROP2(Context);', body)
+        self.assertIn('if Mode <> R2_COPYPEN then SetROP2(Context, Mode);', body)
+        probe = (ROOT / 'tests/pascal/test_win16_canvas_context.pas').read_text()
+        self.assertIn('setting a pixel costs about as much as reading one', probe)
+        self.assertIn('a pixel is set as given and the raster mode stays', probe)
+
     def test_port_is_explicitly_a_win16_foundation_not_a_placeholder_graphics_unit(self):
         source = (ROOT / 'src/win16/gdi_canvas.pas').read_text()
         self.assertIn('{$IFNDEF WIN16}{$FATAL', source)

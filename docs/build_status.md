@@ -3081,3 +3081,21 @@ line. The Explorer now opens in under two seconds.
 `fpc-test` checks against `tests/fixtures/catalog_index.lng` that many lookups read
 the catalogue once, that repeated sections and keys are ignored, and that LF
 line ends, escapes and a last line without an end are read as before.
+
+## Recolouring the Explorer's Tree Images
+
+Opening a folder window still took about a second longer than in the
+original. Calmira's `Configure` recolours the tree images (a 192 by 32
+bitmap) pixel by pixel through `ReplaceBitmapColors`, and each pixel set
+went through `SaveDC`, `SetROP2` and `RestoreDC`: setting a pixel cost three
+times as much as reading one, about 800 ms for the whole bitmap.
+
+`TGDICanvas.SetPixel` now reads the raster mode and only sets it aside when
+it is not `R2_COPYPEN`, as Delphi sets a pixel straight into the DC. The
+recolouring takes half as long, and the Explorer opens within about a second
+of the original; most of what remains is reading the pixels, which the
+original does too.
+
+`win16-canvas-context-runtime-test` times reading and setting 3072 pixels and
+checks that setting costs at most about twice as much; it also checks that a
+raster mode the caller chose stays after a pixel is set.
