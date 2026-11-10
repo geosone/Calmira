@@ -18,7 +18,7 @@ const Names: array[0..1] of string[7] = ('Caption', 'Hint');
 var
   I, J: Integer;
   Prop: PPropInfo;
-  Key, Value: string;
+  Key, Value, Original: string;
   ListObject: TObject;
   Texts: TStrings;
 begin
@@ -31,9 +31,9 @@ begin
     if Prop <> nil then
     begin
       Key := RootClass + '.' + Item.Name + '.' + Names[I];
-      Value := GetStrProp(Item, Prop);
-      Value := LanguageText('Forms', Key, Value);
-      SetStrProp(Item, Prop, Value);
+      Original := GetStrProp(Item, Prop);
+      Value := LanguageText('Forms', Key, Original);
+      if Value <> Original then SetStrProp(Item, Prop, Value);
     end;
   end;
   if Item.Name <> '' then
@@ -50,9 +50,15 @@ begin
       if ListObject is TStrings then
       begin
         Texts := TStrings(ListObject);
+        { Only changed texts are written back: replacing a list box entry
+          deletes and inserts it, which made Desktop Properties take seconds. }
         for J := 0 to Texts.Count - 1 do
-          Texts[J] := LanguageText('Forms', RootClass + '.' + Item.Name +
-            '.' + Lists[I] + '.Strings.' + IntToStr(J), Texts[J]);
+        begin
+          Original := Texts[J];
+          Value := LanguageText('Forms', RootClass + '.' + Item.Name +
+            '.' + Lists[I] + '.Strings.' + IntToStr(J), Original);
+          if Value <> Original then Texts[J] := Value;
+        end;
       end;
     end;
   end;

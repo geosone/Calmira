@@ -18,6 +18,14 @@ begin
   Check(SelectedLanguage = 'en', 'English fallback');
   Check(LanguageText('FileManager', 'Refresh', '') = 'Refresh', 'English text');
   Check(LanguageText('Unknown', 'missing', 'default') = 'default', 'caller fallback');
+  Check(ReadConfiguration('tests/fixtures/catalog_sections.ini', 'first', 'key', '') = 'one',
+    'key in the first section');
+  Check(ReadConfiguration('tests/fixtures/catalog_sections.ini', 'second', 'later', '') = 'two',
+    'key in a later section');
+  { As GetPrivateProfileString: the first section of a name counts, so a
+    lookup stops reading where that section ends. }
+  Check(ReadConfiguration('tests/fixtures/catalog_sections.ini', 'first', 'later', 'none') = 'none',
+    'a lookup ends with its section');
   Check(HeaderSectionAt(10, [40, 80], 3) = 0, 'first header');
   Check(HeaderSectionAt(50, [40, 80], 3) = 1, 'second header');
   Check(HeaderSectionAt(40, [40, 80], 3) = -1, 'divider is not a click');

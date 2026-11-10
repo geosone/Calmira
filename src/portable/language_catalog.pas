@@ -9,9 +9,15 @@ procedure InitializeLanguage(const Directory, ConfigFile: string);
 function ReadConfiguration(const FileName, Section, Key, Default: string): string;
 implementation
 uses SysUtils;
+const ReadBufferSize = 4096;
+type TReadBuffer = array[0..ReadBufferSize - 1] of Char;
 var
   LanguageDirectory: string;
   LanguageCode: string;
+  { Every lookup reads the catalogue again; with Text's 128-byte buffer that
+    is a DOS read for each 128 bytes, so a dialog with long lists took
+    seconds to open. Kept on the heap: Calmira's task stacks are small. }
+  ReadBuffer: ^TReadBuffer;
 
 function SafeCode(const Code: string): Boolean;
 var I: Integer;
@@ -56,6 +62,8 @@ begin
   ReadIniValue := False;
   ActiveSection := '';
   AssignFile(Source, FileName);
+  if ReadBuffer = nil then New(ReadBuffer);
+  SetTextBuf(Source, ReadBuffer^, ReadBufferSize);
   {$I-} Reset(Source); ErrorCode := IOResult; {$I+}
   if ErrorCode <> 0 then Exit;
   try
@@ -64,7 +72,12 @@ begin
       ReadLn(Source, Line);
       if (Line <> '') and (Line[1] = '[') and
         (Line[Length(Line)] = ']') then
-        ActiveSection := Copy(Line, 2, Length(Line) - 2)
+      begin
+        { As GetPrivateProfileString, the first section of that name counts;
+          the rest of the file need not be read once it has ended. }
+        if CompareText(ActiveSection, Section) = 0 then Exit;
+        ActiveSection := Copy(Line, 2, Length(Line) - 2);
+      end
       else if CompareText(ActiveSection, Section) = 0 then
       begin
         P := Pos('=', Line);

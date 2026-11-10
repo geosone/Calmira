@@ -13,6 +13,19 @@ SPEC.loader.exec_module(LANGUAGES)
 
 
 class LocalizationTests(unittest.TestCase):
+    def test_catalogue_lookups_stay_fast_on_win16(self):
+        # Each lookup rereads the catalogue: a 128-byte Text buffer and a scan
+        # past the section made Desktop Properties take ten seconds to open.
+        catalog = (ROOT / 'src/portable/language_catalog.pas').read_text()
+        self.assertIn('SetTextBuf(Source, ReadBuffer^, ReadBufferSize);', catalog)
+        self.assertIn('if ReadBuffer = nil then New(ReadBuffer);', catalog)
+        self.assertIn('if CompareText(ActiveSection, Section) = 0 then Exit;', catalog)
+        langui = (ROOT / 'vcl/langui.pas').read_text()
+        self.assertIn('if Value <> Original then Texts[J] := Value;', langui)
+        self.assertIn('if Value <> Original then SetStrProp(Item, Prop, Value);', langui)
+        probe = (ROOT / 'tests/pascal/test_language_catalog.pas').read_text()
+        self.assertIn('a lookup ends with its section', probe)
+
     def test_placeholder_order_and_escaped_percent_are_preserved(self):
         self.assertEqual(LANGUAGES.placeholders('%d: %s (%%)'), ['%d', '%s'])
         self.assertNotEqual(LANGUAGES.placeholders('%d %s'), LANGUAGES.placeholders('%s %d'))
