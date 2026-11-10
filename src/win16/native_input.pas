@@ -216,6 +216,9 @@ end;
 procedure TNativeInputWindow.SetFocus;
 begin
   if not CanFocus then raise ENativeWindowError.Create('Window cannot receive focus');
+  { As Delphi's TForm.FocusControl: the control that already has the focus is
+    left alone, so a combo box does not select its text again (Alt+O in Run). }
+  if Focused then Exit;
   WinProcs.SetFocus(Handle);
   if not Focused then raise ENativeWindowError.Create('Cannot set native focus');
 end;

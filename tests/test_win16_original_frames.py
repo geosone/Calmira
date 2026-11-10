@@ -342,5 +342,13 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertNotIn('WMSysChar(var M: TMessage); begin CharMessage(M); end;', native_input)
 
 
+    def test_focusing_the_focused_control_does_nothing(self):
+        # Delphi's TForm.FocusControl leaves the active control alone; Alt+O
+        # in the Run dialog selected the combo box text again.
+        native_input = source('native_input.pas')
+        self.assertIn("raise ENativeWindowError.Create('Window cannot receive focus');", native_input)
+        self.assertIn('  if Focused then Exit;\n  WinProcs.SetFocus(Handle);', native_input)
+
+
 if __name__ == '__main__':
     unittest.main()

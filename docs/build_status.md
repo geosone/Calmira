@@ -2983,3 +2983,17 @@ search saw the letter. As in Delphi, only `WM_CHAR` is a key press now.
 
 `win16-input-runtime-test` checks that a system character reaches no
 `KeyPress`.
+
+## Alt+O in the Run Dialog
+
+Alt+O in the Run dialog selected the whole text of the command box,
+although the box already had the focus. In the original the caret stays
+where it was.
+
+The `&Open:` label focuses the box, and our `SetFocus` always passed the
+request to Windows, which makes a combo box select its text. As Delphi's
+`TForm.FocusControl` does, a control that already has the focus is now left
+alone.
+
+`win16-combobox-runtime-test` checks that focusing the focused combo box
+keeps its caret.

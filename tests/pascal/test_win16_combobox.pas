@@ -115,6 +115,12 @@ begin
     Check(Observer.Enters = 1, 'enter once through CBN_SETFOCUS');
     SendMessage(Child, WM_CHAR, Ord('x'), 0);
     Check((Observer.Changes = 1) and (Pos('x', Edit.Text) > 0), 'typing reports a change');
+    { As Delphi's TForm.FocusControl: focusing the focused combo box again does
+      not select its text (Alt+O in Calmira's Run dialog). }
+    SendMessage(Edit.Handle, CB_SETEDITSEL, 0, MakeLong(1, 1));
+    Edit.SetFocus;
+    Check((Edit.Perform(CB_GETEDITSEL, 0, 0) = MakeLong(1, 1)) and (GetFocus = Child),
+      'focusing the focused combo box keeps its caret');
     Edit.ItemIndex := -1; Observer.Changes := 0; Observer.Clicks := 0;
     SendMessage(Child, WM_KEYDOWN, VK_DOWN, 0); Pump;
     Check((Edit.ItemIndex = 0) and (Edit.Text = '*.doc') and (Observer.Clicks = 1) and
