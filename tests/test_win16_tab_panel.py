@@ -34,6 +34,14 @@ class Win16TabPanelTests(unittest.TestCase):
         self.assertIn(b'  {$IFNDEF FPC}\r\n  ControlStyle := ControlStyle + [csDesignInteractive, csOpaque];\r\n'
                       b'  {$ENDIF}\r\n', data)
 
+    def test_tabs_without_a_window_leave_the_screen_alone(self):
+        # Delphi's Handle creates the window; InvalidateRect(0) erased every
+        # window, Calmira's desktop icons while Desktop Properties opened.
+        data = (ROOT / 'vcl/tabpanel.pas').read_bytes()
+        self.assertIn(b'  if not HandleAllocated then Exit;\r\n  R := Rect(0, 0, Width, FtabHeight + 1);', data)
+        probe = (ROOT / 'tests/pascal/test_win16_tab_panel.pas').read_text()
+        self.assertIn('a tab panel without a window invalidates no other window', probe)
+
     def test_native_probe_covers_panel_and_tab_panel(self):
         probe = (ROOT / 'tests/pascal/test_win16_tab_panel.pas').read_text()
         for text in ('aligned children stay inside both bevels and the border',

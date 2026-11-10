@@ -212,6 +212,9 @@ procedure TTabPanel.InvalidateTabs;
 var
   R: TRect;
 begin
+  { Delphi's Handle creates the window; ours is 0 until then, and
+    InvalidateRect(0) would erase every window on the screen. }
+  if not HandleAllocated then Exit;
   R := Rect(0, 0, Width, FtabHeight + 1);
   InvalidateRect(Handle, @R, false);
 end;

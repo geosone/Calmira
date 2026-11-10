@@ -116,6 +116,16 @@ begin
     Check(Raised and (Outer.BorderStyle = bsNone), 'BorderStyle cannot change on a live panel');
     Outer.Free; Outer := nil; Inner := nil;
 
+    { A tab panel without a window yet (a form still loading) must leave the
+      screen alone: InvalidateRect(0) erased every window, Calmira's desktop
+      icons while Desktop Properties opened. }
+    Tabs := TTabPanel.Create(nil);
+    Tabs.Tabs.Add('One'); Tabs.Tabs.Add('Two');
+    Pump; ValidateRect(Main.Handle, nil);
+    Tabs.TabIndex := 1;
+    Check((Tabs.TabIndex = 1) and not Tabs.HandleAllocated and not GetUpdateRect(Main.Handle, Area, False),
+      'a tab panel without a window invalidates no other window');
+    Tabs.Free;
     Tabs := TTabPanel.Create(Main); Tabs.Parent := Main; Tabs.SetBounds(10, 60, 300, 200);
     Tabs.TabStop := True;
     Book := TNotebook.Create(Main); Book.Parent := Tabs; Book.Align := alClient;

@@ -3009,3 +3009,30 @@ icon or an icon in its program file now gets an empty glyph again.
 
 The comparison run of the original and the port with Ctrl+Esc shows the same
 button; `tests/test_win16_handles.py` guards the empty glyph.
+
+## Opening Desktop Properties
+
+Desktop Properties took about ten seconds to appear, and while the hourglass
+showed, the desktop icons lost their pictures. The original opens it at once.
+
+There were two causes:
+
+- **Language lookups.** Applying the language to the dialog's lists made
+  about 200 lookups. Each one reread the catalogue with `Text`'s 128-byte
+  buffer, a DOS read for every 128 bytes, up to the end of the file.
+  - The catalogue is now read through a 4 KB buffer kept on the heap, and a
+    lookup stops where its section ends. As with `GetPrivateProfileString`,
+    the first section of a name counts.
+  - Unchanged texts are no longer written back into the lists.
+- **The tab panel.** Calmira's `TTabPanel` invalidates its tabs through
+  `Handle`. Delphi creates the window there; ours is still 0 while the form
+  loads, and `InvalidateRect(0)` erased every window on the screen. The tabs
+  are now only invalidated once the window exists.
+
+Checks:
+
+- `fpc-test` checks that a lookup ends with its section.
+- `win16-tab-panel-runtime-test` checks that a tab panel without a window
+  invalidates no other window.
+- In the comparison run the desktop icons stay. The dialog appears after
+  about three seconds; the original needs less than one.
