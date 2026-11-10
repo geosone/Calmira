@@ -183,6 +183,14 @@ begin
     Form.DestroyHandle; Form.Show; Input.SetFocus;
     Check(Form.FocusNext(True) and Accept.Focused and Accept.TabStop and Accept.Default,
       'recreation retains dialog settings');
+    { As Delphi's TForm.SetFocus: Calmira focuses a folder window after
+      copying into it, and its file list must keep the arrow keys. }
+    Other.SetFocus; SetActiveWindow(Peer.Handle); Loop.ProcessMessages(50);
+    Form.SetFocus;
+    Check((GetActiveWindow = Form.Handle) and Other.Focused,
+      'focusing an inactive form focuses its last control');
+    Form.SetFocus;
+    Check(Other.Focused, 'focusing the active form keeps its focus');
     Check((Form.CallbackErrors = 0) and (Accept.CallbackErrors = 0), 'no callback failures');
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
   if Loop <> nil then Loop.OnMessage := nil;

@@ -75,6 +75,9 @@ type
     procedure DeferActiveControl(Value: TCustomControl);
     procedure Resize; virtual;
   public
+    { As Delphi's TForm.SetFocus: an active form keeps its focus, and an
+      inactive one is activated, so its active control takes the focus. }
+    procedure SetFocus; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure SetBounds(X, Y, AWidth, AHeight: Integer); override;
@@ -346,6 +349,17 @@ begin
       if FInitialControl.CanFocus then FInitialControl.SetFocus;
     end;
 end;
+procedure TNativeForm.SetFocus;
+var Focus: HWND;
+begin
+  if not CanFocus then raise ENativeWindowError.Create('Window cannot receive focus');
+  { Calmira focuses a folder window after copying into it; its own window
+    took the focus from the file list, and the arrow keys did nothing. }
+  if not Active and not IsIconic(Handle) then SetActiveWindow(Handle);
+  Focus := GetFocus;
+  if Active and (Focus <> 0) and ((Focus = Handle) or IsChild(Handle, Focus)) then Exit;
+  inherited SetFocus;
+end;
 procedure TNativeForm.RestoreFocus;
 var Current: TCustomControl;
 begin
@@ -394,7 +408,7 @@ begin
   end;
   FChangingActiveControl := True;
   try
-    if Value = nil then SetFocus else Value.SetFocus;
+    if Value = nil then inherited SetFocus else Value.SetFocus;
   finally FChangingActiveControl := False; end;
 end;
 procedure TNativeForm.DeferActiveControl(Value: TCustomControl);

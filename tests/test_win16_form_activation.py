@@ -19,8 +19,9 @@ class FormActivationTests(unittest.TestCase):
             'procedure TNativeForm.SetActiveControl(', 1)[0]
         self.assertNotIn('SetActiveWindow(', getters)
         # ChangeView brings a form to the front; hiding the active form hands
-        # activation to the topmost other window, as Delphi's CMShowingChanged.
-        self.assertEqual(source.count('SetActiveWindow('), 2)
+        # activation to the topmost other window, as Delphi's CMShowingChanged;
+        # SetFocus activates an inactive form, as Delphi's TForm.SetFocus.
+        self.assertEqual(source.count('SetActiveWindow('), 3)
         conceal = source.split('procedure TNativeForm.ConcealWindow;', 1)[1].split('procedure TNativeForm.Hide;', 1)[0]
         self.assertIn('SetActiveWindow(Next);', conceal)
         view = source.split('procedure TNativeForm.ChangeView(', 1)[1].split(
@@ -34,7 +35,7 @@ class FormActivationTests(unittest.TestCase):
         for text in ('FChangingActiveControl or not Active', 'not ContainsControl(Value)',
                      'FindControl(Value.Handle) <> Value', 'not Value.CanFocus',
                      'FChangingActiveControl := True',
-                     'if Value = nil then SetFocus else Value.SetFocus',
+                     'if Value = nil then inherited SetFocus else Value.SetFocus',
                      'finally FChangingActiveControl := False'):
             self.assertIn(text, setter)
         self.assertLess(setter.index('FindControl(Value.Handle)'), setter.index('FChangingActiveControl := True'))

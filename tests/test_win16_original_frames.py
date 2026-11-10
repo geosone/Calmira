@@ -349,6 +349,17 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn("raise ENativeWindowError.Create('Window cannot receive focus');", native_input)
         self.assertIn('  if Focused then Exit;\n  WinProcs.SetFocus(Handle);', native_input)
 
+    def test_focusing_a_form_focuses_its_control(self):
+        # Delphi's TForm.SetFocus: Calmira focused a folder window after copying
+        # into it, and the window itself took the focus from the file list.
+        self.assertIn('    procedure SetFocus; virtual;', source('native_input.pas'))
+        native_form = source('native_form.pas')
+        self.assertIn('    procedure SetFocus; override;', native_form)
+        self.assertIn('  if not Active and not IsIconic(Handle) then SetActiveWindow(Handle);', native_form)
+        self.assertIn('    if Value = nil then inherited SetFocus else Value.SetFocus;', native_form)
+        probe = (ROOT / 'tests/pascal/test_win16_dialog.pas').read_text()
+        self.assertIn('focusing an inactive form focuses its last control', probe)
+
 
 if __name__ == '__main__':
     unittest.main()

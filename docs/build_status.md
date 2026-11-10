@@ -3036,3 +3036,17 @@ Checks:
   invalidates no other window.
 - In the comparison run the desktop icons stay. The dialog appears after
   about three seconds; the original needs less than one.
+
+## Focus After Copying Files
+
+After files were copied or pasted into a folder window, the arrow keys did
+nothing until the window was clicked. The original moves the selection.
+
+Calmira calls `SetFocus` on the folder window when a file operation ends.
+Delphi's `TForm.SetFocus` leaves an active form alone and activates an
+inactive one, so its active control takes the focus. Ours focused the form's
+own window and took the focus away from the file list. `SetFocus` is now
+virtual, and the form overrides it as Delphi does.
+
+`win16-dialog-runtime-test` checks that focusing an inactive form focuses its
+last control, and that focusing the active form keeps its focus.

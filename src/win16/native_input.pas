@@ -57,7 +57,7 @@ type
     procedure DoExit; virtual;
   public
     function CanFocus: Boolean;
-    procedure SetFocus;
+    procedure SetFocus; virtual;
     property Focused: Boolean read GetFocused;
     property MouseCapture: Boolean read GetMouseCapture write SetMouseCapture;
     property OnMouseDown;

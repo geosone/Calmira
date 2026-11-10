@@ -90,7 +90,7 @@ begin
   Candidate := NextCandidate; Check(Candidate = B, 'bottom-of-pack cycle visits third form');
   RaiseWindow(A); Inner.SetFocus;
   Check((View.ActiveForm = A) and (View.ActiveControl = Inner), 'active form and deepest managed focus');
-  A.SetFocus; Check(View.ActiveControl = nil, 'frame focus is not an active child');
+  WinProcs.SetFocus(A.Handle); Check(View.ActiveControl = nil, 'frame focus is not an active child');
   Inner.SetFocus; Inner.Enabled := False;
   Check(View.ActiveControl = nil, 'disabled focused child excluded'); Inner.Enabled := True;
   Inner.Parent := B; RaiseWindow(B); Inner.SetFocus;
