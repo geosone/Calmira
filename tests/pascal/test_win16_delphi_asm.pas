@@ -1,6 +1,6 @@
 program TestWin16DelphiAsm;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, SysUtils, MiscUtil, Strings, delphi_asm_probe;
+uses WinTypes, WinProcs, SysUtils, MiscUtil, Strings, Internet, delphi_asm_probe;
 var Failed: Boolean; I, Sum: Integer;
 procedure LogLine(const Text: string);
 var F: HFILE; S: string;
@@ -36,5 +36,9 @@ begin
     for I := 1 to 2000 do Inc(Sum, Min(I, 1) + ProbeSub(I, I));
     Check(Sum = 2000, 'repeated calls leave the stack balanced');
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
+  { Calmira Reloaded links its homepage over https: the Start Menu showed it
+    as a program and would have run it as one. IsURL uses GetWord from MiscUtil. }
+  Check(IsURL('https://github.com/geosone/Calmira') and IsURL('http://www.calmira.net/') and
+    not IsURL('C:\WINDOWS\NOTEPAD.EXE'), 'https addresses are URLs');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');
 end.

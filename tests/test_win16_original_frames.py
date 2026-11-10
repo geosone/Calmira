@@ -360,6 +360,16 @@ class OriginalFrameTests(unittest.TestCase):
         probe = (ROOT / 'tests/pascal/test_win16_dialog.pas').read_text()
         self.assertIn('focusing an inactive form focuses its last control', probe)
 
+    def test_https_addresses_are_urls(self):
+        # Reloaded's Favorites entry links its homepage over https; without the
+        # prefix the Start Menu showed it as a program and would run it as one.
+        internet = (ROOT / 'vcl/internet.pas').read_text()
+        self.assertIn("URLPrefixes: string = 'http:// https:// ftp://", internet)
+        ini = (ROOT / 'src/calmira.ini').read_text(encoding='cp1252')
+        self.assertIn('URLPrefixes=http:// https:// ftp://', ini)
+        probe = (ROOT / 'tests/pascal/test_win16_delphi_asm.pas').read_text()
+        self.assertIn('https addresses are URLs', probe)
+
 
 if __name__ == '__main__':
     unittest.main()

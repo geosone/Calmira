@@ -34,7 +34,7 @@ type
   end;
 
 const
-  URLPrefixes: string = 'http:// ftp:// gopher:// news: mailto: file:';
+  URLPrefixes: string = 'http:// https:// ftp:// gopher:// news: mailto: file:';
 
 function IsURL(const s: string): Boolean;
 

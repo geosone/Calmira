@@ -3050,3 +3050,16 @@ virtual, and the form overrides it as Delphi does.
 
 `win16-dialog-runtime-test` checks that focusing an inactive form focuses its
 last control, and that focusing the active form keeps its focus.
+
+## Homepage Link in Favorites
+
+Calmira Reloaded adds its homepage to the Favorites menu with an `https://`
+address. Calmira only treats the `URLPrefixes` (`http://`, `ftp://`,
+`gopher://`, `news:`, `mailto:`, `file:`) as Internet addresses. The entry
+therefore showed a program icon instead of the globe the other links show,
+and choosing it would have run the address as a program. `https://` is now
+one of the default prefixes, in `vcl/internet.pas` and in `CALMIRA.INI`.
+Existing installations keep their own `URLPrefixes` until it is changed in
+System Properties.
+
+`win16-delphi-asm-runtime-test` checks that an `https` address is a URL.
