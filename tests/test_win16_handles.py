@@ -75,4 +75,6 @@ class Win16HandleTests(unittest.TestCase):
         self.assertIn('OwnIcon := False', body)
         self.assertIn('OwnIcon := h > 1', body)
         self.assertIn('finally if OwnIcon then DestroyIcon(h)', body)
-        self.assertIn('else ShrinkIcon(ProgIcon.Handle, Glyph, Color)', body)
+        # As the original: no icon at all leaves an empty glyph (Task List).
+        self.assertIn('InitBitmap(Glyph, 16, 16, Color);', body)
+        self.assertNotIn('ProgIcon', body)

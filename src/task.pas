@@ -434,7 +434,9 @@ begin
       try ShrinkIcon(h, Glyph, Color);
       finally if OwnIcon then DestroyIcon(h); end;
     end
-    else ShrinkIcon(ProgIcon.Handle, Glyph, Color);
+    else { As the original, which shrank ExtractIcon's error value: a program
+      without any icon (Windows' Task List) gets an empty glyph. }
+      InitBitmap(Glyph, 16, 16, Color);
     Glyph.Canvas.Pixels[0, 15] := Color; { 3.11 }
   end;
 end;

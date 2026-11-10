@@ -2997,3 +2997,15 @@ alone.
 
 `win16-combobox-runtime-test` checks that focusing the focused combo box
 keeps its caret.
+
+## Task List Button
+
+The taskbar button of Windows' Task List showed a generic program icon. The
+original shows an empty glyph, because TASKMAN.EXE has no icon and Calmira
+shrinks `ExtractIcon`'s error value.
+
+The port drew `ProgIcon` instead. A window without a class icon, a provided
+icon or an icon in its program file now gets an empty glyph again.
+
+The comparison run of the original and the port with Ctrl+Esc shows the same
+button; `tests/test_win16_handles.py` guards the empty glyph.
