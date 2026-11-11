@@ -268,7 +268,11 @@ var Macro: AnsiString;
 begin
   CheckReady;
   Macro := HelpJumpMacro(FHelpFile, Context);
-  Result := HelpCommand(HELP_COMMAND, LongInt(PChar(Macro)));
+  { As Delphi's TApplication.HelpJump: WinHelp shows nothing for a macro
+    while the help is closed, so open the contents first and jump after. }
+  Result := True;
+  if HelpCommand(HELP_CONTENTS, 0) then
+    Result := HelpCommand(HELP_COMMAND, LongInt(PChar(Macro)));
 end;
 procedure TNativeApplication.Initialize;
 begin

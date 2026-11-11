@@ -110,7 +110,11 @@ begin
     (Driver.Data = -12345) and (Driver.Guards = 5), 'help event preserves signed context and rejects reentry');
   Driver.ProbeGuards := False; Driver.Answer := False;
   Check(not App.HelpCommand(HELP_PARTIALKEY, 0), 'suppressed help preserves false event result');
-  Check(App.HelpJump('Contents') = False, 'suppressed jump returns event result');
+  Check(App.HelpJump('Contents') and (Driver.Command = HELP_CONTENTS),
+    'a jump stops when the contents are not shown, as Delphi');
+  Driver.Answer := True;
+  Check(App.HelpJump('Contents'), 'a jump returns the event result');
+  Driver.Answer := False;
   Check((Driver.Command = HELP_COMMAND) and
     (Driver.Macro = 'JumpID("C:\\HELPDOCS\\CALMIRA.HLP","Contents")') and
     (FindWindow('TApplication', 'Calmira') = 0), 'jump macro pointer is live and interception creates no HWND');
@@ -138,6 +142,12 @@ begin
   Check(not HelpHasDialog, 'native topic jump has no WinHelp error dialog');
   App.HelpCommand(HELP_QUIT, 0); Pump(500);
   Check(not IsWindow(HelpWindow) or not IsWindowVisible(HelpWindow), 'HELP_QUIT releases native help window');
+  { The Start menu's Help item: a jump while the help is closed opens it. }
+  Check(App.HelpJump('Contents'), 'a jump with the help closed is accepted'); Pump(1800);
+  HelpWindow := FindHelp;
+  Check(HelpWindow <> 0, 'a jump opens the help when it was closed');
+  Check(not HelpHasDialog, 'a jump into closed help has no WinHelp error dialog');
+  App.HelpCommand(HELP_QUIT, 0); Pump(500);
   App.OnHelp := nil;
   for I := 0 to 2 do
   begin

@@ -39,6 +39,17 @@ class ApplicationHelpTests(unittest.TestCase):
         self.assertIn('HelpJumpMacro(FHelpFile, Context)', jump)
         self.assertIn('HelpCommand(HELP_COMMAND, LongInt(PChar(Macro)))', jump)
         self.assertNotIn('PostMessage', jump)
+
+    def test_a_jump_opens_the_contents_first_as_delphi(self):
+        # WinHelp shows nothing for a JumpID macro while the help is closed;
+        # the Start menu's Help item did nothing.
+        source = (ROOT / 'src/win16/native_application.pas').read_text()
+        jump = source.split('function TNativeApplication.HelpJump(', 1)[1].split(
+            'procedure TNativeApplication.Initialize;', 1)[0]
+        self.assertIn('if HelpCommand(HELP_CONTENTS, 0) then', jump)
+        self.assertLess(jump.index('HELP_CONTENTS'), jump.index('HELP_COMMAND'))
+        probe = (ROOT / 'tests/pascal/test_win16_application_help.pas').read_text()
+        self.assertIn('a jump opens the help when it was closed', probe)
         helper = (ROOT / 'src/portable/help_jump.pas').read_text()
         self.assertIn('Length(Context) > 255', helper)
         self.assertIn('Length(FileName) > 255', helper)

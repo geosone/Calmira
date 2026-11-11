@@ -3150,3 +3150,14 @@ themselves.
 
 `win16-canvas-context-runtime-test` shows a control and reads its colour off
 the screen before any message is processed.
+
+## Help From the Start Menu
+
+The Start menu's Help item did nothing while the original opens the Calmira
+help. The item runs `$Help`, which calls `Application.HelpJump('Contents')`.
+Our `HelpJump` sent only the `JumpID` macro, and WinHelp ignores a macro while
+the help is closed. As Delphi's `TApplication.HelpJump`, it now opens the
+contents with `HELP_CONTENTS` first and sends the jump only when that worked.
+
+`win16-application-help-runtime-test` closes the help and checks that a jump
+opens it again without a WinHelp error.
