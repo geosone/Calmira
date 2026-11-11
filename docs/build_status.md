@@ -3099,3 +3099,18 @@ original does too.
 `win16-canvas-context-runtime-test` times reading and setting 3072 pixels and
 checks that setting costs at most about twice as much; it also checks that a
 raster mode the caller chose stays after a pixel is set.
+
+## Clicking Files Under Their Hint
+
+Clicking a file in a folder window often did nothing, and dragging it to the
+Recycle Bin did not start. Calmira places its file hint 16 pixels below the
+cursor; when the cursor moves on a little within the same file, the hint
+stays and ends up under the cursor, and our hint window took the click.
+
+The hint window now answers `WM_NCHITTEST` with `HTTRANSPARENT`, so USER
+gives the click to the window below; the grid selects the file and the click
+cancels the hint, as in the original. (A disabled hint window, as Delphi
+creates it, still swallows the click under Windows 3.1.)
+
+`win16-hints-runtime-test` checks that the window at a point over a shown
+hint is the window below it.

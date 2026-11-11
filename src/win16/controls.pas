@@ -365,6 +365,7 @@ type
   private
     FCaption: string;
     procedure SetCaption(const Value: string);
+    procedure WMNCHitTest(var Message: TMessage); message WM_NCHITTEST;
   protected
     procedure Paint; override;
     procedure HandleNeeded; override;
@@ -1833,6 +1834,11 @@ begin
   { Hidden until ActivateHint; measuring text on Canvas creates it. }
   if Handle = 0 then CreateHandle(0, '', WS_POPUP or WS_BORDER, 0, 0, 0, 0);
 end;
+{ Calmira's file hints pop up right under the cursor, which may move on a
+  little within the same file: a click over the hint goes to the window
+  below, which takes the click and cancels the hint. }
+procedure THintWindow.WMNCHitTest(var Message: TMessage);
+begin Message.Result := HTTRANSPARENT; end;
 procedure THintWindow.ReleaseHandle;
 begin
   if Handle <> 0 then DestroyHandle;

@@ -7,6 +7,15 @@ SOURCE = ROOT / 'src/win16/forms.pas'
 
 
 class FormsLayerTests(unittest.TestCase):
+    def test_a_click_over_a_hint_reaches_the_window_below(self):
+        # Calmira's file hints pop up right under the cursor; a hint window
+        # that took the click left folder windows unclickable.
+        controls = (ROOT / 'src/win16/controls.pas').read_text()
+        self.assertIn('procedure WMNCHitTest(var Message: TMessage); message WM_NCHITTEST;', controls)
+        self.assertIn('begin Message.Result := HTTRANSPARENT; end;', controls)
+        probe = (ROOT / 'tests/pascal/test_win16_hints.pas').read_text()
+        self.assertIn('a click over the hint reaches the window below', probe)
+
     def test_globals_are_created_initialized_and_freed_by_the_unit(self):
         source = SOURCE.read_text()
         init = source.split('initialization', 1)[1]

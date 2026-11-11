@@ -27,7 +27,9 @@ type
   end;
 var Root: TCustomControl; Tipped, Plain, Inner: TPanel; Box, Off: TBox; Events: TEvents;
   Shown: TProbeHint; ShownRect: TRect; ShownText: string; ActivateCount: Integer;
-  Failed: Boolean; R: TRect; Below: TPoint; Buf: array[0..31] of Char; Width1: Integer;
+  Failed: Boolean; R: TRect; Below: TPoint; Over: TPoint; Buf: array[0..31] of Char; Width1: Integer;
+{ The RTL passes the point by reference; USER takes it packed in a long. }
+function PackedWindowFromPoint(Value: LongInt): HWND; external 'USER' name 'WINDOWFROMPOINT';
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
 begin
@@ -130,6 +132,11 @@ begin
     Below := Tipped.ClientToScreen(Point(0, 40 + 6));
     Check((ShownRect.Left = Below.X) and (ShownRect.Top = Below.Y), 'the hint appears six pixels below the control, as in the original');
     Check(Shown.Color = Application.HintColor, 'the hint uses HintColor');
+    { Calmira's file hints pop up right under the cursor: a click over the
+      hint reaches the window below. }
+    Over.X := ShownRect.Left + 4; Over.Y := ShownRect.Top + 4;
+    Check(PackedWindowFromPoint(MakeLong(Over.X, Over.Y)) = Root.Handle,
+      'a click over the hint reaches the window below');
     Check(Inner.ShowHint and (FindDragTarget(Inner.ClientToScreen(Point(3, 3)), False) = Inner),
       'a child inherits ShowHint through ParentShowHint');
     PostMessage(Tipped.Handle, WM_KEYDOWN, VK_SHIFT, 1); Pump(50);
