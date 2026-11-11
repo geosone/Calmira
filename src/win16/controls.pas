@@ -1885,6 +1885,8 @@ type
     FTarget: TControl;
     FActive, FAccepted: Boolean;
     FStart: TPoint;
+    FMouseSource: TControl;
+    procedure PassMouse(Source: TControl; Msg, Keys: Word);
     function FindTarget(const Position: TPoint): TControl;
     function TargetPoint(Target: TControl; const Position: TPoint): TPoint;
     function Notify(Target: TControl; const Position: TPoint; State: TDragState): Boolean;
@@ -1901,13 +1903,44 @@ const
   DragThreshold = 5;
   CM_RECAPTURE = CM_BASE + 100;
 var NativeDragManager: TNativeDragManager;
+{ As Delphi's TControl.WndProc, which runs DragMouseMsg and then dispatches
+  the message to the dragged control as usual: Calmira's file windows ask
+  their drop server in OnMouseMove where a drag may drop (the desktop, other
+  programs) and tidy up in OnMouseUp. The source may go in the handlers. }
+procedure TNativeDragManager.PassMouse(Source: TControl; Msg, Keys: Word);
+var Position, Local: TPoint;
+begin
+  FMouseSource := Source;
+  if Source = nil then Exit;
+  GetCursorPos(Position);
+  Local := Source.ScreenToClient(Position);
+  if Source is TCustomControl then
+  begin
+    if TCustomControl(Source).Handle <> 0 then
+      SendMessage(TCustomControl(Source).Handle, Msg, Keys, MakeLong(Word(Local.X), Word(Local.Y)));
+  end
+  else if Source is TGraphicControl then
+    { An automatic drag never saw its press, so Delphi sends no click. }
+    if (Msg <> WM_LBUTTONUP) or (TGraphicControl(Source).DragMode <> dmAutomatic) then
+      TGraphicControl(Source).MouseMessage(Msg, Keys, Local.X, Local.Y);
+  FMouseSource := nil;
+end;
 procedure TDragCapture.WndProc(var Message: TMessage);
-var Position: TPoint;
+var Position: TPoint; Source: TControl;
 begin
   case Message.Msg of
     WM_MOUSEMOVE:
-      begin GetCursorPos(Position); NativeDragManager.Move(Position); end;
-    WM_LBUTTONUP: NativeDragManager.Finish(True);
+      begin
+        GetCursorPos(Position); NativeDragManager.Move(Position);
+        NativeDragManager.PassMouse(DragSource, WM_MOUSEMOVE, Message.WParam);
+      end;
+    WM_LBUTTONUP:
+      begin
+        Source := DragSource;
+        NativeDragManager.FMouseSource := Source;
+        NativeDragManager.Finish(True);
+        NativeDragManager.PassMouse(NativeDragManager.FMouseSource, WM_LBUTTONUP, Message.WParam);
+      end;
     WM_RBUTTONDOWN, WM_CANCELMODE: NativeDragManager.Finish(False);
     CM_RECAPTURE:
       { A native control may take capture back after the press that began the drag. }
@@ -2021,6 +2054,7 @@ begin
 end;
 procedure TNativeDragManager.Forget(Control: TControl);
 begin
+  if FMouseSource = Control then FMouseSource := nil;
   if FTarget = Control then begin FTarget := nil; FAccepted := False; end;
   if DragSource = Control then
   begin

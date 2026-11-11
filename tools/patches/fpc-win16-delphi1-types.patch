@@ -269,7 +269,7 @@
  {$endif}
  
  function FlashWindow(hwnd: HWND; fInvert: BOOL): BOOL; external 'USER';
-@@ -899,12 +910,12 @@
+@@ -899,12 +910,19 @@
  procedure ClientToScreen(hwnd: HWND; lppt: LPPOINT); external 'USER';
  procedure ScreenToClient(hwnd: HWND; lppt: LPPOINT); external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -281,12 +281,19 @@
  
 -function WindowFromPoint(pt: POINT): HWND; external 'USER';
 -function ChildWindowFromPoint(hwndParent: HWND; pt: POINT): HWND; external 'USER';
++{$if defined(CALMIRA_WIN16_DELPHI1_TYPES) and not defined(SYSTEMUNIT)}
++{ USER takes POINT as one by-value dword, which FPC does not pass for a
++  TPoint record: these pack the point and call USER. }
++function WindowFromPoint(pt: TPoint): HWND;
++function ChildWindowFromPoint(hwndParent: HWND; pt: TPoint): HWND;
++{$else}
 +function WindowFromPoint(pt: TPoint): HWND; external 'USER';
 +function ChildWindowFromPoint(hwndParent: HWND; pt: TPoint): HWND; external 'USER';
++{$endif}
  
  { Window query and enumeration }
  
-@@ -955,7 +966,7 @@
+@@ -955,7 +973,7 @@
  
  function GetUpdateRect(hwnd: HWND; lprc: LPRECT; fErase: BOOL): BOOL; external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -295,7 +302,7 @@
  {$endif}
  function GetUpdateRgn(hwnd: HWND; hrgn: HRGN; fErase: BOOL): SmallInt; external 'USER';
  
-@@ -970,7 +981,7 @@
+@@ -970,7 +988,7 @@
  procedure ScrollWindow(hwnd: HWND; dx, dy: SmallInt; lprcScroll, lprcClip: LPRECT); external 'USER';
  function ScrollDC(hdc: HDC; dx, dy: SmallInt; lprcScroll, lprcClip: LPRECT; hrgnUpdate: HRGN; lprcUpdate: LPRECT): BOOL; external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -304,7 +311,7 @@
  {$endif}
  
  { Window activation }
-@@ -1112,7 +1123,7 @@
+@@ -1112,7 +1130,7 @@
  procedure SetCursorPos(x, y: SmallInt); external 'USER';
  procedure GetCursorPos(lppt: LPPOINT); external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -313,7 +320,7 @@
  {$endif}
  
  function SetCursor(hcur: HCURSOR): HCURSOR; external 'USER';
-@@ -1140,7 +1151,7 @@
+@@ -1140,7 +1158,7 @@
  procedure SetCaretPos(x, y: SmallInt); external 'USER';
  procedure GetCaretPos(lppt: LPPOINT); external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -322,7 +329,7 @@
  {$endif}
  
  procedure HideCaret(hwnd: HWND); external 'USER';
-@@ -1209,7 +1220,7 @@
+@@ -1209,7 +1227,7 @@
  
  procedure MapDialogRect(hwndDlg: HWND; lprc: LPRECT); external 'USER';
  {$ifdef VAR_PARAMS_ARE_FAR}
@@ -333,7 +340,7 @@
  
 --- a/rtl/win16/winprocs.inc
 +++ b/rtl/win16/winprocs.inc
-@@ -103,3 +103,19 @@
+@@ -103,3 +103,32 @@
  begin
    PALETTEINDEX := COLORREF(DWORD($01000000) or DWORD(wPaletteIndex));
  end;
@@ -352,6 +359,19 @@
 +    (pt.y >= rc.top) and (pt.y < rc.bottom);
 +end;
 +{$endif VAR_PARAMS_ARE_FAR}
++
++function PackedWindowFromPoint(pt: LONG): HWND; external 'USER' name 'WINDOWFROMPOINT';
++function PackedChildWindowFromPoint(hwndParent: HWND; pt: LONG): HWND; external 'USER' name 'CHILDWINDOWFROMPOINT';
++
++function WindowFromPoint(pt: TPoint): HWND;
++begin
++  WindowFromPoint := PackedWindowFromPoint(MAKELONG(Word(pt.x), Word(pt.y)));
++end;
++
++function ChildWindowFromPoint(hwndParent: HWND; pt: TPoint): HWND;
++begin
++  ChildWindowFromPoint := PackedChildWindowFromPoint(hwndParent, MAKELONG(Word(pt.x), Word(pt.y)));
++end;
 +{$endif}
 --- a/rtl/win16/win31.pp
 +++ b/rtl/win16/win31.pp

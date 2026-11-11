@@ -27,6 +27,30 @@ class HugeModelTests(unittest.TestCase):
             self.assertIn(name, prepare)
             self.assertTrue((ROOT / 'tools/patches' / name).is_file(), name)
 
+    def test_points_reach_user_packed_in_a_long(self):
+        # USER takes POINT by value as one dword; FPC passed the TPoint record
+        # otherwise, so WindowFromPoint found nothing and Calmira's drop
+        # server never saw the desktop under a dragged file.
+        patch = (ROOT / 'tools/patches/fpc-win16-delphi1-types.patch').read_text()
+        for text in ("+function PackedWindowFromPoint(pt: LONG): HWND; external 'USER' name 'WINDOWFROMPOINT';",
+                     "+function PackedChildWindowFromPoint(hwndParent: HWND; pt: LONG): HWND; external 'USER' name 'CHILDWINDOWFROMPOINT';",
+                     '+  WindowFromPoint := PackedWindowFromPoint(MAKELONG(Word(pt.x), Word(pt.y)));'):
+            self.assertIn(text, patch)
+        probe = (ROOT / 'tests/pascal/test_win16_hints.pas').read_text()
+        self.assertIn('WindowFromPoint finds the window under a point', probe)
+        self.assertIn('ChildWindowFromPoint finds the child under a client point', probe)
+
+    def test_a_dragged_control_still_sees_the_mouse(self):
+        # Delphi dispatches mouse messages to the dragged control after
+        # DragMouseMsg; Calmira asks its drop server in OnMouseMove.
+        controls = (ROOT / 'src/win16/controls.pas').read_text()
+        self.assertIn('procedure TNativeDragManager.PassMouse(Source: TControl; Msg, Keys: Word);', controls)
+        self.assertIn('NativeDragManager.PassMouse(DragSource, WM_MOUSEMOVE, Message.WParam);', controls)
+        self.assertIn('NativeDragManager.PassMouse(NativeDragManager.FMouseSource, WM_LBUTTONUP, Message.WParam);', controls)
+        probe = (ROOT / 'tests/pascal/test_win16_drag.pas').read_text()
+        self.assertIn('the dragged control sees mouse moves in its own coordinates', probe)
+        self.assertIn('the dragged control sees the button go up after the drag ends', probe)
+
     def test_delphi1_resources_load_the_string_table(self):
         patch = (ROOT / 'tools/patches/fpc-win16-delphi1-resources.patch').read_text()
         self.assertIn('+      constructor CreateRes(Ident: Word);', patch)

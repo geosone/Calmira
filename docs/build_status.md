@@ -3114,3 +3114,26 @@ creates it, still swallows the click under Windows 3.1.)
 
 `win16-hints-runtime-test` checks that the window at a point over a shown
 hint is the window below it.
+
+## Dropping Files on the Desktop
+
+Dragging a file from a folder window onto the desktop made no shortcut, and
+the original makes one. Two things were wrong.
+
+- Calmira's file windows ask their drop server in `OnMouseMove`, while a
+  drag runs, whether the desktop or another program can take the files.
+  Delphi's `TControl.WndProc` runs `DragMouseMsg` and then still dispatches
+  the mouse message to the dragged control; our drag manager kept the
+  messages in its capture window. The dragged control now gets the mouse
+  moves, in its own coordinates, and the button-up after the drag has ended
+  (Calmira's `OnMouseUp` clears its `DragJustEnded` flag). A graphic control
+  dragged automatically gets no click, as in Delphi.
+- `WindowFromPoint` and `ChildWindowFromPoint` found no window: USER takes
+  the point as one by-value dword, which FPC does not pass for a `TPoint`
+  record. `fpc-win16-delphi1-types.patch` now makes them pack the point and
+  call USER, as it already computed `PtInRect` itself.
+
+`win16-drag-runtime-test` checks that the dragged control sees the moves and
+the button-up after the drag ends; `win16-hints-runtime-test` checks both
+point functions. The list box test now puts the cursor on the item it presses, as a real press would, since the dragged list box sees the moves. Dropping a file on the desktop and dragging that shortcut
+onto the Recycle Bin now match the original.

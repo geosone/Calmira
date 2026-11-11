@@ -7,6 +7,8 @@ type
     property OnDragDrop;
     property OnDragOver;
     property OnEndDrag;
+    property OnMouseMove;
+    property OnMouseUp;
     property DragMode;
   end;
   TMark = class(TGraphicControl)
@@ -17,6 +19,7 @@ type
   end;
   TObserver = class
     Enters, Moves, Leaves, Drops, Ends, Downs, LastX, LastY: Integer;
+    SourceMoves, SourceUps, SourceX, UpEnds: Integer; MovedWhileDragging: Boolean;
     AcceptSource: TObject;
     DropSender, DropSource, EndTarget: TObject;
     procedure Over(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
@@ -24,6 +27,8 @@ type
     procedure Ended(Sender, Target: TObject; X, Y: Integer);
     procedure Down(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure Reset;
+    procedure SourceMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure SourceUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   end;
 var Root: TCustomControl; Source, Target: TTarget; Mark, AutoMark: TMark; Observer: TObserver;
   Failed: Boolean; Capture: HWND;
@@ -43,6 +48,10 @@ procedure TObserver.Ended(Sender, Target: TObject; X, Y: Integer);
 begin Inc(Ends); EndTarget := Target; end;
 procedure TObserver.Down(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin Inc(Downs); end;
+procedure TObserver.SourceMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin Inc(SourceMoves); SourceX := X; MovedWhileDragging := TTarget(Sender).Dragging; end;
+procedure TObserver.SourceUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin Inc(SourceUps); SourceX := X; UpEnds := Ends; end;
 procedure TObserver.Reset;
 begin Enters := 0; Moves := 0; Leaves := 0; Drops := 0; Ends := 0; DropSender := nil; DropSource := nil; EndTarget := nil; end;
 procedure LogLine(const Text: string);
@@ -104,6 +113,20 @@ begin
     Check((Observer.Drops = 1) and (Observer.DropSender = Target) and (Observer.DropSource = Source) and
       (Observer.LastX = 30) and (Observer.LastY = 40), 'drop on an accepting control');
     Check((Observer.Ends = 1) and (Observer.EndTarget = Target), 'end drag names the target');
+
+    { As Delphi, the dragged control still gets its mouse moves and the
+      button-up after the drop: Calmira's file windows ask their drop server
+      in OnMouseMove where a drag may drop. }
+    Observer.Reset;
+    Source.OnMouseMove := Observer.SourceMove; Source.OnMouseUp := Observer.SourceUp;
+    MoveTo(40, 40); Source.BeginDrag(True);
+    MoveTo(180, 50);
+    Check((Observer.SourceMoves >= 1) and Observer.MovedWhileDragging and (Observer.SourceX = 170),
+      'the dragged control sees mouse moves in its own coordinates');
+    Release;
+    Check((Observer.SourceUps = 1) and (Observer.UpEnds = 1) and (Observer.SourceX = 170),
+      'the dragged control sees the button go up after the drag ends');
+    Source.OnMouseMove := nil; Source.OnMouseUp := nil;
 
     Observer.Reset;
     MoveTo(40, 40); Source.BeginDrag(True); MoveTo(180, 50);

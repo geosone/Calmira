@@ -103,6 +103,11 @@ begin
     Check(FindDragTarget(Root.ClientToScreen(Point(110, 110)), False) = Root, 'a disabled graphic control is skipped');
     Check(FindDragTarget(Root.ClientToScreen(Point(110, 110)), True) = Off, 'AllowDisabled finds a disabled graphic control');
     Check(FindDragTarget(Point(1, GetSystemMetrics(SM_CYSCREEN) - 2), False) = nil, 'no control outside the application');
+    { Calmira's drop server finds the window under the cursor this way. }
+    Over := Tipped.ClientToScreen(Point(50, 30));
+    Check(WindowFromPoint(Over) = Tipped.Handle, 'WindowFromPoint finds the window under a point');
+    Check(ChildWindowFromPoint(Root.Handle, Point(60, 40)) = Tipped.Handle,
+      'ChildWindowFromPoint finds the child under a client point');
 
     Application.OnHint := Events.AppHint;
     MoveTo(Root, 200, 150); Pump(50);

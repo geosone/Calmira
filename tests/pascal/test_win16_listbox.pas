@@ -107,6 +107,9 @@ begin
       the change (Find results). }
     List.DragMode := dmAutomatic; Observer.Clicks := 0;
     R := List.ItemRect(1);
+    { The cursor is where a real press happens: as in Delphi the dragged list
+      box still gets the mouse moves while the drag runs. }
+    Pos := List.ClientToScreen(Point(R.Left + 4, R.Top + 2)); SetCursorPos(Pos.X, Pos.Y);
     List.Perform(WM_LBUTTONDOWN, MK_LBUTTON, MakeLong(R.Left + 4, R.Top + 2)); Pump;
     Check((List.ItemIndex = 1) and List.Dragging and (Observer.Clicks = 1),
       'automatic drag source selects the pressed item');
