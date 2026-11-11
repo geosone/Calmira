@@ -7,13 +7,17 @@ type
   public
     property Canvas;
   end;
+  TPane = class(TCustomControl)
+  public
+    property Color;
+  end;
   TIdleProbe = class
     InUseAtIdle: Boolean;
     Called: Boolean;
     procedure Start(Sender: TObject);
     procedure Idle(Sender: TObject; var Done: Boolean);
   end;
-var Root, Child: TCustomControl; Boxes: array[0..5] of TBox; Box: TBox; Failed: Boolean;
+var Root, Child: TCustomControl; Pane: TPane; Boxes: array[0..5] of TBox; Box: TBox; Failed: Boolean;
   Loop: TNativeMessageLoop; Probe: TIdleProbe; Width1: Integer; I: Integer; Own: HDC; Empty, Copy: TBitmap;
   Recolour: TBitmap; X, Y: Integer; Start, GetTicks, SetTicks: LongInt; Mode: Integer;
   First, Second: TFont; Shared: HFONT; Description: TLogFont; Assigned: TCanvas; Face: array[0..31] of Char;
@@ -53,6 +57,16 @@ begin
     Root := TCustomControl.Create(nil);
     Root.CreateHandle(0, 'Canvas context', WS_POPUP or WS_VISIBLE, 10, 10, 300, 200);
     UpdateWindow(Root.Handle);
+    { As Delphi's TWinControl.WMEraseBkgnd: a control just shown is filled
+      with its Color before it paints, not left showing what was below
+      (the Explorer's panes while a folder loads). }
+    Pane := TPane.Create(nil);
+    try
+      Pane.Color := clLime;
+      Pane.CreateHandle(0, '', WS_POPUP, 340, 10, 60, 40);
+      ShowWindow(Pane.Handle, SW_SHOWNOACTIVATE);
+      Check(ScreenPixel(Pane.Handle, 30, 20) = RGB(0, 255, 0), 'a control just shown is filled with its colour');
+    finally Pane.Free; end;
     Root.Canvas.Font.Name := 'System';
     Width1 := Root.Canvas.TextWidth('Calmira');
     Check(Width1 > 0, 'TextWidth works outside painting');

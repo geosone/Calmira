@@ -143,6 +143,10 @@ type
     function CtlColorBrush(DC: HDC): HBRUSH;
     { Delphi's TWinControl.WMEraseBkgnd: fills the client area with Color. }
     procedure EraseWithColor(var M: TMessage);
+    { As Delphi, a control's background is filled with Color when USER asks
+      for it, so a window just shown is not left showing what was below
+      until its first paint (the Explorer's panes while a folder loads). }
+    procedure WMEraseBkgnd(var M: TMessage); message WM_ERASEBKGND;
     { Delivers a CN_* message straight to Child's WndProc, as Delphi's
       Perform does, so a failure unwinds into the parent's handler. }
     function Reflect(Child: TCustomControl; Msg, WParam: Word; LParam: LongInt): LongInt;
@@ -853,6 +857,8 @@ begin
   SetBkColor(DC, ColorToRGB(Color));
   Result := FColorBrush;
 end;
+procedure TCustomControl.WMEraseBkgnd(var M: TMessage);
+begin EraseWithColor(M); end;
 procedure TCustomControl.EraseWithColor(var M: TMessage);
 var Area: TRect;
 begin

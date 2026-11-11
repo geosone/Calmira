@@ -51,6 +51,15 @@ class HugeModelTests(unittest.TestCase):
         self.assertIn('the dragged control sees mouse moves in its own coordinates', probe)
         self.assertIn('the dragged control sees the button go up after the drag ends', probe)
 
+    def test_controls_erase_their_background_as_delphi(self):
+        # Without it a window just shown kept showing what was below until
+        # its first paint: the Explorer's panes showed the desktop.
+        controls = (ROOT / 'src/win16/controls.pas').read_text()
+        self.assertIn('procedure WMEraseBkgnd(var M: TMessage); message WM_ERASEBKGND;', controls)
+        self.assertIn('procedure TCustomControl.WMEraseBkgnd(var M: TMessage);\nbegin EraseWithColor(M); end;', controls)
+        probe = (ROOT / 'tests/pascal/test_win16_canvas_context.pas').read_text()
+        self.assertIn('a control just shown is filled with its colour', probe)
+
     def test_delphi1_resources_load_the_string_table(self):
         patch = (ROOT / 'tools/patches/fpc-win16-delphi1-resources.patch').read_text()
         self.assertIn('+      constructor CreateRes(Ident: Word);', patch)

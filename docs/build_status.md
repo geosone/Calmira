@@ -3137,3 +3137,16 @@ the original makes one. Two things were wrong.
 the button-up after the drag ends; `win16-hints-runtime-test` checks both
 point functions. The list box test now puts the cursor on the item it presses, as a real press would, since the dragged list box sees the moves. Dropping a file on the desktop and dragging that shortcut
 onto the Recycle Bin now match the original.
+
+## Panes Showing the Desktop
+
+While the Explorer opened, its tree and file panes showed the desktop that
+was below them until they first painted; the original shows them white. Our
+`TCustomControl` left `WM_ERASEBKGND` to USER, and its window class has no
+background brush. As Delphi's `TWinControl.WMEraseBkgnd`, a control now fills
+its client area with its `Color` when USER asks, which happens as soon as it
+is shown. The USER controls (buttons, edits, list and combo boxes) still erase
+themselves.
+
+`win16-canvas-context-runtime-test` shows a control and reads its colour off
+the screen before any message is processed.
