@@ -97,6 +97,16 @@ class ShellUnitTests(unittest.TestCase):
         start = (ROOT / 'tests/pascal/test_win16_calmira_start.pas').read_text()
         self.assertIn('group names keep their captions, without a (99) suffix', start)
 
+    def test_program_group_sync_drops_the_start_menu_image_cache(self):
+        # The cache is read item by item; after the sync rewrote START.INI
+        # every icon behind the change showed the previous item's icon.
+        source = (ROOT / 'src/grpsync.pas').read_text()
+        body = source.split('function SyncProgramGroups(Force: Boolean;', 2)[2]
+        self.assertLess(body.index("'ProgramGroupsSignature', Signature"),
+                        body.index("DeleteFile(FileWritePath + 'BMPCACHE.BMP');"))
+        start = (ROOT / 'tests/pascal/test_win16_calmira_start.pas').read_text()
+        self.assertIn('the Start menu image cache is rebuilt after the groups are synchronised', start)
+
     def test_inifiles_uses_profile_api(self):
         source = (ROOT / 'src/win16/inifiles.pas').read_text()
         self.assertIn('GetPrivateProfileString', source)

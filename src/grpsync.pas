@@ -245,6 +245,9 @@ begin
       StartProfile.Free;
     end;
     ini.WriteString('Start Menu', 'ProgramGroupsSignature', Signature);
+    { As the Start menu editor does: the image cache follows START.INI item
+      by item, so a changed menu must rebuild it, or the icons slip. }
+    DeleteFile(FileWritePath + 'BMPCACHE.BMP');
     SyncProgramGroups := True;
   finally
     Dispose(Group);

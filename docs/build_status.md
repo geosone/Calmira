@@ -3161,3 +3161,15 @@ contents with `HELP_CONTENTS` first and sends the jump only when that worked.
 
 `win16-application-help-runtime-test` closes the help and checks that a jump
 opens it again without a WinHelp error.
+
+## Start Menu Icons After a Group Sync
+
+The Control Panel submenu showed each applet with the icon of the item before
+it. The Start menu reads its small icons from `BMPCACHE.BMP` in menu order and
+trusts the file as long as it exists. The Program Manager group sync rewrites
+`START.INI` at start-up, but it left the cache of the old menu in place, so
+every icon behind the change slipped by one item. The sync now deletes the
+cache whenever it rewrites the tree, as the Start menu editor does.
+
+`win16-calmira-start-runtime-test` puts a stale cache in place before Calmira
+starts and checks that it is rebuilt.

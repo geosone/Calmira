@@ -18,6 +18,10 @@ kept intact. Set `SyncProgramGroups=False` under `[Start Menu]` in
 `CALMIRA.INI` to disable automatic synchronization. The destination caption is
 configurable with `ProgramGroupsCaption=`.
 
+Whenever the tree is rewritten, the Start menu's image cache `BMPCACHE.BMP` is
+deleted, as the Start menu editor does, so the icons are read again for the
+changed menu.
+
 Choose **Settings > Sync Program Manager Groups** to force a manual refresh.
 The same action is available to custom menus as `$SyncProgramGroups`.
 

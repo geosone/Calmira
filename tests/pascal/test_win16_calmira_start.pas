@@ -75,6 +75,27 @@ begin
   Result := StrPas(Buffer);
 end;
 
+{ A stale Start menu image cache: a valid 1x1 bitmap of 58 bytes. }
+procedure WriteStaleCache;
+const Bytes: array[0..57] of Byte = (
+  $42,$4D, 58,0,0,0, 0,0,0,0, 54,0,0,0,
+  40,0,0,0, 1,0,0,0, 1,0,0,0, 1,0, 24,0, 0,0,0,0, 4,0,0,0,
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, $C0,$C0,$C0,0);
+var F: HFILE;
+begin
+  F := _lcreat('C:\BMPCACHE.BMP', 0);
+  if F <> HFILE_ERROR then begin _lwrite(F, @Bytes, SizeOf(Bytes)); _lclose(F); end;
+end;
+
+function CacheSize: LongInt;
+var F: HFILE;
+begin
+  Result := -1;
+  F := _lopen('C:\BMPCACHE.BMP', OF_READ);
+  if F = HFILE_ERROR then Exit;
+  Result := _llseek(F, 0, 2); _lclose(F);
+end;
+
 var
   Instance: THandle;
   Welcome, Computer, Bin, Tip, Bar, Manager: HWND;
@@ -82,6 +103,8 @@ var
   CalmiraTask: THandle;
 begin
   LogLine('Calmira start');
+  WriteStaleCache;
+  Check(CacheSize = 58, 'a stale Start menu image cache is in place');
   Started := Ticks;
   Instance := WinExec('C:\CALMIRA.EXE', SW_SHOWNORMAL);
   Check(Instance >= 32, 'CALMIRA.EXE starts');
@@ -106,6 +129,9 @@ begin
     Check((StartEntry('Start\&Programs\Program Manager', 'Hauptgruppe*') <> '') and
       (StartEntry('Start\&Programs\Program Manager', 'Hauptgruppe (99)*') = ''),
       'group names keep their captions, without a (99) suffix');
+    { The synchronisation rewrote START.INI, so the image cache built for
+      the old menu must not be used: its icons would sit one item off. }
+    Check((CacheSize > 58), 'the Start menu image cache is rebuilt after the groups are synchronised');
     Check(Find('Error') = 0, 'no error box while starting');
     Bar := Find('Taskbar');
     if Bar <> 0 then GetWindowRect(Bar, R);
