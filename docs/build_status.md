@@ -3173,3 +3173,18 @@ cache whenever it rewrites the tree, as the Start menu editor does.
 
 `win16-calmira-start-runtime-test` puts a stale cache in place before Calmira
 starts and checks that it is rebuilt.
+
+## Backspace to an Open Parent Folder
+
+Backspace in the Temp window brought the open `Fixed (C:)` window to the
+front but left Temp active: grey title bar, Temp still pressed on the
+taskbar. The original activates `Fixed (C:)`.
+
+Calmira calls `ShowNormal`, which ends in `Show`. Delphi's `BringToFront`
+uses `SetWindowPos` without `SWP_NOACTIVATE`, so an already visible form
+becomes active. Ours now activates an already visible, enabled form too.
+Minimized forms are left alone: Calmira shows its desktop icons again at
+start, and activating them there left the splash and Welcome box unpainted.
+
+`win16-forms-runtime-test` shows two forms, shows the first again and
+checks that it is active, and that a minimized form is not activated.

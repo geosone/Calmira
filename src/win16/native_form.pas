@@ -461,7 +461,17 @@ begin
     if Handle = 0 then
       CreateHandle(0, FCaption, WS_OVERLAPPEDWINDOW or WS_CLIPCHILDREN or WS_CLIPSIBLINGS,
         Left, Top, Width, Height);
-    if Visible then begin BringShownToFront; Exit; end;
+    { An already visible form is also activated, as Delphi's BringToFront
+      (SetWindowPos without SWP_NOACTIVATE): Backspace in Calmira's Temp
+      window makes the open C:\ window the active one. A minimized
+      form (Calmira's desktop icons, shown again at start) is not:
+      activating those left the splash and Welcome box unpainted. }
+    if Visible then
+    begin
+      BringShownToFront;
+      if IsWindowEnabled(Handle) and not IsIconic(Handle) then SetActiveWindow(Handle);
+      Exit;
+    end;
     FPendingState := False;
     PlaceOnShow;
     { As Delphi's CMShowingChanged: a normal or maximized form is activated

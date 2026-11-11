@@ -20,8 +20,9 @@ class FormActivationTests(unittest.TestCase):
         self.assertNotIn('SetActiveWindow(', getters)
         # ChangeView brings a form to the front; hiding the active form hands
         # activation to the topmost other window, as Delphi's CMShowingChanged;
-        # SetFocus activates an inactive form, as Delphi's TForm.SetFocus.
-        self.assertEqual(source.count('SetActiveWindow('), 3)
+        # SetFocus activates an inactive form, as Delphi's TForm.SetFocus;
+        # Show activates an already visible form, as Delphi's BringToFront.
+        self.assertEqual(source.count('SetActiveWindow('), 4)
         conceal = source.split('procedure TNativeForm.ConcealWindow;', 1)[1].split('procedure TNativeForm.Hide;', 1)[0]
         self.assertIn('SetActiveWindow(Next);', conceal)
         view = source.split('procedure TNativeForm.ChangeView(', 1)[1].split(

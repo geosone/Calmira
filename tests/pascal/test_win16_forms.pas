@@ -487,6 +487,23 @@ begin
   Result := Result and Above(First.Handle, Second.Handle);
   Second.Free; First.Free;
 end;
+{ As Delphi's BringToFront, Show activates a form that is already visible:
+  Calmira's Backspace shows the open parent folder window with ShowNormal. }
+function ShowActivatesVisibleForm: Boolean;
+var First, Second: TChildForm;
+begin
+  First := TChildForm.Create(nil); First.SetBounds(60, 60, 200, 100);
+  Second := TChildForm.Create(nil); Second.SetBounds(80, 80, 200, 100);
+  First.Show; Second.Show; Application.ProcessMessages;
+  Result := GetActiveWindow = Second.Handle;
+  First.Show; Application.ProcessMessages;
+  Result := Result and (GetActiveWindow = First.Handle);
+  { A minimized form is brought up but left inactive (desktop icons). }
+  Second.WindowState := wsMinimized; Application.ProcessMessages;
+  First.Show; Second.Show; Application.ProcessMessages;
+  Result := Result and (GetActiveWindow <> Second.Handle);
+  Second.Free; First.Free;
+end;
 function IconErasesWithColor: Boolean;
 var Form: TChildForm; DC: HDC; Black: HBRUSH; Area: TRect;
 begin
@@ -650,6 +667,7 @@ begin
     Check(Ctl3DFrameBeforeHandlers, 'CTL3D paints a dialog frame before the form''s own handlers');
     Check(HiddenActiveControlFocusesOnShow, 'ActiveControl set on a hidden form is focused when it shows');
     Check(ShowBringsToFront, 'Show brings a form to the front, as Delphi');
+    Check(ShowActivatesVisibleForm, 'Show activates a form that is already visible, as Delphi');
     Check(IconErasesWithColor, 'a minimized form erases its icon area with Color');
     Check(ShortcutReachesCreatedForm, 'menu and pop-up shortcuts reach a form not made by CreateForm');
     Check(VisibleShowsAndHides, 'setting Visible shows and hides a form with OnShow and OnHide');

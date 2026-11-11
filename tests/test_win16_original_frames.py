@@ -329,7 +329,7 @@ class OriginalFrameTests(unittest.TestCase):
         # Delphi's TCustomForm.Show ends with BringToFront; the Recycle Bin,
         # shown after My Computer, is activated when a dialog closes.
         form = source('native_form.pas')
-        self.assertIn('if Visible then begin BringShownToFront; Exit; end;', form)
+        self.assertIn('      BringShownToFront;\n      if IsWindowEnabled(Handle) and not IsIconic(Handle) then SetActiveWindow(Handle);\n      Exit;', form)
         self.assertIn('    BringShownToFront;\n  finally FChangingForm := False; end;', form)
         self.assertIn('SetWindowPos(Handle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);', form)
 
@@ -369,6 +369,13 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('URLPrefixes=http:// https:// ftp://', ini)
         probe = (ROOT / 'tests/pascal/test_win16_delphi_asm.pas').read_text()
         self.assertIn('https addresses are URLs', probe)
+
+
+    def test_show_activates_an_already_visible_form(self):
+        # Delphi's BringToFront calls SetWindowPos without SWP_NOACTIVATE;
+        # Backspace in a Calmira folder window activates the parent window.
+        form = source('native_form.pas')
+        self.assertIn('if IsWindowEnabled(Handle) and not IsIconic(Handle) then SetActiveWindow(Handle);', form)
 
 
 if __name__ == '__main__':
