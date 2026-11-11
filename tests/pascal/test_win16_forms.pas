@@ -600,6 +600,22 @@ begin
   SetActiveWindow(Loose.Handle); SetActiveWindow(App);
   Application.ProcessMessages;
   Check(GetActiveWindow = Loose.Handle, 'the focused application window hands the focus on to its top form');
+  { As Delphi's CM_ENTER (FindTopMostWindow): a stay-on-top window above,
+    like Calmira's off-screen splash, is taken only if nothing else is. }
+  Other := TChildForm.Create(nil); Other.SetBounds(200, 40, 150, 90); Other.Show;
+  SetWindowPos(Other.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+  SetActiveWindow(Loose.Handle); SetActiveWindow(App);
+  Application.ProcessMessages;
+  Check(GetActiveWindow = Loose.Handle, 'the application window prefers a form that is not topmost, as Delphi');
+  ShowWindow(Loose.Handle, SW_SHOWMINNOACTIVE); SetActiveWindow(App);
+  Application.ProcessMessages;
+  Check(GetActiveWindow = Loose.Handle,
+    'an iconic form is activated through its icon title, as the original Recycle Bin');
+  ShowWindow(Loose.Handle, SW_RESTORE);
+  Loose.Hide; SetActiveWindow(App);
+  Application.ProcessMessages;
+  Check(GetActiveWindow = Other.Handle, 'and takes a topmost form when no other is left');
+  Other.Free;
   Loose.Free;
   RegisterFormLoader(TDesktopForm, NoComponents);
   Desk := TDesktopForm.Create(nil);

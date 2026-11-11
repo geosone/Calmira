@@ -389,7 +389,9 @@ procedure TNativeApplication.Start(Sender: TObject);
 begin
   if FQuitRequested then Exit;
   if FMainForm = nil then raise ENativeApplicationError.Create('Missing main form');
-  if FShowMainForm then FMainForm.Show;
+  { As Delphi's Run, MainForm.Visible := True: an already visible main form
+    (Calmira's off-screen splash) is not shown again, so not activated. }
+  if FShowMainForm and not FMainForm.Visible then FMainForm.Show;
 end;
 function TNativeApplication.Filter(var Message: TMsg): Boolean;
 var Index: Integer; Form: TNativeForm; Window: HWND;

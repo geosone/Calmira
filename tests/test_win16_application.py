@@ -105,7 +105,7 @@ class NativeApplicationTests(unittest.TestCase):
     def test_hidden_main_policy_defaults_to_visible_but_skips_show(self):
         source = (ROOT / 'src/win16/native_application.pas').read_text()
         self.assertIn('FShowMainForm := True', source)
-        self.assertIn('if FShowMainForm then FMainForm.Show', source)
+        self.assertIn('if FShowMainForm and not FMainForm.Visible then FMainForm.Show', source)
         setter = source.split('procedure TNativeApplication.SetShowMainForm(', 1)[1]
         setter = setter.split('procedure TNativeApplication.CreateForm', 1)[0]
         self.assertIn('if FPumping or FCreatingForm then', setter)
@@ -131,6 +131,16 @@ class NativeApplicationTests(unittest.TestCase):
             self.assertIn(f'win16-application-{name}-runtime-test: win16-application-{name}', make)
             self.assertIn(f'$(BUILD_DIR)/tests/win16-application-{name}/units', make)
 
+    def test_run_leaves_an_already_visible_main_form_alone(self):
+        # Delphi's Run is MainForm.Visible := True. Calmira's splash, the main
+        # form, is already visible off-screen; showing it again activated it
+        # above the taskbar after the start-up dialogs.
+        source = (ROOT / 'src/win16/native_application.pas').read_text()
+        start = source.split('procedure TNativeApplication.Start(', 1)[1].split('function TNativeApplication.Filter', 1)[0]
+        self.assertIn('if FShowMainForm and not FMainForm.Visible then FMainForm.Show;', start)
+        probe = (ROOT / 'tests/pascal/test_win16_application.pas').read_text()
+        self.assertIn("'Run leaves an already visible main form inactive, as Delphi'", probe)
+        self.assertIn('Registry; Running; VisibleMain; Recovery;', probe)
 
 if __name__ == '__main__':
     unittest.main()

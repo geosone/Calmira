@@ -93,14 +93,26 @@ begin
 end;
 { The topmost visible, enabled window this one owns, as Delphi's
   FindTopMostWindow. }
-function TopOwnedWindow(Owner: HWND): HWND;
+{ As Delphi's FindTopMostWindow: the topmost visible, enabled window of the
+  task other than the application window that is not WS_EX_TOPMOST, else
+  the first stay-on-top one. Calmira's off-screen splash (the main form) is
+  topmost; after minimizing a program from the taskbar the original
+  activates the Recycle Bin. Its icon title comes first: focusing it
+  activates the icon, which focusing the iconic window itself does not. }
+function TopTaskWindow(App: HWND): HWND;
+const WS_EX_TOPMOST = $00000008;
+var Window: HWND; Task: THandle;
 begin
-  Result := GetWindow(GetDesktopWindow, GW_CHILD);
-  while Result <> 0 do
+  Result := 0; Task := GetWindowTask(App);
+  Window := GetWindow(GetDesktopWindow, GW_CHILD);
+  while Window <> 0 do
   begin
-    if (GetWindow(Result, GW_OWNER) = Owner) and IsWindowVisible(Result) and
-      IsWindowEnabled(Result) then Exit;
-    Result := GetWindow(Result, GW_HWNDNEXT);
+    if (Window <> App) and (GetWindowTask(Window) = Task) and
+      IsWindowVisible(Window) and IsWindowEnabled(Window) then
+      if GetWindowLong(Window, GWL_EXSTYLE) and WS_EX_TOPMOST = 0 then
+      begin Result := Window; Exit; end
+      else if Result = 0 then Result := Window;
+    Window := GetWindow(Window, GW_HWNDNEXT);
   end;
 end;
 procedure TNativeApplicationWindow.HookMainWindow(Hook: TNativeWindowHook);
@@ -145,7 +157,7 @@ begin
       Message.Result := 0;
       if not IsIconic(Handle) and (GetFocus = Handle) then
       begin
-        Window := TopOwnedWindow(Handle);
+        Window := TopTaskWindow(Handle);
         if Window <> 0 then WinProcs.SetFocus(Window);
       end;
       Exit;

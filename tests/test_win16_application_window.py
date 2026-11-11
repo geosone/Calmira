@@ -101,6 +101,32 @@ class ApplicationWindowTests(unittest.TestCase):
         runner = (ROOT / 'tests/dos/test_win16_gdi.sh').read_text()
         self.assertIn('"$GDI_HELPER_EXE" ::/APPSEND.EXE', runner)
 
+    def test_focus_hand_off_prefers_a_window_that_is_not_topmost(self):
+        # As Delphi's CM_ENTER/FindTopMostWindow: every task window but the
+        # application window, non-topmost first. The original activates the
+        # Recycle Bin (through its icon title) after a program is minimized
+        # from the taskbar; taking the topmost form activated the splash.
+        source = (ROOT / 'src/win16/native_application_window.pas').read_text()
+        body = source.split('function TopTaskWindow(App: HWND): HWND;', 1)[1].split('procedure TNativeApplicationWindow.HookMainWindow', 1)[0]
+        self.assertIn('(Window <> App) and (GetWindowTask(Window) = Task)', body)
+        self.assertIn('if GetWindowLong(Window, GWL_EXSTYLE) and WS_EX_TOPMOST = 0 then', body)
+        self.assertIn('else if Result = 0 then Result := Window;', body)
+        self.assertNotIn('GW_OWNER', body)
+        self.assertIn('Window := TopTaskWindow(Handle);', source)
+        probe = (ROOT / 'tests/pascal/test_win16_forms.pas').read_text()
+        for text in ("'the application window prefers a form that is not topmost, as Delphi'",
+                     "'an iconic form is activated through its icon title, as the original Recycle Bin'",
+                     "'and takes a topmost form when no other is left'"):
+            self.assertIn(text, probe)
+
+    def test_drop_client_creates_its_form_window_when_loaded(self):
+        # Desktop shortcuts load TDropClient from the DFM before the form has
+        # a window; the port's TWinControl.Handle does not create one, so
+        # DragAcceptFiles got 0 and the shortcuts lacked WS_EX_ACCEPTFILES.
+        source = (ROOT / 'vcl/dropclnt.pas').read_text()
+        self.assertIn('if Owner is TForm then FHandle := TForm(Owner).Handle', source)
+        probe = (ROOT / 'tests/pascal/test_win16_minimize.pas').read_text()
+        self.assertIn("'a TDropClient loaded before its form has a window accepts files'", probe)
 
 if __name__ == '__main__':
     unittest.main()

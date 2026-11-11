@@ -194,6 +194,18 @@ begin
     Cleanup;
   end;
 end;
+{ As Delphi's TApplication.Run (MainForm.Visible := True): a main form that
+  is already visible is left alone. Calmira's splash, its hidden main form,
+  is visible before Run; activating it took the keys from the taskbar. }
+procedure VisibleMain;
+begin
+  Setup; Main.OnShow := nil; Main.OnCloseQuery := nil; Main.OnClose := nil;
+  Main.Show; Second.Show; App.ProcessMessages(100);
+  PostQuitMessage(0);
+  Check((App.Run = 0) and Main.Visible and (GetActiveWindow = Second.Handle),
+    'Run leaves an already visible main form inactive, as Delphi');
+  Cleanup;
+end;
 procedure Recovery;
 begin
   Setup; Driver.StartFailure := True; Rejected := False;
@@ -209,7 +221,7 @@ begin
 end;
 begin
   FillChar(StackBottom^, 64, $A5); LogLine('STEP native application');
-  try Registry; Running; Recovery;
+  try Registry; Running; VisibleMain; Recovery;
   except on E: Exception do begin Failed := True; LogLine('FAIL ' + E.Message); end; end;
   Cleanup; Check(StackGuardIntact, 'stack boundary');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');

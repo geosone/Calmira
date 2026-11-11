@@ -3204,3 +3204,40 @@ this task is activated now, as a plain hide does.
 
 `win16-forms-runtime-test` hides a progress-like form after a modal
 question and checks that the form below becomes active.
+
+## Minimizing a Program From the Taskbar
+
+After Write was minimized with its taskbar button, the original activates
+the Recycle Bin. Ours activated the invisible splash, so no Calmira window
+looked active and the keys went nowhere. Two differences caused it:
+
+- **`Run` showed the main form again.** Calmira's splash, the main form, is
+  already visible off-screen when `Run` starts. Delphi's `Run` only sets
+  `Visible := True`; ours called `Show`, which activates a visible form, so
+  after the Welcome and Tip dialogs the splash was active above the
+  taskbar. An already visible main form is now left alone.
+- **The application window handed the focus to the topmost form.** USER
+  activates the application window when the program is minimized. As
+  Delphi's `CM_ENTER` (`FindTopMostWindow`), it now looks at every visible,
+  enabled window of the task except itself and prefers one that is not
+  `WS_EX_TOPMOST`; the off-screen splash and the taskbar are taken only when
+  nothing else is left. The Recycle Bin's icon title comes first, and
+  focusing it activates the icon, which `SetFocus` on the iconic window
+  itself does not.
+
+## Dropping Files on Desktop Shortcuts
+
+The desktop shortcuts and My Documents had no `WS_EX_ACCEPTFILES`, so
+files dropped from File Manager were refused. `TDropClient.Loaded` calls
+`DragAcceptFiles` with its owner's handle while the DFM is read, before the
+form has a window. Delphi's `TWinControl.Handle` creates it; the port's
+does not, so the call got 0. For a form owner it now asks `TForm.Handle`,
+which creates the window as Delphi does.
+
+Covered by:
+- `win16-application`: `Run` leaves an already visible main form inactive;
+- `win16-forms`: the application window prefers a form that is not
+  topmost, activates an iconic form through its icon title, and takes a
+  topmost one only when no other is left;
+- `win16-minimize`: a `TDropClient` loaded before its form has a window
+  makes the form accept files.
