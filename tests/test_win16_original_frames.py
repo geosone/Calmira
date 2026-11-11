@@ -199,7 +199,7 @@ class OriginalFrameTests(unittest.TestCase):
 
     def test_hide_runs_onhide_first_and_activates_topmost(self):
         form = source('native_form.pas')
-        self.assertIn('  try\n    DoHide;\n  finally\n    if (Handle <> 0) and Visible then ConcealWindow;\n  end;', form)
+        self.assertIn('  try\n    DoHide;\n  finally\n    if (Handle <> 0) and Visible then ConcealWindow\n', form)
         self.assertIn('Next := TopMostTaskWindow(Handle);', form)
         self.assertIn('(GetWindowLong(Result, GWL_EXSTYLE) and WS_EX_TOPMOST = 0)', form)
 
@@ -376,6 +376,16 @@ class OriginalFrameTests(unittest.TestCase):
         # Backspace in a Calmira folder window activates the parent window.
         form = source('native_form.pas')
         self.assertIn('if IsWindowEnabled(Handle) and not IsIconic(Handle) then SetActiveWindow(Handle);', form)
+
+
+    def test_a_form_destroyed_in_on_hide_hands_activation_to_this_task(self):
+        # Calmira's progress box destroys its handle in OnHide; after a
+        # question USER would activate Program Manager instead of the bin.
+        form = source('native_form.pas')
+        self.assertIn('WasActive := (GetActiveWindow = Handle) and not IsIconic(Handle);', form)
+        self.assertIn('else if WasActive and (Handle = 0) then', form)
+        self.assertIn('if (GetActiveWindow = 0) or (GetWindowTask(GetActiveWindow) <> GetCurrentTask) then', form)
+        self.assertIn('if Window <> 0 then Task := GetWindowTask(Window) else Task := GetCurrentTask;', form)
 
 
 if __name__ == '__main__':

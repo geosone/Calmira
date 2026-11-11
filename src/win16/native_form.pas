@@ -539,7 +539,7 @@ end;
 function TopMostTaskWindow(Window: HWND): HWND;
 var Task: THandle; Area: TRect;
 begin
-  Task := GetWindowTask(Window);
+  if Window <> 0 then Task := GetWindowTask(Window) else Task := GetCurrentTask;
   Result := GetWindow(GetDesktopWindow, GW_CHILD);
   while Result <> 0 do
   begin
@@ -553,16 +553,28 @@ begin
   end;
 end;
 procedure TNativeForm.HideWindow;
+var WasActive: Boolean; Next: HWND;
 begin
   if (Handle = 0) or not Visible then Exit;
   FWindowState := GetWindowState; FPendingState := True;
+  WasActive := (GetActiveWindow = Handle) and not IsIconic(Handle);
   { As Delphi's CMShowingChanged, OnHide runs while the window still shows:
     Calmira's progress box enables the other forms there. The window is
     hidden even when OnHide fails. }
   try
     DoHide;
   finally
-    if (Handle <> 0) and Visible then ConcealWindow;
+    if (Handle <> 0) and Visible then ConcealWindow
+    else if WasActive and (Handle = 0) then
+      { OnHide destroyed the active window (Calmira's progress box). USER
+        then activates the previously active window, which after a question
+        is gone, and falls back to another task (Program Manager). The
+        topmost window of this task is activated instead, as on a hide. }
+      if (GetActiveWindow = 0) or (GetWindowTask(GetActiveWindow) <> GetCurrentTask) then
+      begin
+        Next := TopMostTaskWindow(0);
+        if Next <> 0 then SetActiveWindow(Next);
+      end;
   end;
 end;
 procedure TNativeForm.ConcealWindow;

@@ -3188,3 +3188,19 @@ start, and activating them there left the splash and Welcome box unpainted.
 
 `win16-forms-runtime-test` shows two forms, shows the first again and
 checks that it is active, and that a minimized form is not activated.
+
+## Restoring From the Bin After a Question
+
+Restoring a hidden or system file from the Recycle Bin asks a question
+while the progress box shows. Afterwards no Calmira window was active, and
+the next keys (Ctrl+Del, Enter) reached Program Manager. The original keeps
+the Recycle Bin active.
+
+Calmira's progress box destroys its handle in `OnHide`, so USER picks the
+next active window itself: the previously active one, which after the
+question is the freed dialog, and then another task. When `OnHide` destroys
+the active form and activation has left the task, the topmost window of
+this task is activated now, as a plain hide does.
+
+`win16-forms-runtime-test` hides a progress-like form after a modal
+question and checks that the form below becomes active.

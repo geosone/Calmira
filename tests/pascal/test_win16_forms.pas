@@ -23,6 +23,7 @@ type
     procedure CountHide(Sender: TObject);
     procedure CountShortcut(Sender: TObject);
     procedure EnableOthersHide(Sender: TObject);
+    procedure EnableOthersDestroyHide(Sender: TObject);
     procedure WMBoom(var M: TMessage); message WM_USER + 77;
     procedure Caught(Sender: TObject; E: Exception);
     procedure MinimizeHandler(Sender: TObject; var Action: TCloseAction);
@@ -403,6 +404,35 @@ begin
   Result := Result and (GetActiveWindow = HideBelow.Handle);
   Top.Free; HideBelow.Free; HideBelow := nil;
 end;
+procedure TChildForm.EnableOthersDestroyHide(Sender: TObject);
+begin
+  if HideBelow <> nil then EnableWindow(HideBelow.Handle, True);
+  DestroyHandle;
+end;
+{ Calmira's progress box asks a question while it shows (restoring a
+  system file from the bin) and destroys its handle in OnHide; the bin
+  below must become active again, as in the original. }
+function HideAfterQuestionActivatesTopmost(Question, Destroy: Boolean): Boolean;
+var Top, Ask: TChildForm;
+begin
+  HideBelow := TChildForm.Create(nil); HideBelow.SetBounds(40, 40, 200, 100);
+  HideBelow.Show; Application.ProcessMessages;
+  Top := TChildForm.Create(nil); Top.SetBounds(80, 80, 200, 100);
+  if Destroy then Top.OnHide := Top.EnableOthersDestroyHide
+  else Top.OnHide := Top.EnableOthersHide;
+  Top.Show; SetActiveWindow(Top.Handle); EnableWindow(HideBelow.Handle, False);
+  Application.ProcessMessages;
+  if Question then
+  begin
+    Ask := TChildForm.Create(nil); Ask.SetBounds(100, 100, 150, 80);
+    Ask.OnShow := Ask.ModalShow; Ask.ShowModal;
+    Ask.Free;
+    Application.ProcessMessages;
+  end;
+  Top.Hide; Application.ProcessMessages;
+  Result := GetActiveWindow = HideBelow.Handle;
+  Top.Free; HideBelow.Free; HideBelow := nil;
+end;
 { As Delphi's key handling: Calmira's folder and Explorer windows are made
   with Create, and Del or F2 in their file pane are File menu shortcuts. }
 function ShortcutReachesCreatedForm: Boolean;
@@ -668,6 +698,9 @@ begin
     Check(HiddenActiveControlFocusesOnShow, 'ActiveControl set on a hidden form is focused when it shows');
     Check(ShowBringsToFront, 'Show brings a form to the front, as Delphi');
     Check(ShowActivatesVisibleForm, 'Show activates a form that is already visible, as Delphi');
+    Check(HideAfterQuestionActivatesTopmost(False, True), 'a form destroying its handle in OnHide activates the form below');
+    Check(HideAfterQuestionActivatesTopmost(True, False), 'a form hidden after a question activates the form below');
+    Check(HideAfterQuestionActivatesTopmost(True, True), 'a progress form hidden after a question activates the form below');
     Check(IconErasesWithColor, 'a minimized form erases its icon area with Color');
     Check(ShortcutReachesCreatedForm, 'menu and pop-up shortcuts reach a form not made by CreateForm');
     Check(VisibleShowsAndHides, 'setting Visible shows and hides a form with OnShow and OnHide');
