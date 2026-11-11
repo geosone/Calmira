@@ -1,6 +1,6 @@
 program TestWin16Minimize;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Messages, Classes, SysUtils, Controls, StdCtrls, Forms, apholder;
+uses WinTypes, WinProcs, Messages, Classes, SysUtils, Controls, StdCtrls, Forms, Win31, apholder, dropclnt;
 type
   TComponentAccess = class(TComponent);
   TEvents = class
@@ -12,7 +12,7 @@ type
     procedure FormChange(Sender: TObject);
     procedure EditEnter(Sender: TObject);
   end;
-var Main, Other: TForm; Edit1, Edit2: TEdit; Events: TEvents; Holder: TAppHolder; Failed: Boolean;
+var Main, Other: TForm; Edit1, Edit2: TEdit; Events: TEvents; Holder: TAppHolder; Drop: TForm; Client: TDropClient; Failed: Boolean;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
 begin
@@ -109,6 +109,17 @@ begin
     Holder.Free;
     Check(not Assigned(Application.OnMinimize) and not Assigned(Screen.OnActiveFormChange),
       'freeing TAppHolder clears them');
+
+    { Calmira's desktop shortcuts load a TDropClient from their DFM, before
+      the form has a window. Loaded must create it, as Delphi's Handle does,
+      or DragAcceptFiles gets 0 and files cannot be dropped on them. }
+    Drop := TForm.Create(Application);
+    Client := TDropClient.Create(Drop);
+    TComponentAccess(Client).Loaded;
+    Check((Client.Handle <> 0) and (Client.Handle = Drop.Handle) and
+      (GetWindowLong(Drop.Handle, GWL_EXSTYLE) and WS_EX_ACCEPTFILES <> 0),
+      'a TDropClient loaded before its form has a window accepts files');
+    Drop.Free; Drop := nil;
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
   if Application.WindowCallbackErrors <> 0 then
     LogLine('FAIL callback ' + Application.LastWindowCallbackError);

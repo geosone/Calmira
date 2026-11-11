@@ -114,7 +114,10 @@ end;
 procedure TDropClient.Loaded;
 begin
   inherited Loaded;
-  FHandle := (Owner as TWinControl).Handle;
+  { The port's TWinControl.Handle does not create the window; TForm.Handle
+    does, as Delphi's. A DFM's Loaded runs before the form has one. }
+  if Owner is TForm then FHandle := TForm(Owner).Handle
+  else FHandle := (Owner as TWinControl).Handle;
   DragAcceptFiles(FHandle, True);
 end;
 
