@@ -8,6 +8,7 @@ type
     FailPaint, ReparentInPaint, ResizeInPaint, DisableInPaint: Boolean;
     Other: TCustomControl;
     DisableSibling: TGraphicControl;
+    PaintedOrigin: LongInt;
     procedure Paint; override;
     procedure Underlay(Sender: TObject);
   end;
@@ -36,6 +37,7 @@ begin
   Enabled := Enabled; { Same-value writes remain harmless during paint. }
   if DisableInPaint then Enabled := False;
   if DisableSibling <> nil then DisableSibling.Enabled := False;
+  PaintedOrigin := GetDCOrg(Canvas.Handle);
   Canvas.Brush.Color := FillColor; Canvas.FillRect(Rect(-10, -10, 50, 50));
   if FailPaint then raise Exception.Create('graphic paint test');
 end;
@@ -94,9 +96,12 @@ begin
     Check((Pixel(A, 5, 85) = clWhite) and (Pixel(A, 32, 85) = clRed), 'moving graphic invalidates old and new parent regions');
     Block.Visible := False; UpdateWindow(A.Handle);
     Check(Pixel(A, 32, 85) = clWhite, 'hiding graphic restores parent background');
-    Block.Visible := True; UpdateWindow(A.Handle); Block.FillColor := clLime;
+    Block.PaintedOrigin := -1; Block.Visible := True; UpdateWindow(A.Handle);
+    Check(Block.PaintedOrigin = MakeLong(20, 20), 'a fully exposed graphic paints straight on its parent, as Delphi');
+    Block.FillColor := clLime;
     A.InvalidateArea(Rect(31, 82, 34, 85)); UpdateWindow(A.Handle);
     Check((Pixel(A, 32, 83) = clLime) and (Pixel(A, 32, 88) = clRed), 'child painting retains partial parent update clip');
+    Check(Block.PaintedOrigin = 0, 'a partly exposed graphic still renders off screen for full geometry');
     Block.Parent := B; UpdateWindow(A.Handle); UpdateWindow(B.Handle);
     Check((Pixel(A, 32, 83) = clWhite) and (Pixel(B, 32, 83) = clLime), 'reparenting removes old graphic and paints new parent');
     Rejected := False;

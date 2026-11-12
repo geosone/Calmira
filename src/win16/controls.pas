@@ -1702,7 +1702,7 @@ begin
   Perform(CM_ENABLEDCHANGED, 0, 0);
 end;
 procedure TGraphicControl.PaintOn(DC: HDC);
-var State, Clip: SmallInt; Background: HBRUSH; Area: TRect; Surface: TBitmap;
+var State, Clip: SmallInt; Background: HBRUSH; Area, Bounds: TRect; Surface: TBitmap;
 begin
   if not FVisible or (FWidth = 0) or (FHeight = 0) then Exit;
   State := SaveDC(DC);
@@ -1713,6 +1713,21 @@ begin
     if Clip = 0 then raise ENativeWindowError.Create('Cannot clip graphic DC');
     if Clip = NULLREGION then Exit;
     Area.Left := 0; Area.Top := 0; Area.Right := FWidth; Area.Bottom := FHeight;
+    { As Delphi 1's PaintControls, a fully exposed control paints straight on
+      its parent's DC; a bitmap per repaint makes file copies much slower. }
+    if (Clip = SIMPLEREGION) and (GetClipBox(DC, Bounds) <> ERROR) and
+      EqualRect(Bounds, Area) then
+    begin
+      Background := CreateSolidBrush(ColorToRGB(Color));
+      if Background = 0 then raise ENativeWindowError.Create('Cannot create graphic brush');
+      try
+        if WinProcs.FillRect(DC, Area, Background) = 0 then
+          raise ENativeWindowError.Create('Cannot fill graphic background');
+      finally DeleteObject(Background); end;
+      FCanvas.Handle := DC;
+      try Paint; finally FCanvas.Handle := 0; end;
+      Exit;
+    end;
     { Flood fills require full geometry, even when USER requests a tiny fragment. }
     Surface := TBitmap.Create;
     try

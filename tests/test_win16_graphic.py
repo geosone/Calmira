@@ -50,6 +50,18 @@ class Win16GraphicTests(unittest.TestCase):
         self.assertIn('Paint;\n        PaintOverlay;', native)
         self.assertIn('if Acquired and not FPainting then PaintOverlay', native)
 
+    def test_fully_exposed_graphic_paints_without_a_bitmap(self):
+        source = (ROOT / 'src/win16/controls.pas').read_text()
+        paint = source.split('procedure TGraphicControl.PaintOn', 1)[1]
+        paint = re.split(r'\n(?:procedure|function|constructor|destructor|type)\b', paint, maxsplit=1)[0]
+        direct = paint.index('FCanvas.Handle := DC;')
+        self.assertLess(paint.index('(Clip = SIMPLEREGION)'), direct)
+        self.assertLess(paint.index('EqualRect(Bounds, Area)'), direct)
+        self.assertLess(direct, paint.index('Surface := TBitmap.Create'))
+        probe = (ROOT / 'tests/pascal/test_win16_graphic.pas').read_text()
+        self.assertIn("'a fully exposed graphic paints straight on its parent, as Delphi'", probe)
+        self.assertIn("'a partly exposed graphic still renders off screen for full geometry'", probe)
+
     def test_lifetime_and_bounds_have_real_checks(self):
         source = (ROOT / 'src/win16/controls.pas').read_text()
         for text in ('Value.FGraphics.Add(Self)', 'Previous.FGraphics.Remove(Self)',

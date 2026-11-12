@@ -3254,3 +3254,19 @@ stay `OK` and `Cancel`, which the original's second string table holds.
 
 Covered by `win16-dialogs`: the information, confirmation, error and help
 dialogs check their button captions.
+
+## Copying Files at the Original's Speed
+
+Copying the Windows directory took about 1.5 times as long as in the
+original. CS:IP samples taken through the QEMU monitor during the copy showed
+GDI's blit code compiled on Calmira's stack, which the original never ran.
+Each repaint of a graphic control created a bitmap the size of the control,
+painted into it and blitted it to the screen. The progress dialog updates
+its labels and gauge for every file. Delphi 1's `PaintControls` paints
+straight on the parent's DC. A fully exposed control now does the same,
+after filling its background as before. A control that USER repaints only in
+part still renders into a bitmap, because the pie chart's flood fills need
+the whole control. The copy now takes about as long as the original's.
+
+Covered by `win16-graphic`: a fully exposed graphic paints on its parent's
+window DC, and a partly exposed one still paints off screen.
