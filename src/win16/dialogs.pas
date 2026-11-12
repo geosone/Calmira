@@ -177,8 +177,11 @@ const
     ('Warning', 'Error', 'Information', 'Confirm', '');
   ButtonKeys: array[TMsgDlgBtn] of string[6] =
     ('Yes', 'No', 'OK', 'Cancel', 'Abort', 'Retry', 'Ignore', 'All', 'Help');
+  { Delphi 1.02's SMsgDlg strings, as in the original CALMIRA.EXE: OK and
+    Cancel have accelerators, Abort has none. InputQuery's plain buttons
+    keep OK and Cancel. }
   ButtonTexts: array[TMsgDlgBtn] of string[7] =
-    ('&Yes', '&No', 'OK', 'Cancel', '&Abort', '&Retry', '&Ignore', '&All', '&Help');
+    ('&Yes', '&No', '&OK', '&Cancel', 'Abort', '&Retry', '&Ignore', '&All', '&Help');
   ButtonResults: array[TMsgDlgBtn] of TModalResult =
     (mrYes, mrNo, mrOk, mrCancel, mrAbort, mrRetry, mrIgnore, mrAll, mrNone);
 type

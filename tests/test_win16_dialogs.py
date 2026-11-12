@@ -79,5 +79,19 @@ class DialogsSubsetTests(unittest.TestCase):
             self.assertIn(target, regression)
 
 
+    def test_message_dialog_buttons_use_delphi_102_captions(self):
+        # The original CALMIRA.EXE carries Delphi 1.02's SMsgDlg strings:
+        # &OK and &Cancel with accelerators, Abort without. InputQuery's
+        # plain buttons stay OK and Cancel.
+        source = (ROOT / 'src/win16/dialogs.pas').read_text()
+        self.assertIn("('&Yes', '&No', '&OK', '&Cancel', 'Abort', '&Retry', '&Ignore', '&All', '&Help');", source)
+        self.assertIn("DialogText('OK', 'OK')", source)
+        self.assertIn("DialogText('Cancel', 'Cancel')", source)
+        probe = (ROOT / 'tests/pascal/test_win16_dialogs.pas').read_text()
+        self.assertIn("(Driver.Children = '&OK|&Cancel|&Help')", probe)
+        self.assertIn("(Driver.FocusText = 'Abort'), 'first');", probe)
+        query = (ROOT / 'tests/pascal/test_win16_input_query.pas').read_text()
+        self.assertIn("(Driver.Children = 'old|OK|Cancel')", query)
+
 if __name__ == '__main__':
     unittest.main()

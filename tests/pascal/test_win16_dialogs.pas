@@ -22,12 +22,12 @@ begin
   Script(akKey, VK_RETURN, '');
   Answer := MessageDlg('Hello', mtInformation, [mbOK], 0);
   Check(Driver.Acted and (Answer = mrOk) and (Driver.Caption = 'Information') and
-    (Driver.Children = 'OK') and (Driver.FocusText = 'OK'), 'info');
+    (Driver.Children = '&OK') and (Driver.FocusText = '&OK'), 'info');
   ShortHeight := Driver.Height;
   Script(akKey, VK_ESCAPE, '');
   Answer := MessageDlg('Replace?', mtConfirmation, mbYesNoCancel + [mbAll], 0);
   Check((Answer = mrCancel) and (Driver.Caption = 'Confirm') and
-    (Driver.Children = '&Yes|&No|Cancel|&All') and (Driver.FocusText = '&Yes'), 'confirm');
+    (Driver.Children = '&Yes|&No|&Cancel|&All') and (Driver.FocusText = '&Yes'), 'confirm');
   Script(akClick, 0, '&All');
   Answer := MessageDlg('Replace?', mtConfirmation, mbYesNoCancel + [mbAll], 0);
   Check(Answer = mrAll, 'click All');
@@ -36,7 +36,7 @@ begin
   Check((Answer = mrNo) and (Driver.Caption = 'Warning'), 'Escape No');
   Script(akKey, VK_RETURN, '');
   Answer := MessageDlg('Disk', mtError, mbAbortRetryIgnore, 0);
-  Check((Answer = mrAbort) and (Driver.Caption = 'Error') and (Driver.FocusText = '&Abort'), 'first');
+  Check((Answer = mrAbort) and (Driver.Caption = 'Error') and (Driver.FocusText = 'Abort'), 'first');
   Text := ''; for I := 1 to 30 do Text := Text + 'word ';
   Script(akKey, VK_RETURN, '');
   Answer := MessageDlg(Text + #13#10'x', mtWarning, [mbOK], 0);
@@ -51,7 +51,7 @@ begin
   MsgDlgBtnSize.Y := 27;
   Script(akKey, VK_ESCAPE, '');
   Answer := MessageDlg('Help?', mtConfirmation, [mbHelp, mbOK, mbCancel], 0);
-  Check((Answer = mrCancel) and (Driver.Children = 'OK|Cancel|&Help'), 'Delphi 1 button order puts Help last');
+  Check((Answer = mrCancel) and (Driver.Children = '&OK|&Cancel|&Help'), 'Delphi 1 button order puts Help last');
   Form := CreateMessageDialog('Look', mtInformation, [mbOK]);
   try
     Bitmap := nil;
@@ -91,7 +91,7 @@ begin
   finally Form.Free; Back.Free; end;
   Script(akKey, VK_RETURN, '');
   ShowMessage('Plain');
-  Check(Driver.Acted and (Driver.Caption = Application.Title) and (Driver.Children = 'OK'), 'ShowMessage');
+  Check(Driver.Acted and (Driver.Caption = Application.Title) and (Driver.Children = '&OK'), 'ShowMessage');
   Catalog := TCatalog.Create; Previous := SetFormTextProvider(Catalog.Translate);
   try
     Script(akKey, VK_ESCAPE, '');

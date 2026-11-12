@@ -3241,3 +3241,16 @@ Covered by:
   topmost one only when no other is left;
 - `win16-minimize`: a `TDropClient` loaded before its form has a window
   makes the form accept files.
+
+## Message Dialog Button Accelerators
+
+Calmira's questions (deleting a shortcut, for example) showed `OK` and
+`Cancel` without underlined letters. The original underlines them: its
+CALMIRA.EXE carries Delphi 1.02's message dialog strings `&Yes`, `&No`,
+`&OK`, `&Cancel`, `&Help`, `Abort`, `&Retry`, `&Ignore` and `&All`.
+`MessageDlg` and `ShowMessage` use these now; `Abort` keeps no
+accelerator, as in the original. `InputQuery`'s buttons
+stay `OK` and `Cancel`, which the original's second string table holds.
+
+Covered by `win16-dialogs`: the information, confirmation, error and help
+dialogs check their button captions.
