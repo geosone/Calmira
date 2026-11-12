@@ -139,6 +139,16 @@ class LocalizationTests(unittest.TestCase):
             self.assertIn(f'LANG\\{code}.LNG', descriptor)
             self.assertIn(f'Choice={code}|', descriptor)
 
+    def test_installer_preselects_the_language_of_the_country(self):
+        descriptor = (ROOT / 'install/install.ini').read_text()
+        for line in ('Choice=de|Deutsch|49,43,41,423', 'Choice=pl|Polski (Windows CP1250)|48',
+                     'Choice=fr|Francais|33,2,352,377'):
+            self.assertIn(line, descriptor)
+        self.assertIn('MinWindows=3.1', descriptor)
+        programs = descriptor.split('[ProgMan]', 1)[1].split('\n[', 1)[0]
+        self.assertIn('Item=!4|Calmira Reloaded|Calmira Reloaded|%DIR%\\CALMIRA.EXE', programs)
+        self.assertIn('WINHELP.EXE %DIR%\\CALMIRA.HLP', programs)
+
 
 if __name__ == '__main__':
     unittest.main()

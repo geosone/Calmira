@@ -28,8 +28,14 @@ installation, uninstall preserves that later choice.
 
 The descriptor also offers one application-language choice. All catalogues
 share the same executable payload; GDI writes `[Language] Selected` in the
-installed `CALMIRA.INI`. See [runtime languages](localization.md) for coverage
-and limitations. The staging workflow uses UPX-packed FPC helper copies;
+installed `CALMIRA.INI`. Since GDI 1.16 each choice lists the DOS/Windows
+country codes of its language, so a German, Polish or Latin-American system
+starts with its own catalogue selected. See [runtime languages](localization.md)
+for coverage and limitations.
+
+When Calmira is not chosen as the shell, GDI's `[ProgMan]` adds a "Calmira
+Reloaded" group with the shell and its help; uninstall removes them again.
+`MinWindows=3.1` stops setup early on Windows 3.0. The staging workflow uses UPX-packed FPC helper copies;
 the complete shell and remaining payload still need a successful build.
 
 ## OpenLFN Loader and ZIP Preview
