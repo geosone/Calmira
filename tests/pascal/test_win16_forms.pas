@@ -453,8 +453,6 @@ begin
   Result := Result and (Form.Shortcuts = 2);
   Form.Free;
 end;
-{ Calmira's desktop icons are minimized forms; uncovering one erases it
-  like a client area, as Delphi's TWinControl.WMEraseBkgnd does. }
 procedure TCaptionForm.WMNCPaint(var M: TMessage);
 begin Inc(NCPaints); inherited; end;
 { As Delphi 1: CTL3D paints a Ctl3D dialog's frame before the form's own
@@ -534,19 +532,27 @@ begin
   Result := Result and (GetActiveWindow <> Second.Handle);
   Second.Free; First.Free;
 end;
-function IconErasesWithColor: Boolean;
+{ As Delphi's TForm.WMEraseBkgnd: a minimized form hands the erase on as
+  WM_ICONERASEBKGND, so the desktop shows behind a desktop icon instead of
+  a box in the form's Color (grey squares on a teal desktop). }
+function IconErasesWithDesktop: Boolean;
 var Form: TChildForm; DC: HDC; Black: HBRUSH; Area: TRect;
+  Element: SmallInt; Saved, Teal: TColorRef;
 begin
+  Element := COLOR_BACKGROUND; Saved := GetSysColor(COLOR_BACKGROUND);
+  Teal := RGB(0, 128, 128);
+  SetSysColors(1, @Element, @Teal);
   Form := TChildForm.Create(nil); Form.SetBounds(60, 60, 200, 100);
   Form.Color := clRed; Form.Show; Application.ProcessMessages;
   ShowWindow(Form.Handle, SW_SHOWMINNOACTIVE); Application.ProcessMessages;
   DC := GetDC(Form.Handle);
   Black := GetStockObject(BLACK_BRUSH); SetRect(Area, 0, 0, 8, 8);
   FillRect(DC, Area, Black);
-  Result := IsIconic(Form.Handle) and (Form.Perform(WM_ERASEBKGND, DC, 0) <> 0) and
-    (GetPixel(DC, 2, 2) = ColorToRGB(clRed));
+  Form.Perform(WM_ERASEBKGND, DC, 0);
+  Result := IsIconic(Form.Handle) and (GetPixel(DC, 2, 2) = Teal);
   ReleaseDC(Form.Handle, DC);
   Form.Free;
+  SetSysColors(1, @Element, @Saved);
 end;
 { As Delphi's Screen: Calmira creates its folder windows with Create, not
   CreateForm, and cascades a new one from Screen.ActiveForm. }
@@ -717,7 +723,7 @@ begin
     Check(HideAfterQuestionActivatesTopmost(False, True), 'a form destroying its handle in OnHide activates the form below');
     Check(HideAfterQuestionActivatesTopmost(True, False), 'a form hidden after a question activates the form below');
     Check(HideAfterQuestionActivatesTopmost(True, True), 'a progress form hidden after a question activates the form below');
-    Check(IconErasesWithColor, 'a minimized form erases its icon area with Color');
+    Check(IconErasesWithDesktop, 'a minimized form shows the desktop behind its icon, not its Color');
     Check(ShortcutReachesCreatedForm, 'menu and pop-up shortcuts reach a form not made by CreateForm');
     Check(VisibleShowsAndHides, 'setting Visible shows and hides a form with OnShow and OnHide');
     Check(HandlerExceptionsReachApplication, 'an exception in a message handler reaches Application.OnException');

@@ -192,10 +192,14 @@ class OriginalFrameTests(unittest.TestCase):
         self.assertIn('(Item >= 0) and Selected[Item] then\n  begin BeginDrag(False); Exit; end;', listbox)
         self.assertIn('DefaultHandler(M);\n  if FMultiSelect and Modifier then Exit;\n  BeginDrag(False);', listbox)
 
-    def test_minimized_form_erases_with_color(self):
+    def test_minimized_form_shows_the_desktop_behind_its_icon(self):
         forms = source('forms.pas')
         self.assertIn('procedure WMEraseBkgnd(var Message: TMessage); message WM_ERASEBKGND;', forms)
-        self.assertIn('if (Handle <> 0) and IsIconic(Handle) then EraseWithColor(Message)', forms)
+        self.assertIn('if (Handle <> 0) and IsIconic(Handle) then\n  begin\n'
+                      '    Message.Msg := WM_ICONERASEBKGND;\n    DefaultHandler(Message);', forms)
+        self.assertNotIn('IsIconic(Handle) then EraseWithColor(Message)', forms)
+        test = (ROOT / 'tests/pascal/test_win16_forms.pas').read_text(encoding='latin-1')
+        self.assertIn("a minimized form shows the desktop behind its icon, not its Color", test)
 
     def test_hide_runs_onhide_first_and_activates_topmost(self):
         form = source('native_form.pas')

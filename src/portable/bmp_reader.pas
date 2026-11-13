@@ -18,7 +18,7 @@ type THeaderBytes = array[0..53] of Byte;
 function ReadBMPLayout(const Header; HeaderBytes: Word; FileBytes: LongInt;
   out Layout: TBMPLayout; out ErrorText: string): Boolean;
 var B: THeaderBytes absolute Header;
-  W, H, Colors, DeclaredSize, Offset, ImageSize, Stride: LongInt;
+  W, H, Colors, Used, DeclaredSize, Offset, ImageSize, Stride: LongInt;
   Depth: Word;
   function U16(Index: Word): Word;
   begin Result := Word(B[Index]) or (Word(B[Index + 1]) shl 8); end;
@@ -43,16 +43,20 @@ begin
   Colors := 0;
   if Depth <= 8 then Colors := LongInt(1) shl Depth;
   ErrorText := 'Unsupported BMP palette';
-  if (I32(46) <> 0) and (I32(46) <> Colors) then Exit;
+  { biClrUsed may list fewer colours than the depth allows (a 256-colour
+    image reduced to 236); Windows reads only those. 0 means all. }
+  Used := I32(46);
+  if (Used < 0) or (Used > Colors) then Exit;
+  if Used = 0 then Used := Colors;
   if (I32(50) < 0) or (I32(50) > Colors) then Exit;
   Offset := I32(10); DeclaredSize := I32(2);
   ErrorText := 'Invalid BMP length or pixel offset';
-  if (Offset < 54 + Colors * 4) or (Offset > FileBytes) or
+  if (Offset < 54 + Used * 4) or (Offset > FileBytes) or
     (DeclaredSize <> FileBytes) then Exit;
   if ImageSize > FileBytes - Offset then Exit;
   if (I32(34) <> 0) and (I32(34) <> ImageSize) then Exit;
   Layout.Width := W; Layout.Height := H; Layout.BitsPerPixel := Depth;
-  Layout.PaletteBytes := Colors * 4; Layout.BitsOffset := Offset;
+  Layout.PaletteBytes := Used * 4; Layout.BitsOffset := Offset;
   Layout.RowBytes := Stride; Layout.ImageBytes := ImageSize;
   ErrorText := ''; Result := True;
 end;

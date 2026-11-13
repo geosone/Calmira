@@ -220,7 +220,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-paint-runtime-test win16-draw-runtime-test win16-loop-runtime-test \
 		win16-modal-loop-runtime-test win16-gui-stdio-runtime-test \
 		win16-gui-diagnostics-runtime-test win16-gui-buffer-runtime-test \
-		win16-resource-text-runtime-test win16-calmira-start-runtime-test win16-computer-window-runtime-test fpc-win16-classes-runtime-test
+		win16-resource-text-runtime-test win16-calmira-start-runtime-test win16-computer-window-runtime-test win16-desktop-wallpaper-runtime-test fpc-win16-classes-runtime-test
 
 win16-class-pointer: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-class-pointer/units
@@ -1804,6 +1804,19 @@ win16-computer-window: fpc-win16-gui-rtl
 win16-computer-window-runtime-test: win16-computer-window calmira lfnfuncs wndhooks languages
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-computer-window/GDITEST.EXE)' \
 		GDI_EXTRA_FILES='$(abspath $(BUILD_DIR)/lang/de.LNG) $(abspath $(BUILD_DIR)/calmira/CALMIRA.EXE) $(abspath $(BUILD_DIR)/lfnfuncs/LFNFUNCS.DLL) $(abspath $(BUILD_DIR)/wndhooks/WNDHOOKS.DLL) $(abspath src/calmira.ini) $(abspath src/start.ini) $(abspath src/tips.txt)' \
+		sh tests/dos/test_win16_gdi.sh
+
+.PHONY: win16-desktop-wallpaper win16-desktop-wallpaper-runtime-test
+win16-desktop-wallpaper: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-desktop-wallpaper/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -Fu$(FPC_WIN16_GUI_RTL) \
+		-FU$(BUILD_DIR)/tests/win16-desktop-wallpaper/units -FE$(BUILD_DIR)/tests/win16-desktop-wallpaper \
+		-oGDITEST.EXE tests/pascal/test_win16_desktop_wallpaper.pas
+
+win16-desktop-wallpaper-runtime-test: win16-desktop-wallpaper calmira lfnfuncs wndhooks
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-desktop-wallpaper/GDITEST.EXE)' \
+		GDI_EXTRA_FILES='$(abspath $(BUILD_DIR)/calmira/CALMIRA.EXE) $(abspath $(BUILD_DIR)/lfnfuncs/LFNFUNCS.DLL) $(abspath $(BUILD_DIR)/wndhooks/WNDHOOKS.DLL) $(abspath src/calmira.ini) $(abspath src/start.ini) $(abspath src/tips.txt)' \
 		sh tests/dos/test_win16_gdi.sh
 
 winfile16-core: omf-toolchain

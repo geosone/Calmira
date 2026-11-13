@@ -49,7 +49,14 @@ begin
   Base(4); Put32(22, 32768); Reject('height overflow');
   Base(24); Put32(18, 32767); Reject('scan line exceeds segment budget');
   Base(4); Put32(46, 17); Reject('excess palette');
-  Base(4); Put32(46, 2); Reject('reduced palette unsupported');
+  Base(4); Put32(46, -1); Reject('negative palette');
+  { A palette shorter than the depth allows, as a 256-colour image reduced
+    to 236 colours: only the listed entries are read. }
+  Base(4); Put32(46, 2); Put32(10, 54 + 8); Put32(2, 54 + 8 + 8);
+  Check(Valid and (Layout.PaletteBytes = 8) and (Layout.BitsOffset = 62), 'reduced palette');
+  Base(8); Put32(46, 236); Put32(10, 54 + 236 * 4); Put32(2, 54 + 236 * 4 + 8);
+  Check(Valid and (Layout.PaletteBytes = 944), '236-colour palette');
+  Base(4); Put32(46, 2); Put32(10, 54 + 4); Reject('pixels overlap a reduced palette');
   Base(4); Put32(50, 17); Reject('invalid important color count');
   Base(4); Put32(10, 54); Reject('pixels overlap palette');
   Base(4); Put32(10, $7FFFFFFF); Reject('offset past file');

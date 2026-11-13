@@ -485,12 +485,18 @@ begin
   finally EndPaint(Handle, PS); end;
   Message.Result := 0;
 end;
-{ A minimized form without a class icon is erased like a client area; as
-  Delphi's TWinControl.WMEraseBkgnd, fill it with Color, or the icon is drawn
-  over whatever covered it last (a closed folder window). }
+{ As Delphi's TForm.WMEraseBkgnd: a minimized form without a class icon
+  hands the erase on as WM_ICONERASEBKGND, and DefWindowProc paints the
+  desktop (colour, pattern, wallpaper) behind the icon. Without an erase the
+  icon is drawn over whatever covered it last (a closed folder window); filling
+  it with Color leaves a grey box on a coloured desktop. }
 procedure TForm.WMEraseBkgnd(var Message: TMessage);
 begin
-  if (Handle <> 0) and IsIconic(Handle) then EraseWithColor(Message)
+  if (Handle <> 0) and IsIconic(Handle) then
+  begin
+    Message.Msg := WM_ICONERASEBKGND;
+    DefaultHandler(Message);
+  end
   else inherited;
 end;
 procedure TForm.Paint;

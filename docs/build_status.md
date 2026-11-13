@@ -3455,3 +3455,24 @@ icon draws nothing, as in Delphi.
 
 `make win16-computer-window-runtime-test` lists `GDITEST.EXE`, which has no
 icon, in `[Programs]` and requires My Computer to open without an error box.
+
+## Desktop Icons on a Coloured Desktop
+
+With the Windows 95 colours the desktop icons stood in grey squares on the
+teal desktop. The Win16 `TForm` filled a minimized form with its Color;
+Delphi's `TForm.WMEraseBkgnd` hands the erase on as `WM_ICONERASEBKGND`, and
+`DefWindowProc` paints the desktop colour, pattern or wallpaper behind the
+icon. The form now does the same. `make win16-forms-runtime-test` sets a teal
+desktop and requires teal behind a minimized red form.
+
+## Wallpapers with a Short Palette in Desktop Properties
+
+The monitor in Desktop Properties stayed empty for the 256-colour Calmira
+wallpaper, while Windows showed it after OK. Its palette lists 236 colours
+(`biClrUsed`), which `bmp_reader` rejected as "Unsupported BMP palette";
+Windows, Paintbrush and Delphi read only the listed entries. The reader now
+accepts any count up to the depth's maximum. `make
+win16-desktop-wallpaper-runtime-test` opens the dialog through a DOS script,
+checks the monitor for a red 4-bit wallpaper from `WIN.INI`, then chooses a
+blue 8-bit one with 236 colours in the list and checks the monitor again,
+also after the dialog is painted anew.

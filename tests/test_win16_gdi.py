@@ -78,6 +78,20 @@ class Win16GDITests(unittest.TestCase):
         self.assertIn('SelectObject(NewDC, Previous); DeleteDC(NewDC); NewDC := 0;', adapter)
         self.assertIn('ReadBMPLayout', adapter)
 
+    def test_bitmaps_with_a_reduced_palette_load(self):
+        # The 236-colour wallpaper stayed out of the Desktop Properties
+        # monitor with "Unsupported BMP palette"; Windows reads such files.
+        reader = (ROOT / 'src/portable/bmp_reader.pas').read_text()
+        self.assertIn('if (Used < 0) or (Used > Colors) then Exit;', reader)
+        self.assertIn('if Used = 0 then Used := Colors;', reader)
+        self.assertIn('Layout.PaletteBytes := Used * 4;', reader)
+        self.assertNotIn("'reduced palette unsupported'", (ROOT / 'tests/pascal/test_bmp_reader.pas').read_text())
+        native = (ROOT / 'tests/pascal/test_win16_desktop_wallpaper.pas').read_text()
+        self.assertIn("WriteBitmap('C:\\WINDOWS\\BLUE256.BMP', 8, 236, RGB(0, 0, 255));", native)
+        self.assertIn('the monitor still shows it after painting again', native)
+        makefile = (ROOT / 'makefile').read_text()
+        self.assertIn('win16-computer-window-runtime-test win16-desktop-wallpaper-runtime-test', makefile)
+
     def test_bitmap_editing_has_native_independence_resize_and_copy_guards(self):
         adapter = (ROOT / 'src/win16/gdi_bitmap.pas').read_text()
         self.assertIn('TGDIBitmap = class(TGDIGraphic)', adapter)
