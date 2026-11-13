@@ -49,11 +49,41 @@ begin
   LogLine('FindFirst on an empty drive ' + IntToStr(Found));
   Check(Found = -3, 'FindFirst on a drive without a disk fails with path not found');
 end;
+procedure hmemcpy(Dest, Source: Pointer; Count: LongInt); far; pascal; external 'KERNEL' index 348;
+procedure CheckVolumeInfoKeepsCallerData;
+{ LGetVolumeInfo loads DS from the caller's stack for INT 21h/71A0h. It must
+  restore it before it touches its error variable: Calmira's startup read and
+  wrote at that offset in the caller's segment, and a small one faulted. }
+var FileSystem: string; Flags: Word; StackSeg, Top, Limit, I: Word;
+  Saved: THandle; Copy, Live: PChar; Same: Boolean;
+begin
+  FileSystem := ''; Flags := 0;
+  asm
+    mov Top, sp
+    mov ax, ss
+    mov StackSeg, ax
+    db $0F, $03, $C0  { lsl ax, ax }
+    mov Limit, ax
+  end;
+  Saved := GlobalAlloc(GMEM_FIXED, LongInt(Limit) + 1);
+  Copy := GlobalLock(Saved);
+  Live := Ptr(StackSeg, 0);
+  hmemcpy(Copy, Live, LongInt(Limit) + 1);
+  { No drive ?: exists, with or without a long-filename driver. }
+  Check(not LGetVolumeInfo('?:\', FileSystem, Flags), 'LGetVolumeInfo fails on a drive that does not exist');
+  Same := True;
+  for I := 0 to Limit do
+    { The calls below the frame and this frame itself may change. }
+    if ((I < Top - 2048) or (I > Top + 256)) and (Copy[I] <> Live[I]) then Same := False;
+  GlobalUnlock(Saved); GlobalFree(Saved);
+  Check(Same, 'LGetVolumeInfo keeps the data segment of its caller');
+end;
 begin
   LogLine('STEP LFNFUNCS.DLL');
   try
     CheckItems;
     CheckFiles;
+    CheckVolumeInfoKeepsCallerData;
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');
 end.

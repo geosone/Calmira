@@ -181,12 +181,16 @@ var
 begin
 asm;
 	mov	[DosError], 0
+	{ Keep DS for DosError; set CF: DOS without long names leaves it. }
+	push	ds
 	mov	ax, 71A0h
 	les	di, [fsystem]
 	mov	cx, [fsyssize]
 	lds	dx, [rootname]
+	stc
 	{int	21h}
         call Dos3Call
+	pop	ds
 	jnc	@@e
 	mov	DosError, ax
 	jmp	final

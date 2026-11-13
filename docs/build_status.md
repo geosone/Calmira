@@ -3361,3 +3361,17 @@ The same dialog showed "Yes" and "No": a `TBitBtn` takes the text of its
 kind from `TStandardButtons.<Kind>.Caption`, and only `Cancel` was in the
 catalogues. Every kind now has its text in every language. This also
 covers the OK, Help and Close buttons of other dialogs.
+
+## Volume Information in LFNFUNCS.DLL
+
+With the shell unpacked, Windows start in VirtualBox (MS-DOS 7.1 with
+DOSLFN) ended in a GPF in LFNFUNCS.DLL at 0001:0369. `__getvolinfo`, from
+the original source, loads the root name with `LDS` and then read and wrote
+`DosError` through that DS, in the caller's stack segment. `DetectLfn` runs
+it when the DLL loads, so the result depended on the loading program's data
+at that offset, and a small segment faulted. It also set no carry flag, so
+DOS without long names left it clear and every drive reported success.
+
+The routine now keeps DS and sets the carry flag, like the other routines
+of the unit. `make win16-lfnfuncs-runtime-test` checks that a missing drive
+fails and that the caller's segment is unchanged; the old code fails it.

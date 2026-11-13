@@ -49,5 +49,20 @@ class Win16DllTests(unittest.TestCase):
             self.assertIn(check, lfn)
 
 
+    def test_volume_info_keeps_ds_and_sets_carry(self):
+        # LDS put the caller's stack segment in DS, and DosError was then read
+        # and written there: a GPF in LFNFUNCS.DLL at Windows start. Without
+        # STC, DOS without long names reported success for every drive.
+        source = (ROOT / 'src/lfn_fns.pas').read_text(encoding='utf-8').replace('\r\n', '\n')
+        start = source.index('function __getvolinfo')
+        body = source[start:source.index('function LGetVolumeInfo', start)]
+        order = [body.index(text) for text in
+                 ('push\tds', 'lds\tdx, [rootname]', 'stc', 'call Dos3Call', 'pop\tds', 'mov\tDosError, ax')]
+        self.assertEqual(order, sorted(order))
+        test = (ROOT / 'tests/pascal/test_win16_lfnfuncs.pas').read_text()
+        for text in ('LGetVolumeInfo fails on a drive that does not exist',
+                     'LGetVolumeInfo keeps the data segment of its caller'):
+            self.assertIn(text, test)
+
 if __name__ == '__main__':
     unittest.main()
