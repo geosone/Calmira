@@ -2,7 +2,7 @@
   "Forms": {
     "TAboutBox.Label1.Caption": "Version de Windows :",
     "TAboutBox.Label2.Caption": "Version de MS-DOS :",
-    "TAboutBox.VersionLabel.Caption": "Version 5.0.90 (préversion)",
+    "TAboutBox.VersionLabel.Caption": "Version 5.0.91 (préversion)",
     "TBinPropDlg.BinPropDlg.Caption": "Propriétés de la Corbeille",
     "TComputer.Computer.Caption": "Poste de travail",
     "TComputer.StatusLabel.Caption": "0 objets",
@@ -69,7 +69,7 @@
     "TOpenDialogExFrm.Label1.Caption": "&Nom du fichier :",
     "TOpenDialogExFrm.Label2.Caption": "&Filtre",
     "TShort.Short.Caption": "Raccourci",
-    "TSplashForm.VersionLabel.Caption": "Version 5.0.90 préversion",
+    "TSplashForm.VersionLabel.Caption": "Version 5.0.91 préversion",
     "TStartPropDlg.HelpBtn.Caption": "Aide",
     "TStartPropDlg.Label4.Caption": "pixels",
     "TStartPropDlg.Win95Menu.Caption": "Menu style &Windows 95 avec icônes",
