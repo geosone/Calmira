@@ -3,7 +3,9 @@
 ## Name and Provenance
 
 The maintained integration is named **Calmira Reloaded**. Its graphics replace
-the former Reborn wording without inventing a release number. The executable
+the former Reborn wording. Test releases count from 5.0.90 towards 5.1; the
+number is in the About box, the splash screen, every catalogue and the
+installer's `Version=`. The executable
 and default installation directory remain DOS-safe `CALMIRA.EXE` and `CALMIRA`.
 Historical authorship, upstream source comments and license notices are not
 renamed; OpenLFN Loader remains a separately branded component.

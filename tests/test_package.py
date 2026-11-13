@@ -23,6 +23,15 @@ class PackageTests(unittest.TestCase):
         self.assertIn('package: calmira dos-helpers lfnfuncs wndhooks', makefile)
         self.assertIn("sh tests/dos/test_package.sh", makefile)
 
+    def test_release_number_matches_installer_about_box_and_catalogues(self):
+        self.assertIn('Version=5.0.90\n', (ROOT / 'install/install.ini').read_text())
+        self.assertIn(b'\x06\x1bVersion 5.0.90 (Prerelease)', (ROOT / 'src/about.dfm').read_bytes())
+        self.assertIn(b'\x06\x19Version 5.0.90 Prerelease', (ROOT / 'src/splash.dfm').read_bytes())
+        for path in (ROOT / 'locales/translated').glob('*.json'):
+            text = path.read_text(encoding='utf-8')
+            self.assertEqual(text.count(' 5.0.90 '), 2, path.name)
+            self.assertNotIn(' 5.0 ', text)
+
     def test_descriptor_lists_files_without_archive_wildcards(self):
         descriptor = (ROOT / 'install/install.ini').read_text()
         self.assertNotIn('Archive=', descriptor)
