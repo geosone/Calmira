@@ -17,6 +17,11 @@ for directory in CALMIRA CALSRC; do
         echo "Test requires an image without C:\\$directory" >&2; exit 1
     fi
 done
+# A SYSTEM.INI that grew with drivers and updates (2.5 KB already stopped
+# GDI 1.16.2 with "not enough memory"): 150 more lines, about 5 KB.
+mcopy -i "$partition" ::/WINDOWS/SYSTEM.INI "$work/system-grown.ini"
+{ printf '\r\n[Grown]\r\n'; for i in $(seq 1 150); do printf 'Setting%d=a value an update program wrote\r\n' "$i"; done; } >> "$work/system-grown.ini"
+mcopy -o -i "$partition" "$work/system-grown.ini" ::/WINDOWS/SYSTEM.INI
 mcopy -i "$partition" ::/WINDOWS/SYSTEM.INI "$work/system-before.ini"
 mcopy -i "$partition" ::/WINDOWS/SYSTEM/CTL3DV2.DLL "$work/ctl3dv2-before.dll"
 mmd -i "$partition" ::/CALSRC
@@ -131,9 +136,12 @@ case $left in
 esac
 mcopy -o -i "$partition" ::/WINDOWS/SYSTEM.INI "$work/system-after.ini"
 cmp "$work/system-before.ini" "$work/system-after.ini" || fail 'SYSTEM.INI was not restored'
+mcopy -o -i "$partition" ::/AUTOEXEC.BAT "$work/autoexec-after.bat"
+! tr -d '\r' < "$work/autoexec-after.bat" | grep -qi 'CALMIRA\\DOSLFN' ||
+    fail 'the DOSLFN line stays in AUTOEXEC.BAT after uninstall'
 if mdir -i "$partition" ::/WINDOWS/SYSTEM/LFNFUNCS.DLL >/dev/null 2>&1; then
     fail 'LFNFUNCS.DLL remains after uninstall'
 fi
 mcopy -o -i "$partition" ::/WINDOWS/SYSTEM/CTL3DV2.DLL "$work/ctl3dv2-after.dll"
 cmp "$work/ctl3dv2-before.dll" "$work/ctl3dv2-after.dll" || fail 'CTL3DV2.DLL changed by uninstall'
-echo 'PASS GDI uninstalled Calmira and restored SYSTEM.INI'
+echo 'PASS GDI uninstalled Calmira and restored SYSTEM.INI and AUTOEXEC.BAT'

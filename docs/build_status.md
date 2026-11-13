@@ -3375,3 +3375,20 @@ DOS without long names left it clear and every drive reported success.
 The routine now keeps DS and sets the carry flag, like the other routines
 of the unit. `make win16-lfnfuncs-runtime-test` checks that a missing drive
 fails and that the caller's segment is unchanged; the old code fails it.
+
+## Setup Beside a Grown SYSTEM.INI
+
+On MS-DOS 7.1 with Windows 3.11 and the win3upd updates, interactive setup
+from CD stopped with "not enough memory" after copying the files and
+writing AUTOEXEC.BAT; the 2.5 KB SYSTEM.INI did not fit GDI's near heap
+(the 2.1 KB SYSTEM.INI of the test image did). The files and the DOSLFN
+line stayed. GDI 1.16.3 edits system files of any size in far memory and
+undoes a failed first installation.
+
+`INSTALL /U` also left `LH C:\CALMIRA\DOSLFN\DOSLFN.COM` in AUTOEXEC.BAT:
+`[Autoexec.bat]` had no `Remove=`. It now has `Remove=%DIR%\DOSLFN\DOSLFN`,
+which GDI 1.16.3 expands, so only Calmira's own line goes.
+
+`make package-runtime-test` appends 150 lines (about 5 KB) to SYSTEM.INI
+before it installs, and requires AUTOEXEC.BAT without the DOSLFN line after
+uninstall.

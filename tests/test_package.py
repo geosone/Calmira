@@ -65,5 +65,15 @@ class PackageTests(unittest.TestCase):
                      'ECHO PASS SHUTDOWN>C:\\\\CALSHUT.LOG', "fail 'Shut Down did not return to DOS'"):
             self.assertIn(text, test)
 
+    def test_package_installs_beside_a_grown_system_ini_and_uninstalls_cleanly(self):
+        # GDI 1.16.2 ran out of near heap on a 2.5 KB SYSTEM.INI; the DOSLFN
+        # line stayed in AUTOEXEC.BAT after INSTALL /U without Remove=.
+        ini = (ROOT / 'install/install.ini').read_text()
+        self.assertIn('Remove=%DIR%\\DOSLFN\\DOSLFN', ini)
+        test = (ROOT / 'tests/dos/test_package.sh').read_text()
+        for text in ('Setting%d=a value an update program wrote', "fail 'the DOSLFN line stays in AUTOEXEC.BAT after uninstall'"):
+            self.assertIn(text, test)
+        self.assertIn('GDI 1.16.3 or newer', (ROOT / 'docs/installer.md').read_text())
+
 if __name__ == '__main__':
     unittest.main()
