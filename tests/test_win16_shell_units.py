@@ -43,6 +43,19 @@ class HugeModelTests(unittest.TestCase):
         harness = (ROOT / 'tests/dos/test_win16_gdi.sh').read_text()
         self.assertIn('LH C:\\\\DOSLFN.COM', harness)
 
+    def test_lfindclose_frees_the_search_without_long_names(self):
+        # With DOSLFN and long names off, FPC's FindFirst holds a driver
+        # handle until FindClose; LFindClose did nothing, and after 45
+        # searches folders showed nothing.
+        source = (ROOT / 'src/lfn_fns.pas').read_bytes().decode('latin-1')
+        close = source.split('procedure LFindClose(var SearchRec: TLfnSearchRec);\r\nbegin', 1)[1].split('\r\nend;', 1)[0]
+        self.assertIn('FindClose(SearchRec.ShortData)', close)
+        probe = (ROOT / 'tests/pascal/test_win16_lfnfuncs.pas').read_text()
+        self.assertIn("'LFindClose ends a search, a hundred searches find files'", probe)
+        makefile = (ROOT / 'makefile').read_text()
+        rule = makefile.split('\nwin16-lfnfuncs-doslfn-runtime-test:', 1)[1].split('\n\n', 1)[0]
+        self.assertIn('GDI_DOSLFN=1', rule)
+
     def test_points_reach_user_packed_in_a_long(self):
         # USER takes POINT by value as one dword; FPC passed the TPoint record
         # otherwise, so WindowFromPoint found nothing and Calmira's drop

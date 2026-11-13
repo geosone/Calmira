@@ -213,7 +213,7 @@ win16-fixed-regression: fpc-win16-fixed-compiler
 		win16-shellapi-runtime-test win16-inifiles-runtime-test win16-menus-runtime-test \
 		win16-system-dlls-runtime-test win16-clipbrd-runtime-test win16-radio-runtime-test \
 		win16-combobox-runtime-test win16-notebook-runtime-test win16-speedbutton-runtime-test win16-drag-runtime-test win16-spin-runtime-test win16-bevel-runtime-test win16-listbox-runtime-test win16-align-runtime-test win16-parent-runtime-test win16-ownerdraw-runtime-test win16-canvas-context-runtime-test win16-gdi-runtime-test win16-hints-runtime-test win16-minimize-runtime-test win16-grids-runtime-test win16-form-loader-runtime-test win16-outline-runtime-test win16-common-dialogs-runtime-test win16-tab-panel-runtime-test win16-timer-runtime-test win16-dde-runtime-test win16-radio-group-runtime-test win16-file-filter-runtime-test win16-shape-runtime-test win16-form-menu-runtime-test win16-loader-props-runtime-test win16-far-imports-runtime-test win16-delphi-asm-runtime-test \
-		win16-dll-runtime-test win16-lfnfuncs-runtime-test win16-wndhooks-runtime-test \
+		win16-dll-runtime-test win16-lfnfuncs-runtime-test win16-lfnfuncs-doslfn-runtime-test win16-wndhooks-runtime-test \
 		win16-cursor-runtime-test win16-cursor-modal-runtime-test \
 		win16-form-activation-runtime-test win16-form-resize-runtime-test win16-form-state-runtime-test \
 		win16-ui-runtime-test win16-window-runtime-test win16-input-runtime-test \
@@ -855,7 +855,7 @@ win16-form-menu: fpc-win16-gui-rtl
 win16-form-menu-runtime-test: win16-form-menu
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-form-menu/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
-.PHONY: lfnfuncs win16-lfnfuncs win16-lfnfuncs-runtime-test
+.PHONY: lfnfuncs win16-lfnfuncs win16-lfnfuncs-runtime-test win16-lfnfuncs-doslfn-runtime-test
 # Calmira's long-filename library, imported by vcl/lfnutils.pas.
 lfnfuncs: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/lfnfuncs/units
@@ -875,6 +875,12 @@ win16-lfnfuncs: fpc-win16-gui-rtl
 
 win16-lfnfuncs-runtime-test: win16-lfnfuncs lfnfuncs
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-lfnfuncs/GDITEST.EXE)' \
+		GDI_EXTRA_FILES='$(abspath $(BUILD_DIR)/lfnfuncs/LFNFUNCS.DLL)' sh tests/dos/test_win16_gdi.sh
+
+# The same with DOSLFN loaded, as setup installs it.
+win16-lfnfuncs-doslfn-runtime-test: win16-lfnfuncs lfnfuncs doslfn
+	GDI_DOSLFN=1 GDI_DOSLFN_DIR='$(abspath $(BUILD_DIR)/dos/doslfn)' \
+		GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-lfnfuncs/GDITEST.EXE)' \
 		GDI_EXTRA_FILES='$(abspath $(BUILD_DIR)/lfnfuncs/LFNFUNCS.DLL)' sh tests/dos/test_win16_gdi.sh
 
 .PHONY: wndhooks win16-wndhooks win16-wndhooks-runtime-test

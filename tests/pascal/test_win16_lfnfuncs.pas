@@ -49,6 +49,26 @@ begin
   LogLine('FindFirst on an empty drive ' + IntToStr(Found));
   Check(Found = -3, 'FindFirst on a drive without a disk fails with path not found');
 end;
+{ Calmira searches folders with LFindFirst, LFindNext and LFindClose. With
+  a long filename driver and long names off, Free Pascal's FindFirst holds
+  one of the driver's handles until FindClose: LFindClose must free it, or
+  folders show nothing after some dozens of searches. }
+procedure CheckSearchesAreClosed;
+var Rec: TLfnSearchRec; I, Found, Total: Integer;
+begin
+  SetLFN(False);
+  I := 0; Found := 1;
+  while (I < 100) and (Found > 0) do
+  begin
+    Found := 0;
+    Total := LFindFirst('C:\WINDOWS\*.INI', faAnyFile, Rec);
+    while Total = 0 do begin Inc(Found); Total := LFindNext(Rec); end;
+    LFindClose(Rec);
+    Inc(I);
+  end;
+  LogLine('searches with results: ' + IntToStr(I - Ord(Found = 0)));
+  Check(Found > 0, 'LFindClose ends a search, a hundred searches find files');
+end;
 procedure hmemcpy(Dest, Source: Pointer; Count: LongInt); far; pascal; external 'KERNEL' index 348;
 procedure CheckVolumeInfoKeepsCallerData;
 { LGetVolumeInfo loads DS from the caller's stack for INT 21h/71A0h. It must
@@ -83,6 +103,7 @@ begin
   try
     CheckItems;
     CheckFiles;
+    CheckSearchesAreClosed;
     CheckVolumeInfoKeepsCallerData;
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');

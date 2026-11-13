@@ -544,7 +544,14 @@ end;
 procedure LFindClose(var SearchRec: TLfnSearchRec);
 begin
 if LfnEnabled then
- __findclose(SearchRec.FindHandle);
+ __findclose(SearchRec.FindHandle)
+{$IFDEF FPC}
+{ Delphi 1 searched through the DTA and had nothing to close. With a long
+  filename driver loaded, Free Pascal's FindFirst holds one of its handles
+  until FindClose: after some dozens of searches folders showed nothing. }
+else
+ FindClose(SearchRec.ShortData)
+{$ENDIF};
 end;
 
 procedure LChDir(S: string);

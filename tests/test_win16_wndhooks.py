@@ -19,7 +19,7 @@ class Win16WndHooksTests(unittest.TestCase):
     def test_native_suite_is_in_the_regression(self):
         make = read('makefile')
         self.assertIn('-FE$(BUILD_DIR)/wndhooks -oWNDHOOKS.DLL src/wndhooks.dpr', make)
-        self.assertIn('win16-lfnfuncs-runtime-test win16-wndhooks-runtime-test \\', make)
+        self.assertIn('win16-lfnfuncs-doslfn-runtime-test win16-wndhooks-runtime-test \\', make)
         native = read('tests/pascal/test_win16_wndhooks.pas')
         for check in ('all 21 exports are found by the names src/hooks.pas uses',
                       'IsHotKey: Ctrl+Shift+A is a hot key', 'the shell hook reports a new top-level window',

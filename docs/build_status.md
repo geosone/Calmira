@@ -3501,3 +3501,13 @@ so the bug showed only with a long filename driver.
 (`CALMIRA_WIN16_LFN_FINDATTR`). `tests/dos/test_win16_gdi.sh` loads DOSLFN
 before Windows with `GDI_DOSLFN=1`, and
 `win16-desktop-wallpaper-runtime-test` now runs that way.
+
+## Folder Searches Are Closed with DOSLFN
+
+With DOSLFN loaded and long names off in Calmira, Free Pascal's `FindFirst`
+holds one of the driver's search handles until `FindClose`. Delphi 1 searched
+through the DTA, so Calmira's `LFindClose` closed only long-name searches;
+after 45 folder searches every further one found nothing. `LFindClose` now
+calls `FindClose` for the short search as well. `make
+win16-lfnfuncs-doslfn-runtime-test` runs the LFNFUNCS.DLL test with DOSLFN
+and searches a folder a hundred times.
