@@ -77,6 +77,10 @@ const
   DefaultDriveNames : array[TDriveType] of string[15] =
     (SSUnknownDrive, SSNoDrive, SSFloppyDrive, SSFixedDrive,
      SSNetworkDrive, SSCDROMDrive, SSRamDrive);
+  { The keys of the drive names in the Desktop section of a catalogue. }
+  DriveNameKeys : array[TDriveType] of string[12] =
+    ('UnknownDrive', 'NoDrive', 'FloppyDrive', 'FixedDrive',
+     'NetworkDrive', 'CDROMDrive', 'RAMDrive');
 
 type
   TShortCaption = string[31];
@@ -121,7 +125,7 @@ function MakeDriveName(DriveType: TDriveType; Letter: Char): string;
 
 implementation
 
-uses Classes, Resource, Desk, WinProcs, ShellAPI, Forms, Settings,
+uses Classes, Resource, Desk, WinProcs, ShellAPI, Forms, Settings, language_catalog,
   Alias, Strings, Files, Dialogs, Controls, Streamer, IconWin, MiscUtil,
   Locale;
 
@@ -135,9 +139,11 @@ procedure TIconic.InternalDraw(Canvas: TCanvas; const Rect: TRect;
   const State: TGridDrawState; const Text: string);
 { 3.2 -- enhanced drawing }
 var
-  l, w: Integer;
+  l, w, i: Integer;
   r: TRect;
+  t: string;
 begin
+  t := Text;
   with Canvas, Rect do
   begin
     Brush.Color := Colors[ccIconBack];
@@ -151,8 +157,20 @@ begin
     Inc(r.Top, 36);
     { calculate caption area }
     InflateRect(r, -2, -1);
-    DrawText(Handle, @Text[1], Ord(Text[0]), r,
+    DrawText(Handle, @t[1], Ord(t[0]), r,
       DT_CALCRECT or DT_CENTER or DT_NOCLIP or DT_NOPREFIX or DT_WORDBREAK);
+    { Windows breaks lines at blanks only: a name too wide for the cell,
+      such as Programm-Manager, may break after its hyphens as well. }
+    if WidthOf(r) > w - 4 then
+    begin
+      for i := Length(t) - 1 downto 1 do
+        if (t[i] = '-') and (t[i + 1] <> ' ') then System.Insert(' ', t, i + 1);
+      r := Rect;
+      Inc(r.Top, 36);
+      InflateRect(r, -2, -1);
+      DrawText(Handle, @t[1], Ord(t[0]), r,
+        DT_CALCRECT or DT_CENTER or DT_NOCLIP or DT_NOPREFIX or DT_WORDBREAK);
+    end;
     { center the returned rect }
     if r.Left<Rect.Left then r.Left := Rect.Left;
     if r.Right>Rect.Right then r.Right := Rect.Right;
@@ -167,7 +185,7 @@ begin
     if gdFocused in State then DrawFocusRect(r);
     { draw caption }
     InflateRect(r, -2, -1);
-    DrawText(Handle, @Text[1], Ord(Text[0]), r,
+    DrawText(Handle, @t[1], Ord(t[0]), r,
       DT_CENTER or DT_NOCLIP or DT_NOPREFIX or DT_WORDBREAK);
   end;
 end;
@@ -225,7 +243,8 @@ begin
   if title > '' then
     Result := Format(title, [Letter])
   else
-    Result := Format(DefaultDriveNames[DriveType], [Letter]);
+    Result := Format(LanguageText('Desktop', DriveNameKeys[DriveType],
+      DefaultDriveNames[DriveType]), [Letter]);
 end;
 
 constructor TDrive.Create(ADrive: Char);

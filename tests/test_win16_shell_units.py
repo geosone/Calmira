@@ -126,6 +126,52 @@ class ShellUnitTests(unittest.TestCase):
                      'the German startup group Autostart is the one Calmira runs'):
             self.assertIn(text, start)
 
+    def test_main_forms_are_not_translated_twice(self):
+        # Translating the loaded forms again put the placeholders back over
+        # what OnCreate set: My Computer said "0 Objekte" and ignored its
+        # caption from CALMIRA.INI.
+        dpr = (ROOT / 'src/calmira.dpr').read_text(encoding='latin-1')
+        block = dpr.split('{$IFNDEF FPC}\n  { Free Pascal', 1)[1].split('{$ENDIF}', 1)[0]
+        self.assertIn('ApplyComponentLanguage(Computer);', block)
+        self.assertEqual(dpr.count('ApplyComponentLanguage(Computer);'), 1)
+        native = (ROOT / 'tests/pascal/test_win16_computer_window.pas').read_text()
+        self.assertIn('the default name My Computer is shown in German as Arbeitsplatz', native)
+        self.assertIn('the Recycle Bin keeps the name of the user', native)
+        makefile = (ROOT / 'makefile').read_text()
+        regression = makefile.split('win16-fixed-regression: fpc-win16-fixed-compiler', 1)[1].split('\n\n', 1)[0]
+        self.assertIn('win16-computer-window-runtime-test', regression)
+
+    def test_desktop_texts_follow_the_catalogue(self):
+        # Object counts, drive names and the names of My Computer, the Recycle
+        # Bin and the system programs were English in every language.
+        settings = (ROOT / 'src/settings.pas').read_text(encoding='latin-1')
+        self.assertIn("ShownCaption(ReadString('Computer', 'Caption',", settings)
+        self.assertIn("StoredCaption(BinCaption, 'Recycle Bin',", settings)
+        for name in ('compsys', 'iconwin', 'wastebin'):
+            source = (ROOT / f'src/{name}.pas').read_text(encoding='latin-1')
+            self.assertNotIn('Format(SSNumObjects', source)
+            self.assertIn('NumObjectsText(', source)
+        iconic = (ROOT / 'src/iconic.pas').read_text(encoding='latin-1')
+        self.assertIn("LanguageText('Desktop', DriveNameKeys[DriveType],", iconic)
+        self.assertIn("if (t[i] = '-') and (t[i + 1] <> ' ') then System.Insert(' ', t, i + 1);", iconic)
+        compsys = (ROOT / 'src/compsys.pas').read_text(encoding='latin-1')
+        self.assertIn("p.Caption := LanguageText('Menu', p.Caption, p.Caption);", compsys)
+        import json
+        keys = {'MyComputer', 'RecycleBin', 'OneObject', 'Objects', 'UnknownDrive', 'NoDrive',
+                'FloppyDrive', 'FixedDrive', 'NetworkDrive', 'CDROMDrive', 'RAMDrive'}
+        extra = json.loads((ROOT / 'locales/extra.json').read_text(encoding='utf-8'))
+        self.assertLessEqual(keys, set(extra['en']['Desktop']))
+        for path in (ROOT / 'locales/translated').glob('*.json'):
+            desktop = json.loads(path.read_text(encoding='utf-8'))['Desktop']
+            self.assertLessEqual(keys, set(desktop), path.name)
+            self.assertIn('%d', desktop['Objects'])
+            self.assertIn('(%s:)', desktop['FixedDrive'])
+        for language in ('de', 'fr'):
+            menu = extra[language]['Menu']
+            for key in ('*2Control Panel', 'Recycle &Bin', '&Taskbar', 'Program Manager', 'Print Manager'):
+                self.assertNotEqual(menu[key], key, language)
+        self.assertEqual(extra['de']['Menu']['Program Manager'], 'Programm-Manager')
+
     def test_inifiles_uses_profile_api(self):
         source = (ROOT / 'src/win16/inifiles.pas').read_text()
         self.assertIn('GetPrivateProfileString', source)

@@ -52,7 +52,18 @@
     "My Documents": "Eigene Dateien"
   },
   "Desktop": {
-    "MyDocuments": "Eigene Dateien"
+    "MyDocuments": "Eigene Dateien",
+    "MyComputer": "Arbeitsplatz",
+    "RecycleBin": "Papierkorb",
+    "OneObject": "%d Objekt  %s",
+    "Objects": "%d Objekte  %s",
+    "UnknownDrive": "Unbekannt (%s:)",
+    "NoDrive": "Kein Laufwerk (%s:)",
+    "FloppyDrive": "Diskette (%s:)",
+    "FixedDrive": "Festplatte (%s:)",
+    "NetworkDrive": "Netzwerk (%s:)",
+    "CDROMDrive": "CD-ROM (%s:)",
+    "RAMDrive": "RAM-Disk (%s:)"
   },
   "Memory": {
     "Free": "%s frei"

@@ -138,7 +138,18 @@
     "Unavailable": "Calmira nieoczekiwanie zakończyła pracę.\n\nPrzerwij: zamknij Windows (zalecane).\nPonów: uruchom Calmirę ponownie.\nIgnoruj: uruchom Menedżer zadań Windows."
   },
   "Desktop": {
-    "MyDocuments": "Moje dokumenty"
+    "MyDocuments": "Moje dokumenty",
+    "MyComputer": "Mój komputer",
+    "RecycleBin": "Kosz",
+    "OneObject": "%d obiekt  %s",
+    "Objects": "%d obiektów  %s",
+    "UnknownDrive": "Nieznany (%s:)",
+    "NoDrive": "Brak napędu (%s:)",
+    "FloppyDrive": "Dyskietka (%s:)",
+    "FixedDrive": "Dysk twardy (%s:)",
+    "NetworkDrive": "Sieć (%s:)",
+    "CDROMDrive": "CD-ROM (%s:)",
+    "RAMDrive": "RAM-dysk (%s:)"
   },
   "Memory": {
     "Free": "%s wolne"

@@ -3420,3 +3420,24 @@ The number of a release stood in `INSTALL.INI`, both forms and six
 catalogues. `VERSION :=` at the top of the makefile now sets it: the build
 writes `version.inc` for the About box and the splash screen, whose texts
 carry `%s`, and `tools/package.sh` fills in `Version=@VERSION@`.
+
+## My Computer in the Catalogue's Language
+
+On German Windows, My Computer said "0 Objekte" with icons in it, and its
+drives and programs had English names. `calmira.dpr` translated the main
+forms a second time after their OnCreate; Free Pascal's form loaders
+translate while they load, so the second pass put the placeholders of the
+catalogue back over the number of objects and over the captions from
+`CALMIRA.INI`. It now runs only under Delphi, as in `extform.pas`.
+
+The texts behind it follow the catalogue now. The count of objects in My
+Computer, folder windows and the Recycle Bin, the names of the drives
+(`Festplatte (C:)`), and the English default names of My Computer and the
+Recycle Bin in `CALMIRA.INI` come from the `Desktop` section; a name of the
+user stays. The system programs of My Computer and the Settings submenu of
+the Start menu take the `Menu` section, in German and French. Icon names too
+wide for their cell may break after a hyphen, as `Programm-Manager` does.
+
+`make win16-computer-window-runtime-test` starts Calmira in German with a
+Recycle Bin of its own name, and requires `Arbeitsplatz` and that name as
+window titles; its screenshot shows the count, drives and programs.

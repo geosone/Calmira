@@ -219,7 +219,18 @@
     "Unavailable": "Calmira is onverwacht gestopt.\n\nAfbreken: Windows afsluiten (aanbevolen).\nOpnieuw: Calmira opnieuw starten.\nNegeren: Windows Taakbeheer starten."
   },
   "Desktop": {
-    "MyDocuments": "Mijn documenten"
+    "MyDocuments": "Mijn documenten",
+    "MyComputer": "Deze computer",
+    "RecycleBin": "Prullenbak",
+    "OneObject": "%d object  %s",
+    "Objects": "%d objecten  %s",
+    "UnknownDrive": "Onbekend (%s:)",
+    "NoDrive": "Geen station (%s:)",
+    "FloppyDrive": "Diskette (%s:)",
+    "FixedDrive": "Vaste schijf (%s:)",
+    "NetworkDrive": "Netwerk (%s:)",
+    "CDROMDrive": "Cd-rom (%s:)",
+    "RAMDrive": "RAM-schijf (%s:)"
   },
   "Memory": {
     "Free": "%s vrij"

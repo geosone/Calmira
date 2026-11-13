@@ -276,6 +276,8 @@ var
 
 procedure LoadSettings;
 procedure LoadSystemProp;
+{ "7 objects" in the catalogue's language, then the size or other text. }
+function NumObjectsText(Count: LongInt; const Extra: string): string;
 procedure SaveSystemProp;
 procedure LoadDeskProp;
 procedure SaveDeskProp;
@@ -294,7 +296,36 @@ implementation
 
 uses Directry, Strings, MiscUtil, WinProcs, Resource, CalMsgs, Menus, Task,
   Start, FourDOS, Environs, Files, FileMan, IconDlg, IconWin, Internet,
-  PicBtn, Dialogs;
+  PicBtn, Dialogs, language_catalog;
+
+{ CALMIRA.INI keeps the English default names of My Computer and the Recycle
+  Bin; they are shown in the catalogue's language, as My Documents is. A
+  name of the user stays as it is. }
+function ShownCaption(const Stored, English, Key: string): string;
+begin
+  if CompareText(Stored, English) = 0 then
+    ShownCaption := LanguageText('Desktop', Key, English)
+  else
+    ShownCaption := Stored;
+end;
+
+function StoredCaption(const Shown, English, Key: string): string;
+begin
+  if Shown = LanguageText('Desktop', Key, English) then
+    StoredCaption := English
+  else
+    StoredCaption := Shown;
+end;
+
+function NumObjectsText(Count: LongInt; const Extra: string): string;
+begin
+  if Count = 1 then
+    NumObjectsText := Format(LanguageText('Desktop', 'OneObject',
+      '%d object  %s'), [Count, Extra])
+  else
+    NumObjectsText := Format(LanguageText('Desktop', 'Objects',
+      '%d objects  %s'), [Count, Extra]);
+end;
 
 procedure LoadSettings;
 var
@@ -357,7 +388,8 @@ procedure LoadBinProp;
 begin
   with ini do
   begin
-    BinCaption  := ReadString('Bin', 'Caption', 'Bin');
+    BinCaption  := ShownCaption(ReadString('Bin', 'Caption', 'Recycle Bin'),
+      'Recycle Bin', 'RecycleBin');
     BinAction   := TBinAction(ReadInteger('Bin', 'Action', 0));
     BinCapacity := ReadInteger('Bin', 'Capacity', 8);
     BinIcons    := ReadBool('Bin', 'Icons', False);
@@ -369,7 +401,8 @@ procedure SaveBinProp;
 begin
   with ini do
   begin
-    WriteString('Bin', 'Caption', BinCaption);
+    WriteString('Bin', 'Caption', StoredCaption(BinCaption, 'Recycle Bin',
+      'RecycleBin'));
     WriteInteger('Bin', 'Action', Integer(BinAction));
     WriteInteger('Bin', 'Capacity', BinCapacity);
     WriteBool('Bin', 'Icons', BinIcons);
@@ -616,7 +649,8 @@ procedure LoadSystemProp;
 begin
   with ini do
   begin
-    ComputerCaption := ReadString('Computer', 'Caption', 'Computer');
+    ComputerCaption := ShownCaption(ReadString('Computer', 'Caption',
+      'My Computer'), 'My Computer', 'MyComputer');
     ShowSplash := ReadBool('Preferences', 'ShowSplash', True);
     RestoreSys := ReadBool('Preferences', 'RestoreSys', False);
     SysWinQuit := ReadBool('Preferences', 'SysWinQuit', False);
@@ -648,7 +682,8 @@ procedure SaveSystemProp;
 begin
   with ini do
   begin
-    WriteString('Computer', 'Caption', ComputerCaption);
+    WriteString('Computer', 'Caption', StoredCaption(ComputerCaption,
+      'My Computer', 'MyComputer'));
     WriteBool('Preferences', 'ShowSplash', ShowSplash);
     WriteBool('Preferences', 'RestoreSys', RestoreSys);
     WriteBool('Preferences', 'SysWinQuit', SysWinQuit);

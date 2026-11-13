@@ -194,7 +194,18 @@
     "Unavailable": "Calmira si è chiusa in modo imprevisto.\n\nInterrompi: chiudi Windows (consigliato).\nRiprova: riavvia Calmira.\nIgnora: avvia il Task Manager di Windows."
   },
   "Desktop": {
-    "MyDocuments": "Documenti"
+    "MyDocuments": "Documenti",
+    "MyComputer": "Risorse del computer",
+    "RecycleBin": "Cestino",
+    "OneObject": "%d oggetto  %s",
+    "Objects": "%d oggetti  %s",
+    "UnknownDrive": "Sconosciuto (%s:)",
+    "NoDrive": "Nessuna unità (%s:)",
+    "FloppyDrive": "Floppy (%s:)",
+    "FixedDrive": "Disco fisso (%s:)",
+    "NetworkDrive": "Rete (%s:)",
+    "CDROMDrive": "CD-ROM (%s:)",
+    "RAMDrive": "Disco RAM (%s:)"
   },
   "Memory": {
     "Free": "%s liberi"

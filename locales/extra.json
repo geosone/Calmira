@@ -51,10 +51,33 @@
       "&Find": "&Find", "&Help": "&Help", "&Run...": "&Run...",
       "Sh&ut Down...": "Sh&ut Down...",
       "Sync Program Manager Groups": "Sync Program Manager Groups",
-      "My Documents": "My Documents"
+      "My Documents": "My Documents",
+      "*2Control Panel": "*2Control Panel",
+      "&System": "&System",
+      "&Desktop": "&Desktop",
+      "&File System": "&File System",
+      "Recycle &Bin": "Recycle &Bin",
+      "Start &Menu": "Start &Menu",
+      "&Taskbar": "&Taskbar",
+      "Control Panel": "Control Panel",
+      "File Manager": "File Manager",
+      "Program Manager": "Program Manager",
+      "Print Manager": "Print Manager",
+      "Windows Setup": "Windows Setup"
     },
     "Desktop": {
-      "MyDocuments": "My Documents"
+      "MyDocuments": "My Documents",
+      "MyComputer": "My Computer",
+      "RecycleBin": "Recycle Bin",
+      "OneObject": "%d object  %s",
+      "Objects": "%d objects  %s",
+      "UnknownDrive": "Unknown (%s:)",
+      "NoDrive": "No drive (%s:)",
+      "FloppyDrive": "Floppy (%s:)",
+      "FixedDrive": "Fixed (%s:)",
+      "NetworkDrive": "Network (%s:)",
+      "CDROMDrive": "CD-ROM (%s:)",
+      "RAMDrive": "RAMdisk (%s:)"
     },
     "Memory": {
       "Free": "%s free"
@@ -123,7 +146,19 @@
       "&Documents": "&Dokumente", "&Settings": "&Einstellungen",
       "&Find": "&Suchen", "&Help": "&Hilfe", "&Run...": "&Ausführen...",
       "Sh&ut Down...": "&Beenden...",
-      "Sync Program Manager Groups": "Programmgruppen abgleichen"
+      "Sync Program Manager Groups": "Programmgruppen abgleichen",
+      "*2Control Panel": "*2Systemsteuerung",
+      "&System": "&System",
+      "&Desktop": "&Desktop",
+      "&File System": "&Dateisystem",
+      "Recycle &Bin": "&Papierkorb",
+      "Start &Menu": "&Startmenü",
+      "&Taskbar": "&Taskleiste",
+      "Control Panel": "Systemsteuerung",
+      "File Manager": "Datei-Manager",
+      "Program Manager": "Programm-Manager",
+      "Print Manager": "Druck-Manager",
+      "Windows Setup": "Windows-Setup"
     },
     "Messages": {
       "SyncGroups": "Programm-Manager-Gruppen abgleichen",
@@ -174,7 +209,19 @@
       "&Documents": "&Documents", "&Settings": "&Paramètres",
       "&Find": "&Rechercher", "&Help": "&Aide", "&Run...": "&Exécuter...",
       "Sh&ut Down...": "&Arrêter...",
-      "Sync Program Manager Groups": "Synchroniser les groupes"
+      "Sync Program Manager Groups": "Synchroniser les groupes",
+      "*2Control Panel": "*2Panneau de configuration",
+      "&System": "&Système",
+      "&Desktop": "&Bureau",
+      "&File System": "Système de &fichiers",
+      "Recycle &Bin": "&Corbeille",
+      "Start &Menu": "&Menu Démarrer",
+      "&Taskbar": "Barre des &tâches",
+      "Control Panel": "Panneau de configuration",
+      "File Manager": "Gestionnaire de fichiers",
+      "Program Manager": "Gestionnaire de programmes",
+      "Print Manager": "Gestionnaire d'impression",
+      "Windows Setup": "Installation de Windows"
     },
     "Messages": {
       "SyncGroups": "Synchroniser les groupes du Gestionnaire de programmes",

@@ -645,7 +645,18 @@
     "Unavailable": "Calmira se cerró de forma inesperada.\n\nAnular: salir de Windows (recomendado).\nReintentar: reiniciar Calmira.\nOmitir: iniciar el Administrador de tareas de Windows."
   },
   "Desktop": {
-    "MyDocuments": "Mis documentos"
+    "MyDocuments": "Mis documentos",
+    "MyComputer": "Mi PC",
+    "RecycleBin": "Papelera de reciclaje",
+    "OneObject": "%d objeto  %s",
+    "Objects": "%d objetos  %s",
+    "UnknownDrive": "Desconocida (%s:)",
+    "NoDrive": "Sin unidad (%s:)",
+    "FloppyDrive": "Disquete (%s:)",
+    "FixedDrive": "Disco duro (%s:)",
+    "NetworkDrive": "Red (%s:)",
+    "CDROMDrive": "CD-ROM (%s:)",
+    "RAMDrive": "Disco RAM (%s:)"
   },
   "Memory": {
     "Free": "%s libres"

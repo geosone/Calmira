@@ -180,11 +180,16 @@ begin { Calmira }
   Application.CreateForm(TBin, Bin);
   Application.CreateForm(TProgressBox, ProgressBox);
   Application.CreateForm(TTaskbar, Taskbar);
+{$IFNDEF FPC}
+  { Free Pascal's form loaders translate while they load; translating again
+    would put the placeholders back over what OnCreate set, such as the
+    number of objects and the caption from CALMIRA.INI. }
   ApplyComponentLanguage(SplashForm);
   ApplyComponentLanguage(Computer);
   ApplyComponentLanguage(Bin);
   ApplyComponentLanguage(ProgressBox);
   ApplyComponentLanguage(Taskbar);
+{$ENDIF}
 
   TIconWindow.CalcColWidths;
   Desktop.Load;

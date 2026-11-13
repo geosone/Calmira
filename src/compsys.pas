@@ -941,6 +941,9 @@ begin
       begin
         p := TProgram.Create(progname);
         p.Caption := ini.ReadString('Programs', progs[i], ExtractFilename(progs[i]));
+        { The English names of CALMIRA.INI in the catalogue's language, as in
+          the Start menu. }
+        p.Caption := LanguageText('Menu', p.Caption, p.Caption);
         FItems.Add(p);
       end;
     end;
@@ -954,8 +957,7 @@ begin
     SizeGrid;
     Focus := 0;
   end;
-  StatusLabel.Caption := Format(SSNumObjects, [FItems.Count,
-    OneItem[FItems.Count = 1], '']); { 3.1 }
+  StatusLabel.Caption := NumObjectsText(FItems.Count, ''); { 3.1 }
   Invalidate;
 end;
 

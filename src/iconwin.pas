@@ -2293,8 +2293,8 @@ procedure TIconWindow.UpdateStatusbar(TotalChanged, SelChanged: Boolean);
 begin
   ShowingSelection := False;
   if (SelChanged and Narrow and (Grid.SelCount = 0)) or TotalChanged then
-    TotalLabel.Caption := Format(SSNumObjects,
-      [Dir.Count, Strings.OneItem[Dir.Count = 1], FormatByte(Dir.Size, 2, 2)]);
+    TotalLabel.Caption := NumObjectsText(Dir.Count,
+      FormatByte(Dir.Size, 2, 2));
   if SelChanged then
     if Narrow and (Grid.SelCount > 0) then
     begin

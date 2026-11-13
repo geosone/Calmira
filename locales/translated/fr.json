@@ -110,7 +110,18 @@
     "1300": "Modifié (date)"
   },
   "Desktop": {
-    "MyDocuments": "Mes documents"
+    "MyDocuments": "Mes documents",
+    "MyComputer": "Poste de travail",
+    "RecycleBin": "Corbeille",
+    "OneObject": "%d objet  %s",
+    "Objects": "%d objets  %s",
+    "UnknownDrive": "Inconnu (%s:)",
+    "NoDrive": "Aucun lecteur (%s:)",
+    "FloppyDrive": "Disquette (%s:)",
+    "FixedDrive": "Disque dur (%s:)",
+    "NetworkDrive": "Réseau (%s:)",
+    "CDROMDrive": "CD-ROM (%s:)",
+    "RAMDrive": "Disque virtuel (%s:)"
   },
   "Memory": {
     "Free": "%s libres"
