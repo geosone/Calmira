@@ -269,8 +269,11 @@ begin
       'clearing copied icon does not destroy shared resource');
     IconCopy.Assign(nil);
     Bad := False;
-    try IconCopy.DrawTo(MemoryDC, 0, 0); except on EGDIError do Bad := True; end;
-    Check(Bad and (IconCopy.Handle = 0), 'empty icon drawing rejected');
+    { As Delphi's TIcon.Draw: an empty icon draws nothing, without an error. }
+    ResourceImage.Canvas.FillRect(Box(0, 0, 40, 40));
+    try IconCopy.DrawTo(ResourceImage.Canvas.Handle, 0, 0); except on EGDIError do Bad := True; end;
+    Check(not Bad and (IconCopy.Handle = 0) and (ResourceImage.Canvas.Pixels[10, 2] = ResourceImage.Canvas.Brush.Color),
+      'an empty icon draws nothing and raises no error');
     Icon.LoadFromResource(0, IDI_APPLICATION);
     Canvas.Draw(0, 0, Icon);
     Check((GetTextColor(MemoryDC) = clBlue) and (GetBkColor(MemoryDC) = clLime) and

@@ -141,6 +141,16 @@ class ShellUnitTests(unittest.TestCase):
         regression = makefile.split('win16-fixed-regression: fpc-win16-fixed-compiler', 1)[1].split('\n\n', 1)[0]
         self.assertIn('win16-computer-window-runtime-test', regression)
 
+    def test_an_empty_icon_draws_nothing(self):
+        # As Delphi's TIcon.Draw; a program without an icon of its own showed
+        # "Missing icon or destination DC" in My Computer.
+        source = (ROOT / 'src/win16/gdi_icon.pas').read_text(encoding='latin-1')
+        body = source.split('procedure TGDIIcon.DrawTo', 1)[1]
+        self.assertIn('if FHandle = 0 then Exit;', body)
+        self.assertNotIn('(FHandle = 0) then raise', body)
+        native = (ROOT / 'tests/pascal/test_win16_computer_window.pas').read_text()
+        self.assertIn('a program without an icon shows no error box in My Computer', native)
+
     def test_desktop_texts_follow_the_catalogue(self):
         # Object counts, drive names and the names of My Computer, the Recycle
         # Bin and the system programs were English in every language.

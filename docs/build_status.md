@@ -3441,3 +3441,17 @@ wide for their cell may break after a hyphen, as `Programm-Manager` does.
 `make win16-computer-window-runtime-test` starts Calmira in German with a
 Recycle Bin of its own name, and requires `Arbeitsplatz` and that name as
 window titles; its screenshot shows the count, drives and programs.
+
+## Helpers Keep Their Icons
+
+My Computer in the MS-DOS 7.1 VM drew three drives and then stopped with
+"Missing icon or destination DC". The release packed `EXPLORER.EXE`,
+`CTASKMAN.EXE`, `SCRNSAVE.EXE` and `SHOWDESK.EXE` with UPX, which drops the
+resource table of an NE program; `ExtractIcon` found no icon in
+`EXPLORER.EXE`, and the Win16 `TIcon` raised where Delphi's draws nothing.
+The package now ships the helpers unpacked (about 145 KB more), and
+`tools/package.sh` fails when a staged helper has no icon group. An empty
+icon draws nothing, as in Delphi.
+
+`make win16-computer-window-runtime-test` lists `GDITEST.EXE`, which has no
+icon, in `[Programs]` and requires My Computer to open without an error box.

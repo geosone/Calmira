@@ -15,10 +15,10 @@ help/calmira.hlp
 dos-helpers/COUNTTIP.EXE
 dos-helpers/DIREXIST.EXE
 dos-helpers/DOSRUN.EXE
-packed/CTASKMAN.EXE
-packed/EXPLORER.EXE
-packed/SCRNSAVE.EXE
-packed/SHOWDESK.EXE
+helpers/CTASKMAN.EXE
+helpers/EXPLORER.EXE
+helpers/SCRNSAVE.EXE
+helpers/SHOWDESK.EXE
 wndhooks/WNDHOOKS.DLL
 lfnfuncs/LFNFUNCS.DLL
 dos/lfn/LFNPROBE.EXE
@@ -79,8 +79,11 @@ cp "$root/src/calmira.ini" "$stage/CALMIRA.INI"
 for helper in COUNTTIP DIREXIST DOSRUN; do
     cp "$build/dos-helpers/$helper.EXE" "$stage/"
 done
+# Nor are the helpers: UPX drops the resources of an NE program, so My
+# Computer and the Start menu found no icon in EXPLORER.EXE.
 for helper in CTASKMAN EXPLORER SCRNSAVE SHOWDESK; do
-    cp "$build/packed/$helper.EXE" "$stage/"
+    cp "$build/helpers/$helper.EXE" "$stage/"
+    python3 "$root/tools/ne_has_icon.py" "$stage/$helper.EXE"
 done
 cp "$root/bmp/shutdown.bmp" "$stage/SHUTDOWN.BMP"
 cp "$root/src/start.bat" "$stage/START.BAT"

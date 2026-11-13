@@ -70,6 +70,20 @@ class PackageTests(unittest.TestCase):
             self.assertIn(text, test)
 
 
+    def test_helpers_are_not_packed_and_keep_their_icons(self):
+        # UPX dropped the resources of the NE helpers: My Computer found no
+        # icon in EXPLORER.EXE and showed "Missing icon or destination DC".
+        package = (ROOT / 'tools/package.sh').read_text()
+        self.assertNotIn('packed/', package)
+        self.assertIn('cp "$build/helpers/$helper.EXE" "$stage/"', package)
+        self.assertIn('python3 "$root/tools/ne_has_icon.py" "$stage/$helper.EXE"', package)
+        makefile = (ROOT / 'makefile').read_text()
+        rule = makefile.split('\npackage: ', 1)[1].split('\n', 1)[0]
+        self.assertIn('win16-helpers', rule)
+        self.assertNotIn('pack-win16', rule)
+        checker = (ROOT / 'tools/ne_has_icon.py').read_text()
+        self.assertIn('if 14 not in resource_types(stream.read()):', checker)
+
     def test_shell_is_not_packed_and_shuts_windows_down(self):
         # UPX's NE wrapper runs a temporary ~UPX*.EXE: Calmira did not see
         # itself as the shell, Shut Down ended only Calmira with a GPF.

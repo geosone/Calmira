@@ -225,7 +225,10 @@ end;
 procedure TGDIIcon.DrawTo(Destination: HDC; X, Y: SmallInt);
 var State: SmallInt;
 begin
-  if (Destination = 0) or (FHandle = 0) then raise EGDIError.Create('Missing icon or destination DC');
+  if Destination = 0 then raise EGDIError.Create('Missing destination DC');
+  { As Delphi's TIcon.Draw, an empty icon draws nothing: a program without
+    an icon of its own showed an error box in My Computer. }
+  if FHandle = 0 then Exit;
   State := SaveDC(Destination);
   if State = 0 then raise EGDIError.Create('Cannot save icon DC');
   try

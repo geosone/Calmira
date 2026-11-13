@@ -52,9 +52,12 @@ for coverage and limitations.
 
 When Calmira is not chosen as the shell, GDI's `[ProgMan]` adds a "Calmira
 Reloaded" group with the shell and its help; uninstall removes them again.
-`MinWindows=3.1` stops setup early on Windows 3.0. The staging workflow uses UPX-packed FPC helper copies,
-but not for the shell: UPX's NE wrapper runs a temporary copy under another
-module name, so Calmira would not recognise itself as the Windows shell.
+`MinWindows=3.1` stops setup early on Windows 3.0. The package ships the shell
+and its helpers unpacked. UPX's NE wrapper runs a temporary copy under another
+module name, so Calmira would not recognise itself as the Windows shell, and
+UPX drops the resources of an NE program, so `EXPLORER.EXE` and the other
+helpers had no icon. `tools/package.sh` checks each staged helper with
+`tools/ne_has_icon.py`.
 
 ## OpenLFN Loader and ZIP Preview
 

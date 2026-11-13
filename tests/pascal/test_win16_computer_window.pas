@@ -146,6 +146,10 @@ begin
   { A name of the user, which the catalogue must not replace. }
   WritePrivateProfileString(StrPCopy(S, 'Bin'), StrPCopy(K, 'Caption'),
     StrPCopy(V, 'Abfall'), StrPCopy(F, 'C:\CALMIRA.INI'));
+  { A program without an icon of its own, as EXPLORER.EXE was once UPX
+    had dropped its resources: GDITEST.EXE itself has none. }
+  WritePrivateProfileString(StrPCopy(S, 'Programs'), StrPCopy(K, 'C:\GDITEST.EXE'),
+    StrPCopy(V, 'Ohne Symbol'), StrPCopy(F, 'C:\CALMIRA.INI'));
 end;
 
 var
@@ -173,6 +177,8 @@ begin
     ShowWindow(Computer, SW_RESTORE);
     Pump(5000);
     Check(not IsIconic(Computer), 'My Computer opens');
+    Check((Find('Fehler') = 0) and (Find('Error') = 0),
+      'a program without an icon shows no error box in My Computer');
   end;
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');
   Pump(60000);
