@@ -66,10 +66,14 @@ implementation
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses CompSys, Desk, ShutDown, Settings, MiscUtil, WinTypes, WinProcs;
+uses CompSys, Desk, ShutDown, Settings, MiscUtil, WinTypes, WinProcs, SysUtils;
+
+{ The number of the release, set once in the makefile. }
+{$I version.inc}
 
 procedure TSplashForm.FormCreate(Sender: TObject);
 begin
+  VersionLabel.Caption := Format(VersionLabel.Caption, [CalmiraVersion]);
   AppLogo.Picture.Bitmap.Handle := LoadBitmap(HInstance, 'LOGO');
   AppTitle.Picture.Bitmap.Handle := LoadBitmap(HInstance, 'TITLE');
 end;

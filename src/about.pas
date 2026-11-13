@@ -75,6 +75,9 @@ implementation
 uses {$IFDEF FPC}Win31, {$ENDIF}Strings, SysUtils, Files, MiscUtil, Settings, Fileman,
   Dialogs, Locale, Desk, VerInfo, language_catalog;
 
+{ The number of the release, set once in the makefile. }
+{$I version.inc}
+
 procedure TAboutBox.LicenseBtnClick(Sender: TObject);
 var
   license : TLfnFileName;
@@ -95,6 +98,7 @@ var
  DosMinor, DosMajor, WinMinor,WinMajor: Byte;
  i, Grow: Integer;
 begin
+  VersionLabel.Caption := Format(VersionLabel.Caption, [CalmiraVersion]);
   MemLabel.Caption := Format(LanguageText('Memory', 'Free', '%s free'),
     [FormatByte(GetFreeSpace(0), 2, 2)]);
   ResLabel.Caption := Format('System %d%%  GDI %d%%  User %d%%',

@@ -16,7 +16,7 @@
   "Forms": {
     "TAboutBox.Label1.Caption": "Windows-versie:",
     "TAboutBox.Label2.Caption": "MS-DOS-versie:",
-    "TAboutBox.VersionLabel.Caption": "Versie 5.0.91 (voorlopige versie)",
+    "TAboutBox.VersionLabel.Caption": "Versie %s (voorlopige versie)",
     "TAskDropBox.AskDropBox.Caption": "Slepen en neerzetten",
     "TBinPropDlg.BinPropDlg.Caption": "Eigenschappen van Prullenbak",
     "TBinPropDlg.HelpBtn.Caption": "Help",
@@ -134,7 +134,7 @@
     "TRefEditDlg.ShowCombo.Items.Strings.2": "Gemaximaliseerd",
     "TRefEditDlg.ShowCombo.Items.Strings.3": "Verborgen",
     "TRefEditDlg.TabPanel.Tabs.Strings.0": "Algemeen",
-    "TSplashForm.VersionLabel.Caption": "Versie 5.0.91 voorlopige versie",
+    "TSplashForm.VersionLabel.Caption": "Versie %s voorlopige versie",
     "TStandardButtons.Cancel.Caption": "Annuleren",
     "TStartPropDlg.CollapseItem.Caption": "Tak &samenvouwen",
     "TStartPropDlg.ExpandAll.Caption": "&Alles uitvouwen",

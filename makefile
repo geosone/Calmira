@@ -1,3 +1,7 @@
+# The release number: the About box, the splash screen and the installer's
+# Version= take it from here. Test releases count from 5.0.90 towards 5.1.
+VERSION := 5.0.91
+
 GDI ?= ../gdi
 FPC ?= fpc
 HOST_CC ?= cc
@@ -1761,11 +1765,16 @@ $(BUILD_DIR)/controls/controls.res: src/win16/controls.rc makefile
 	mkdir -p $(BUILD_DIR)/controls
 	$(WATCOM_BIN)/wrc -q -r -zm -bt=windows -i=$(WINFILE_PORT_SRC)/src -fo=$@ src/win16/controls.rc
 
-calmira: fpc-win16-gui-rtl languages $(CALMIRA_LOADERS) $(BUILD_DIR)/controls/controls.res
+$(BUILD_DIR)/generated/version/version.inc: makefile
+	mkdir -p $(@D)
+	printf "const\n  CalmiraVersion = '%s';\n" '$(VERSION)' > $@
+
+calmira: fpc-win16-gui-rtl languages $(CALMIRA_LOADERS) $(BUILD_DIR)/controls/controls.res \
+		$(BUILD_DIR)/generated/version/version.inc
 	mkdir -p $(BUILD_DIR)/calmira/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
 		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -koption -kstack=16k \
-		-Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fuvcl -Fusrc -Fusrc/portable -Fusrc/win16 \
+		-Fi$(BUILD_DIR)/generated/version -Fi$(BUILD_DIR)/generated/forms -Fu$(BUILD_DIR)/generated/forms -Fuvcl -Fusrc -Fusrc/portable -Fusrc/win16 \
 		-Fu./$(FPC_WIN16_GUI_RTL) -FU$(BUILD_DIR)/calmira/units \
 		-FE$(BUILD_DIR)/calmira -oCALMIRA.EXE src/calmira.dpr
 	python3 tools/merge_res16.py --renumber-images $(CALMIRA_RES) --output $(BUILD_DIR)/calmira/calmira-all.res
@@ -2012,7 +2021,7 @@ archive-package-runtime-test: archive-package
 	sh tests/dos/test_archive_package.sh
 
 package: calmira dos-helpers lfnfuncs wndhooks help lfn-probe doslfn ctl3d languages pack-win16 archive-viewer clfn-hook
-	GDI="$(GDI)" BUILD_DIR='$(abspath $(BUILD_DIR))' sh tools/package.sh
+	GDI="$(GDI)" BUILD_DIR='$(abspath $(BUILD_DIR))' VERSION='$(VERSION)' sh tools/package.sh
 
 # Silent GDI setup, Windows start with the installed shell, uninstall.
 package-runtime-test: package

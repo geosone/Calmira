@@ -65,7 +65,9 @@ rm -rf "${stage:?}"
 mkdir -p "$stage/SYSTEM" "$stage/TRAY" "$stage/DOSLFN/NLS" "$stage/LANG"
 cp "$build/lang/"*.LNG "$stage/LANG/"
 cp "$gdi/build/INSTALL.EXE" "$stage/"
-cp "$root/install/install.ini" "$stage/INSTALL.INI"
+# The release number comes from the makefile.
+sed "s/^Version=@VERSION@\$/Version=${VERSION:?}/" "$root/install/install.ini" > "$stage/INSTALL.INI"
+grep -q "^Version=${VERSION}\$" "$stage/INSTALL.INI" || { echo "INSTALL.INI lacks Version=" >&2; exit 1; }
 cp "$root/license" "$stage/LICENSE.TXT"
 cp "$root/readme.md" "$stage/README.TXT"
 # The shell is not packed: UPX's NE wrapper runs a temporary copy under

@@ -16,7 +16,7 @@
   "Forms": {
     "TAboutBox.Label1.Caption": "Versione di Windows:",
     "TAboutBox.Label2.Caption": "Versione di MS-DOS:",
-    "TAboutBox.VersionLabel.Caption": "Versione 5.0.91 (anteprima)",
+    "TAboutBox.VersionLabel.Caption": "Versione %s (anteprima)",
     "TBin.Bin.Caption": "Cestino",
     "TBinPropDlg.BinPropDlg.Caption": "Proprietà del Cestino",
     "TComputer.Computer.Caption": "Risorse del computer",
@@ -110,7 +110,7 @@
     "TSelectFileDlg.CloseBtn.Caption": "&Chiudi",
     "TSelectFileDlg.Label1.Caption": "&File:",
     "TSelectFileDlg.Label2.Caption": "Inserisci i caratteri jolly dei file da selezionare.\nSepara più maschere con il punto e virgola.",
-    "TSplashForm.VersionLabel.Caption": "Versione 5.0.91 anteprima",
+    "TSplashForm.VersionLabel.Caption": "Versione %s anteprima",
     "TStandardButtons.Cancel.Caption": "Annulla",
     "TStartPropDlg.Label4.Caption": "pixel",
     "TStartPropDlg.Win95Menu.Caption": "Menu in stile &Windows 95 con icone",

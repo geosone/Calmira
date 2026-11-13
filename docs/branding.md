@@ -3,8 +3,10 @@
 ## Name and Provenance
 
 The maintained integration is named **Calmira Reloaded**. Its graphics replace
-the former Reborn wording. Test releases count from 5.0.90 towards 5.1; the
-number is in the About box, the splash screen, every catalogue and the
+the former Reborn wording. Test releases count from 5.0.90 towards 5.1. The
+number is set once, as `VERSION :=` at the top of the makefile: the build
+writes it into `version.inc` for the About box and the splash screen, whose
+texts carry `%s` in every catalogue, and `tools/package.sh` puts it into the
 installer's `Version=`. The executable
 and default installation directory remain DOS-safe `CALMIRA.EXE` and `CALMIRA`.
 Historical authorship, upstream source comments and license notices are not

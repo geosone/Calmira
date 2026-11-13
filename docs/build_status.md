@@ -3413,3 +3413,10 @@ its name in the languages of Windows 3.1.
 3.11 and requires `Hauptgruppe` directly under Programs, no stand-ins and
 no `Program Manager` submenu, groups above programs in alphabetical order,
 and `StartupGroup=Autostart` in `CALMIRA.INI`.
+
+## The Release Number in One Place
+
+The number of a release stood in `INSTALL.INI`, both forms and six
+catalogues. `VERSION :=` at the top of the makefile now sets it: the build
+writes `version.inc` for the About box and the splash screen, whose texts
+carry `%s`, and `tools/package.sh` fills in `Version=@VERSION@`.

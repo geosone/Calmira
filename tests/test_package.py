@@ -1,4 +1,5 @@
 """Guards for the release package script and the GDI descriptor."""
+import json
 from pathlib import Path
 import unittest
 
@@ -23,14 +24,29 @@ class PackageTests(unittest.TestCase):
         self.assertIn('package: calmira dos-helpers lfnfuncs wndhooks', makefile)
         self.assertIn("sh tests/dos/test_package.sh", makefile)
 
-    def test_release_number_matches_installer_about_box_and_catalogues(self):
-        self.assertIn('Version=5.0.91\n', (ROOT / 'install/install.ini').read_text())
-        self.assertIn(b'\x06\x1bVersion 5.0.91 (Prerelease)', (ROOT / 'src/about.dfm').read_bytes())
-        self.assertIn(b'\x06\x19Version 5.0.91 Prerelease', (ROOT / 'src/splash.dfm').read_bytes())
+    def test_release_number_is_set_once_in_the_makefile(self):
+        # The number stood in INSTALL.INI, both forms and six catalogues;
+        # a release had to change eleven files and a catalogue could lag.
+        import re
+        makefile = (ROOT / 'makefile').read_text()
+        version = re.search(r'^VERSION := (\d+\.\d+\.\d+)$', makefile, re.M).group(1)
+        self.assertIn("CalmiraVersion = '%s';", makefile)
+        self.assertIn("VERSION='$(VERSION)' sh tools/package.sh", makefile)
+        self.assertIn('Version=@VERSION@\n', (ROOT / 'install/install.ini').read_text())
+        self.assertIn('s/^Version=@VERSION@\\$/Version=${VERSION:?}/', (ROOT / 'tools/package.sh').read_text())
+        self.assertIn(b'\x06\x17Version %s (Prerelease)', (ROOT / 'src/about.dfm').read_bytes())
+        self.assertIn(b'\x06\x15Version %s Prerelease', (ROOT / 'src/splash.dfm').read_bytes())
+        for name in ('about', 'splash'):
+            source = (ROOT / f'src/{name}.pas').read_text()
+            self.assertIn('{$I version.inc}', source)
+            self.assertIn('VersionLabel.Caption := Format(VersionLabel.Caption, [CalmiraVersion]);', source)
         for path in (ROOT / 'locales/translated').glob('*.json'):
             text = path.read_text(encoding='utf-8')
-            self.assertEqual(text.count(' 5.0.91 '), 2, path.name)
-            self.assertNotIn(' 5.0 ', text)
+            catalogue = json.loads(text)
+            for form in ('TAboutBox', 'TSplashForm'):
+                self.assertIn(' %s', catalogue['Forms'][f'{form}.VersionLabel.Caption'], path.name)
+            self.assertNotIn(version, text)
+            self.assertNotIn(' 5.0', text)
 
     def test_descriptor_lists_files_without_archive_wildcards(self):
         descriptor = (ROOT / 'install/install.ini').read_text()
