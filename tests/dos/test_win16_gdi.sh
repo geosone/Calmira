@@ -14,12 +14,23 @@ echo "GDI artifacts: $work"
 cp --reflink=auto "$WIN311_IMAGE" "$work/test.img"
 partition="$work/test.img@@${WIN311_OFFSET:-32256}"
 printf 'DEVICE=C:\\HIMEM.SYS\r\nFILES=40\r\nSHELL=C:\\COMMAND.COM C:\\ /P\r\n' > "$work/CONFIG.SYS"
-printf '@ECHO OFF\r\nPATH C:\\;C:\\WINDOWS\r\nWIN C:\\GDITEST.EXE\r\n' > "$work/AUTOEXEC.BAT"
+# GDI_DOSLFN=1 loads the long filename driver first, as setup does on DOS
+# without long filenames; the image expects its LFNXLAT.386 in C:\.
+if [ "${GDI_DOSLFN:-0}" = 1 ]; then
+    printf '@ECHO OFF\r\nPATH C:\\;C:\\WINDOWS\r\nLH C:\\DOSLFN.COM\r\nWIN C:\\GDITEST.EXE\r\n' > "$work/AUTOEXEC.BAT"
+else
+    printf '@ECHO OFF\r\nPATH C:\\;C:\\WINDOWS\r\nWIN C:\\GDITEST.EXE\r\n' > "$work/AUTOEXEC.BAT"
+fi
 mcopy -o -i "$partition" "$work/CONFIG.SYS" "$work/AUTOEXEC.BAT" \
     "${GDI_TEST_EXE:-$root/build/tests/win16-gdi/GDITEST.EXE}" ::/
 mcopy -o -i "$partition" "$root/bmp/bin.bmp" ::/PROBE.BMP
 if [ -n "${GDI_HELPER_EXE:-}" ]; then
     mcopy -o -i "$partition" "$GDI_HELPER_EXE" ::/APPSEND.EXE
+fi
+if [ "${GDI_DOSLFN:-0}" = 1 ]; then
+    : "${GDI_DOSLFN_DIR:?Set GDI_DOSLFN_DIR to the built DOSLFN directory}"
+    mcopy -o -i "$partition" "$GDI_DOSLFN_DIR/doslfn.com" ::/DOSLFN.COM
+    mcopy -o -i "$partition" "$GDI_DOSLFN_DIR/lfnxlat.386" ::/LFNXLAT.386
 fi
 # Further files the program needs next to it, such as its DLLs.
 for extra in ${GDI_EXTRA_FILES:-}; do

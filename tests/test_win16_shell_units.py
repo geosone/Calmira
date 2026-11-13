@@ -27,6 +27,22 @@ class HugeModelTests(unittest.TestCase):
             self.assertIn(name, prepare)
             self.assertTrue((ROOT / 'tools/patches' / name).is_file(), name)
 
+    def test_long_filename_findfirst_only_passes_the_attribute_byte(self):
+        # INT 21h/714Eh takes the attributes a file must have in CH; FPC's
+        # faAnyFile ($1FF) put 1 there. With DOSLFN, FindFirst(name, faAnyFile
+        # and not faDirectory) found only read-only files: Desktop Properties
+        # did not find the current wallpaper and the monitor stayed empty.
+        patch = (ROOT / 'tools/patches/fpc-win16-lfn-findattr.patch').read_text()
+        self.assertIn('+   dosregs.cx:=attr and $ff and (not 8);', patch)
+        self.assertIn('fpc-win16-lfn-findattr.patch', (ROOT / 'tools/prepare_win16_rtl.py').read_text())
+        self.assertIn('-dCALMIRA_WIN16_LFN_FINDATTR', (ROOT / 'tools/build_win16_rtl.sh').read_text())
+        makefile = (ROOT / 'makefile').read_text()
+        rule = makefile.split('\nwin16-desktop-wallpaper-runtime-test:', 1)[1].split('\n\n', 1)[0]
+        self.assertIn('doslfn', rule.split('\n', 1)[0])
+        self.assertIn('GDI_DOSLFN=1', rule)
+        harness = (ROOT / 'tests/dos/test_win16_gdi.sh').read_text()
+        self.assertIn('LH C:\\\\DOSLFN.COM', harness)
+
     def test_points_reach_user_packed_in_a_long(self):
         # USER takes POINT by value as one dword; FPC passed the TPoint record
         # otherwise, so WindowFromPoint found nothing and Calmira's drop

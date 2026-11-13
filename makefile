@@ -1814,8 +1814,11 @@ win16-desktop-wallpaper: fpc-win16-gui-rtl
 		-FU$(BUILD_DIR)/tests/win16-desktop-wallpaper/units -FE$(BUILD_DIR)/tests/win16-desktop-wallpaper \
 		-oGDITEST.EXE tests/pascal/test_win16_desktop_wallpaper.pas
 
-win16-desktop-wallpaper-runtime-test: win16-desktop-wallpaper calmira lfnfuncs wndhooks
-	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-desktop-wallpaper/GDITEST.EXE)' \
+# With DOSLFN loaded, as setup installs it: FindFirst then goes through
+# INT 21h/714Eh, which reads the attributes a file must have from CH.
+win16-desktop-wallpaper-runtime-test: win16-desktop-wallpaper calmira lfnfuncs wndhooks doslfn
+	GDI_DOSLFN=1 GDI_DOSLFN_DIR='$(abspath $(BUILD_DIR)/dos/doslfn)' \
+		GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-desktop-wallpaper/GDITEST.EXE)' \
 		GDI_EXTRA_FILES='$(abspath $(BUILD_DIR)/calmira/CALMIRA.EXE) $(abspath $(BUILD_DIR)/lfnfuncs/LFNFUNCS.DLL) $(abspath $(BUILD_DIR)/wndhooks/WNDHOOKS.DLL) $(abspath src/calmira.ini) $(abspath src/start.ini) $(abspath src/tips.txt)' \
 		sh tests/dos/test_win16_gdi.sh
 

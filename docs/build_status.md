@@ -3487,3 +3487,17 @@ win16-desktop-wallpaper-runtime-test` opens the dialog through a DOS script,
 checks the monitor for a red 4-bit wallpaper from `WIN.INI`, then chooses a
 blue 8-bit one with 236 colours in the list and checks the monitor again,
 also after the dialog is painted anew.
+
+## Desktop Properties Finds Files with DOSLFN
+
+With DOSLFN loaded, as setup installs it, the monitor in Desktop Properties
+still stayed empty and flickered on every click. Calmira checks the chosen
+wallpaper with `FindFirst(name, faAnyFile and not (faVolumeID or
+faDirectory))`. Free Pascal's `faAnyFile` is `$1FF` (Delphi 1: `$3F`), and
+the Win16 Dos unit passed the whole word in CX to INT 21h/714Eh, where CH
+holds the attributes a file must have: 1, read-only. Plain DOS ignores CH,
+so the bug showed only with a long filename driver.
+`tools/patches/fpc-win16-lfn-findattr.patch` passes only the low byte
+(`CALMIRA_WIN16_LFN_FINDATTR`). `tests/dos/test_win16_gdi.sh` loads DOSLFN
+before Windows with `GDI_DOSLFN=1`, and
+`win16-desktop-wallpaper-runtime-test` now runs that way.

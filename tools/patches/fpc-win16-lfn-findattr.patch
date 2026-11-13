@@ -1,0 +1,17 @@
+--- a/rtl/win16/dos.pp
++++ b/rtl/win16/dos.pp
+@@ -608,7 +608,14 @@
+   if attr=$8 then
+    dosregs.cx:=8
+   else
++{$ifdef CALMIRA_WIN16_LFN_FINDATTR}
++   { CL holds the allowed attributes, CH those a file must have. Only the
++     low byte: faAnyFile is $1FF and put 1 (read-only) into CH, so with a
++     long filename driver FindFirst(..., faAnyFile, ...) found no other file. }
++   dosregs.cx:=attr and $ff and (not 8);
++{$else CALMIRA_WIN16_LFN_FINDATTR}
+    dosregs.cx:=attr and (not 8);
++{$endif CALMIRA_WIN16_LFN_FINDATTR}
+   dosregs.dx:=Ofs(path^);
+   dosregs.ds:=Seg(path^);
+   dosregs.di:=Ofs(w);
