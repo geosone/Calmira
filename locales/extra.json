@@ -2,6 +2,15 @@
   "en": {
     "Forms": {
       "TStandardButtons.Cancel.Caption": "Cancel",
+      "TStandardButtons.OK.Caption": "OK",
+      "TStandardButtons.Help.Caption": "&Help",
+      "TStandardButtons.Yes.Caption": "&Yes",
+      "TStandardButtons.No.Caption": "&No",
+      "TStandardButtons.Close.Caption": "&Close",
+      "TStandardButtons.Abort.Caption": "Abort",
+      "TStandardButtons.Retry.Caption": "&Retry",
+      "TStandardButtons.Ignore.Caption": "&Ignore",
+      "TStandardButtons.All.Caption": "&All",
       "TMessageForm.Warning.Caption": "Warning",
       "TMessageForm.Error.Caption": "Error",
       "TMessageForm.Information.Caption": "Information",

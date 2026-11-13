@@ -142,7 +142,16 @@
     "TTipDialog.HomePage.Caption": "Pagina &iniziale",
     "TTipDialog.Label1.Caption": "Benvenuto in",
     "TTipDialog.cbShowDailyTips.Caption": "Mostra al primo avvio giornaliero di Calmira Reloaded",
-    "TfrmMyDocs.frmMyDocs.Caption": "Documenti"
+    "TfrmMyDocs.frmMyDocs.Caption": "Documenti",
+    "TStandardButtons.OK.Caption": "OK",
+    "TStandardButtons.Help.Caption": "&Aiuto",
+    "TStandardButtons.Yes.Caption": "&Sì",
+    "TStandardButtons.No.Caption": "&No",
+    "TStandardButtons.Close.Caption": "&Chiudi",
+    "TStandardButtons.Abort.Caption": "&Interrompi",
+    "TStandardButtons.Retry.Caption": "&Riprova",
+    "TStandardButtons.Ignore.Caption": "&Ignora",
+    "TStandardButtons.All.Caption": "&Tutti"
   },
   "Help": {
     "CannotOpen": "Windows non è riuscito ad aprire la guida. Controlla WinHelp e i relativi file di installazione.",

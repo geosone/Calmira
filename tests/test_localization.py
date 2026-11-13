@@ -210,6 +210,23 @@ class LocalizationTests(unittest.TestCase):
             self.assertEqual(catalogue['Menu']['My Documents'], name)
             self.assertTrue(catalogue['Memory']['Free'].startswith('%s '), code)
 
+    def test_standard_buttons_have_a_text_in_every_language(self):
+        # TBitBtn asks TStandardButtons.<Kind>.Caption; only Cancel existed,
+        # so Shut Down showed Yes/No and dialogs OK/Help/Close in English.
+        kinds = ('OK', 'Cancel', 'Help', 'Yes', 'No', 'Close', 'Abort', 'Retry', 'Ignore', 'All')
+        buttons = (ROOT / 'src/win16/buttons.pas').read_text()
+        self.assertIn("FormText('TStandardButtons', KindNames[Value], 'Caption', KindCaptions[Value])", buttons)
+        extra = json.loads((ROOT / 'locales/extra.json').read_text(encoding='utf-8'))
+        for code in ('de', 'fr', 'nl', 'it', 'es', 'pl'):
+            forms = {**json.loads((ROOT / f'locales/translated/{code}.json').read_text(encoding='utf-8'))['Forms'],
+                     **extra.get(code, {}).get('Forms', {})}
+            for kind in kinds:
+                self.assertIn(f'TStandardButtons.{kind}.Caption', forms, code)
+        for kind in kinds:
+            self.assertIn(f'TStandardButtons.{kind}.Caption', extra['en']['Forms'])
+        test = (ROOT / 'tests/pascal/test_win16_langui.pas').read_text()
+        self.assertIn('standard buttons take the catalogue text of their kind', test)
+
     def test_titles_from_old_releases_are_replaced(self):
         # Historical German titles named Calmira LFN 3.3 and a German edition.
         extra = json.loads((ROOT / 'locales/extra.json').read_text(encoding='utf-8'))

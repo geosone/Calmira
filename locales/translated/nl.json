@@ -165,7 +165,16 @@
     "TTaskPropDlg.TabPanel.Tabs.Strings.1": "Aanvullend",
     "TTaskPropDlg.TabPanel.Tabs.Strings.2": "Uitsluitingen",
     "TTipDialog.cbShowDailyTips.Caption": "Tonen bij de eerste start van Calmira Reloaded op elke dag",
-    "TfrmMyDocs.frmMyDocs.Caption": "Mijn documenten"
+    "TfrmMyDocs.frmMyDocs.Caption": "Mijn documenten",
+    "TStandardButtons.OK.Caption": "OK",
+    "TStandardButtons.Help.Caption": "&Help",
+    "TStandardButtons.Yes.Caption": "&Ja",
+    "TStandardButtons.No.Caption": "&Nee",
+    "TStandardButtons.Close.Caption": "&Sluiten",
+    "TStandardButtons.Abort.Caption": "&Afbreken",
+    "TStandardButtons.Retry.Caption": "&Opnieuw",
+    "TStandardButtons.Ignore.Caption": "&Negeren",
+    "TStandardButtons.All.Caption": "A&lles"
   },
   "Help": {
     "CannotOpen": "Windows kon de Help niet openen. Controleer WinHelp en de bijbehorende installatiebestanden.",

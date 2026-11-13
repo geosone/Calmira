@@ -82,7 +82,16 @@
     "TTaskPropDlg.TabPanel.Tabs.Strings.2": "Exclusions",
     "TTipDialog.HomePage.Caption": "&Page d'accueil",
     "TTipDialog.cbShowDailyTips.Caption": "Afficher au premier lancement quotidien de Calmira Reloaded",
-    "TfrmMyDocs.frmMyDocs.Caption": "Mes documents"
+    "TfrmMyDocs.frmMyDocs.Caption": "Mes documents",
+    "TStandardButtons.OK.Caption": "OK",
+    "TStandardButtons.Help.Caption": "&Aide",
+    "TStandardButtons.Yes.Caption": "&Oui",
+    "TStandardButtons.No.Caption": "&Non",
+    "TStandardButtons.Close.Caption": "&Fermer",
+    "TStandardButtons.Abort.Caption": "&Abandonner",
+    "TStandardButtons.Retry.Caption": "&Réessayer",
+    "TStandardButtons.Ignore.Caption": "&Ignorer",
+    "TStandardButtons.All.Caption": "&Tous"
   },
   "Menu": {
     "&Documents": "&Documents",

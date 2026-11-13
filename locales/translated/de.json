@@ -28,7 +28,16 @@
     "TStartPropDlg.Win95Menu.Caption": "Menü im &Windows 95-Stil mit Symbolen",
     "TSysPropDlg.Label13.Caption": "Browser:",
     "TSysPropDlg.Label7.Caption": "&Name:",
-    "TTipDialog.cbShowDailyTips.Caption": "Beim ersten Start von Calmira Reloaded an jedem Tag anzeigen"
+    "TTipDialog.cbShowDailyTips.Caption": "Beim ersten Start von Calmira Reloaded an jedem Tag anzeigen",
+    "TStandardButtons.OK.Caption": "OK",
+    "TStandardButtons.Help.Caption": "&Hilfe",
+    "TStandardButtons.Yes.Caption": "&Ja",
+    "TStandardButtons.No.Caption": "&Nein",
+    "TStandardButtons.Close.Caption": "&Schließen",
+    "TStandardButtons.Abort.Caption": "A&bbrechen",
+    "TStandardButtons.Retry.Caption": "&Wiederholen",
+    "TStandardButtons.Ignore.Caption": "&Ignorieren",
+    "TStandardButtons.All.Caption": "&Alle"
   },
   "Strings": {
     "1059": "Möchten Sie Calmira Reloaded wirklich beenden?",

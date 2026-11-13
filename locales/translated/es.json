@@ -460,7 +460,16 @@
     "TTipDialog.Label4.Caption": "¿Sabía que...",
     "TTipDialog.TipLabel.Caption": "...no se encontró el archivo de sugerencias (TIPS.TXT) en la carpeta de Calmira.",
     "TTipDialog.cbShowDailyTips.Caption": "Mostrar al iniciar Calmira Reloaded por primera vez cada día",
-    "TfrmMyDocs.frmMyDocs.Caption": "Mis documentos"
+    "TfrmMyDocs.frmMyDocs.Caption": "Mis documentos",
+    "TStandardButtons.OK.Caption": "OK",
+    "TStandardButtons.Help.Caption": "Ay&uda",
+    "TStandardButtons.Yes.Caption": "&Sí",
+    "TStandardButtons.No.Caption": "&No",
+    "TStandardButtons.Close.Caption": "&Cerrar",
+    "TStandardButtons.Abort.Caption": "&Anular",
+    "TStandardButtons.Retry.Caption": "&Reintentar",
+    "TStandardButtons.Ignore.Caption": "&Omitir",
+    "TStandardButtons.All.Caption": "&Todos"
   },
   "Help": {
     "CannotOpen": "Windows no pudo abrir la ayuda. Compruebe WinHelp y los archivos de instalación correspondientes.",

@@ -3,12 +3,12 @@ program LangUITest;
   load (form_language), before OnCreate sets run-time values. LangUI
   translates through RTTI, so Caption and Hint are published, as in Delphi. }
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, Classes, SysUtils, Controls, Forms, StdCtrls, LangUI, language_catalog, form_text, form_language;
+uses WinTypes, WinProcs, Classes, SysUtils, Controls, Forms, StdCtrls, Buttons, LangUI, language_catalog, form_text, form_language;
 type
   TAboutBox = class(TForm);
   TFileSysPropDlg = class(TForm);
 var
-  About: TAboutBox; FileSys: TFileSysPropDlg; Memory, Licence: TLabel; Filter: TEdit;
+  About: TAboutBox; FileSys: TFileSysPropDlg; Memory, Licence: TLabel; Filter: TEdit; Yes, Close: TBitBtn;
   Title, MemoryText, FilterHint: string; Buffer: array[0..255] of Char; Failed: Boolean;
 {$I win16_stack_guard.inc}
 procedure LogLine(const Text: string);
@@ -61,6 +61,11 @@ begin
       Licence.AutoSize := True;
       Check((Licence.Height >= 39) and (Licence.Width <= 309) and (Licence.Left = 16),
         'a wrapped label grows to the lines of its translated text');
+      { Shut Down's Yes/No and every OK, Help and Close take their kind's text. }
+      Yes := TBitBtn.Create(About); Yes.Parent := About; Yes.Kind := bkYes;
+      Close := TBitBtn.Create(About); Close.Parent := About; Close.Kind := bkClose;
+      Check((Yes.Caption = '&Ja') and (Close.Caption = '&Schlie'#223'en'),
+        'standard buttons take the catalogue text of their kind');
       About.Show;
       ApplyComponentLanguage(About);
       Check(About.Caption = Title, 'a form title is translated');

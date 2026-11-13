@@ -3342,3 +3342,22 @@ With the labels translated, three run-time texts still stood out:
   documentos", "Moje dokumenty"), on the desktop and in the start menu.
   `CALMIRA.INI` keeps the English default, so the name follows the selected
   language; a name the user chose stays. The folder keeps its path.
+
+## Shut Down From the Packed Shell
+
+In a VirtualBox installation (MS-DOS 7.1, WfW 3.11), Shut Down ended in a
+GPF in module `~UPX2127.EXE`, and Windows hung. The release packed
+CALMIRA.EXE with UPX. UPX's NE wrapper starts a temporary copy under
+another module name, so `IsShell` compared `shell=C:\CALMIRA\CALMIRA.EXE`
+with `~UPX2127.EXE`. Calmira took itself for an ordinary program: Shut Down
+offered "Close Calmira", selected it, and closed only Calmira.
+
+The shell is no longer packed; the helpers still are. `make
+package-runtime-test` now shuts Windows down from Calmira (Alt+F4 closes
+the welcome box and the tip, then Shut Down) and requires that Windows
+returns to DOS. The 5.0.90 package fails this check.
+
+The same dialog showed "Yes" and "No": a `TBitBtn` takes the text of its
+kind from `TStandardButtons.<Kind>.Caption`, and only `Cancel` was in the
+catalogues. Every kind now has its text in every language. This also
+covers the OK, Help and Close buttons of other dialogs.

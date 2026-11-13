@@ -90,7 +90,16 @@
     "TSysRefEditDlg.TargetLabel.Caption": "Folder:",
     "TTipDialog.HomePage.Caption": "Strona &domowa",
     "TTipDialog.cbShowDailyTips.Caption": "Pokazuj przy pierwszym uruchomieniu Calmira Reloaded każdego dnia",
-    "TfrmMyDocs.frmMyDocs.Caption": "Moje dokumenty"
+    "TfrmMyDocs.frmMyDocs.Caption": "Moje dokumenty",
+    "TStandardButtons.OK.Caption": "OK",
+    "TStandardButtons.Help.Caption": "Pomo&c",
+    "TStandardButtons.Yes.Caption": "&Tak",
+    "TStandardButtons.No.Caption": "&Nie",
+    "TStandardButtons.Close.Caption": "&Zamknij",
+    "TStandardButtons.Abort.Caption": "&Przerwij",
+    "TStandardButtons.Retry.Caption": "Ponó&w",
+    "TStandardButtons.Ignore.Caption": "&Ignoruj",
+    "TStandardButtons.All.Caption": "&Wszystkie"
   },
   "Help": {
     "CannotOpen": "Windows nie może otworzyć pomocy. Sprawdź WinHelp i odpowiednie pliki instalacyjne.",
