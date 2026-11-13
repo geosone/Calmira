@@ -186,6 +186,30 @@ class LocalizationTests(unittest.TestCase):
         test = (ROOT / 'tests/pascal/test_win16_langui.pas').read_text()
         self.assertIn('a loader gets the translated label caption', test)
 
+    def test_run_time_texts_follow_the_catalogue(self):
+        # "78,46 MB free" stayed English, the German licence note lost its
+        # last line and My Documents kept its English name.
+        def source(path):
+            return (ROOT / path).read_bytes().decode('latin-1').replace('\r\n', '\n')
+        for path in ('src/about.pas', 'src/taskman.pas'):
+            text = source(path)
+            self.assertNotIn("+ ' free'", text, path)
+            self.assertIn("Format(LanguageText('Memory', 'Free', '%s free'),", text, path)
+        about = source('src/about.pas')
+        self.assertIn('  LicenceLabel.AutoSize := True;\n  Grow := LicenceLabel.Height - Grow;', about)
+        self.assertIn('    ClientHeight := ClientHeight + Grow;', about)
+        mydocs = source('src/mydocs.pas')
+        self.assertIn("LanguageText('Desktop', 'MyDocuments', DefaultCaption)", mydocs)
+        self.assertIn('if Ref.Caption = DefaultCaption then Ref.Caption := LocalCaption;', mydocs)
+        self.assertIn("ini.WriteString(section, 'Caption', DefaultCaption);", mydocs)
+        names = {'de': 'Eigene Dateien', 'fr': 'Mes documents', 'nl': 'Mijn documenten',
+                 'it': 'Documenti', 'es': 'Mis documentos', 'pl': 'Moje dokumenty'}
+        for code, name in names.items():
+            catalogue = json.loads((ROOT / f'locales/translated/{code}.json').read_text(encoding='utf-8'))
+            self.assertEqual(catalogue['Desktop']['MyDocuments'], name)
+            self.assertEqual(catalogue['Menu']['My Documents'], name)
+            self.assertTrue(catalogue['Memory']['Free'].startswith('%s '), code)
+
     def test_titles_from_old_releases_are_replaced(self):
         # Historical German titles named Calmira LFN 3.3 and a German edition.
         extra = json.loads((ROOT / 'locales/extra.json').read_text(encoding='utf-8'))

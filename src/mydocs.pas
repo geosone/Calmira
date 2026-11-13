@@ -79,7 +79,17 @@ implementation
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses {$IFDEF FPC}Win31, {$ENDIF}Desk, Resource, IconWin, ShellAPI, FileMan, MultiGrd, WasteBin, FileFind,
-  Drives, Files, Strings, MiscUtil, CompSys, Graphics, Locale, ShutDown, Environs;
+  Drives, Files, Strings, MiscUtil, CompSys, Graphics, Locale, ShutDown, Environs,
+  language_catalog;
+
+{ The default name is stored in English and shown in the catalogue's
+  language, as Windows XP names the folder in its own language. }
+const DefaultCaption = 'My Documents';
+
+function LocalCaption: string;
+begin
+  LocalCaption := LanguageText('Desktop', 'MyDocuments', DefaultCaption);
+end;
 
 const
   SC_PROPERTIES = SC_VSCROLL + 1024;
@@ -258,12 +268,13 @@ begin
   if Ref.Kind <> rkFolder then
     begin
     {Ref.Kind := rkFolder;}
-    Ref.Caption := 'My Documents';
+    Ref.Caption := DefaultCaption;
     if EnableLFN then
      Ref.Target := 'C:\My Documents'
     else
      Ref.Target := 'C:\MYDOCS~1';
     end;
+  if Ref.Caption = DefaultCaption then Ref.Caption := LocalCaption;
   Environment.Values['PERSONALFOLDER'] := Ref.Target;
   MinPosition := Point(ini.ReadInteger(section, 'Left', 128),
     ini.ReadInteger(section, 'Top', 128));
@@ -273,6 +284,8 @@ end;
 procedure TfrmMyDocs.SaveToIni(ini: TIniFile; const section: string);
 begin
   Ref.SaveToIni(ini, section);
+  if Ref.Caption = LocalCaption then
+    ini.WriteString(section, 'Caption', DefaultCaption);
   with MinPosition do
   begin
     ini.WriteInteger(section, 'Left', x);

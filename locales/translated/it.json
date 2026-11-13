@@ -158,7 +158,8 @@
     "&Settings": "&Impostazioni",
     "F&avorites": "Pre&feriti",
     "Sh&ut Down...": "Chi&udi sessione...",
-    "Sync Program Manager Groups": "Sincronizza i gruppi di Program Manager"
+    "Sync Program Manager Groups": "Sincronizza i gruppi di Program Manager",
+    "My Documents": "Documenti"
   },
   "Messages": {
     "GroupsRejected": "Impossibile leggere %d gruppi di Program Manager.",
@@ -182,5 +183,11 @@
   "TaskManager": {
     "Title": "Task Manager di Calmira",
     "Unavailable": "Calmira si è chiusa in modo imprevisto.\n\nInterrompi: chiudi Windows (consigliato).\nRiprova: riavvia Calmira.\nIgnora: avvia il Task Manager di Windows."
+  },
+  "Desktop": {
+    "MyDocuments": "Documenti"
+  },
+  "Memory": {
+    "Free": "%s liberi"
   }
 }

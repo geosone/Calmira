@@ -106,7 +106,8 @@
     "&Settings": "&Ustawienia",
     "F&avorites": "&Ulubione",
     "Sh&ut Down...": "Zam&knij...",
-    "Sync Program Manager Groups": "Synchronizuj grupy Menedżera programów"
+    "Sync Program Manager Groups": "Synchronizuj grupy Menedżera programów",
+    "My Documents": "Moje dokumenty"
   },
   "Messages": {
     "GroupsRejected": "Nie można odczytać grup Menedżera programów: %d.",
@@ -126,5 +127,11 @@
   "TaskManager": {
     "Title": "Menedżer zadań Calmira",
     "Unavailable": "Calmira nieoczekiwanie zakończyła pracę.\n\nPrzerwij: zamknij Windows (zalecane).\nPonów: uruchom Calmirę ponownie.\nIgnoruj: uruchom Menedżer zadań Windows."
+  },
+  "Desktop": {
+    "MyDocuments": "Moje dokumenty"
+  },
+  "Memory": {
+    "Free": "%s wolne"
   }
 }

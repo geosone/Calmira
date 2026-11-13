@@ -8,7 +8,7 @@ type
   TAboutBox = class(TForm);
   TFileSysPropDlg = class(TForm);
 var
-  About: TAboutBox; FileSys: TFileSysPropDlg; Memory: TLabel; Filter: TEdit;
+  About: TAboutBox; FileSys: TFileSysPropDlg; Memory, Licence: TLabel; Filter: TEdit;
   Title, MemoryText, FilterHint: string; Buffer: array[0..255] of Char; Failed: Boolean;
 {$I win16_stack_guard.inc}
 procedure LogLine(const Text: string);
@@ -43,11 +43,24 @@ begin
     Check(FormText('TDeskPropDlg', 'TabPanel', 'Tabs.Strings.0', 'General') =
       LanguageText('Forms', 'TDeskPropDlg.TabPanel.Tabs.Strings.0', ''),
       'a loader gets translated list entries');
+    Check(Format(LanguageText('Memory', 'Free', '%s free'), ['78,46 MB']) = '78,46 MB frei',
+      'free memory is told in the catalogue language');
+    Check(LanguageText('Desktop', 'MyDocuments', 'My Documents') = 'Eigene Dateien',
+      'My Documents has its Windows XP name');
     About := TAboutBox.CreateNew(nil);
     try
       About.Name := 'AboutBox'; About.Caption := 'About'; About.SetBounds(40, 40, 200, 120);
       Memory := TLabel.Create(About); Memory.Name := 'Label3'; Memory.Parent := About;
       Memory.Caption := 'Memory:';
+      { The About box's licence note: a German text needs a third line. }
+      Licence := TLabel.Create(About); Licence.Name := 'LicenceLabel'; Licence.Parent := About;
+      Licence.Font.Name := 'MS Sans Serif'; Licence.Font.Height := -11;
+      Licence.AutoSize := False; Licence.WordWrap := True;
+      Licence.SetBounds(16, 176, 309, 27);
+      Licence.Caption := LanguageText('Forms', 'TAboutBox.LicenceLabel.Caption', '');
+      Licence.AutoSize := True;
+      Check((Licence.Height >= 39) and (Licence.Width <= 309) and (Licence.Left = 16),
+        'a wrapped label grows to the lines of its translated text');
       About.Show;
       ApplyComponentLanguage(About);
       Check(About.Caption = Title, 'a form title is translated');

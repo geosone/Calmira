@@ -73,7 +73,7 @@ implementation
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
 uses {$IFDEF FPC}Win31, {$ENDIF}Strings, SysUtils, Files, MiscUtil, Settings, Fileman,
-  Dialogs, Locale, Desk, VerInfo;
+  Dialogs, Locale, Desk, VerInfo, language_catalog;
 
 procedure TAboutBox.LicenseBtnClick(Sender: TObject);
 var
@@ -93,8 +93,10 @@ var
  tmp: LongInt;
  WinVer, DosVer: Word;
  DosMinor, DosMajor, WinMinor,WinMajor: Byte;
+ i, Grow: Integer;
 begin
-  MemLabel.Caption := FormatByte(GetFreeSpace(0), 2, 2) + ' free';
+  MemLabel.Caption := Format(LanguageText('Memory', 'Free', '%s free'),
+    [FormatByte(GetFreeSpace(0), 2, 2)]);
   ResLabel.Caption := Format('System %d%%  GDI %d%%  User %d%%',
     [GetFreeSystemResources(GFSR_SYSTEMRESOURCES),
      GetFreeSystemResources(GFSR_GDIRESOURCES),
@@ -118,6 +120,19 @@ begin
   DosMajor := (DosVer shr 8) and $ff;
   labWinVer.Caption := Format('Windows %d.%d',[Integer(WinMajor),Integer(WinMinor)]);
   labDosVer.Caption := Format('MS-DOS %d.%d',[Integer(DosMajor),Integer(DosMinor)]);
+  { A translated licence note may need more lines: as Delphi 1's AutoSize
+    with WordWrap, the label takes the height of its wrapped text, and the
+    controls below it and the window grow with it. }
+  Grow := LicenceLabel.Height;
+  LicenceLabel.AutoSize := True;
+  Grow := LicenceLabel.Height - Grow;
+  if Grow > 0 then
+  begin
+    for i := 0 to ControlCount - 1 do
+      if Controls[i].Top > LicenceLabel.Top then
+        Controls[i].Top := Controls[i].Top + Grow;
+    ClientHeight := ClientHeight + Grow;
+  end;
   if FirstRun then
   begin
     Caption := LocalLoadStr(SWelcome);

@@ -41,7 +41,14 @@
       "&Documents": "&Documents", "&Settings": "&Settings",
       "&Find": "&Find", "&Help": "&Help", "&Run...": "&Run...",
       "Sh&ut Down...": "Sh&ut Down...",
-      "Sync Program Manager Groups": "Sync Program Manager Groups"
+      "Sync Program Manager Groups": "Sync Program Manager Groups",
+      "My Documents": "My Documents"
+    },
+    "Desktop": {
+      "MyDocuments": "My Documents"
+    },
+    "Memory": {
+      "Free": "%s free"
     },
     "Messages": {
       "SyncGroups": "Sync Program Manager Groups",

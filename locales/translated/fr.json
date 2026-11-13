@@ -85,7 +85,8 @@
     "TfrmMyDocs.frmMyDocs.Caption": "Mes documents"
   },
   "Menu": {
-    "&Documents": "&Documents"
+    "&Documents": "&Documents",
+    "My Documents": "Mes documents"
   },
   "Strings": {
     "1059": "Voulez-vous vraiment fermer Calmira Reloaded ?",
@@ -98,5 +99,11 @@
     "1298": "Alias",
     "1299": "Modifié (heure)",
     "1300": "Modifié (date)"
+  },
+  "Desktop": {
+    "MyDocuments": "Mes documents"
+  },
+  "Memory": {
+    "Free": "%s libres"
   }
 }

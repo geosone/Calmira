@@ -110,7 +110,7 @@ procedure OpenTaskManager;
 implementation
 
 uses {$IFDEF FPC}Win31, {$ENDIF}ToolHelp, Task, Desk, Settings, MiscUtil, Locale, Resource, Embed,
-  Strings, ShellAPI, CalMsgs, RunProg;
+  Strings, ShellAPI, CalMsgs, RunProg, language_catalog;
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
@@ -250,7 +250,8 @@ begin
   end;
   TaskLabel.Caption := Format(SSNumTasks, [TaskList.Count,
     OneItem[TaskList.Count = 1]]);
-  MemLabel.Caption := FormatByte(GetFreeSpace(0), 2, 2) + ' free';
+  MemLabel.Caption := Format(LanguageText('Memory', 'Free', '%s free'),
+    [FormatByte(GetFreeSpace(0), 2, 2)]);
 end;
 
 function TTaskManager.SelectedWnd: HWnd;

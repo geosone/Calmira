@@ -181,7 +181,8 @@
     "&Settings": "&Instellingen",
     "F&avorites": "F&avorieten",
     "Sh&ut Down...": "&Afsluiten...",
-    "Sync Program Manager Groups": "Programmabeheergroepen synchroniseren"
+    "Sync Program Manager Groups": "Programmabeheergroepen synchroniseren",
+    "My Documents": "Mijn documenten"
   },
   "Messages": {
     "GroupsRejected": "%d Programmabeheergroep(en) konden niet worden gelezen.",
@@ -207,5 +208,11 @@
   "TaskManager": {
     "Title": "Calmira Taakbeheer",
     "Unavailable": "Calmira is onverwacht gestopt.\n\nAfbreken: Windows afsluiten (aanbevolen).\nOpnieuw: Calmira opnieuw starten.\nNegeren: Windows Taakbeheer starten."
+  },
+  "Desktop": {
+    "MyDocuments": "Mijn documenten"
+  },
+  "Memory": {
+    "Free": "%s vrij"
   }
 }

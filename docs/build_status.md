@@ -3328,3 +3328,17 @@ The historical German catalogue titled the About box "Über Calmira LFN3.3"
 and the Task Manager "Taskmanager 3.3 Deutsch". The Italian and Spanish
 About titles ended mid-sentence or with blanks. `locales/extra.json` now
 replaces these titles.
+
+With the labels translated, three run-time texts still stood out:
+
+- The About box and the Task Manager wrote the free memory as
+  `78,46 MB free`. The number is computed; the word now comes from the
+  catalogue (`[Memory] Free=%s frei`).
+- The German licence note needs three lines, but the label holds two. As
+  Delphi 1's `AutoSize` with `WordWrap`, the label now takes the height of
+  its wrapped text, and the controls below it and the window grow with it.
+- My Documents now has its Windows XP name in every language ("Eigene
+  Dateien", "Mes documents", "Mijn documenten", "Documenti", "Mis
+  documentos", "Moje dokumenty"), on the desktop and in the start menu.
+  `CALMIRA.INI` keeps the English default, so the name follows the selected
+  language; a name the user chose stays. The folder keeps its path.

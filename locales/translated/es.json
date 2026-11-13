@@ -476,7 +476,8 @@
     "&Settings": "&Configuración",
     "F&avorites": "F&avoritos",
     "Sh&ut Down...": "A&pagar...",
-    "Sync Program Manager Groups": "Sincronizar grupos del Administrador de programas"
+    "Sync Program Manager Groups": "Sincronizar grupos del Administrador de programas",
+    "My Documents": "Mis documentos"
   },
   "Messages": {
     "GroupsRejected": "No se pudieron leer %d grupos del Administrador de programas.",
@@ -633,5 +634,11 @@
   "TaskManager": {
     "Title": "Administrador de tareas de Calmira",
     "Unavailable": "Calmira se cerró de forma inesperada.\n\nAnular: salir de Windows (recomendado).\nReintentar: reiniciar Calmira.\nOmitir: iniciar el Administrador de tareas de Windows."
+  },
+  "Desktop": {
+    "MyDocuments": "Mis documentos"
+  },
+  "Memory": {
+    "Free": "%s libres"
   }
 }

@@ -38,5 +38,14 @@
     "1284": "Sortieren nach Typ",
     "1299": "Geändert (Uhrzeit)",
     "1300": "Geändert (Datum)"
+  },
+  "Menu": {
+    "My Documents": "Eigene Dateien"
+  },
+  "Desktop": {
+    "MyDocuments": "Eigene Dateien"
+  },
+  "Memory": {
+    "Free": "%s frei"
   }
 }
