@@ -2012,7 +2012,7 @@ archive-package-runtime-test: archive-package
 	sh tests/dos/test_archive_package.sh
 
 package: calmira dos-helpers lfnfuncs wndhooks help lfn-probe doslfn ctl3d languages pack-win16 archive-viewer clfn-hook
-	GDI="$(GDI)" BUILD_DIR='$(abspath $(BUILD_DIR))' UPX='$(abspath $(UPX))' sh tools/package.sh
+	GDI="$(GDI)" BUILD_DIR='$(abspath $(BUILD_DIR))' sh tools/package.sh
 
 # Silent GDI setup, Windows start with the installed shell, uninstall.
 package-runtime-test: package

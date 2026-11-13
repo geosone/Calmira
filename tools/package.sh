@@ -7,8 +7,6 @@ gdi=${GDI:-"$root/../gdi"}
 # fixed compiler (BUILD_DIR=build/class-pointer/...) never mixes in stale files.
 build=${BUILD_DIR:-build}
 case $build in /*) ;; *) build="$root/$build" ;; esac
-upx=${UPX:-"$build/tools/upx/upx"}
-case $upx in /*) ;; *) upx="$root/$upx" ;; esac
 stage="$build/package"
 
 required="
@@ -62,9 +60,6 @@ if [ ! -f "$gdi/build/INSTALL.EXE" ]; then
     exit 1
 fi
 
-python3 "$root/tools/pack_executables.py" --upx "$upx" \
-    --output "$build/packed/shell" "$build/calmira/CALMIRA.EXE"
-
 rm -rf "${stage:?}"
 
 mkdir -p "$stage/SYSTEM" "$stage/TRAY" "$stage/DOSLFN/NLS" "$stage/LANG"
@@ -73,7 +68,10 @@ cp "$gdi/build/INSTALL.EXE" "$stage/"
 cp "$root/install/install.ini" "$stage/INSTALL.INI"
 cp "$root/license" "$stage/LICENSE.TXT"
 cp "$root/readme.md" "$stage/README.TXT"
-cp "$build/packed/shell/CALMIRA.EXE" "$stage/"
+# The shell is not packed: UPX's NE wrapper runs a temporary copy under
+# another module name, so Calmira did not know it was the Windows shell and
+# Shut Down ended only Calmira, with a GPF and a hung Windows.
+cp "$build/calmira/CALMIRA.EXE" "$stage/"
 cp "$build/help/calmira.hlp" "$stage/CALMIRA.HLP"
 cp "$root/src/calmira.ini" "$stage/CALMIRA.INI"
 for helper in COUNTTIP DIREXIST DOSRUN; do

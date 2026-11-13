@@ -33,6 +33,7 @@ run() {
         for key in "$@"; do
             case $key in
                 wait:*) sleep "${key#wait:}" ;;   # until the dialog is up
+                shot:*) echo "screendump $work/${key#shot:}.ppm"; sleep 1 ;;
                 *) echo "sendkey $key"; sleep 2 ;;
             esac
         done
@@ -79,11 +80,12 @@ tr -d '\r' < "$work/autoexec-installed.bat" | grep -qix 'LH C:\\CALMIRA\\DOSLFN\
     fail 'the DOSLFN driver line was not added'
 echo 'PASS GDI installed Calmira silently: files, shell, DOSLFN and German catalogue'
 
-# Start Windows with the installed shell and driver.
-printf '@ECHO OFF\r\nLH C:\\CALMIRA\\DOSLFN\\DOSLFN.COM\r\nPATH C:\\;C:\\WINDOWS\r\nSET TEMP=C:\\TEMP\r\nC:\\SHARE.EXE /F:8192 /L:100\r\nC:\\WINDOWS\\WIN\r\n' > "$work/AUTOEXEC.BAT"
+# Start Windows with the installed shell and driver, then shut it down from
+# Calmira: the welcome box and the tip close first, then Shut Down asks.
+printf '@ECHO OFF\r\nLH C:\\CALMIRA\\DOSLFN\\DOSLFN.COM\r\nPATH C:\\;C:\\WINDOWS\r\nSET TEMP=C:\\TEMP\r\nC:\\SHARE.EXE /F:8192 /L:100\r\nC:\\WINDOWS\\WIN\r\nECHO PASS SHUTDOWN>C:\\CALSHUT.LOG\r\n' > "$work/AUTOEXEC.BAT"
 mcopy -o -i "$partition" "$work/AUTOEXEC.BAT" ::/
-run windows 90
-python3 - "$work/windows-end.ppm" <<'PY' || fail 'no Calmira taskbar after starting Windows'
+run windows 30 wait:87 shot:windows-desktop alt-f4 wait:4 alt-f4 wait:4 alt-f4 wait:4 shot:windows-shutdown ret
+python3 - "$work/windows-desktop.ppm" <<'PY' || fail 'no Calmira taskbar after starting Windows'
 import sys
 data = open(sys.argv[1], 'rb').read()
 # P6 header: magic, width height, maximum, then exactly one whitespace byte
@@ -107,6 +109,12 @@ print(f'widest white row near the bottom: {max(white)}/{width}')
 sys.exit(0 if max(white) == width else 1)
 PY
 echo 'PASS Windows starts with the installed Calmira shell'
+# Shut Down must end Windows, not only Calmira: as the shell it offers no
+# "Close Calmira" and Windows returns to DOS.
+mcopy -o -i "$partition" ::/CALSHUT.LOG "$work/shutdown.log" 2>/dev/null ||
+    fail 'Shut Down did not return to DOS'
+grep -q '^PASS SHUTDOWN' "$work/shutdown.log" || fail 'Shut Down did not return to DOS'
+echo 'PASS Shut Down ends Windows and returns to DOS'
 
 printf '@ECHO OFF\r\nPATH C:\\;C:\\WINDOWS\r\nC:\\CALMIRA\\INSTALL.EXE /U\r\nIF ERRORLEVEL 1 GOTO FAILED\r\nECHO PASS UNINSTALL>C:\\CALUN.LOG\r\nGOTO END\r\n:FAILED\r\nECHO FAIL UNINSTALL>C:\\CALUN.LOG\r\n:END\r\n' > "$work/AUTOEXEC.BAT"
 mcopy -o -i "$partition" "$work/AUTOEXEC.BAT" ::/

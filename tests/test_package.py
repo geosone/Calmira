@@ -54,5 +54,16 @@ class PackageTests(unittest.TestCase):
             self.assertIn(text, test)
 
 
+    def test_shell_is_not_packed_and_shuts_windows_down(self):
+        # UPX's NE wrapper runs a temporary ~UPX*.EXE: Calmira did not see
+        # itself as the shell, Shut Down ended only Calmira with a GPF.
+        package = (ROOT / 'tools/package.sh').read_text()
+        self.assertIn('cp "$build/calmira/CALMIRA.EXE" "$stage/"', package)
+        self.assertNotIn('packed/shell', package)
+        test = (ROOT / 'tests/dos/test_package.sh').read_text()
+        for text in ('shot:windows-desktop alt-f4 wait:4 alt-f4 wait:4 alt-f4 wait:4 shot:windows-shutdown ret',
+                     'ECHO PASS SHUTDOWN>C:\\\\CALSHUT.LOG', "fail 'Shut Down did not return to DOS'"):
+            self.assertIn(text, test)
+
 if __name__ == '__main__':
     unittest.main()

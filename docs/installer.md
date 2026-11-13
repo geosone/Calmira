@@ -51,8 +51,9 @@ for coverage and limitations.
 
 When Calmira is not chosen as the shell, GDI's `[ProgMan]` adds a "Calmira
 Reloaded" group with the shell and its help; uninstall removes them again.
-`MinWindows=3.1` stops setup early on Windows 3.0. The staging workflow uses UPX-packed FPC helper copies;
-the complete shell and remaining payload still need a successful build.
+`MinWindows=3.1` stops setup early on Windows 3.0. The staging workflow uses UPX-packed FPC helper copies,
+but not for the shell: UPX's NE wrapper runs a temporary copy under another
+module name, so Calmira would not recognise itself as the Windows shell.
 
 ## OpenLFN Loader and ZIP Preview
 
