@@ -86,6 +86,8 @@ for helper in CTASKMAN EXPLORER SCRNSAVE SHOWDESK; do
     python3 "$root/tools/ne_has_icon.py" "$stage/$helper.EXE"
 done
 cp "$root/bmp/shutdown.bmp" "$stage/SHUTDOWN.BMP"
+cp "$root/bmp/reloaded.bmp" "$stage/RELOADED.BMP"
+cp "$root/bmp/calm256.bmp" "$stage/CALM256.BMP"
 cp "$root/src/start.bat" "$stage/START.BAT"
 cp "$root/src/start.ini" "$stage/START.INI"
 cp "$root/src/tips.txt" "$stage/TIPS.TXT"

@@ -54,6 +54,18 @@ class PackageTests(unittest.TestCase):
         for line in section(descriptor, 'Files'):
             self.assertNotIn('*', line)
 
+    def test_every_installed_file_has_a_dos_name(self):
+        # Setup runs in DOS: RELOAD256.BMP (nine characters) stopped it.
+        import re
+        descriptor = (ROOT / 'install/install.ini').read_text()
+        for line in section(descriptor, 'Files'):
+            for path in re.split(r'[|=]', line):
+                name = path.replace('/', '\\').split('\\')[-1]
+                if not name or name[0].isdigit() and ',' in name or name.isdigit():
+                    continue
+                if '.' in name or name.isupper():
+                    self.assertRegex(name, r'^[^.\s]{1,8}(\.[^.\s]{1,3})?$', line)
+
     def test_dlls_go_where_windows_finds_them_without_replacing_shared_ones(self):
         files = section((ROOT / 'install/install.ini').read_text(), 'Files')
         self.assertIn('SYSTEM\\LFNFUNCS.DLL=%WINDIR%\\SYSTEM\\LFNFUNCS.DLL', files)
@@ -83,6 +95,40 @@ class PackageTests(unittest.TestCase):
         self.assertNotIn('pack-win16', rule)
         checker = (ROOT / 'tools/ne_has_icon.py').read_text()
         self.assertIn('if 14 not in resource_types(stream.read()):', checker)
+
+    def test_setup_chooses_the_windows_95_colours_and_the_wallpaper(self):
+        descriptor = (ROOT / 'install/install.ini').read_text(encoding='latin-1')
+        options = [line for line in descriptor.splitlines() if line.startswith('Option=')]
+        self.assertEqual(options[5], 'Option=on|Use the Windows 95 colour scheme')
+        self.assertEqual(options[6], 'Option=on|Use the Calmira Reloaded wallpaper')
+        self.assertIn('7|RELOADED.BMP=%WINDIR%\\RELOADED.BMP', descriptor)
+        self.assertIn('7|CALM256.BMP=%WINDIR%\\CALM256.BMP', descriptor)
+        win_ini = descriptor.split('\n[Win.ini]\n', 1)[1].split('\n[', 1)[0]
+        colours = [line for line in win_ini.splitlines() if line.startswith('Set=6|colors|')]
+        # All 21 colours of the scheme Calmira adds to CONTROL.INI.
+        self.assertEqual(len(colours), 21)
+        self.assertIn('Set=6|colors|Background=0 128 128', colours)
+        self.assertIn('Set=7|Desktop|Wallpaper=RELOADED.BMP', win_ini)
+        self.assertIn('Set=7|Desktop|TileWallpaper=0', win_ini)
+        settings = (ROOT / 'src/settings.pas').read_text(encoding='latin-1')
+        scheme = settings.split("'Windows 95 standard',", 1)[1].split(');', 1)[0]
+        scheme = ''.join(part.strip(" +\r\n'") for part in scheme.split("'"))
+        self.assertIn('Set=6|CONTROL.INI|color schemes|Windows 95 standard=' + scheme, descriptor)
+        self.assertIn('Set=6|CONTROL.INI|current|color schemes=Windows 95 standard', descriptor)
+        package = (ROOT / 'tools/package.sh').read_text()
+        self.assertIn('cp "$root/bmp/reloaded.bmp" "$stage/RELOADED.BMP"', package)
+        self.assertIn('cp "$root/bmp/calm256.bmp" "$stage/CALM256.BMP"', package)
+        # The default is pre-dithered to the 16 VGA colours, which every
+        # display shows; Windows maps a 256-colour image on a 16-colour
+        # screen to flat areas. Both are uncompressed.
+        for name, bits in (('reloaded.bmp', 4), ('calm256.bmp', 8)):
+            bitmap = (ROOT / 'bmp' / name).read_bytes()
+            self.assertEqual(bitmap[:2], b'BM')
+            layout = [int.from_bytes(bitmap[a:b], 'little') for a, b in ((18, 22), (22, 26), (28, 30), (30, 34))]
+            self.assertEqual(layout, [1024, 768, bits, 0], name)
+        runtime = (ROOT / 'tests/dos/test_package.sh').read_text()
+        self.assertIn("fail 'the Windows 95 scheme is not the current one in CONTROL.INI'", runtime)
+        self.assertIn('fail "the wallpaper $bitmap remains after uninstall"', runtime)
 
     def test_shell_is_not_packed_and_shuts_windows_down(self):
         # UPX's NE wrapper runs a temporary ~UPX*.EXE: Calmira did not see

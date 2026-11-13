@@ -59,6 +59,16 @@ UPX drops the resources of an NE program, so `EXPLORER.EXE` and the other
 helpers had no icon. `tools/package.sh` checks each staged helper with
 `tools/ne_has_icon.py`.
 
+Options 6 and 7, both on by default, give Windows the look Calmira was made
+for: the "Windows 95 standard" colour scheme that Calmira adds to
+`CONTROL.INI` becomes the current one, with its 21 colours in `WIN.INI`
+`[colors]`, and `RELOADED.BMP` (16 colours, for every display) goes to the
+Windows directory as the centred wallpaper, beside `CALM256.BMP` for
+256-colour drivers; the Desktop control panel lists both. GDI journals every
+value in `WIN.SET` and `INI.SET`; `INSTALL /U` puts the former colours,
+scheme and wallpaper back and removes the bitmap. Colours set under Windows
+take effect at the next start.
+
 ## OpenLFN Loader and ZIP Preview
 
 Option 5 installs `OLFNHOOK.DLL`, `OLFNLOAD.EXE`, `OLFNVIEW.EXE`,

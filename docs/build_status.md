@@ -3465,6 +3465,17 @@ Delphi's `TForm.WMEraseBkgnd` hands the erase on as `WM_ICONERASEBKGND`, and
 icon. The form now does the same. `make win16-forms-runtime-test` sets a teal
 desktop and requires teal behind a minimized red form.
 
+## Windows 95 Colours and the Calmira Reloaded Wallpaper
+
+Setup has two new options, both on by default: the "Windows 95 standard"
+scheme Calmira adds to `CONTROL.INI` becomes the current one, and the
+wallpaper `RELOADED.BMP` (computed clouds and the name, dithered to the 16
+VGA colours) is installed in the Windows directory and centred, with
+`CALM256.BMP` beside it for 256-colour displays. Uninstall restores the former colours, scheme
+and wallpaper. `make package-runtime-test` checks `WIN.INI` and
+`CONTROL.INI` after setup and uninstall and looks for the sky on the desktop
+of the installed shell.
+
 ## Wallpapers with a Short Palette in Desktop Properties
 
 The monitor in Desktop Properties stayed empty for the 256-colour Calmira

@@ -24,6 +24,8 @@ mcopy -i "$partition" ::/WINDOWS/SYSTEM.INI "$work/system-grown.ini"
 mcopy -o -i "$partition" "$work/system-grown.ini" ::/WINDOWS/SYSTEM.INI
 mcopy -i "$partition" ::/WINDOWS/SYSTEM.INI "$work/system-before.ini"
 mcopy -i "$partition" ::/WINDOWS/SYSTEM/CTL3DV2.DLL "$work/ctl3dv2-before.dll"
+mcopy -i "$partition" ::/WINDOWS/WIN.INI "$work/win-before.ini"
+mcopy -i "$partition" ::/WINDOWS/CONTROL.INI "$work/control-before.ini"
 mmd -i "$partition" ::/CALSRC
 mcopy -s -i "$partition" "$package/"* ::/CALSRC/
 # A German country code must preselect the German catalogue.
@@ -50,6 +52,12 @@ run() {
         -drive "if=ide,index=0,format=raw,file=$work/test.img" > "$work/$phase-qemu.log" 2>&1
 }
 fail() { echo "FAIL $*" >&2; exit 1; }
+# ini_value FILE SECTION KEY: a value of an INI file, sections and keys in any case
+ini_value() {
+    tr -d '\r' < "$1" | awk -v s="[$2]" -v k="$3" '
+        /^\[/ { in_s = (tolower($0) == tolower(s)); next }
+        in_s { i = index($0, "="); if (i && tolower(substr($0, 1, i - 1)) == tolower(k)) { print substr($0, i + 1); exit } }'
+}
 
 run install 60
 mcopy -o -i "$partition" ::/CALPKG.LOG "$work/install.log"
@@ -85,6 +93,26 @@ tr -d '\r' < "$work/autoexec-installed.bat" | grep -qix 'LH C:\\CALMIRA\\DOSLFN\
     fail 'the DOSLFN driver line was not added'
 echo 'PASS GDI installed Calmira silently: files, shell, DOSLFN and German catalogue'
 
+# Options 6 and 7 are on by default: the Windows 95 colours, active in
+# CONTROL.INI, and the wallpaper in the Windows directory.
+mcopy -o -i "$partition" ::/WINDOWS/WIN.INI "$work/win-installed.ini"
+mcopy -o -i "$partition" ::/WINDOWS/CONTROL.INI "$work/control-installed.ini"
+mcopy -o -i "$partition" ::/WINDOWS/RELOADED.BMP "$work/reloaded-installed.bmp" ||
+    fail 'the wallpaper is not in the Windows directory'
+cmp "$package/RELOADED.BMP" "$work/reloaded-installed.bmp" || fail 'the wallpaper differs from the package'
+mcopy -o -i "$partition" ::/WINDOWS/CALM256.BMP "$work/calm256-installed.bmp" ||
+    fail 'the 256-colour wallpaper is not in the Windows directory'
+cmp "$package/CALM256.BMP" "$work/calm256-installed.bmp" || fail 'the 256-colour wallpaper differs from the package'
+[ "$(ini_value "$work/win-installed.ini" Desktop Wallpaper)" = RELOADED.BMP ] ||
+    fail 'the wallpaper is not set in WIN.INI'
+[ "$(ini_value "$work/win-installed.ini" colors Background)" = '0 128 128' ] ||
+    fail 'the Windows 95 colours are not set in WIN.INI'
+[ "$(ini_value "$work/win-installed.ini" colors ButtonHilight)" = '255 255 255' ] ||
+    fail 'the Windows 95 colours are incomplete in WIN.INI'
+[ "$(ini_value "$work/control-installed.ini" current 'color schemes')" = 'Windows 95 standard' ] ||
+    fail 'the Windows 95 scheme is not the current one in CONTROL.INI'
+echo 'PASS Setup chose the Windows 95 colours and the Calmira Reloaded wallpaper'
+
 # Start Windows with the installed shell and driver, then shut it down from
 # Calmira: the welcome box and the tip close first, then Shut Down asks.
 printf '@ECHO OFF\r\nLH C:\\CALMIRA\\DOSLFN\\DOSLFN.COM\r\nPATH C:\\;C:\\WINDOWS\r\nSET TEMP=C:\\TEMP\r\nC:\\SHARE.EXE /F:8192 /L:100\r\nC:\\WINDOWS\\WIN\r\nECHO PASS SHUTDOWN>C:\\CALSHUT.LOG\r\n' > "$work/AUTOEXEC.BAT"
@@ -111,7 +139,11 @@ white = [sum(1 for x in range(width)
              if pixels[(y * width + x) * 3:(y * width + x) * 3 + 3] == b'\xff\xff\xff')
          for y in range(height - 40, height)]
 print(f'widest white row near the bottom: {max(white)}/{width}')
-sys.exit(0 if max(white) == width else 1)
+# The wallpaper's sky: clearly blue pixels across the desktop.
+sky = sum(1 for i in range(0, width * (height - 40) * 3, 3 * 7)
+          if pixels[i + 2] > 150 and pixels[i + 2] > pixels[i] + 60)
+print(f'sky samples: {sky}')
+sys.exit(0 if max(white) == width and sky > 1000 else 1)
 PY
 echo 'PASS Windows starts with the installed Calmira shell'
 # Shut Down must end Windows, not only Calmira: as the shell it offers no
@@ -144,4 +176,21 @@ if mdir -i "$partition" ::/WINDOWS/SYSTEM/LFNFUNCS.DLL >/dev/null 2>&1; then
 fi
 mcopy -o -i "$partition" ::/WINDOWS/SYSTEM/CTL3DV2.DLL "$work/ctl3dv2-after.dll"
 cmp "$work/ctl3dv2-before.dll" "$work/ctl3dv2-after.dll" || fail 'CTL3DV2.DLL changed by uninstall'
-echo 'PASS GDI uninstalled Calmira and restored SYSTEM.INI and AUTOEXEC.BAT'
+mcopy -o -i "$partition" ::/WINDOWS/WIN.INI "$work/win-after.ini"
+mcopy -o -i "$partition" ::/WINDOWS/CONTROL.INI "$work/control-after.ini"
+for key in Background ActiveTitle ButtonFace Hilight ButtonHilight; do
+    [ "$(ini_value "$work/win-after.ini" colors $key)" = "$(ini_value "$work/win-before.ini" colors $key)" ] ||
+        fail "the colour $key was not restored"
+done
+for key in Wallpaper TileWallpaper; do
+    [ "$(ini_value "$work/win-after.ini" Desktop $key)" = "$(ini_value "$work/win-before.ini" Desktop $key)" ] ||
+        fail "the desktop $key was not restored"
+done
+[ "$(ini_value "$work/control-after.ini" current 'color schemes')" = "$(ini_value "$work/control-before.ini" current 'color schemes')" ] ||
+    fail 'the current colour scheme was not restored'
+for bitmap in RELOADED.BMP CALM256.BMP; do
+    if mdir -i "$partition" ::/WINDOWS/$bitmap >/dev/null 2>&1; then
+        fail "the wallpaper $bitmap remains after uninstall"
+    fi
+done
+echo 'PASS GDI uninstalled Calmira and restored SYSTEM.INI, AUTOEXEC.BAT, colours and wallpaper'

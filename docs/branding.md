@@ -35,6 +35,15 @@ with the pinned Open386MAX Python compiler and local table fixes. The verified
 OpenWatcom WHC's incomplete attempt was not used. See [help.md](help.md) for
 rebuild commands, coverage and native Windows 3.11 checks.
 
+The wallpaper shows computed clouds around a clear blue middle with the name
+in white Noto Sans Black (SIL Open Font License 1.1); no photograph is used.
+`bmp/calm256.bmp` (1024×768, 236 colours) is the master; the default
+`bmp/reloaded.bmp` is the same picture ordered-dithered to the blue, grey and
+white of the 16 VGA colours, because Windows 3.1 maps a 256-colour bitmap on
+a 16-colour display to flat areas. The bitmaps themselves are the source:
+they were rendered once and chosen by eye, so the build does not regenerate
+them. A 640×480 screen shows their middle.
+
 ## Rebuilding Resources
 
 The shell loads `TITLE` and `BANNER` from `src/bitmaps.res`; replacing standalone
