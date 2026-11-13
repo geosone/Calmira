@@ -107,6 +107,25 @@ class ShellUnitTests(unittest.TestCase):
         start = (ROOT / 'tests/pascal/test_win16_calmira_start.pas').read_text()
         self.assertIn('the Start menu image cache is rebuilt after the groups are synchronised', start)
 
+    def test_program_groups_become_menus_of_their_own(self):
+        # The groups went into a "Program Manager" submenu below the English
+        # stand-ins of START.INI, after the programs, and German Windows'
+        # Autostart group never ran.
+        source = (ROOT / 'src/grpsync.pas').read_text()
+        body = source.split('function SyncProgramGroups(Force: Boolean;', 2)[2]
+        self.assertIn("GroupSection := ParentSection + '\\' + GroupCaption;", body)
+        self.assertIn("DefaultGroups: array[0..4] of string[11] = ('Accessories', 'Games',", source)
+        self.assertIn("'Autostart'", source)
+        self.assertIn("ini.ReadString('Start Menu', 'StartupGroup', NoKey) = NoKey", body)
+        self.assertLess(body.index('PutFoldersFirst(StartProfile, ParentSection);'),
+                        body.index("ini.WriteString('Start Menu', 'ProgramGroupsSignature', Signature);"))
+        start = (ROOT / 'tests/pascal/test_win16_calmira_start.pas').read_text()
+        for text in ('Program Manager groups become menus of their own under Programs',
+                     'the English stand-ins of START.INI give way to the real groups',
+                     'the groups stand above the programs, in alphabetical order',
+                     'the German startup group Autostart is the one Calmira runs'):
+            self.assertIn(text, start)
+
     def test_inifiles_uses_profile_api(self):
         source = (ROOT / 'src/win16/inifiles.pas').read_text()
         self.assertIn('GetPrivateProfileString', source)

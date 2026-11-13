@@ -3392,3 +3392,24 @@ which GDI 1.16.3 expands, so only Calmira's own line goes.
 `make package-runtime-test` appends 150 lines (about 5 KB) to SYSTEM.INI
 before it installs, and requires AUTOEXEC.BAT without the DOSLFN line after
 uninstall.
+
+## Program Manager Groups as Start Menus
+
+On German Windows 3.11, Programs showed the English stand-ins of `START.INI`
+(Accessories, Games, Main, Network, Startup) and, below its programs, a
+`Program Manager` submenu with the real groups: every group twice, and a
+group that ClarisWorks setup added appeared only in that submenu. The
+startup group `Autostart` never ran, because Calmira looked for `Startup`.
+
+Each group is now a menu of its own under Programs. The first
+synchronisation drops the stand-ins and the old submenu; `[Program Groups]`
+in `CALMIRA.INI` lists the menus that came from groups, so later runs
+replace only those. The submenus of Programs stand above its programs, in
+alphabetical order. Without a `StartupGroup=`, the synchronisation takes the
+group that `PROGMAN.INI` names with `Startup=`, or the Startup group under
+its name in the languages of Windows 3.1.
+
+`make win16-calmira-start-runtime-test` starts Calmira on German Windows
+3.11 and requires `Hauptgruppe` directly under Programs, no stand-ins and
+no `Program Manager` submenu, groups above programs in alphabetical order,
+and `StartupGroup=Autostart` in `CALMIRA.INI`.

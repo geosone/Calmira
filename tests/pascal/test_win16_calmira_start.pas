@@ -75,6 +75,37 @@ begin
   Result := StrPas(Buffer);
 end;
 
+function CalmiraEntry(const Section, Key: string): string;
+var S, K, D, F: array[0..79] of Char; Buffer: array[0..255] of Char;
+begin
+  GetPrivateProfileString(StrPCopy(S, Section), StrPCopy(K, Key), StrPCopy(D, ''),
+    Buffer, SizeOf(Buffer), StrPCopy(F, 'C:\CALMIRA.INI'));
+  Result := StrPas(Buffer);
+end;
+
+{ The submenus of Programs come first, in alphabetical order, then the
+  programs: no group may follow a program. }
+function FoldersFirst: Boolean;
+var S, D, F: array[0..79] of Char; Buffer: array[0..4095] of Char;
+  P: PChar; Key, Last: string; SeenItem: Boolean;
+begin
+  Result := True; SeenItem := False; Last := '';
+  GetPrivateProfileString(StrPCopy(S, 'Start\&Programs'), nil, StrPCopy(D, ''), Buffer,
+    SizeOf(Buffer), StrPCopy(F, 'C:\START.INI'));
+  P := Buffer;
+  while P^ <> #0 do
+  begin
+    Key := StrPas(P);
+    if Key[Length(Key)] = '*' then
+    begin
+      if SeenItem or (CompareText(Key, Last) < 0) then Result := False;
+      Last := Key;
+    end
+    else SeenItem := True;
+    Inc(P, StrLen(P) + 1);
+  end;
+end;
+
 { A stale Start menu image cache: a valid 1x1 bitmap of 58 bytes. }
 procedure WriteStaleCache;
 const Bytes: array[0..57] of Byte = (
@@ -124,11 +155,18 @@ begin
     Manager := FindWindow('Progman', nil); GetWindowRect(Manager, R);
     Check((Manager <> 0) and IsIconic(Manager) and (R.Top >= GetSystemMetrics(SM_CYSCREEN)),
       'Program Manager has a taskbar button, so its icon moves off the desktop');
-    Check(StartEntry('Start\&Programs', 'Program Manager*') <> '',
-      'Program Manager groups are synchronised into the Start menu');
-    Check((StartEntry('Start\&Programs\Program Manager', 'Hauptgruppe*') <> '') and
-      (StartEntry('Start\&Programs\Program Manager', 'Hauptgruppe (99)*') = ''),
+    Check((StartEntry('Start\&Programs', 'Hauptgruppe*') <> '') and
+      (StartEntry('Start\&Programs\Hauptgruppe', 'Systemsteuerung') <> ''),
+      'Program Manager groups become menus of their own under Programs');
+    Check((StartEntry('Start\&Programs', 'Program Manager*') = '') and
+      (StartEntry('Start\&Programs', 'Accessories*') = '') and
+      (StartEntry('Start\&Programs', 'Startup*') = ''),
+      'the English stand-ins of START.INI give way to the real groups');
+    Check(StartEntry('Start\&Programs', 'Hauptgruppe (99)*') = '',
       'group names keep their captions, without a (99) suffix');
+    Check(FoldersFirst, 'the groups stand above the programs, in alphabetical order');
+    Check(CalmiraEntry('Start Menu', 'StartupGroup') = 'Autostart',
+      'the German startup group Autostart is the one Calmira runs');
     { The synchronisation rewrote START.INI, so the image cache built for
       the old menu must not be used: its icons would sit one item off. }
     Check((CacheSize > 58), 'the Start menu image cache is rebuilt after the groups are synchronised');

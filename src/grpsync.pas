@@ -1,4 +1,4 @@
-{ Import Windows 3.x Program Manager groups into an owned Start-menu tree. }
+{ Import Windows 3.x Program Manager groups as Start menus of their own. }
 unit GrpSync;
 
 interface
@@ -152,18 +152,106 @@ begin
   end;
 end;
 
+const
+  { CALMIRA.INI lists the Start menus that the groups made, so the next
+    synchronisation replaces them and leaves menus of the user alone. }
+  OwnedSection = 'Program Groups';
+  { The menus of a fresh START.INI: English stand-ins for the groups. }
+  DefaultGroups: array[0..4] of string[11] = ('Accessories', 'Games',
+    'Main', 'Network', 'Startup');
+  { Program Manager's startup group in the languages of Windows 3.1, for
+    a PROGMAN.INI without a Startup= setting. }
+  StartupNames: array[0..5] of string[21] = ('Startup', 'Autostart',
+    'D'#233'marrage', 'Opstarten', 'Esecuzione automatica', 'Inicio');
+
+function MenuText(const Key: string): string;
+var
+  S: string;
+  I: Integer;
+begin
+  S := Key;
+  if (S <> '') and (S[Length(S)] = '*') then
+    Delete(S, Length(S), 1);
+  I := Pos('&', S);
+  if I <> 0 then
+    Delete(S, I, 1);
+  MenuText := S;
+end;
+
+{ Submenus first, alphabetically, then programs and separators in their
+  order: imported groups were appended below the programs before. }
+procedure PutFoldersFirst(Profile: TProfile; const Section: string);
+var
+  Keys, FolderKeys, FolderValues, OtherKeys, OtherValues: TStringList;
+  Key: string;
+  I, J: Integer;
+begin
+  Keys := TStringList.Create;
+  FolderKeys := TStringList.Create;
+  FolderValues := TStringList.Create;
+  OtherKeys := TStringList.Create;
+  OtherValues := TStringList.Create;
+  try
+    Profile.ReadSection(Section, Keys);
+    for I := 0 to Keys.Count - 1 do
+    begin
+      Key := Keys[I];
+      if (Key <> '') and (Key[Length(Key)] = '*') then
+      begin
+        J := 0;
+        while (J < FolderKeys.Count) and
+          (CompareText(MenuText(FolderKeys[J]), MenuText(Key)) <= 0) do
+          Inc(J);
+        FolderKeys.Insert(J, Key);
+        FolderValues.Insert(J, Profile.ReadString(Section, Key, ''));
+      end
+      else
+      begin
+        OtherKeys.Add(Key);
+        OtherValues.Add(Profile.ReadString(Section, Key, ''));
+      end;
+    end;
+    Profile.EraseSection(Section);
+    for I := 0 to FolderKeys.Count - 1 do
+      Profile.WriteString(Section, FolderKeys[I], FolderValues[I]);
+    for I := 0 to OtherKeys.Count - 1 do
+      Profile.WriteString(Section, OtherKeys[I], OtherValues[I]);
+  finally
+    OtherValues.Free;
+    OtherKeys.Free;
+    FolderValues.Free;
+    FolderKeys.Free;
+    Keys.Free;
+  end;
+end;
+
+procedure ReadOwnedMenus(Owned: TStringList);
+var
+  Keys: TStringList;
+  I: Integer;
+begin
+  Keys := TStringList.Create;
+  try
+    ini.ReadSection(OwnedSection, Keys);
+    for I := 0 to Keys.Count - 1 do
+      Owned.Add(ini.ReadString(OwnedSection, Keys[I], ''));
+  finally
+    Keys.Free;
+  end;
+end;
+
 function SyncProgramGroups(Force: Boolean;
   var Imported, Rejected: Integer): Boolean;
 var
   Progman, StartProfile: TProfile;
-  Names, Paths: TStringList;
+  Names, Paths, Owned, Captions, GroupNames: TStringList;
   Group: ^TProgramGroup;
-  ErrorText, Path, Signature, OldSignature: string;
+  ErrorText, Path, Signature, OldSignature, StartupName: string;
   ProgramsCaption, RootCaption, ParentSection, RootSection,
     GroupCaption, GroupSection, ItemCaption: string;
   Hash: Longint;
   I, J: Integer;
-  RootPresent: Boolean;
+  Present, OldTree: Boolean;
 begin
   SyncProgramGroups := False;
   Imported := 0;
@@ -172,6 +260,9 @@ begin
     Exit;
   Names := TStringList.Create;
   Paths := TStringList.Create;
+  Owned := TStringList.Create;
+  Captions := TStringList.Create;
+  GroupNames := TStringList.Create;
   New(Group);
   try
     Progman := TProfile.Create(WinPath + 'PROGMAN.INI');
@@ -183,11 +274,15 @@ begin
         if Path <> '' then
           Paths.Add(OemPath(Path));
       end;
+      StartupName := Progman.ReadString('Settings', 'Startup', '');
     finally
       Progman.Free;
     end;
 
     Hash := 5381;
+    { The groups became menus of their own in 5.0.92; an older signature
+      must not keep the former Program Manager submenu. }
+    HashString(Hash, 'menus');
     for I := 0 to Paths.Count - 1 do
       if LoadProgramGroup(Paths[I], Group^, ErrorText) then
       begin
@@ -204,46 +299,81 @@ begin
       'ProgramGroupsSignature', '');
     ProgramsCaption := CleanName(ini.ReadString('Start Menu',
       'ProgramsGroup', '&Programs'), '&Programs');
+    { The caption of the submenu that earlier versions filled. }
     RootCaption := CleanName(ini.ReadString('Start Menu',
       'ProgramGroupsCaption', 'Program Manager'), 'Program Manager');
     ParentSection := 'Start\' + ProgramsCaption;
     RootSection := ParentSection + '\' + RootCaption;
+    ReadOwnedMenus(Owned);
     StartProfile := TProfile.Create(StartFile);
     try
-      RootPresent := StartProfile.ReadString(ParentSection,
+      OldTree := StartProfile.ReadString(ParentSection,
         RootCaption + '*', NoKey) <> NoKey;
-      if not Force and (Signature = OldSignature) and
-        (((Imported <> 0) and RootPresent) or
-         ((Imported = 0) and not RootPresent)) then
+      Present := Owned.Count = Imported;
+      for I := 0 to Owned.Count - 1 do
+        if StartProfile.ReadString(ParentSection, Owned[I] + '*',
+          NoKey) = NoKey then
+          Present := False;
+      if not Force and (Signature = OldSignature) and Present and
+        not OldTree then
         Exit;
-      RemoveImportedTree(StartProfile, ParentSection, RootCaption,
-        RootSection);
-      if Imported <> 0 then
-      begin
-        StartProfile.WriteString(ParentSection, RootCaption + '*',
-          ';;0;<programs>;0');
-        for I := 0 to Paths.Count - 1 do
-          if LoadProgramGroup(Paths[I], Group^, ErrorText) then
-          begin
-            GroupCaption := UniqueKey(StartProfile, RootSection,
-              CleanName(Group^.Name, 'Group'), True);
-            StartProfile.WriteString(RootSection, GroupCaption + '*',
-              ';;0;<programs>;0');
-            GroupSection := RootSection + '\' + GroupCaption;
-            for J := 0 to Group^.ProgramCount - 1 do
-              with Group^.Programs[J] do
-              begin
-                ItemCaption := UniqueKey(StartProfile, GroupSection,
-                  CleanName(Caption, 'Program'), False);
-                StartProfile.WriteString(GroupSection, ItemCaption,
-                  PackStartInfo(Command, WorkDirectory, IconFile,
-                    CalmiraShowMode(ShowCommand), IconIndex));
-              end;
-          end;
-      end;
+      if OldTree then
+        RemoveImportedTree(StartProfile, ParentSection, RootCaption,
+          RootSection);
+      { The first groups replace the stand-ins of a fresh START.INI. }
+      if (Owned.Count = 0) and (Imported <> 0) then
+        for I := Low(DefaultGroups) to High(DefaultGroups) do
+          Owned.Add(DefaultGroups[I]);
+      for I := 0 to Owned.Count - 1 do
+        RemoveImportedTree(StartProfile, ParentSection, Owned[I],
+          ParentSection + '\' + Owned[I]);
+      for I := 0 to Paths.Count - 1 do
+        if LoadProgramGroup(Paths[I], Group^, ErrorText) then
+        begin
+          GroupCaption := UniqueKey(StartProfile, ParentSection,
+            CleanName(Group^.Name, 'Group'), True);
+          StartProfile.WriteString(ParentSection, GroupCaption + '*',
+            ';;0;<programs>;0');
+          Captions.Add(GroupCaption);
+          GroupNames.Add(Group^.Name);
+          GroupSection := ParentSection + '\' + GroupCaption;
+          for J := 0 to Group^.ProgramCount - 1 do
+            with Group^.Programs[J] do
+            begin
+              ItemCaption := UniqueKey(StartProfile, GroupSection,
+                CleanName(Caption, 'Program'), False);
+              StartProfile.WriteString(GroupSection, ItemCaption,
+                PackStartInfo(Command, WorkDirectory, IconFile,
+                  CalmiraShowMode(ShowCommand), IconIndex));
+            end;
+        end;
+      PutFoldersFirst(StartProfile, ParentSection);
     finally
       StartProfile.Free;
     end;
+    ini.EraseSection(OwnedSection);
+    for I := 0 to Captions.Count - 1 do
+      ini.WriteString(OwnedSection, 'Menu' + IntToStr(I + 1), Captions[I]);
+    { Calmira runs the startup group as the shell; German Windows calls it
+      Autostart. A StartupGroup= of the user stays. }
+    if ini.ReadString('Start Menu', 'StartupGroup', NoKey) = NoKey then
+      for I := 0 to GroupNames.Count - 1 do
+      begin
+        if StartupName <> '' then
+          Present := CompareText(GroupNames[I], StartupName) = 0
+        else
+        begin
+          Present := False;
+          for J := Low(StartupNames) to High(StartupNames) do
+            if CompareText(GroupNames[I], StartupNames[J]) = 0 then
+              Present := True;
+        end;
+        if Present then
+        begin
+          ini.WriteString('Start Menu', 'StartupGroup', Captions[I]);
+          Break;
+        end;
+      end;
     ini.WriteString('Start Menu', 'ProgramGroupsSignature', Signature);
     { As the Start menu editor does: the image cache follows START.INI item
       by item, so a changed menu must rebuild it, or the icons slip. }
@@ -251,6 +381,9 @@ begin
     SyncProgramGroups := True;
   finally
     Dispose(Group);
+    GroupNames.Free;
+    Captions.Free;
+    Owned.Free;
     Paths.Free;
     Names.Free;
   end;
