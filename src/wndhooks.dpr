@@ -48,6 +48,9 @@ library WndHooks;
 
   File Change Notification - detects file changes reported by the kernel.
 
+  Dialog hook (Calmira Reloaded) - gives the dialogs of every program the
+    3D look of CTL3DV2.DLL, as Delphi does for its common dialogs.
+
   Thanks to Ralf Scheiner for the code to constrain maximized windows. }
 
 {$C FIXED}
@@ -77,6 +80,107 @@ var
   KeyCallBack : HWND;
 
   NotifyCallBack: HWND;
+
+{ Dialog hook: CTL3D for the dialogs of every program }
+
+type
+  TCtl3DInstance = function(Instance: THandle): Bool;
+  TCtl3DDialogEx = function(Wnd: HWND; Flags: LongInt): Bool;
+  PDialogHookMsg = ^TDialogHookMsg;
+  TDialogHookMsg = record
+    lParam: Longint;
+    wParam: Word;
+    uMsg: Word;
+    hWnd: THandle;
+  end;
+
+const
+  { Export ordinals of CTL3DV2.DLL, as in Calmira's VCL }
+  OrdCtl3DRegister = 12; OrdCtl3DUnregister = 13; OrdCtl3DSubclassDlgEx = 21;
+  MaxCtl3DClients = 32;
+
+var
+  DialogHook: HHook;
+  Ctl3DLib: THandle;
+  Ctl3DRegister, Ctl3DUnregister: TCtl3DInstance;
+  Ctl3DSubclassDlgEx: TCtl3DDialogEx;
+  Ctl3DOwnTask: THandle;
+  Ctl3DClients: array[0..MaxCtl3DClients - 1] of THandle;
+  Ctl3DClientCount: Integer;
+
+{ KERNEL's GetProcAddress, by ordinal; Free Pascal names it WinGetProcAddress }
+function Ctl3DEntry(Ordinal: Word): Pointer;
+begin
+  Result := {$IFDEF FPC}WinGetProcAddress{$ELSE}GetProcAddress{$ENDIF}(Ctl3DLib, MakeIntResource(Ordinal));
+end;
+
+{ Registers a program with CTL3D once; False when CTL3D has no room. }
+function Ctl3DClient(Instance: THandle): Boolean;
+var i: Integer;
+begin
+  Result := True;
+  for i := 0 to Ctl3DClientCount - 1 do
+    if Ctl3DClients[i] = Instance then Exit;
+  Result := (Ctl3DClientCount < MaxCtl3DClients) and Ctl3DRegister(Instance);
+  if Result then
+  begin
+    Ctl3DClients[Ctl3DClientCount] := Instance;
+    Inc(Ctl3DClientCount);
+  end;
+end;
+
+function DialogProc(Code: Integer; wParam: Word; lParam: Longint): Longint; export;
+var
+  ClassName: array[0..15] of Char;
+begin
+  if Code >= 0 then
+    with PDialogHookMsg(lParam)^ do
+      { A standard dialog of another program, before its own WM_INITDIALOG }
+      if (uMsg = WM_INITDIALOG) and (GetWindowTask(hWnd) <> Ctl3DOwnTask) and
+        (GetClassName(hWnd, ClassName, SizeOf(ClassName)) > 0) and
+        (lstrcmp(ClassName, '#32770') = 0) and
+        Ctl3DClient(GetWindowWord(hWnd, GWW_HINSTANCE)) then
+        Ctl3DSubclassDlgEx(hWnd, $FFFF);
+  Result := CallNextHookEx(DialogHook, Code, wParam, lParam);
+end;
+
+procedure SetCtl3DDialogs(Enable: Boolean); export;
+var
+  ErrorMode: Word;
+begin
+  if DialogHook <> 0 then UnhookWindowsHookEx(DialogHook);
+  DialogHook := 0;
+  if Ctl3DLib <> 0 then
+  begin
+    while Ctl3DClientCount > 0 do
+    begin
+      Dec(Ctl3DClientCount);
+      Ctl3DUnregister(Ctl3DClients[Ctl3DClientCount]);
+    end;
+    FreeLibrary(Ctl3DLib);
+    Ctl3DLib := 0;
+  end;
+  if not Enable then Exit;
+  ErrorMode := SetErrorMode(SEM_NOOPENFILEERRORBOX);
+  Ctl3DLib := LoadLibrary('CTL3DV2.DLL');
+  SetErrorMode(ErrorMode);
+  if Ctl3DLib < HINSTANCE_ERROR then
+  begin
+    Ctl3DLib := 0;
+    Exit;
+  end;
+  @Ctl3DRegister := Ctl3DEntry(OrdCtl3DRegister);
+  @Ctl3DUnregister := Ctl3DEntry(OrdCtl3DUnregister);
+  @Ctl3DSubclassDlgEx := Ctl3DEntry(OrdCtl3DSubclassDlgEx);
+  if not (Assigned(Ctl3DRegister) and Assigned(Ctl3DUnregister) and Assigned(Ctl3DSubclassDlgEx)) then
+  begin
+    FreeLibrary(Ctl3DLib);
+    Ctl3DLib := 0;
+    Exit;
+  end;
+  Ctl3DOwnTask := GetCurrentTask;
+  DialogHook := SetWindowsHookEx(WH_CALLWNDPROC, DialogProc, HInstance, 0);
+end;
 
 { Shell hook }
 
@@ -422,7 +526,9 @@ exports
   SetWin95KeyEnabled index 19,
   { 3.2 }
   StartFileMonitor index 20,
-  StopFileMonitor index 21;
+  StopFileMonitor index 21,
+  { Calmira Reloaded }
+  SetCtl3DDialogs index 22;
 
 begin
   ScreenWidth := GetSystemMetrics(SM_CXSCREEN);

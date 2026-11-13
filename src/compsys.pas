@@ -427,6 +427,7 @@ begin
   else ReleaseKeyboardHook;
   SetRCloseEnabled(RightClose);
   SetRButtonUpClose(RButtonUpClose);
+  if Assigned(SetCtl3DDialogs) then SetCtl3DDialogs(Ctl3DDialogs);
   { 3.11 }
   Timer.Interval := ini.ReadInteger('Calmira', 'TimerInterval', 1000);
   Application.HintColor := ini.ReadColor('Calmira',

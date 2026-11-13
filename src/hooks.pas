@@ -54,6 +54,8 @@ var
   { 3.2 }
   StartFileMonitor    : function(CallBack: HWND): Boolean;
   StopFileMonitor     : procedure;
+  { Calmira Reloaded: CTL3D for the dialogs of every program }
+  SetCtl3DDialogs     : procedure(Enable: Boolean);
 
 implementation
 
@@ -92,10 +94,13 @@ begin
   @SetWin95KeyEnabled  := GetProcAddress(WndHookDLL, 'SETWIN95KEYENABLED');
   @StartFileMonitor    := GetProcAddress(WndHookDLL, 'STARTFILEMONITOR');
   @StopFileMonitor     := GetProcAddress(WndHookDLL, 'STOPFILEMONITOR');
+  @SetCtl3DDialogs     := GetProcAddress(WndHookDLL, 'SETCTL3DDIALOGS');
 end;
 
 procedure DoneLibrary; far;
 begin
+  { The dialog hook must not outlive Calmira }
+  if Assigned(SetCtl3DDialogs) then SetCtl3DDialogs(False);
   FreeLibrary(WndHookDLL);
 end;
 

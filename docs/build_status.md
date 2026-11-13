@@ -3522,3 +3522,16 @@ leaves caption, buttons and system menu to Windows. The setting is read at
 start. `make win16-captions-runtime-test` opens My Computer and finds the
 title in the middle of the caption; `make win16-win95-captions-runtime-test`
 sets `Win95Captions=1` and finds it on the left, after the small icon.
+
+## CTL3D for the Dialogs of Every Program
+
+`[Preferences] Ctl3DDialogs=1` in `CALMIRA.INI` (off by default) gives the
+standard dialogs of all programs the 3D look of `CTL3DV2.DLL`, as Delphi 1
+does for its common dialogs. `WNDHOOKS.DLL` exports `SetCtl3DDialogs`
+(ordinal 22): a `WH_CALLWNDPROC` hook sees `WM_INITDIALOG` for a `#32770`
+window of another task, registers that program with CTL3D once and calls
+`Ctl3dSubclassDlgEx`. Calmira switches it with its other hooks and turns it
+off, unregistering the programs, when it ends. `make
+win16-ctl3d-dialogs-runtime-test` opens a dialog of another program and
+finds CTL3D's grey face; `make win16-plain-dialogs-runtime-test` finds the
+white face of Windows 3.1 without the setting.

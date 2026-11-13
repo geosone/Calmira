@@ -120,6 +120,7 @@ var
 
   Win95Keyboard   : Boolean; { set in Start menu properties }
   ShowShutDownBMP : Boolean; { 3.0 }
+  Ctl3DDialogs    : Boolean; { Calmira Reloaded: CTL3D for every program }
   Browser         : TLfnFilename; { 3.11 }
 
   { File system properties }
@@ -673,6 +674,8 @@ begin
     { Calmira Reloaded: Windows draws the Windows 3.1 caption of Calmira's
       windows; Win95Captions=1 brings back Calmira's own Windows 95 one. }
     NewStyleControls := not ReadBool('Preferences', 'Win95Captions', False);
+    { The 3D dialogs of CTL3DV2.DLL for every program, off by default. }
+    Ctl3DDialogs := ReadBool('Preferences', 'Ctl3DDialogs', False);
 {$ENDIF}
     { 3.11 }
     Browser := ReadString('Internet', 'Browser', '');

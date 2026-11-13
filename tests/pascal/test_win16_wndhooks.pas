@@ -78,19 +78,19 @@ end;
 
 procedure CheckExports;
 const
-  Names: array[1..21] of string[20] = ('STARTTASKMONITOR', 'STOPTASKMONITOR',
+  Names: array[1..22] of string[20] = ('STARTTASKMONITOR', 'STOPTASKMONITOR',
     'SETWNDHOOK', 'UNHOOKWNDHOOK', 'SETYLIMIT', 'STARTMOUSEMONITOR',
     'STOPMOUSEMONITOR', 'ENABLEMOUSEMONITOR', 'DISABLEMOUSEMONITOR',
     'SETCALLBACKWND', 'SETMAXENABLED', 'SETRCLOSEENABLED', 'SETDESKTOPHOOK',
     'RELEASEDESKTOPHOOK', 'STARTKEYBOARDHOOK', 'STOPKEYBOARDHOOK',
     'SETRBUTTONUPCLOSE', 'ISHOTKEY', 'SETWIN95KEYENABLED', 'STARTFILEMONITOR',
-    'STOPFILEMONITOR');
+    'STOPFILEMONITOR', 'SETCTL3DDIALOGS');
 var I, Found: Integer;
 begin
   Found := 0;
   for I := Low(Names) to High(Names) do
     if Bind(Names[I]) <> nil then Inc(Found);
-  Check(Found = 21, 'all 21 exports are found by the names src/hooks.pas uses');
+  Check(Found = 22, 'all 22 exports are found by the names src/hooks.pas uses');
 end;
 
 procedure CheckHotKey;
