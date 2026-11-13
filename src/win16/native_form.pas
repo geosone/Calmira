@@ -90,7 +90,6 @@ type
     property LifecycleHost: TNativeFormHost read FHost;
     { Assign to TNativeMessageLoop.OnMessage; no implicit task-global hook. }
     function ProcessDialogMessage(var Message: TMsg): Boolean; virtual;
-    property Caption: string read FCaption write SetCaption;
     property Visible: Boolean read GetFormVisible write SetFormVisible;
     property OnShow: TNotifyEvent read FOnShow write FOnShow;
     property OnHide: TNotifyEvent read FOnHide write FOnHide;
@@ -108,6 +107,9 @@ type
     property OnClose: TNativeCloseEvent read FOnClose write FOnClose;
     { DFM ActiveControl's initial-focus policy, not a complete VCL focus model. }
     property InitialControl: TCustomControl read FInitialControl write SetInitialControl;
+  published
+    { Published so LangUI can translate it through RTTI, as in Delphi. }
+    property Caption: string read FCaption write SetCaption;
   end;
 { Every live form in creation order, as Delphi's Screen.Forms holds each form
   whether or not Application.CreateForm made it (Calmira's folder windows). }

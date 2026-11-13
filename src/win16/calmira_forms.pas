@@ -1,13 +1,15 @@
 { SPDX-License-Identifier: GPL-2.0-or-later
   Links the generated form loaders (tools/dfm_loader.py) into CALMIRA.EXE.
   Delphi streams each form's DFM resource at run time; under Free Pascal
-  each loader unit registers its form's components in its initialization. }
+  each loader unit registers its form's components in its initialization.
+  form_language gives the loaders the selected catalogue's texts. }
 unit calmira_forms;
 {$mode delphi}{$H-}
 
 interface
 
 uses
+  form_language,
   about_dfm,
   askdrop_dfm,
   binprop_dfm,

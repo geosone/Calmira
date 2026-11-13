@@ -150,5 +150,49 @@ class LocalizationTests(unittest.TestCase):
         self.assertIn('WINHELP.EXE %DIR%\\CALMIRA.HLP', programs)
 
 
+    def test_langui_texts_are_published_for_rtti(self):
+        # LangUI finds Caption and Hint through RTTI, as Delphi did: public
+        # properties left every form title, label and hint in English.
+        for path, declaration in (
+                ('src/win16/control_base.pas', 'property Hint: string read FHint write FHint;'),
+                ('src/win16/native_form.pas', 'property Caption: string read FCaption write SetCaption;'),
+                ('src/win16/native_label.pas', 'property Caption: string read FCaption write SetCaption;')):
+            interface = (ROOT / path).read_text().split('\nimplementation', 1)[0]
+            before = interface[:interface.index(declaration)]
+            self.assertEqual(re.findall(r'\n  (private|protected|public|published)\b', before)[-1],
+                             'published', path)
+        makefile = (ROOT / 'makefile').read_text()
+        self.assertIn('-kstack=16k -Fu$(FPC_WIN16_GUI_RTL) \\\n\t\t-Fusrc/win16 -Fusrc/portable -Fuvcl '
+                      '-FU$(BUILD_DIR)/tests/win16-langui/units', makefile)
+        self.assertIn('win16-password-language-runtime-test win16-langui-runtime-test', makefile)
+        test = (ROOT / 'tests/pascal/test_win16_langui.pas').read_text()
+        for check in ('a form title is translated', 'a label caption is translated',
+                      'a control hint is translated', 'FillChar(StackBottom^, 64, $A5);'):
+            self.assertIn(check, test)
+
+    def test_form_loaders_translate_before_on_create(self):
+        # Delphi read a translated DFM before OnCreate. Translating after
+        # Create replaced the About box's free memory with the DFM's "XXX".
+        forms = (ROOT / 'src/win16/calmira_forms.pas').read_text()
+        self.assertIn('uses\n  form_language,\n', forms)
+        language = (ROOT / 'src/win16/form_language.pas').read_text()
+        self.assertIn('SetFormTextProvider(CatalogueText.Text);', language)
+        self.assertIn("LanguageText('Forms', RootClass + '.' + ComponentName + '.' +", language)
+        for path, call in (('vcl/miscutil.pas', 'ApplyComponentLanguage(Form);'),
+                           ('vcl/extform.pas', 'ApplyComponentLanguage(Self);')):
+            source = (ROOT / path).read_bytes().decode('latin-1').replace('\r\n', '\n')
+            before = source[:source.index(call)]
+            self.assertTrue(before.rstrip().rsplit('\n', 1)[0].endswith('{$IFNDEF FPC}'), path)
+        test = (ROOT / 'tests/pascal/test_win16_langui.pas').read_text()
+        self.assertIn('a loader gets the translated label caption', test)
+
+    def test_titles_from_old_releases_are_replaced(self):
+        # Historical German titles named Calmira LFN 3.3 and a German edition.
+        extra = json.loads((ROOT / 'locales/extra.json').read_text(encoding='utf-8'))
+        self.assertEqual(extra['de']['Forms']['TAboutBox.AboutBox.Caption'], 'Info')
+        self.assertEqual(extra['de']['Forms']['TTaskManager.TaskManager.Caption'], 'Task-Manager')
+        self.assertEqual(extra['it']['Forms']['TAboutBox.AboutBox.Caption'], 'Informazioni')
+        self.assertEqual(extra['es']['Forms']['TAboutBox.AboutBox.Caption'], 'Acerca de')
+
 if __name__ == '__main__':
     unittest.main()

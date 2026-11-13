@@ -77,7 +77,9 @@
       "TMessageForm.Abort.Caption": "A&bbrechen",
       "TMessageForm.Retry.Caption": "&Wiederholen",
       "TMessageForm.Ignore.Caption": "&Ignorieren",
-      "TMessageForm.All.Caption": "&Alle"
+      "TMessageForm.All.Caption": "&Alle",
+      "TAboutBox.AboutBox.Caption": "Info",
+      "TTaskManager.TaskManager.Caption": "Task-Manager"
     },
     "Help": {
       "Title": "Calmira Reloaded Hilfe",
@@ -163,6 +165,16 @@
       "GroupsRejected": "%d groupe(s) n'ont pas pu être lus.",
       "GroupsSynchronized": "%d groupe(s) synchronisés.",
       "NoProgman": "PROGMAN.INI est introuvable."
+    }
+  },
+  "it": {
+    "Forms": {
+      "TAboutBox.AboutBox.Caption": "Informazioni"
+    }
+  },
+  "es": {
+    "Forms": {
+      "TAboutBox.AboutBox.Caption": "Acerca de"
     }
   }
 }

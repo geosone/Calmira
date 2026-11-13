@@ -203,7 +203,10 @@ end;
 procedure TExtForm.Loaded;
 begin
   inherited Loaded;
+{$IFNDEF FPC}
+  { Free Pascal's form loaders translate while they load (form_language). }
   ApplyComponentLanguage(Self);
+{$ENDIF}
   FMinimumWidth := Width;
   FMinimumHeight := Height;
   OldClientWidth := ClientWidth;

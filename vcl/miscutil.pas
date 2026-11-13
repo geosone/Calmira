@@ -548,7 +548,10 @@ begin
   ShowHourGlass;
   Form := FormClass.Create(Application);
   try
+{$IFNDEF FPC}
+    { Free Pascal's form loaders translate before OnCreate (form_language). }
     ApplyComponentLanguage(Form);
+{$ENDIF}
     Result := Form.ShowModal;
   finally
     Form.Free;

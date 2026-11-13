@@ -1538,6 +1538,21 @@ win16-password: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/password_dfm.pas 
 win16-password-runtime-test: win16-password
 	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-password/GDITEST.EXE)' sh tests/dos/test_win16_gdi.sh
 
+.PHONY: win16-langui win16-langui-runtime-test
+# CALMIRA.EXE's 16 KiB stack: LangUI recurses with short-string locals.
+win16-langui: fpc-win16-gui-rtl
+	mkdir -p $(BUILD_DIR)/tests/win16-langui/units
+	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
+		-Twin16 -Pi8086 -Mdelphi $(WIN16_GUI_FLAGS) -CX -koption -kstack=16k -Fu$(FPC_WIN16_GUI_RTL) \
+		-Fusrc/win16 -Fusrc/portable -Fuvcl -FU$(BUILD_DIR)/tests/win16-langui/units \
+		-FE$(BUILD_DIR)/tests/win16-langui -oGDITEST.EXE tests/pascal/test_win16_langui.pas
+	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-langui/GDITEST.EXE
+
+# The form loaders (form_language) and LangUI translate titles, labels and hints.
+win16-langui-runtime-test: win16-langui languages
+	GDI_TEST_EXE='$(abspath $(BUILD_DIR)/tests/win16-langui/GDITEST.EXE)' \
+		GDI_CATALOG_DIR='$(abspath $(BUILD_DIR)/lang)' sh tests/dos/test_win16_gdi.sh
+
 .PHONY: win16-password-language win16-password-language-runtime-test win16-resource-text win16-resource-text-runtime-test
 win16-password-language: fpc-win16-gui-rtl $(BUILD_DIR)/generated/forms/password_dfm.pas $(BUILD_DIR)/generated/forms/password_dfm.res src/locale.res
 	mkdir -p $(BUILD_DIR)/tests/win16-password-language/units
@@ -1719,14 +1734,14 @@ win16-incsrch-modal-runtime-test: win16-incsrch-modal
 .PHONY: win16-ui win16-ui-runtime-test
 win16-ui: win16-image win16-progress-ui win16-label win16-graphic \
 	win16-gauge win16-slider win16-form win16-hierarchy win16-button win16-bitbtn win16-progress-button win16-dialog \
-	win16-edit win16-checkbox win16-input-dialog win16-incsrch win16-modal win16-incsrch-modal win16-form-text win16-askdrop win16-askdrop-modal win16-askdrop-language win16-mnemonic win16-select win16-select-language win16-password win16-password-language
+	win16-edit win16-checkbox win16-input-dialog win16-incsrch win16-modal win16-incsrch-modal win16-form-text win16-askdrop win16-askdrop-modal win16-askdrop-language win16-mnemonic win16-select win16-select-language win16-password win16-password-language win16-langui
 
 win16-ui-runtime-test: win16-image-runtime-test win16-progress-ui-runtime-test \
 	win16-label-runtime-test win16-graphic-runtime-test win16-gauge-runtime-test \
 	win16-slider-runtime-test win16-form-runtime-test win16-hierarchy-runtime-test \
 	win16-button-runtime-test win16-bitbtn-runtime-test win16-progress-button-runtime-test win16-dialog-runtime-test \
 	win16-edit-runtime-test win16-checkbox-runtime-test win16-input-dialog-runtime-test win16-incsrch-runtime-test \
-	win16-modal-runtime-test win16-incsrch-modal-runtime-test win16-form-text-runtime-test win16-askdrop-runtime-test win16-askdrop-modal-runtime-test win16-askdrop-language-runtime-test win16-mnemonic-runtime-test win16-select-runtime-test win16-select-language-runtime-test win16-password-runtime-test win16-password-language-runtime-test
+	win16-modal-runtime-test win16-incsrch-modal-runtime-test win16-form-text-runtime-test win16-askdrop-runtime-test win16-askdrop-modal-runtime-test win16-askdrop-language-runtime-test win16-mnemonic-runtime-test win16-select-runtime-test win16-select-language-runtime-test win16-password-runtime-test win16-password-language-runtime-test win16-langui-runtime-test
 
 # Every form CALMIRA.EXE uses (src/win16/calmira_forms.pas links their loaders).
 CALMIRA_FORMS := about askdrop binprop compsys deskprop diskprop filefind fileprop filter fsysprop gotofld iconwin incsrch logon menuedit mydocs opendlg openfile password progconv progress refedit replace runprog select shorts shutdown splash strtprop sysprop sysrefed task taskman taskprop tips tree wastebin

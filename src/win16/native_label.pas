@@ -33,7 +33,6 @@ type
     property FocusControl: TCustomControl read FFocusControl write SetFocusControl;
     { These properties use typed DFM binding, not runtime property RTTI. }
     property Enabled;
-    property Caption: string read FCaption write SetCaption;
     property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property WordWrap: Boolean read FWordWrap write SetWordWrap default False;
     property ShowAccelChar: Boolean read FShowAccelChar write SetShowAccelChar default True;
@@ -49,6 +48,9 @@ type
     property OnMouseUp;
     property OnDragDrop;
     property OnDragOver;
+  published
+    { Published so LangUI can translate it through RTTI, as in Delphi. }
+    property Caption: string read FCaption write SetCaption;
   end;
 implementation
 uses SysUtils, WinTypes, WinProcs, native_window, native_mnemonic;

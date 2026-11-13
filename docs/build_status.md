@@ -3296,3 +3296,35 @@ DOSLFN and the preselected German catalogue, starts Windows with the
 installed Calmira, uninstalls it and compares `SYSTEM.INI` and the existing
 `CTL3DV2.DLL` with the originals. Only the start-menu caches Calmira writes
 at run time may remain.
+
+## Translated Labels, Titles and Hints
+
+`LangUI` translates a form through RTTI, as Delphi did: it reads `Caption`,
+`Hint` and the text lists of every owned component with `GetPropInfo`. The
+port declared `TNativeForm.Caption`, `TLabel.Caption` and `TControl.Hint` as
+public, so RTTI did not see them. Under a German catalogue, buttons and
+check boxes were German while every form title, label and hint stayed
+English. These three properties are now published.
+
+`make win16-langui-runtime-test` (`tests/pascal/test_win16_langui.pas`)
+loads the German catalogue, translates a form, a label and a control hint,
+and checks the native window title. It is linked with CALMIRA.EXE's 16 KiB
+stack, because `LangUI` recurses with short-string locals. The old
+declarations fail all four checks.
+
+Translating the labels exposed an older ordering fault: `ShowModalDialog`
+translated a dialog after `Create`, so after `OnCreate`. The About box then
+showed the DFM's placeholder "XXX" instead of the free memory and the
+versions. In Delphi a translated DFM was read before `OnCreate`. The
+generated form loaders already ask `FormText` for every caption, hint and
+list entry while they load, but CALMIRA.EXE never set a provider.
+`src/win16/form_language.pas` now gives them the selected catalogue, and
+under Free Pascal neither `ShowModalDialog` nor `TExtForm.Loaded` translates
+again. This also halves the catalogue lookups when a form opens. The native
+test checks the provider for captions, hints and list entries; without it
+those checks fail.
+
+The historical German catalogue titled the About box "Über Calmira LFN3.3"
+and the Task Manager "Taskmanager 3.3 Deutsch". The Italian and Spanish
+About titles ended mid-sentence or with blanks. `locales/extra.json` now
+replaces these titles.

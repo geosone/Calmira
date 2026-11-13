@@ -1,5 +1,6 @@
 """Label/font API scope guards; actual text rendering is native-only."""
 from pathlib import Path
+import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -9,7 +10,10 @@ class Win16LabelTests(unittest.TestCase):
     def test_disabled_label_uses_system_color_without_mutating_font(self):
         source = (ROOT / 'src/win16/native_label.pas').read_text()
         self.assertIn('property Enabled;', source)
-        self.assertNotIn('\n  published\n', source.split('implementation', 1)[0])
+        # Only the caption is published, for LangUI's RTTI; the rest stays
+        # with the typed DFM binding.
+        published = source.split('implementation', 1)[0].split('\n  published\n', 1)[1]
+        self.assertEqual(re.findall(r'property (\w+)', published), ['Caption'])
         paint = source.split('procedure TLabel.Paint;', 1)[1]
         self.assertIn('if Enabled then SetTextColor', paint)
         self.assertIn('GetSysColor(COLOR_GRAYTEXT)', paint)

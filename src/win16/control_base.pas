@@ -118,7 +118,6 @@ type
     property ParentFont: Boolean read FParentFont write SetParentFont default True;
     property ShowHint: Boolean read FShowHint write SetShowHint;
     property ParentShowHint: Boolean read FParentShowHint write SetParentShowHint default True;
-    property Hint: string read FHint write FHint;
     property Dragging: Boolean read GetDragging;
     { Position in the parent's client area. }
     property BoundsRect: TRect read GetControlBounds write SetControlBounds;
@@ -136,6 +135,9 @@ type
     procedure SendToBack;
     property Enabled: Boolean read GetEnabled write SetEnabled;
     property Visible: Boolean read GetVisible write SetVisible;
+  published
+    { Published so LangUI can translate it through RTTI, as in Delphi. }
+    property Hint: string read FHint write FHint;
   end;
 var
   DragManager: TDragManager;
