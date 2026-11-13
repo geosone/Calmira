@@ -669,6 +669,11 @@ begin
     PicBtnGlyphsChanged;
     { 3.0 }
     ShowShutDownBMP := ReadBool('Preferences', 'ShowShutDownBMP', True);
+{$IFDEF FPC}
+    { Calmira Reloaded: Windows draws the Windows 3.1 caption of Calmira's
+      windows; Win95Captions=1 brings back Calmira's own Windows 95 one. }
+    NewStyleControls := not ReadBool('Preferences', 'Win95Captions', False);
+{$ENDIF}
     { 3.11 }
     Browser := ReadString('Internet', 'Browser', '');
     URLPrefixes := ReadString('Internet', 'URLPrefixes', URLPrefixes);

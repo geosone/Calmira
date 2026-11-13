@@ -3511,3 +3511,14 @@ after 45 folder searches every further one found nothing. `LFindClose` now
 calls `FindClose` for the short search as well. `make
 win16-lfnfuncs-doslfn-runtime-test` runs the LFNFUNCS.DLL test with DOSLFN
 and searches a folder a hundred times.
+
+## Windows 3.1 Captions by Default
+
+Calmira 4 draws a Windows 95 caption on its own windows (`TExtForm`), as
+`calmira.dpr` clears `NewStyleControls`. Calmira Reloaded keeps the look of
+Windows 3.1 instead: `LoadSystemProp` sets `NewStyleControls` unless
+`[Preferences] Win95Captions=1` is in `CALMIRA.INI`, and `TExtForm` then
+leaves caption, buttons and system menu to Windows. The setting is read at
+start. `make win16-captions-runtime-test` opens My Computer and finds the
+title in the middle of the caption; `make win16-win95-captions-runtime-test`
+sets `Win95Captions=1` and finds it on the left, after the small icon.

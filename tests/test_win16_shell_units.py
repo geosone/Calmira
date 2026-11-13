@@ -56,6 +56,24 @@ class HugeModelTests(unittest.TestCase):
         rule = makefile.split('\nwin16-lfnfuncs-doslfn-runtime-test:', 1)[1].split('\n\n', 1)[0]
         self.assertIn('GDI_DOSLFN=1', rule)
 
+    def test_windows_draws_the_caption_unless_win95_captions_is_set(self):
+        # Calmira Reloaded looks like Windows 3.1: TExtForm leaves the caption
+        # to Windows while NewStyleControls is set; Win95Captions=1 brings
+        # back Calmira's own Windows 95 caption.
+        settings = (ROOT / 'src/settings.pas').read_bytes().decode('latin-1')
+        self.assertIn("NewStyleControls := not ReadBool('Preferences', 'Win95Captions', False);", settings)
+        ini = (ROOT / 'src/calmira.ini').read_bytes().decode('latin-1').replace('\r\n', '\n')
+        self.assertIn('[Preferences]\nShowDailyTips=1\nWin95Captions=0\n', ini)
+        extform = (ROOT / 'vcl/extform.pas').read_bytes().decode('latin-1')
+        self.assertIn('if NewStyleControls or IsIconic(Handle) then Exit;', extform)
+        makefile = (ROOT / 'makefile').read_text()
+        for target in ('win16-captions-runtime-test', 'win16-win95-captions-runtime-test'):
+            self.assertIn(' ' + target + ' ', makefile)
+        self.assertIn('-dWIN95CAPTIONS', makefile)
+        probe = (ROOT / 'tests/pascal/test_win16_captions.pas').read_text()
+        self.assertIn("'Windows draws the Windows 3.1 caption, the title in the middle'", probe)
+        self.assertIn("'Calmira draws its Windows 95 caption, the title on the left'", probe)
+
     def test_points_reach_user_packed_in_a_long(self):
         # USER takes POINT by value as one dword; FPC passed the TPoint record
         # otherwise, so WindowFromPoint found nothing and Calmira's drop
