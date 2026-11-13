@@ -48,7 +48,7 @@ CTL3D_EXPORTS = $(shell awk '$$2 ~ /^@[0-9]+$$/ { print "export " $$1 "." substr
 	win16-helpers ctl3d ctl3d-runtime-test languages calmira upx \
 	pack-win16 pack-drive-probe clfn-hook clfn-hook-runtime-test clfn-office-runtime-test window-inventory \
 	archive-host archive-host-test archive-dos archive-dos-runtime-test archive-reader-host archive-reader-host-test archive-viewer archive-preview-runtime-test archive-package \
-	fpc-win16-gui-rtl fpc-win16-classes-runtime-test archive-package-runtime-test archive-office-runtime-test openlfn openlfn-package openlfn-dist dos-bridge-diagnose package clean
+	fpc-win16-gui-rtl fpc-win16-classes-runtime-test archive-package-runtime-test archive-office-runtime-test openlfn openlfn-package openlfn-dist dos-bridge-diagnose package package-runtime-test clean
 
 all: test
 
@@ -166,7 +166,7 @@ lfn-probe-test: lfn-probe
 	tests/dos/test_lfnprobe.sh
 
 doslfn:
-	sh tools/fetch_doslfn.sh
+	sh tools/fetch_doslfn.sh '$(abspath $(BUILD_DIR))/dos/doslfn'
 
 doslfn-test: lfn-probe doslfn
 	tests/dos/test_doslfn.sh
@@ -1996,8 +1996,12 @@ archive-package: openlfn-package
 archive-package-runtime-test: archive-package
 	sh tests/dos/test_archive_package.sh
 
-package: help lfn-probe doslfn ctl3d languages pack-win16 archive-viewer clfn-hook
-	GDI="$(GDI)" sh tools/package.sh
+package: calmira dos-helpers lfnfuncs wndhooks help lfn-probe doslfn ctl3d languages pack-win16 archive-viewer clfn-hook
+	GDI="$(GDI)" BUILD_DIR='$(abspath $(BUILD_DIR))' UPX='$(abspath $(UPX))' sh tools/package.sh
+
+# Silent GDI setup, Windows start with the installed shell, uninstall.
+package-runtime-test: package
+	CALMIRA_PACKAGE='$(abspath $(BUILD_DIR))/package' sh tests/dos/test_package.sh
 
 clean:
 	rm -rf $(FPC_TEST_DIR)

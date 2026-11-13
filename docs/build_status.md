@@ -3270,3 +3270,29 @@ the whole control. The copy now takes about as long as the original's.
 
 Covered by `win16-graphic`: a fully exposed graphic paints on its parent's
 window DC, and a partly exposed one still paints off screen.
+
+## A Release Package That Installs and Uninstalls
+
+`make package` built nothing with the fixed compiler: `tools/package.sh` took
+fixed paths under `build/` and old `src/*.exe` names. It now stages every
+payload from `BUILD_DIR`, builds Calmira, the DOS helpers and both DLLs first,
+and runs GDI's `gdicheck` on the result.
+
+The first native installation found four faults, each now covered by
+`make package-runtime-test` (`tests/dos/test_package.sh`):
+
+- `SYSTEM\*` and `TRAY\*` work only with a GDI archive; setup stopped after
+  copying. The files are listed by name.
+- `LFNFUNCS.DLL` in `C:\CALMIRA\SYSTEM` was never found when Windows started
+  Calmira as its shell. It goes to the Windows system directory, as in the
+  original release; `CTL3DV2.DLL` only when Windows has none.
+- GDI 1.16.0 loaded the whole `CALMIRA.INI` to write the language and ran out
+  of near heap (`INSTALL /S` ended with errorlevel 1). Fixed in GDI 1.16.1.
+- GDI 1.16.1 loaded the whole `WIN.INI` during uninstall and stopped with
+  "not enough memory". Fixed in GDI 1.16.2.
+
+The test installs silently with `COUNTRY=049`, checks the files, the shell,
+DOSLFN and the preselected German catalogue, starts Windows with the
+installed Calmira, uninstalls it and compares `SYSTEM.INI` and the existing
+`CTL3DV2.DLL` with the originals. Only the start-menu caches Calmira writes
+at run time may remain.

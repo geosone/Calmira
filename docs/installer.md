@@ -5,8 +5,24 @@ belongs in `/home/mario/mars/gdi`; products describe themselves through an
 `INSTALL.INI` and a staged file tree.
 
 Calmira's descriptor is `install/install.ini`. `make package GDI=../gdi`
-validates the compiled artifacts and stages them with GDI's `INSTALL.EXE` under
-`build/package/`. It also offers an opt-in, signature-checked WIN386.EXE patch
+builds and validates the compiled artifacts of one build tree and stages them
+with GDI's `INSTALL.EXE` under `$(BUILD_DIR)/package/`; GDI's `gdicheck` then
+checks the staged `INSTALL.INI`. A release uses the fixed compiler's tree
+(`BUILD_DIR=build/class-pointer/...`), so no stale file from another build is
+mixed in. It needs GDI 1.16.2 or newer: older versions ran out of near heap
+writing the 5.5 KB `CALMIRA.INI` and loading `WIN.INI` during uninstall.
+
+`make package-runtime-test` installs the package silently on a copy of the
+DOS 6.22/Windows 3.11 image with `COUNTRY=049`, checks every file, the
+`shell=` line, DOSLFN and the German catalogue, starts Windows with the
+installed shell, then uninstalls it and compares `SYSTEM.INI` and
+`CTL3DV2.DLL` with the originals.
+
+Windows does not search the shell's own directory when it starts the shell,
+so `LFNFUNCS.DLL` goes to `%WINDIR%\SYSTEM` like in the original release.
+`CTL3DV2.DLL` is shared: the Open386MAX build is installed there only when
+Windows has none, and an existing one is never replaced. Without `Archive=`
+GDI copies no `DIR\*` wildcard, so every file is listed by name. It also offers an opt-in, signature-checked WIN386.EXE patch
 for Windows 3.1/3.11 on DOS 7.1 FAT32. GDI requires exactly two occurrences,
 keeps a numbered backup, recognizes an already patched file, and reverses the
 change during uninstall. It never relies on language-specific file offsets.
