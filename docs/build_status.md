@@ -3547,3 +3547,21 @@ the Calmira shell. Option 4 (Calmira as the shell) now sets it with GDI's
 the line, presses Ctrl+Esc under the installed shell and finds the tall task
 grid of Calmira's Task Manager in the screenshot (the Windows Task List has
 a short list box).
+
+## Task Manager and Start Menu Texts in the Catalogue
+
+The Task Manager showed "1 task" and its column titles "Task" and "Module"
+in English in every language. The count came from the constant
+`SSNumTasks` in `embed.pas`; it now reads `[TaskManager] OneTask` and `Tasks`
+from the catalogue. `THeader` titles (`#0width#0text` in the DFM) had no
+catalogue key: `tools/dfm_loader.py` now loads them through `FormText` as
+`Sections.Strings.N`, and `tools/build_languages.py` takes them from the
+historical forms, so the headers of the Task Manager, Recycle Bin, Find,
+File Properties and Taskbar Properties follow the language too. The German
+catalogue also names the entries of the default `START.INI` (MS-DOS Prompt,
+the accessories, the Control Panel applets, the placeholders under
+Documents and Startup) as German Windows 3.11 does. "Startup" itself stays,
+as `RunStartup` finds the group by its shown caption; a German Program
+Manager's group is called Autostart after the synchronisation anyway.
+`win16-langui-runtime-test` checks the header titles, the count and the
+menu entries in the German catalogue.

@@ -192,7 +192,12 @@ class Loader:
                     self.fail(node, spelled, str(error))
                 self.emit(f'{target}.Sections.Clear;')
                 for index, (width, text) in enumerate(sections):
-                    self.emit(f'{target}.Sections.Add({literal(text)}); {target}.SectionWidth[{index}] := {width};')
+                    if node.name:
+                        text = (f'FormText({literal(self.root.cls)}, {literal(node.name)}, '
+                                f"{literal(f'Sections.Strings.{index}')}, {literal(text)})")
+                    else:
+                        text = literal(text)
+                    self.emit(f'{target}.Sections.Add({text}); {target}.SectionWidth[{index}] := {width};')
             elif key == 'linkinfo':
                 # TDdeClientConv's DefineProperties list: 'Service X', 'Topic Y'.
                 if value.kind != 'list' or any(item.kind != 'string' for item in value.data):

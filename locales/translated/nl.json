@@ -216,7 +216,9 @@
   },
   "TaskManager": {
     "Title": "Calmira Taakbeheer",
-    "Unavailable": "Calmira is onverwacht gestopt.\n\nAfbreken: Windows afsluiten (aanbevolen).\nOpnieuw: Calmira opnieuw starten.\nNegeren: Windows Taakbeheer starten."
+    "Unavailable": "Calmira is onverwacht gestopt.\n\nAfbreken: Windows afsluiten (aanbevolen).\nOpnieuw: Calmira opnieuw starten.\nNegeren: Windows Taakbeheer starten.",
+    "OneTask": "%d taak",
+    "Tasks": "%d taken"
   },
   "Desktop": {
     "MyDocuments": "Mijn documenten",

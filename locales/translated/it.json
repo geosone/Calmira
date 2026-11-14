@@ -191,7 +191,9 @@
   },
   "TaskManager": {
     "Title": "Task Manager di Calmira",
-    "Unavailable": "Calmira si è chiusa in modo imprevisto.\n\nInterrompi: chiudi Windows (consigliato).\nRiprova: riavvia Calmira.\nIgnora: avvia il Task Manager di Windows."
+    "Unavailable": "Calmira si è chiusa in modo imprevisto.\n\nInterrompi: chiudi Windows (consigliato).\nRiprova: riavvia Calmira.\nIgnora: avvia il Task Manager di Windows.",
+    "OneTask": "%d processo",
+    "Tasks": "%d processi"
   },
   "Desktop": {
     "MyDocuments": "Documenti",

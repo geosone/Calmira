@@ -248,8 +248,11 @@ begin
     Canvas.Font.Assign(GlobalFont);
     DefaultRowHeight := LineHeight;
   end;
-  TaskLabel.Caption := Format(SSNumTasks, [TaskList.Count,
-    OneItem[TaskList.Count = 1]]);
+  if TaskList.Count = 1 then
+    TaskLabel.Caption := Format(LanguageText('TaskManager', 'OneTask', '%d task'), [1])
+  else
+    TaskLabel.Caption := Format(LanguageText('TaskManager', 'Tasks', '%d tasks'),
+      [TaskList.Count]);
   MemLabel.Caption := Format(LanguageText('Memory', 'Free', '%s free'),
     [FormatByte(GetFreeSpace(0), 2, 2)]);
 end;

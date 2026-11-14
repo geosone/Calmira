@@ -135,7 +135,9 @@
   },
   "TaskManager": {
     "Title": "Menedżer zadań Calmira",
-    "Unavailable": "Calmira nieoczekiwanie zakończyła pracę.\n\nPrzerwij: zamknij Windows (zalecane).\nPonów: uruchom Calmirę ponownie.\nIgnoruj: uruchom Menedżer zadań Windows."
+    "Unavailable": "Calmira nieoczekiwanie zakończyła pracę.\n\nPrzerwij: zamknij Windows (zalecane).\nPonów: uruchom Calmirę ponownie.\nIgnoruj: uruchom Menedżer zadań Windows.",
+    "OneTask": "%d zadanie",
+    "Tasks": "%d zadań"
   },
   "Desktop": {
     "MyDocuments": "Moje dokumenty",

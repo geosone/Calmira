@@ -67,5 +67,9 @@
   },
   "Memory": {
     "Free": "%s frei"
+  },
+  "TaskManager": {
+    "OneTask": "%d Prozess",
+    "Tasks": "%d Prozesse"
   }
 }

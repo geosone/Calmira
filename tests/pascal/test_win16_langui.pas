@@ -47,6 +47,16 @@ begin
       'free memory is told in the catalogue language');
     Check(LanguageText('Desktop', 'MyDocuments', 'My Documents') = 'Eigene Dateien',
       'My Documents has its Windows XP name');
+    Check((FormText('TTaskManager', 'Header', 'Sections.Strings.0', 'Task') = 'Programm') and
+      (FormText('TTaskManager', 'Header', 'Sections.Strings.1', 'Module') = 'Dateiname'),
+      'a loader gets the translated column titles of a header');
+    Check((Format(LanguageText('TaskManager', 'OneTask', '%d task'), [1]) = '1 Prozess') and
+      (Format(LanguageText('TaskManager', 'Tasks', '%d tasks'), [3]) = '3 Prozesse'),
+      'the Task Manager counts its tasks in the catalogue language');
+    Check((LanguageText('Menu', 'MS-DOS Prompt', '') = 'MS-DOS-Eingabeaufforderung') and
+      (LanguageText('Menu', 'Auto start your', '') = 'Programme hier') and
+      (LanguageText('Menu', 'programs here.', '') = 'automatisch starten.'),
+      'the entries of the default Start menu are translated');
     About := TAboutBox.CreateNew(nil);
     try
       About.Name := 'AboutBox'; About.Caption := 'About'; About.SetBounds(40, 40, 200, 120);

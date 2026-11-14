@@ -642,7 +642,9 @@
   },
   "TaskManager": {
     "Title": "Administrador de tareas de Calmira",
-    "Unavailable": "Calmira se cerró de forma inesperada.\n\nAnular: salir de Windows (recomendado).\nReintentar: reiniciar Calmira.\nOmitir: iniciar el Administrador de tareas de Windows."
+    "Unavailable": "Calmira se cerró de forma inesperada.\n\nAnular: salir de Windows (recomendado).\nReintentar: reiniciar Calmira.\nOmitir: iniciar el Administrador de tareas de Windows.",
+    "OneTask": "%d tarea",
+    "Tasks": "%d tareas"
   },
   "Desktop": {
     "MyDocuments": "Mis documentos",

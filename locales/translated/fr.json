@@ -125,5 +125,9 @@
   },
   "Memory": {
     "Free": "%s libres"
+  },
+  "TaskManager": {
+    "OneTask": "%d tâche",
+    "Tasks": "%d tâches"
   }
 }

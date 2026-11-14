@@ -79,6 +79,13 @@ class DfmLoaderTests(unittest.TestCase):
                 blocked[path.stem] = str(error)
         self.assertEqual(blocked, {})
 
+    def test_header_column_titles_come_from_the_catalogue(self):
+        # The Task Manager's "Task" and "Module" stayed English in every language.
+        path = ROOT / 'src/taskman.dfm'
+        text = compile_loader(path.read_bytes(), (ROOT / 'src/taskman.pas').read_text(encoding='cp1252'))[0]
+        self.assertIn("F.Header.Sections.Add(FormText('TTaskManager', 'Header', 'Sections.Strings.1', 'Module')); "
+                      "F.Header.SectionWidth[1] := 43;", text)
+
     def test_icon_pictures_become_icon_group_resources(self):
         data = (ROOT / 'src/tips.dfm').read_bytes()
         text, resources = compile_loader(data, (ROOT / 'src/tips.pas').read_text(encoding='cp1252'))

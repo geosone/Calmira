@@ -121,6 +121,12 @@ class DfmReader:
                 for index, text in enumerate(value):
                     if isinstance(text, str):
                         result[f'{key}.{index}'] = text
+            # THeader keeps its column titles as #0width#0text entries.
+            if prop == 'Sections.Sections' and isinstance(value, list):
+                for index, text in enumerate(value):
+                    match = re.fullmatch(r'\0\d+\0([^\0]*)', text) if isinstance(text, str) else None
+                    if match:
+                        result[f'{root_class}.{name}.Sections.Strings.{index}'] = match.group(1)
         while self.data[self.pos]:
             self.component(result, root_class)
         self.byte()

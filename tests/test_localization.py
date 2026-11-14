@@ -210,6 +210,28 @@ class LocalizationTests(unittest.TestCase):
             self.assertEqual(catalogue['Menu']['My Documents'], name)
             self.assertTrue(catalogue['Memory']['Free'].startswith('%s '), code)
 
+    def test_task_manager_and_start_menu_texts_follow_the_catalogue(self):
+        # "1 task", the Task Manager's column titles and the entries of the
+        # default Start menu stayed English.
+        taskman = (ROOT / 'src/taskman.pas').read_bytes().decode('latin-1')
+        self.assertNotIn('SSNumTasks', taskman)
+        self.assertIn("LanguageText('TaskManager', 'Tasks', '%d tasks')", taskman)
+        for path in sorted((ROOT / 'locales/translated').glob('*.json')):
+            catalogue = json.loads(path.read_text(encoding='utf-8'))
+            self.assertEqual(set(catalogue['TaskManager']) & {'OneTask', 'Tasks'}, {'OneTask', 'Tasks'}, path.stem)
+        forms = LANGUAGES.directory_forms(ROOT / 'vendor/upstream/calmira-lfn-de/SRC')
+        self.assertEqual(forms['TTaskManager.Header.Sections.Strings.0'], 'Programm')
+        menu = {**json.loads((ROOT / 'locales/extra.json').read_text(encoding='utf-8'))['de']['Menu'],
+                **json.loads((ROOT / 'locales/translated/de.json').read_text(encoding='utf-8'))['Menu']}
+        for line in (ROOT / 'src/start.ini').read_text(encoding='cp1252').splitlines():
+            key = line.split('=', 1)[0].rstrip('*')
+            if '=' in line and not line.startswith(('[', '-')) and not key.startswith('Calmira'):
+                if key not in ('Startup', 'Desktop', 'Paintbrush', 'Terminal', 'Write', 'Minesweeper',
+                               'Mail', 'Schedule+', 'Fax'):
+                    self.assertIn(key, menu)
+        # RunStartup finds the group by its shown caption.
+        self.assertNotIn('Startup', menu)
+
     def test_standard_buttons_have_a_text_in_every_language(self):
         # TBitBtn asks TStandardButtons.<Kind>.Caption; only Cancel existed,
         # so Shut Down showed Yes/No and dialogs OK/Help/Close in English.
