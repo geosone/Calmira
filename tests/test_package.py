@@ -137,7 +137,7 @@ class PackageTests(unittest.TestCase):
         self.assertIn('cp "$build/calmira/CALMIRA.EXE" "$stage/"', package)
         self.assertNotIn('packed/shell', package)
         test = (ROOT / 'tests/dos/test_package.sh').read_text()
-        for text in ('shot:windows-desktop alt-f4 wait:4 alt-f4 wait:4 alt-f4 wait:4 shot:windows-shutdown ret',
+        for text in ('shot:windows-desktop alt-f4 wait:4 alt-f4 wait:4 ctrl-esc wait:6 shot:windows-ctrl-esc esc wait:4 alt-f4 wait:4 shot:windows-shutdown ret',
                      'ECHO PASS SHUTDOWN>C:\\\\CALSHUT.LOG', "fail 'Shut Down did not return to DOS'"):
             self.assertIn(text, test)
 
@@ -150,6 +150,18 @@ class PackageTests(unittest.TestCase):
         for text in ('Setting%d=a value an update program wrote', "fail 'the DOSLFN line stays in AUTOEXEC.BAT after uninstall'"):
             self.assertIn(text, test)
         self.assertIn('GDI 1.16.3 or newer', (ROOT / 'docs/installer.md').read_text())
+    def test_ctrl_esc_opens_the_calmira_task_manager(self):
+        # Calmira's help: taskman.exe=CTASKMAN.EXE in [boot]; without it
+        # Ctrl+Esc showed the Windows Task List under the Calmira shell.
+        ini = (ROOT / 'install/install.ini').read_text()
+        system = ini.split('\n[System.ini]\n', 1)[1].split('\n[', 1)[0]
+        self.assertIn('Set=4|boot|taskman.exe=%DIR%\\CTASKMAN.EXE', system)
+        self.assertIn('CTASKMAN.EXE', section(ini, 'Files'))
+        test = (ROOT / 'tests/dos/test_package.sh').read_text()
+        for text in ("fail 'Ctrl+Esc does not start the Calmira Task Manager'",
+                     "fail 'Ctrl+Esc did not open the Calmira Task Manager'",
+                     'sys.exit(0 if longest > 150 else 1)'):
+            self.assertIn(text, test)
 
 if __name__ == '__main__':
     unittest.main()

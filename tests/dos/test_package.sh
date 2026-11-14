@@ -87,6 +87,8 @@ tr -d '\r' < "$installed/CALMIRA.INI" | grep -qx 'Selected=de' ||
 mcopy -o -i "$partition" ::/WINDOWS/SYSTEM.INI "$work/system-installed.ini"
 tr -d '\r' < "$work/system-installed.ini" | grep -qix 'shell=C:\\CALMIRA\\CALMIRA.EXE' ||
     fail 'Calmira did not become the Windows shell'
+tr -d '\r' < "$work/system-installed.ini" | grep -qix 'taskman.exe=C:\\CALMIRA\\CTASKMAN.EXE' ||
+    fail 'Ctrl+Esc does not start the Calmira Task Manager'
 mcopy -o -i "$partition" ::/AUTOEXEC.BAT "$work/autoexec-installed.bat"
 # DOS 6.22 has no long filenames, so the DOSLFN option is on by default.
 tr -d '\r' < "$work/autoexec-installed.bat" | grep -qix 'LH C:\\CALMIRA\\DOSLFN\\DOSLFN.COM' ||
@@ -117,7 +119,7 @@ echo 'PASS Setup chose the Windows 95 colours and the Calmira Reloaded wallpaper
 # Calmira: the welcome box and the tip close first, then Shut Down asks.
 printf '@ECHO OFF\r\nLH C:\\CALMIRA\\DOSLFN\\DOSLFN.COM\r\nPATH C:\\;C:\\WINDOWS\r\nSET TEMP=C:\\TEMP\r\nC:\\SHARE.EXE /F:8192 /L:100\r\nC:\\WINDOWS\\WIN\r\nECHO PASS SHUTDOWN>C:\\CALSHUT.LOG\r\n' > "$work/AUTOEXEC.BAT"
 mcopy -o -i "$partition" "$work/AUTOEXEC.BAT" ::/
-run windows 30 wait:87 shot:windows-desktop alt-f4 wait:4 alt-f4 wait:4 alt-f4 wait:4 shot:windows-shutdown ret
+run windows 30 wait:87 shot:windows-desktop alt-f4 wait:4 alt-f4 wait:4 ctrl-esc wait:6 shot:windows-ctrl-esc esc wait:4 alt-f4 wait:4 shot:windows-shutdown ret
 python3 - "$work/windows-desktop.ppm" <<'PY' || fail 'no Calmira taskbar after starting Windows'
 import sys
 data = open(sys.argv[1], 'rb').read()
@@ -146,6 +148,34 @@ print(f'sky samples: {sky}')
 sys.exit(0 if max(white) == width and sky > 1000 else 1)
 PY
 echo 'PASS Windows starts with the installed Calmira shell'
+# Ctrl+Esc starts taskman.exe: CTASKMAN.EXE shows Calmira's Task Manager.
+python3 - "$work/windows-ctrl-esc.ppm" <<'PY' || fail 'Ctrl+Esc did not open the Calmira Task Manager'
+import sys
+data = open(sys.argv[1], 'rb').read()
+header, offset = [], 0
+while len(header) < 4:
+    while data[offset:offset + 1].isspace():
+        offset += 1
+    end = offset
+    while not data[end:end + 1].isspace():
+        end += 1
+    header.append(data[offset:end])
+    offset = end
+width, height = int(header[1]), int(header[2])
+pixels = data[offset + 1:]
+pixel = lambda x, y: pixels[(y * width + x) * 3:(y * width + x) * 3 + 3]
+# Calmira's Task Manager lists the tasks in a tall white grid; the Windows
+# Task List has a short list box. The wallpaper's white is dithered, and the
+# mouse pointer rests in the middle of the screen.
+x = width // 2 - 40
+run = longest = 0
+for y in range(height - 30):
+    run = run + 1 if pixel(x, y) == b'\xff\xff\xff' else 0
+    longest = max(longest, run)
+print(f'longest white column: {longest} rows')
+sys.exit(0 if longest > 150 else 1)
+PY
+echo 'PASS Ctrl+Esc opens the Calmira Task Manager'
 # Shut Down must end Windows, not only Calmira: as the shell it offers no
 # "Close Calmira" and Windows returns to DOS.
 mcopy -o -i "$partition" ::/CALSHUT.LOG "$work/shutdown.log" 2>/dev/null ||

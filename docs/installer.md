@@ -42,6 +42,10 @@ is enabled by default. GDI's generic `[System.ini] Set=` transaction replaces
 `[boot] shell=...`, records the exact former line in `%DIR%\SYSTEM.SET`, and
 restores it on uninstall. If the administrator changes the shell again after
 installation, uninstall preserves that later choice.
+The same option sets `[boot] taskman.exe=%DIR%\CTASKMAN.EXE`, as
+Calmira's help recommends, so Ctrl+Esc opens Calmira's Task Manager; while
+Calmira is not running, `CTASKMAN.EXE` offers to restart it, to shut
+Windows down or to start the Windows Task List.
 
 The descriptor also offers one application-language choice. All catalogues
 share the same executable payload; GDI writes `[Language] Selected` in the

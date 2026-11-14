@@ -3535,3 +3535,15 @@ off, unregistering the programs, when it ends. `make
 win16-ctl3d-dialogs-runtime-test` opens a dialog of another program and
 finds CTL3D's grey face; `make win16-plain-dialogs-runtime-test` finds the
 white face of Windows 3.1 without the setting.
+
+## Ctrl+Esc Opens the Calmira Task Manager
+
+Windows 3.1 starts `taskman.exe` from `[boot]` in `SYSTEM.INI` on Ctrl+Esc.
+Calmira's help recommends `taskman.exe=<dir>\CTASKMAN.EXE`: CTASKMAN posts
+`CM_TASKMAN` to Calmira; if Calmira is not running, it offers to restart it
+or to start the Windows Task List. Setup did not set it, so Ctrl+Esc showed the Windows Task List under
+the Calmira shell. Option 4 (Calmira as the shell) now sets it with GDI's
+`[System.ini] Set=`, and `INSTALL /U` removes it. The package test checks
+the line, presses Ctrl+Esc under the installed shell and finds the tall task
+grid of Calmira's Task Manager in the screenshot (the Windows Task List has
+a short list box).
