@@ -256,7 +256,7 @@ end;
 procedure TShort.RefChange(Sender: TObject);
 begin
   Ref.AssignIcon(Icon);
-  Caption := Ref.Caption;
+  Caption := ShortcutCaption(Ref.Caption);
 end;
 
 procedure TShort.LoadFromIni(ini: TIniFile; const section: string);

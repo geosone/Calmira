@@ -340,8 +340,8 @@ begin
   begin
     AssignIcon(TargetIcon.Picture.Icon); { 3.1 }
     Caption := LocalLoadStr(Captions[Self is TAliasReference]);
-    CaptionLabel.Caption := Self.Caption;
-    CapEdit.Text := Self.Caption;
+    CaptionLabel.Caption := ShortcutCaption(Self.Caption);
+    CapEdit.Text := CaptionLabel.Caption;
     if Pos(' ',Target)>0 then
      TargetEdit.Text := '"'+Target+'"'
     else
@@ -363,7 +363,8 @@ begin
         {Kind := RefKind;}
         s := TargetEdit.Text;
         Target := NextItem(s,Word('"'),Delim_Whitespace);
-        self.Caption := CapEdit.Text;
+        if CapEdit.Text <> ShortcutCaption(self.Caption) then
+          self.Caption := CapEdit.Text;
         IconFile := ExtractIconFile(IconEdit.Text);
         IconIndex := ExtractIconIndex(IconEdit.Text);
         if Kind = rkFile then

@@ -279,6 +279,8 @@ procedure LoadSettings;
 procedure LoadSystemProp;
 { "7 objects" in the catalogue's language, then the size or other text. }
 function NumObjectsText(Count: LongInt; const Extra: string): string;
+{ A desktop shortcut's name in the catalogue's language. }
+function ShortcutCaption(const Stored: string): string;
 procedure SaveSystemProp;
 procedure LoadDeskProp;
 procedure SaveDeskProp;
@@ -316,6 +318,14 @@ begin
     StoredCaption := English
   else
     StoredCaption := Shown;
+end;
+
+{ Desktop shortcuts keep the English names of the default ones, such as
+  MS-DOS Prompt, and show the Start menu's name for them in the catalogue's
+  language. }
+function ShortcutCaption(const Stored: string): string;
+begin
+  ShortcutCaption := LanguageText('Menu', Stored, Stored);
 end;
 
 function NumObjectsText(Count: LongInt; const Extra: string): string;

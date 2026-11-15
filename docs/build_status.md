@@ -3565,3 +3565,13 @@ as `RunStartup` finds the group by its shown caption; a German Program
 Manager's group is called Autostart after the synchronisation anyway.
 `win16-langui-runtime-test` checks the header titles, the count and the
 menu entries in the German catalogue.
+
+## Default Desktop Shortcuts in the Catalogue Language
+
+`CALMIRA.INI` brings the desktop shortcut "MS-DOS Prompt", which stayed
+English in German. As with My Documents, the stored name stays English and
+`ShortcutCaption` in `settings.pas` shows the Start menu's name for it from
+the catalogue ("MS-DOS-Eingabeaufforderung"); a name the user gave stays.
+The shortcut properties show that name too and keep the English one unless
+the user changes it. `win16-computer-window-runtime-test` starts Calmira in
+German and finds the shortcut under its German name.

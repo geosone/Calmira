@@ -232,6 +232,19 @@ class LocalizationTests(unittest.TestCase):
         # RunStartup finds the group by its shown caption.
         self.assertNotIn('Startup', menu)
 
+    def test_default_desktop_shortcuts_show_their_name_in_the_catalogue_language(self):
+        # The desktop shortcut "MS-DOS Prompt" stayed English in German.
+        def source(path):
+            return (ROOT / path).read_bytes().decode('latin-1').replace('\r\n', '\n')
+        self.assertIn("  ShortcutCaption := LanguageText('Menu', Stored, Stored);", source('src/settings.pas'))
+        self.assertIn('  Caption := ShortcutCaption(Ref.Caption);', source('src/shorts.pas'))
+        referenc = source('src/referenc.pas')
+        self.assertIn('    CaptionLabel.Caption := ShortcutCaption(Self.Caption);', referenc)
+        self.assertIn('        if CapEdit.Text <> ShortcutCaption(self.Caption) then', referenc)
+        self.assertIn('Caption=MS-DOS Prompt', (ROOT / 'src/calmira.ini').read_text(encoding='cp1252'))
+        test = (ROOT / 'tests/pascal/test_win16_computer_window.pas').read_text()
+        self.assertIn("'the default shortcut MS-DOS Prompt is shown with its German name'", test)
+
     def test_standard_buttons_have_a_text_in_every_language(self):
         # TBitBtn asks TStandardButtons.<Kind>.Caption; only Cancel existed,
         # so Shut Down showed Yes/No and dialogs OK/Help/Close in English.

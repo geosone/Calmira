@@ -171,6 +171,10 @@ begin
     'the default name My Computer is shown in German as Arbeitsplatz');
   Check((Find('Abfall') <> 0) and (Find('Papierkorb') = 0) and (Find('Recycle Bin') = 0),
     'the Recycle Bin keeps the name of the user; the catalogue does not translate the form again');
+  { CALMIRA.INI keeps the English name of the default shortcut. }
+  Check((Find('MS-DOS-Eingabeaufforderung') <> 0) and (Find('MS-DOS Prompt') = 0) and
+    (Find('Calmira Explorer') <> 0),
+    'the default shortcut MS-DOS Prompt is shown with its German name');
   if Computer = 0 then Computer := Find('Computer');
   if Computer <> 0 then
   begin
