@@ -55,6 +55,7 @@ type
     { Private declarations }
     FRef: TReference;
     LastMouseDown: Longint;
+    Clicking: Boolean; { inside a left click on the icon }
     _Active: Boolean;
     procedure WMShade(var Msg: TWMActivate); message WM_ACTIVATE;
     procedure WMQueryOpen(var Msg: TWMQueryOpen); message WM_QUERYOPEN;
@@ -123,7 +124,12 @@ procedure TShort.WMNCLButtonDown(var Msg: TWMNCLButtonDown);
 {var
   p: TPoint;}
 begin
-  inherited;
+  Clicking := True;
+  try
+    inherited;
+  finally
+    Clicking := False;
+  end;
   SetActiveWindow(Handle);
 {  GetCursorPos(p);
   TrackPopupMenu(SystemMenu.Handle, TPM_LEFTALIGN or TPM_RIGHTBUTTON, p.X, p.Y, 0, Handle, nil);}
@@ -166,6 +172,9 @@ begin
     case CmdType and $FFF0 of
       SC_CLOSE      : QueryClose := True;
       SC_PROPERTIES : if CanEditSettings then Ref.Edit;
+      { Windows 3.1 opens the menu with it after a click on an icon
+        that did not move it; Alt+Space is no click. }
+      SC_KEYMENU    : if Clicking and not LeftClickShortMenu then Exit;
       SC_RESTORE    :
         begin
           { This extra code fixes the Alt-Tab activation bug.  Previously,

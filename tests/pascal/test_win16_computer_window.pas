@@ -150,11 +150,23 @@ begin
     had dropped its resources: GDITEST.EXE itself has none. }
   WritePrivateProfileString(StrPCopy(S, 'Programs'), StrPCopy(K, 'C:\GDITEST.EXE'),
     StrPCopy(V, 'Ohne Symbol'), StrPCopy(F, 'C:\CALMIRA.INI'));
+  { As shipped: the menu of a shortcut only on the right button. }
+  WritePrivateProfileString(StrPCopy(S, 'Preferences'), StrPCopy(K, 'LeftClickShortMenu'),
+    StrPCopy(V, '0'), StrPCopy(F, 'C:\CALMIRA.INI'));
+end;
+
+{ The popup menu Windows shows, if any. }
+function MenuShown: Boolean;
+var Menu: HWND;
+begin
+  Menu := FindWindow('#32768', nil);
+  MenuShown := (Menu <> 0) and IsWindowVisible(Menu);
 end;
 
 var
   Instance: THandle;
-  Welcome, Tip, Computer: HWND;
+  Welcome, Tip, Computer, Explorer: HWND;
+  R: TRect;
 begin
   LogLine('Computer window');
   UseGerman;
@@ -184,6 +196,46 @@ begin
     Check((Find('Fehler') = 0) and (Find('Error') = 0),
       'a program without an icon shows no error box in My Computer');
   end;
+  { A click on an icon that does not move it: Windows 3.1 sends
+    SC_MOUSEMENU and opens the menu; Windows 95 only selects it. }
+  Explorer := Find('Calmira Explorer');
+  Check(not MenuShown, 'no menu is open before the click');
+  if Explorer <> 0 then
+  begin
+    { Down and up on the icon without moving: Windows' move loop then
+      asks for the menu itself. }
+    GetWindowRect(Explorer, R);
+    SetCursorPos(R.Left + 16, R.Top + 16);
+    PostMessage(Explorer, WM_NCLBUTTONDOWN, HTCAPTION, MakeLong(R.Left + 16, R.Top + 16));
+    Pump(500);
+    PostMessage(Explorer, WM_LBUTTONUP, 0, MakeLong(16, 16));
+    Pump(2000);
+  end;
+  Check((Explorer <> 0) and not MenuShown,
+    'a left click on a shortcut does not open its menu');
+  { Alt+Space still opens it. }
+  if Explorer <> 0 then
+  begin
+    PostMessage(Explorer, WM_SYSCOMMAND, SC_KEYMENU, Ord(' '));
+    Pump(2000);
+  end;
+  Check(MenuShown, 'Alt+Space still opens the menu of a shortcut');
+  if MenuShown then
+  begin
+    PostMessage(FindWindow('#32768', nil), WM_KEYDOWN, VK_ESCAPE, 0);
+    Pump(1000);
+    PostMessage(FindWindow('#32768', nil), WM_KEYDOWN, VK_ESCAPE, 0);
+    Pump(1000);
+  end;
+  Check(not MenuShown, 'Escape closes the menu');
+  { A double click still opens the shortcut: its EXPLORER.EXE is not on
+    the test disk, so Windows reports it missing. }
+  if Explorer <> 0 then
+  begin
+    PostMessage(Explorer, WM_NCLBUTTONDBLCLK, HTCAPTION, MakeLong(R.Left + 16, R.Top + 16));
+    Pump(5000);
+  end;
+  Check(Find('Fehler') <> 0, 'a double click on a shortcut still opens it');
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');
   Pump(60000);
 end.

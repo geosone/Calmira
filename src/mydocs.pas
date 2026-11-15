@@ -55,12 +55,14 @@ type
     { Private declarations }
     FRef: TSystemReference;
     LastMouseDown: Longint;
+    Clicking: Boolean; { inside a left click on the icon }
     _Active: Boolean;
     procedure WMShade(var Msg: TWMActivate); message WM_ACTIVATE;
     procedure WMQueryOpen(var Msg: TWMQueryOpen); message WM_QUERYOPEN;
     procedure WMOpenShort(var Msg: TMsg); message WM_OPENSHORT;
     procedure WMCommand(var Msg: TMessage); message WM_COMMAND;
     procedure WMSysCommand(var Msg: TWMSysCommand); message WM_SYSCOMMAND;
+    procedure WMNCLButtonDown(var Msg: TWMNCLButtonDown); message WM_NCLBUTTONDOWN;
     procedure WMPaint(var Msg: TWMPaint); message WM_PAINT;
     procedure WMMouseActivate(var Msg: TWMMouseActivate); message WM_MOUSEACTIVATE;
     procedure WMLButtonDblClk(var Msg: TWMLButtonDblClk); message WM_LBUTTONDBLCLK;
@@ -123,6 +125,16 @@ begin
   LastMouseDown := GetTimerCount;
 end;
 
+procedure TfrmMyDocs.WMNCLButtonDown(var Msg: TWMNCLButtonDown);
+begin
+  Clicking := True;
+  try
+    inherited;
+  finally
+    Clicking := False;
+  end;
+end;
+
 procedure TfrmMyDocs.WMLButtonDblClk(var Msg: TWMLButtonDblClk);
 begin
   PostMessage(Handle, WM_OPENSHORT, 0, 0);
@@ -165,6 +177,9 @@ begin
     case CmdType and $FFF0 of
       SC_CLOSE      : QueryClose := True;
       SC_PROPERTIES : if CanEditSettings then Ref.Edit;
+      { Windows 3.1 opens the menu with it after a click on an icon
+        that did not move it; Alt+Space is no click. }
+      SC_KEYMENU    : if Clicking and not LeftClickShortMenu then Exit;
       SC_RESTORE    :
         begin
           { This extra code fixes the Alt-Tab activation bug.  Previously,

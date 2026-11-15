@@ -74,6 +74,26 @@ class HugeModelTests(unittest.TestCase):
         self.assertIn("'Windows draws the Windows 3.1 caption, the title in the middle'", probe)
         self.assertIn("'Calmira draws its Windows 95 caption, the title on the left'", probe)
 
+    def test_a_left_click_on_a_shortcut_only_selects_it(self):
+        # Windows 3.1 opens the menu of an icon after a click that did not
+        # move it, with SC_KEYMENU; LeftClickShortMenu=0 (shipped) leaves
+        # the menu to the right button and Alt+Space, as Windows 95.
+        settings = (ROOT / 'src/settings.pas').read_bytes().decode('latin-1')
+        self.assertIn("LeftClickShortMenu := ReadBool('Preferences', 'LeftClickShortMenu', True);", settings)
+        ini = (ROOT / 'src/calmira.ini').read_bytes().decode('latin-1').replace('\r\n', '\n')
+        self.assertIn('OneClickShorts=0\nLeftClickShortMenu=0\n', ini)
+        for name in ('shorts', 'mydocs'):
+            source = (ROOT / f'src/{name}.pas').read_bytes().decode('latin-1')
+            self.assertIn('SC_KEYMENU    : if Clicking and not LeftClickShortMenu then Exit;', source, name)
+            handler = source.split('.WMNCLButtonDown(var Msg: TWMNCLButtonDown);', 2)[-1].split('end;\r\n\r\n', 1)[0]
+            self.assertIn('Clicking := True;', handler, name)
+            self.assertIn('Clicking := False;', handler, name)
+        probe = (ROOT / 'tests/pascal/test_win16_computer_window.pas').read_text()
+        for text in ("'a left click on a shortcut does not open its menu'",
+                     "'Alt+Space still opens the menu of a shortcut'",
+                     "'a double click on a shortcut still opens it'"):
+            self.assertIn(text, probe)
+
     def test_points_reach_user_packed_in_a_long(self):
         # USER takes POINT by value as one dword; FPC passed the TPoint record
         # otherwise, so WindowFromPoint found nothing and Calmira's drop

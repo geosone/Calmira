@@ -195,6 +195,7 @@ var
   ConfirmDelShort: Boolean;
   StickyShorts   : Boolean; { move only when caption is dragged }
   OneClickShorts : Boolean; { activate after single click }
+  LeftClickShortMenu : Boolean; { a left click opens the shortcut's menu }
   BrowseSame     : Boolean; { browse folders in same window }
   RightClose     : Boolean; { right click on min/max box to close }
   RButtonUpClose : Boolean;
@@ -438,6 +439,9 @@ begin
     ExploreLastFolder := ReadBool('Preferences', 'ExploreLastFolder', False);
     StickyShorts      := ReadBool('Preferences', 'StickyShorts', False);
     OneClickShorts    := ReadBool('Preferences', 'OneClickShorts', False);
+    { Windows 3.1 opens the menu of an icon on a single click;
+      LeftClickShortMenu=0 leaves it to the right button, as Windows 95. }
+    LeftClickShortMenu := ReadBool('Preferences', 'LeftClickShortMenu', True);
     BrowseSame        := ReadBool('Preferences', 'BrowseSame', False);
     RightClose        := ReadBool('Preferences', 'RightClose', True);
     RButtonUpClose    := ReadBool('Preferences', 'RButtonUpClose', False);

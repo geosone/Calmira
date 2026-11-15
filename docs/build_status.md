@@ -3575,3 +3575,18 @@ the catalogue ("MS-DOS-Eingabeaufforderung"); a name the user gave stays.
 The shortcut properties show that name too and keep the English one unless
 the user changes it. `win16-computer-window-runtime-test` starts Calmira in
 German and finds the shortcut under its German name.
+
+## A Left Click on a Shortcut Only Selects It
+
+Desktop shortcuts are iconic windows, and Windows 3.1 opens the menu of an
+icon after a click that did not move it: it sends `SC_MOVE` for the drag
+and then `SC_KEYMENU`. Calmira 3.3 did the same, so a click on My Documents
+dropped down Open/Move/Remove/Properties. The new option
+`[Preferences] LeftClickShortMenu` (1 by default, as the original; the
+shipped `CALMIRA.INI` sets 0) lets `TShort` and `TfrmMyDocs` drop that
+`SC_KEYMENU` while their `WM_NCLBUTTONDOWN` is running: a click selects
+the shortcut, dragging moves it, a double click opens it, and the right
+button and Alt+Space still show the menu, as Windows 95.
+`win16-computer-window-runtime-test` presses and releases the button on a
+shortcut without moving it and checks that no menu opens, that Alt+Space
+still opens it and that a double click still starts the shortcut.
