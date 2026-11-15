@@ -232,6 +232,27 @@ class LocalizationTests(unittest.TestCase):
         # RunStartup finds the group by its shown caption.
         self.assertNotIn('Startup', menu)
 
+    def test_every_catalogue_translates_the_default_start_menu(self):
+        # Only German named the entries of the default START.INI; French,
+        # Dutch, Italian, Spanish and Polish showed them in English.
+        extra = json.loads((ROOT / 'locales/extra.json').read_text(encoding='utf-8'))
+        german = set(extra['de']['Menu']) | set(json.loads(
+            (ROOT / 'locales/translated/de.json').read_text(encoding='utf-8'))['Menu'])
+        settings = ('*2Control Panel', '&System', '&Desktop', '&File System', 'Recycle &Bin',
+                    'Start &Menu', '&Taskbar')
+        for code in ('fr', 'nl', 'it', 'es', 'pl'):
+            menu = {**extra.get(code, {}).get('Menu', {}), **json.loads(
+                (ROOT / f'locales/translated/{code}.json').read_text(encoding='utf-8'))['Menu']}
+            self.assertEqual(german - set(menu), set(), code)
+            self.assertNotIn('Startup', menu, code)
+            keys = [menu[key].split('&', 1)[1][0].lower() for key in settings if '&' in menu[key]]
+            self.assertEqual(len(keys), len(set(keys)), code)
+            for key, value in menu.items():
+                self.assertLessEqual(value.count('&'), 1, (code, key))
+        probe = (ROOT / 'tests/pascal/test_win16_langui.pas').read_text()
+        for name in ('French', 'Dutch', 'Italian', 'Spanish', 'Polish'):
+            self.assertIn(f"'the {name} Start menu is translated'", probe)
+
     def test_default_desktop_shortcuts_show_their_name_in_the_catalogue_language(self):
         # The desktop shortcut "MS-DOS Prompt" stayed English in German.
         def source(path):

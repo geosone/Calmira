@@ -3590,3 +3590,15 @@ button and Alt+Space still show the menu, as Windows 95.
 `win16-computer-window-runtime-test` presses and releases the button on a
 shortcut without moving it and checks that no menu opens, that Alt+Space
 still opens it and that a double click still starts the shortcut.
+
+## The Default Start Menu in Every Catalogue
+
+Only the German catalogue named the entries of the default `START.INI`;
+French, Dutch, Italian, Spanish and Polish showed the groups, accessories,
+Control Panel applets and placeholders in English, and the Dutch, Italian,
+Spanish and Polish Settings submenu too. `locales/extra.json` now gives
+each of them the names its Windows 3.1 uses where they are known (Bloc-notes,
+Kladblok, Blocco note, Bloc de notas, Notatnik) and keeps every accelerator
+of the Settings submenu distinct. "Startup" stays, as `RunStartup` finds
+the group by its shown caption. `win16-langui-runtime-test` loads each
+catalogue and reads two of its Start menu entries.

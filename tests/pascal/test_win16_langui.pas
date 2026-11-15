@@ -91,6 +91,17 @@ begin
       ApplyComponentLanguage(FileSys);
       Check(Filter.Hint = FilterHint, 'a control hint is translated');
     finally FileSys.Free; end;
+    { The default Start menu in the other catalogues. }
+    Check(ConfigureLanguage('C:\', 'fr') and (LanguageText('Menu', 'Accessories', '') = 'Accessoires') and
+      (LanguageText('Menu', 'Notepad', '') = 'Bloc-notes'), 'the French Start menu is translated');
+    Check(ConfigureLanguage('C:\', 'nl') and (LanguageText('Menu', 'Control Panel', '') = 'Configuratiescherm') and
+      (LanguageText('Menu', 'Notepad', '') = 'Kladblok'), 'the Dutch Start menu is translated');
+    Check(ConfigureLanguage('C:\', 'it') and (LanguageText('Menu', 'Accessories', '') = 'Accessori') and
+      (LanguageText('Menu', 'Notepad', '') = 'Blocco note'), 'the Italian Start menu is translated');
+    Check(ConfigureLanguage('C:\', 'es') and (LanguageText('Menu', 'Control Panel', '') = 'Panel de control') and
+      (LanguageText('Menu', 'Notepad', '') = 'Bloc de notas'), 'the Spanish Start menu is translated');
+    Check(ConfigureLanguage('C:\', 'pl') and (LanguageText('Menu', 'Control Panel', '') = 'Panel sterowania') and
+      (LanguageText('Menu', 'Notepad', '') = 'Notatnik'), 'the Polish Start menu is translated');
     Check(StackGuardIntact, 'stack guard');
   except
     on E: Exception do Check(False, 'exception ' + E.Message);
