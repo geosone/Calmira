@@ -1,0 +1,579 @@
+; Aliassen
+
+U kunt aliassen naar objecten maken door ze te selecteren, naar een ander venster, een map of een snelkoppeling te slepen en de muisknop los te laten terwijl u de Shift-toets ingedrukt houdt.
+
+Aliassen gebruiken nogal wat geheugen als ze worden weergegeven. Als u vaak mappen met veel aliassen gebruikt, sluit de vensters dan als u klaar bent.
+
+U kunt aliassen omzetten in items van het Startmenu door ze naar het dialoogvenster Start Menu Eigenschappen te slepen. Dan wordt de informatie van de alias toegevoegd, niet die van het aliasbestand zelf.
+
+In de weergave Grote pictogrammen tonen aliassen altijd hun eigen titel. Als u een aliasbestand een beschrijving geeft, schakel dan naar de lijstweergave om die te zien (de kolom met beschrijvingen moet zichtbaar zijn).
+
+U kunt geen "alias van een alias" maken. Als u dat probeert, wordt de alias gekopieerd.
+
+Als u een alias naar het bureaublad sleept, wijst de nieuwe snelkoppeling naar hetzelfde object als de alias, niet naar de alias zelf.
+
+U kunt zwevende programmagroepen nabootsen met mappen vol aliassen naar uw programma's. Sleep die mappen daarna naar het bureaublad om er snelkoppelingen van te maken.
+
+Tijdens het surfen kunt u snel een alias naar de huidige webpagina maken. Open een pictogramvenster en kies Alias Aanmaken in het snelmenu van het venster. Calmira vult de URL en de titel voor u in.
+
+U kunt in elk pictogramvenster een alias maken met de opdracht Alias Aanmaken in het snelmenu van het venster.
+
+; Snelkoppelingen
+
+U kunt een snelkoppeling maken zonder eerst het bronobject te zoeken: klik met de rechtermuisknop op het bureaublad en kies een van de nieuwe soorten snelkoppelingen in het submenu.
+
+Zet niet te veel snelkoppelingen op het bureaublad: elke snelkoppeling is een geminimaliseerd venster en gebruikt systeembronnen.
+
+U kunt een nieuwe map op het bureaublad maken via het bureaubladmenu met een nieuwe mapsnelkoppeling. Typ een titel en de naam van een nieuwe map en klik op OK; Calmira biedt dan aan de map te maken.
+
+Snelkoppelingen "verschuiven" niet meer bij het openen als u in Bureaublad Eigenschappen de optie "Alleen verplaatsen bij slepen van de titel" kiest. Het snelmenu opent u dan met een klik op de titel.
+
+Snelkoppelingen werken sneller als u in Bureaublad Eigenschappen de optie "Eén keer klikken om te activeren" kiest.
+
+U kunt het type van een alias of snelkoppeling wijzigen. Open het eigenschappenvenster en klik op het tweede label van boven om de mogelijke waarden te doorlopen.
+
+U kunt snel een internetsnelkoppeling naar de bekeken webpagina maken. Klik met de rechtermuisknop op het bureaublad en kies Internet in het menu Nieuwe snelkoppeling. Calmira vult URL en titel in.
+
+; 4DOS-beschrijvingen
+
+4DOS-bestandsbeschrijvingen worden door veel programma's naast 4DOS ondersteund. Schakel in Bestandssysteem eigenschappen het selectievakje in om beschrijvingen bij te houden met 4DOS-sessies.
+
+Als andere programma's ook 4DOS-beschrijvingen gebruiken, vernieuw de pictogramvensters dan als beschrijvingen gewijzigd kunnen zijn. Zo voorkomt u verschillen als Calmira beschrijvingen opslaat.
+
+Voor langere beschrijvingen kunt u ze niet als titel tonen en naar de lijstweergave schakelen. Daar staat de beschrijving naast elke bestandsnaam.
+
+U kunt kiezen in welk bestand de beschrijvingen worden bewaard. Standaard is dat descript.ion; u wijzigt het met de regel DescriptionFile in de sectie [File system] van het INI-bestand.
+
+Geef belangrijke bestanden met onduidelijke DOS-namen bij het opslaan even een zinvolle beschrijving. Dat scheelt later veel zoekwerk!
+
+U beschrijft snel een groep bestanden door ze allemaal te selecteren voordat u Beschrijven kiest. Enter accepteert elke beschrijving, Esc stopt en houdt de geaccepteerde beschrijvingen.
+
+; Prullenbak
+
+U kunt objecten uit de prullenbak terugzetten door ze naar een pictogramvenster, snelkoppeling of alias te slepen.
+
+De prullenbak is handig bij een grote schoonmaak van de harde schijf: u kunt de bestanden nog bekijken voordat u ze definitief verwijdert. Stel de prullenbak dan wel in om de bestanden te bewaren!
+
+U kunt de prullenbak leegmaken zonder het venster te openen. Klik als hij als pictogram wordt getoond met de rechtermuisknop erop en kies Prullenbak leegmaken in het snelmenu.
+
+De prullenbak werkt sneller als hij de verwijderde bestanden op een lokaal station bewaart. Zie het Help-onderwerp over de prullenbak.
+
+De prullenbak laadt langzamer als hij veel bevat, omdat hij het bestaan en de grootte van alle bestanden moet controleren.
+
+U kunt de prullenbak helemaal verbergen door Visible=0 toe te voegen aan de sectie [Bin] van Calmira.ini.
+
+U kunt de inhoud van een map in de prullenbak bekijken. Zoek in de sectie [Trash] van Calmira.ini waar de map naartoe is verplaatst en open die met de bureaubladopdracht Map Openen.
+
+Als de prullenbak meerdere opslagplaatsen gebruikt, kunt u die mappen verbergen en alleen-lezen maken, zodat ze niet per ongeluk worden verwijderd. Bewaar ze bij voorkeur op een weinig gebruikte plek.
+
+; Bureaublad
+
+U haalt Calmira naar voren als het niet actief is door de linkermuisknop op het bureaublad ingedrukt te houden en dan rechts te klikken. Zo komen snelkoppelingen en pictogramvensters weer tevoorschijn.
+
+Als Calmira actief is, opent u het Computer-venster door de linkermuisknop op het bureaublad ingedrukt te houden en rechts te klikken. Herhaal dit als Calmira niet actief is.
+
+In Bureaublad Eigenschappen kiest u waar nieuwe pictogramvensters verschijnen. Trapsgewijs houdt ze bij de hand, willekeurig verdeelt ze over het bureaublad, posities opslaan houdt mappen op een vaste plek.
+
+Als u de posities van pictogramvensters laat opslaan, maak dan af en toe de sectie [Window Positions] leeg. Verwijder de regels van mappen die niet meer bestaan; dan hoeft Calmira minder te doorzoeken.
+
+U sluit een venster met één klik als u in Bureaublad Eigenschappen de optie "Rechts klikken op min/max-knop om te sluiten" kiest. Dit vervangt de sluitknop van Windows 95.
+
+Als u naar Calmira wilt en een van de dialoogvensters van Calmira actief maar verborgen is, houd dan de linkerknop ingedrukt en klik rechts op het bureaublad. Zo hoeft u geen vensters opzij te schuiven.
+
+Als uw snelkoppelingen per ongeluk zijn verschoven door "Pictogrammen schikken" in Taakbeheer, kunt u ze terugzetten. Sluit alle pictogramvensters, open het Info-venster en klik op het Calmira-logo.
+
+Met een klik met de rechtermuisknop op het bureaublad krijgt u een snelmenu waarmee u nieuwe vensters opent zonder naar het Startmenu te gaan.
+
+U maakt snel een nieuwe map door rechts op het bureaublad te klikken en Map Openen te kiezen. Typt u een map die niet bestaat, dan biedt Calmira aan die te maken voordat ze in een nieuw venster wordt geopend.
+
+De opdracht Map Openen accepteert jokertekens als filter voor nieuwe vensters. Typ bijvoorbeeld c:\Windows\*.exe om alleen programma's te zien.
+
+U hoeft bij Map Openen niet altijd de stationsletter in te typen. Laat u station, dubbele punt en backslash weg, dan neemt Calmira aan dat de map op het station van uw Windows-installatie staat.
+
+U opent de hoofdmap van een station door Map Openen in het bureaubladmenu te kiezen en een stationsletter met een dubbele punt in te typen.
+
+Als de schermkleuren vervormd raken wanneer programma's van kleurenpalet wisselen, klik dan rechts op het bureaublad en kies Scherm hertekenen. Dan tekent elk venster zich opnieuw.
+
+U kunt de pictogrammen van geminimaliseerde programma's schikken zonder uw snelkoppelingen te verplaatsen. Kies Pictogrammen schikken in het snelmenu van het bureaublad in plaats van Taakbeheer.
+
+U lijnt alle pictogrammen op het bureaublad uit met de opdracht Pictogrammen uitlijnen in het snelmenu van het bureaublad.
+
+U kunt alle geopende vensters tegelijk minimaliseren: klik met de rechtermuisknop op het bureaublad en kies Programma's minimaliseren in het submenu Schikken.
+
+U kunt alle vensters en snelkoppelingen van Calmira verbergen met de opdracht Toon Bureaublad in het snelmenu van het bureaublad. Calmira wordt dan één pictogram; dubbelklik erop om alles terug te halen.
+
+Veel geopende pictogramvensters maakt u allemaal zichtbaar met de opdracht om ze trapsgewijs te schikken in het snelmenu van het bureaublad.
+
+; Startmenu
+
+Het Startmenu wordt iets sneller als u in Start Menu Eigenschappen de gekleurde markeringsbalk uitschakelt.
+
+Calmira heeft net als Programmabeheer een groep "Opstarten". Maak ergens in het Startmenu een submenu met de titel "Startup". De programma's daarin worden gestart als Calmira wordt geladen.
+
+Hoe de pictogrammen in het Startmenu eruitzien, kan afhangen van het standaardpalet van uw beeldschermstuurprogramma. Het menu kan er dus anders uitzien als u het in een andere videomodus opnieuw opbouwt.
+
+Als u START.INI met de hand wijzigt of vervangt, verwijder dan ook BMPCACHE.BMP als u menupictogrammen gebruikt. Calmira bouwt het menu dan bij het laden opnieuw op, zodat alle pictogrammen kloppen.
+
+U vindt de weg sneller in het Startmenu als submenu's bovenaan hun bovenliggende menu staan.
+
+U kunt een eigen afbeelding als banner van het Startmenu gebruiken door een bestand Banner.bmp in de map van Calmira te zetten. Zie het Help-onderwerp over eigen bitmaps.
+
+U kunt het dialoogvenster Start Menu Eigenschappen groter maken om meer ruimte voor de menuboom te krijgen. Beweeg de cursor naar de rand tot hij van vorm verandert en sleep.
+
+Om een menu-item in Start Menu Eigenschappen snel te bewerken, dubbelklikt u op een item zonder submenu; dan opent de editor.
+
+U kunt bitmaps van 16 x 16 (.BMP) als pictogrammen in het Startmenu gebruiken; die worden niet vervormd. Geef bij het bewerken het volledige pad van de bitmap op in het veld voor het pictogram.
+
+U voegt scheidingslijnen in het Startmenu toe met een item waarvan de titel met een koppelteken [-] begint. Elke lijn moet een andere titel hebben, dus gebruik -1, -2 enz.
+
+U kunt items van Programmabeheer overal in het Startmenu toevoegen met de kleine programmagroep-knop in Start Menu Eigenschappen.
+
+Als u items van Programmabeheer importeert, worden de groepen geplaatst op het niveau waar de markeringsbalk staat.
+
+Bij het bewerken van het Startmenu kopieert u een item door het te slepen en Ctrl in te drukken voordat u de muisknop loslaat. Geef de kopie een andere titel als ze in hetzelfde menu staat.
+
+Bij het bewerken van het Startmenu verplaatst u een item in een ander item door te slepen en Alt in te drukken voordat u de muisknop loslaat.
+
+Bij het importeren van items van Programmabeheer worden bestaande items met dezelfde titel vervangen. Zo kunt u het Startmenu bijwerken met de inhoud van Programmabeheer.
+
+U kunt documenten, mappen en internetkoppelingen in het Startmenu zetten. Typt u een URL in het veld voor de opdrachtregel, dan opent Calmira uw webbrowser op die locatie.
+
+U kunt delen van het Startmenu in even grote kolommen verdelen. Zet voor de titel van het bovenliggende menu een sterretje en een cijfer van 2 tot 9. *3 maakt bijvoorbeeld drie gelijke delen.
+
+U kunt de kleine standaardpictogrammen van het Startmenu voor submenu's, mappen en opdrachten vervangen. Zie het Help-onderwerp over eigen bitmaps.
+
+Om een sneltoets aan het Startmenu toe te wijzen, gebruikt u de titel "Start". Met die sneltoets verschijnt de taakbalk (als die verborgen is) en gaat het menu open.
+
+U kunt ook een sneltoets aan een deel van het Startmenu toewijzen. Gebruik de titel van het gewenste submenu; het verschijnt dan bij de cursor als u de sneltoets indrukt.
+
+U kunt omgevingsvariabelen gebruiken in de eigenschappen van een item van het Startmenu.
+
+U kunt de titel, werkmap en weergavemodus van items wijzigen zonder het hele menu opnieuw op te bouwen. Calmira past dan alleen START.INI aan en laadt het menu zonder de pictogramcache te vernieuwen.
+
+In Start Menu Eigenschappen springt u met Ctrl+Pijl omhoog en Ctrl+Pijl omlaag naar het vorige of volgende item op hetzelfde niveau. Zo slaat u uitgeklapte menu's snel over.
+
+Met Ctrl+Pijl links springt u in Start Menu Eigenschappen naar het bovenliggende menu van het huidige item.
+
+Met een Windows 95-toetsenbord opent de Windows-toets het Startmenu. U schakelt deze toets in bij Start Menu Eigenschappen.
+
+; Uitvoeren
+
+U opent snel een webpagina door de URL in het dialoogvenster Programma Uitvoeren te typen.
+
+U kunt met MS-DOS bestanden met jokertekens hernoemen. Kies in een pictogramvenster Uitvoeren in het menu van het venster, typ de opdracht rename, kies DOS-opdracht en klik op Uitvoeren. Vernieuw daarna het venster!
+
+Voor programma's en documenten in uw MS-DOS-pad hoeft u in Uitvoeren geen pad te typen. Om bijvoorbeeld uw Windows-initialisatiebestand te bewerken, typt u gewoon "WIN.INI".
+
+U kunt ook mappen openen met Uitvoeren en de geschiedenislijst gebruiken om onlangs geopende mappen terug te vinden.
+
+; Zoeken
+
+U kunt bestanden uit Bestanden zoeken naar pictogramvensters, snelkoppelingen of aliassen slepen om ze te kopiëren of te verplaatsen. Dit werkt niet met bestandsbeschrijvingen.
+
+U kunt bestanden uit Bestanden zoeken naar andere programma's slepen, zoals Kladblok.
+
+U kunt Bestanden zoeken groter maken om meer bestanden te tonen door aan een van de randen te slepen.
+
+U opent een bestand of map in Bestanden zoeken door erop te dubbelklikken.
+
+Vanuit Bestanden zoeken opent u het venster Openen Met via het snelmenu of met Ctrl+Enter.
+
+Als u bestandsgegevens uit Bestanden zoeken naar het klembord kopieert, kunt u de kolom Locatie breder maken met de kop boven de lijst.
+
+U kunt direct naar een gevonden bestand of map gaan. Selecteer het item en kies Bovenliggende map openen in het snelmenu. Er opent een pictogramvenster waarin het item al is geselecteerd.
+
+U wijzigt het station waarop gezocht wordt door alleen een letter in het veld Zoeken vanaf te typen. Calmira vult de rest van het pad aan.
+
+Bestanden zoeken is veel sneller als u maar één jokerteken opgeeft en de lijst voor elke zoekopdracht leegmaakt, want dan hoeft het niet op dubbele items te controleren.
+
+U opent Zoeken vanuit de Explorer door een map te selecteren en Zoeken... in het snelmenu te kiezen (of Ctrl+F). De gekozen map staat dan al in het veld Zoeken vanaf.
+
+; Optimaliseren
+
+Met de toetsen [/], [*], [+] en [-] sluit u overbodige pictogramvensters. Zo houdt u het bureaublad overzichtelijk en bespaart u geheugen.
+
+Als de User-bronnen opraken, kunt u het Startmenu kleiner maken.
+
+Als de System-bronnen opraken, kunt u enkele snelkoppelingen verwijderen of aliassen gebruiken.
+
+Als Calmira lang nodig heeft om te laden, controleer dan of er niet te veel in de prullenbak zit, want die moet worden doorzocht.
+
+Calmira leest het INI-bestand sneller als de sectie [Window Positions] klein blijft. Als posities worden opgeslagen, komt er per geopende map een regel bij; maak de sectie dus af en toe leeg.
+
+; Computer-venster
+
+U vernieuwt het Computer-venster met F5 of met Vernieuwen in het snelmenu. Alle beschikbare stations worden dan opnieuw gezocht, handig na het aanmelden op een netwerk.
+
+Sleep bestanden en mappen naar het Computer-pictogram om ze aan het Startmenu toe te voegen. Ze staan in de boom als u Start Menu Eigenschappen weer opent.
+
+U kunt de programmapictogrammen in het Computer-venster aanpassen in de sectie [Programs].
+
+Als u het bureaubladmenu niet gebruikt, vindt u enkele opdrachten ook in het snelmenu van het geminimaliseerde Computer-venster.
+
+Het snelmenu van het geminimaliseerde Computer-venster (bijv. voor de Help) opent u met een klik rechts op het pictogram. In Systeem Eigenschappen kiest u of dit menu of het Startmenu verschijnt.
+
+U opent de eigenschappenvensters van Calmira via het snelmenu dat verschijnt als u in het Computer-venster rechts tussen de pictogrammen klikt.
+
+U kunt uw eigen Computer-venster maken met een map en aliassen. Daarin kunt u objecten naar de stationspictogrammen slepen.
+
+; Scripts
+
+Met scripts voert u meerdere opdrachten uit en start u meerdere programma's met één muisklik. Maak een script met de opdracht Start en wijs het toe aan een snelkoppeling, alias of item van het Startmenu.
+
+U kunt scripts vanuit een MS-DOS-sessie in Windows uitvoeren. Zo start u Windows-programma's vanaf de opdrachtregel en bestuurt u Calmira, bijv. pictogramvensters openen. Zie de Help.
+
+Als u vaak batchbestanden in een MS-DOS-venster gebruikt, kunnen die eenvoudig scripts maken om Calmira te besturen en Windows-programma's te starten. Zie de Help over het schrijven van scripts.
+
+Met het batchbestand Start start u een programma of opent u een document vanuit een MS-DOS-venster. Dan hoeft u geen pictogramvenster te openen voor een bestand dat u in DOS al ziet.
+
+Met het batchbestand Folder opent u een pictogramvenster vanuit een MS-DOS-venster. Dan hoeft u geen lang pad te typen als u al in de map staat.
+
+Met het batchbestand Open opent u bestanden, Windows-programma's en mappen vanuit een MS-DOS-venster.
+
+Met het batchbestand Explore opent u de Explorer-boom vanuit een MS-DOS-venster, al op de map waarin u staat.
+
+In een MS-DOS-venster start u met het meegeleverde Start.bat een ander MS-DOS-programma in een nieuw venster.
+
+U kunt een eigen configuratiescherm voor Calmira maken. Schrijf scriptbestanden die elk eigenschappenvenster openen, maak aliassen naar die scripts en hun map wordt een configuratiescherm.
+
+Aliassen kunnen dialoogvensters openen en speciale opdrachten uitvoeren, net als items van het Startmenu. Maak een alias naar een script dat de opdracht Macro gebruikt. Zie het Help-onderwerp over scripts.
+
+U kunt een Windows-programma starten vanuit een opdrachtpromptvenster met de batchbestanden Open en Start.
+
+; Omgeving
+
+Met de omgevingsvariabele %currentfolder% start u een programma met de getoonde map als werkmap.
+
+Met de variabele %droppedfiles% bepaalt u waar de bestandsnamen op de opdrachtregel komen als u objecten op een snelkoppeling of alias neerzet.
+
+Met de variabele %filename% bepaalt u waar de bestandsnaam komt bij programma's uit Openen Met of de hulpprogramma's in Bestandssysteem eigenschappen.
+
+Met de variabele %calmira% verwijst u naar de map van Calmira.
+
+Met de variabele %comspec% verwijst u naar de huidige MS-DOS-shell. Handig als u vaak van shell wisselt.
+
+Met de variabele %windir% verwijst u naar de Windows-map.
+
+Met de variabele %currentdrive% verwijst u naar de stationsletter van het actieve pictogramvenster. Handig voor schijfprogramma's; ook beschikbaar in Stationseigenschappen als u op het stationspictogram klikt.
+
+U kunt eigen omgevingsvariabelen definiëren in de sectie [Environment] van Calmira. Zo vermijdt u absolute paden in snelkoppelingen, aliassen en Startmenu-items; ze passen zich aan als u de variabele wijzigt.
+
+U kunt omgevingsvariabelen als eenvoudige macro's gebruiken in Programma Uitvoeren en Map Openen. Zo vervangt u een lange tekst (een opdracht of mapnaam) door een korte tussen %-tekens.
+
+; Pictogramvensters
+
+Met Backspace opent u de bovenliggende map van een pictogramvenster.
+
+Om bestanden met jokertekens te selecteren of te deselecteren, drukt u Ctrl+S in een pictogramvenster of klikt u rechts op het rechterlabel van de statusbalk.
+
+U opent Stationseigenschappen vanuit een pictogramvenster met een klik rechts op het linkerlabel van de statusbalk. Daar ziet u de vrije ruimte op het station.
+
+U koppelt een bestandstype aan een programma door één bestand te selecteren en het eigenschappenvenster te openen.
+
+Met Ctrl+C kopieert u gegevens van de geselecteerde bestanden naar het klembord. Bij grote en kleine pictogrammen is dat een lijst titels, in de lijstweergave een maplijst zoals onder MS-DOS.
+
+Een eigen maplijst krijgt u door naar de lijstweergave te gaan en de kolommen te kiezen in Bestandsfilter plaatsen. Selecteer dan de bestanden en druk Ctrl+C om de gegevens naar het klembord te kopiëren.
+
+Met Ctrl+E opent u de Explorer-boom vanuit een pictogramvenster. De map van het venster wordt daarin geselecteerd.
+
+Met Ctrl+F opent u Bestanden zoeken vanuit een pictogramvenster. De map van het venster is dan het beginpunt.
+
+U drukt een bestand af door het te selecteren en Ctrl+P te drukken. Het bestand moet gekoppeld zijn aan een programma dat het kan afdrukken; Kladblok drukt bijvoorbeeld tekstbestanden af.
+
+U drukt een bestand ook af door het op het venster of pictogram van Afdrukbeheer neer te zetten. Het bestand moet gekoppeld zijn aan een programma dat het kan afdrukken.
+
+In een pictogramvenster opent u elke map met Ctrl+O en het pad van de map.
+
+Met Ctrl+U start u het Undelete-programma dat in Bestandssysteem eigenschappen is opgegeven.
+
+Met Ctrl+F5 schikt u pictogramvensters trapsgewijs.
+
+Met Shift+F5 schikt u de pictogrammen op het bureaublad terwijl een pictogramvenster actief is.
+
+Met F12 minimaliseert u Calmira om het bureaublad vrij te maken terwijl een pictogramvenster actief is.
+
+U vernieuwt de inhoud van een pictogramvenster met F5 of met een klik op het linkerlabel van de statusbalk.
+
+Met het sterretje [*] op het numerieke toetsenblok sluit u alle pictogramvensters behalve het actieve. Handig na het zoeken naar een bepaald bestand.
+
+Met de plus [+] op het numerieke toetsenblok sluit u alle bovenliggende vensters van een pictogramvenster. Handig als u recht een tak van de boom bent afgedaald.
+
+Met de slash [/] op het numerieke toetsenblok of het gewone toetsenbord sluit u alle pictogramvensters.
+
+Met de komma [,] selecteert u alle bestanden van een venster, met de punt [.] deselecteert u ze.
+
+Met het vraagteken [?] stelt u het bestandsfilter van een venster in en kiest u welke gegevens worden getoond.
+
+Met Shift+I, Shift+M en Shift+L schakelt u naar Grote pictogrammen, Kleine pictogrammen en Lijst.
+
+Houd Alt ingedrukt terwijl u op een map dubbelklikt om de map in hetzelfde of een nieuw venster te openen, net andersom dan de instelling in Bureaublad Eigenschappen.
+
+Met Shift+T, Shift+N, Shift+S en Shift+D sorteert u op type, naam, grootte en datum.
+
+Met de backslash [\] opent u vanuit elk pictogramvenster de hoofdmap van het huidige station.
+
+Om naar de volgende bestandsnaam met een bepaalde beginletter te springen, drukt u gewoon die letter.
+
+Om de hoofdmap van een station te openen, drukt u Ctrl en Shift samen met de stationsletter.
+
+Toont de statusbalk van een pictogramvenster maar één label, dan gebruikt u de muisfuncties van het andere label door Shift in te drukken voordat u klikt.
+
+U kunt instellen hoeveel rijen en kolommen pictogramvensters gebruiken bij automatisch aanpassen van de grootte. Zie de Help over de sectie [Layouts] van het INI-bestand.
+
+U kunt de instelling "Mappen in hetzelfde venster bladeren" tijdelijk omkeren door Alt in te drukken als u een map opent. Staat de instelling uit, dan schakelt Alt ze juist in.
+
+Hoeveel ruimte een mapstructuur inneemt, ziet u door een groep mappen te selecteren en het eigenschappenvenster te openen.
+
+Een klik op het rechterlabel van de statusbalk selecteert alle bestanden. Is er al iets geselecteerd, dan wordt de selectie opgeheven.
+
+Tijdens slepen schakelt u met de rechtermuisknop tussen kopiëren en verplaatsen. Met Alt vóór het slepen wijzigt u de beginmodus. Zie de opties in Bestandssysteem eigenschappen.
+
+Wilt u bestanden op een map of programma neerzetten dat buiten beeld is gescrold, sleep de cursor dan over de schuifknoppen om de weergave te laten scrollen.
+
+Bedekken veel pictogramvensters het bureaublad, klik dan rechts op een titelbalk. Een snelmenu toont alle geopende mappen, zodat u snel naar elk ervan springt.
+
+Met de optie in Bureaublad Eigenschappen bladert u in hetzelfde venster door mappen, zodat er niet te veel vensters opengaan. Met Backspace of een klik rechts op het sluitvak gaat u terug omhoog.
+
+Houd Shift ingedrukt terwijl u op een map dubbelklikt om de Explorer-boom voor die map te openen.
+
+U kunt het bladeren in meerdere vensters of één venster omkeren: houd Alt ingedrukt bij het dubbelklikken op een map. De map opent dan andersom dan ingesteld in Bureaublad Eigenschappen.
+
+Laat u de cursor op een bestand of map rusten, dan geeft een tip extra informatie, bijvoorbeeld de echte naam van een bestand dat met zijn beschrijving wordt getoond, of omgekeerd de beschrijving.
+
+U bekijkt een bestand snel door Shift in te drukken en er rechts op te klikken. Dat is hetzelfde als Bekijken in het snelmenu van het bestand.
+
+Openen Met roept u snel op door Ctrl in te drukken en rechts op een bestand te klikken.
+
+In Openen Met kunt u op een item dubbelklikken in plaats van op OK te klikken.
+
+Het eigenschappenvenster opent u door Alt in te drukken en rechts op een bestand of map te klikken.
+
+Om de selectie in een pictogramvenster om te keren, houdt u Ctrl ingedrukt en klikt u op het rechterlabel van de statusbalk. Zo selecteert u alles behalve een paar bestanden.
+
+Met de lasso selecteert u aaneengesloten blokken bestanden en mappen. Begint u de lasso op een geselecteerd item, dan blijft de oude selectie behouden.
+
+U kunt bestandspictogrammen uit Calmira naar andere programma's slepen, net als met Bestandsbeheer.
+
+Met een klik op een lege plek heft u de selectie in een pictogramvenster op.
+
+Met Ctrl+Pijl omhoog en Ctrl+Pijl omlaag scrolt u de inhoud van een pictogramvenster zonder de selectie te wijzigen.
+
+Om een selectiekader om een groep bestanden te trekken, klikt u bij een hoek van de groep en sleept u de rechthoek.
+
+U kunt een bestandspictogram op een programmapictogram neerzetten om het bestand met dat programma te openen. Schakel dit in bij Bestandssysteem eigenschappen.
+
+; Toetsenbord
+
+U kunt Alt Gr in een sneltoets gebruiken door Ctrl+Alt op te geven. In Calmira is Alt Gr ingedrukt houden hetzelfde als Ctrl en Alt samen.
+
+U kunt een Windows 95-toetsenbord nabootsen door Ctrl+Alt+Spatie aan het Startmenu (titel "Start") toe te wijzen. Dan opent de spatiebalk met Alt Gr ingedrukt het Startmenu.
+
+Bij het toewijzen van sneltoetsen kunt u de namen van speciale toetsen gebruiken, zoals Enter, Backspace, Delete enz.
+
+Met Ctrl+Tab schakelt u tussen alle vensters van Calmira.
+
+; Taakbalk
+
+U kunt elk "ontspoord" programma beëindigen met de taakbalk. Klik rechts op de Startknop, kies Taak beëindigen en de cursor verandert van vorm. Klik dan op de knop van het programma in de taakbalk.
+
+De opdracht Toon vensterinfo in het snelmenu van de Startknop laat de tips op de taakknoppen de modulenaam en vensterklasse tonen. Daarmee kunt u bepaalde vensters van de balk uitsluiten.
+
+U kunt bestanden uit Calmira en andere programma's op de knoppen van de taakbalk neerzetten. Dat werkt net als bestanden op geminimaliseerde programmapictogrammen neerzetten in Bestandsbeheer.
+
+Verschijnt een nieuwe taak niet meteen op de taakbalk, klik dan op een ander venster en ga terug naar het nieuwe programma; dan wordt de taakbalk bijgewerkt.
+
+U kunt eigen bitmaps gebruiken voor pictogramvensters en de Explorer-boom op de taakbalk. Zie het Help-onderwerp over eigen bitmaps.
+
+De taakbalk kan documentnamen vóór programmanamen op de knoppen tonen. Dat is vaak duidelijker als de knoppen te smal zijn voor de hele titel.
+
+De tips van de taakbalk tonen altijd het volledige pad van pictogramvensters, ook als de knoppen alleen mapnamen van 8 letters tonen.
+
+De taakbalk kan het gekozen pictogram tonen voor programma's die vanuit snelkoppelingen, aliassen of het Startmenu zijn gestart. Dat werkt zelfs voor Windows-programma's, want de taakbalk krijgt de pictogrammen van Calmira.
+
+De taakbalk kan voor elke instantie van een programma een ander pictogram tonen. Openen twee snelkoppelingen bestanden met Kladblok, dan toont elke knop het bewerkte document.
+
+; Weergave
+
+Calmira is ontworpen voor, en ziet er meestal het best uit met, het gewone lettertype MS Sans Serif 8 punts en een beeldschermstuurprogramma met kleine lettertypen.
+
+Losse pictogrambestanden tonen hun eigen pictogram als u "ICO" toevoegt aan de extensies in Bestandssysteem eigenschappen. Pictogrammen kosten wel geheugen; gebruik dit niet voor honderden tegelijk.
+
+Laat geen *.ICO-bestanden in de map van Calmira staan, tenzij ze voor documenten of ingebouwde objecten bedoeld zijn. Anders vervuilen ze alleen de bronlijsten van Calmira.
+
+U kunt bijna alle ingebouwde pictogrammen van Calmira vervangen door eigen pictogrammen. Zie het Help-onderwerp over eigen pictogrammen.
+
+U kunt eigen pictogrammen voor documentbestanden instellen; die gaan voor de pictogrammen uit het register.
+
+U kunt veel ingebouwde bitmaps van Calmira vervangen door eigen afbeeldingen voor de taakbalk, het Startmenu en de Explorer. Zie het Help-onderwerp over eigen bitmaps.
+
+U kunt uw stations beschrijvende namen geven in de sectie [Drives]. U kunt bijvoorbeeld het standaard Floppy (A:) vervangen door 3½" Diskette.
+
+U kunt pictogramvensters beschrijvende titels geven in de sectie [Window Captions]. Handig als u mappen als programmagroepen met aliassen van uw toepassingen gebruikt.
+
+; Diversen
+
+U wijzigt de bureaubladachtergrond in Bureaublad Eigenschappen. Klik daarvoor met de rechtermuisknop ergens op het bureaublad en kies "Eigenschappen".
+
+U schakelt lange bestandsnamen van Windows 95 in of uit met de optie "Ondersteuning voor lange bestandsnamen" op het tabblad Geavanceerd van Bestandssysteem eigenschappen.
+
+Ziet u in een dialoogvenster een invoerveld voor een bestands- of mapnaam, dubbelklik er dan op om een bladervenster te openen.
+
+U kunt bestanden uit andere programma's (bijv. Bestandsbeheer) naar pictogramvensters, snelkoppelingen of aliassen slepen. Calmira vraagt dan of ze gekopieerd of verplaatst moeten worden.
+
+Gebruik de weergave OEM-tekst om naar het klembord gekopieerde maplijsten te bekijken; dan staan de kolommen recht.
+
+Het kan interessant zijn de broncode van Calmira te bekijken. Open de *.PAS-bestanden in een teksteditor. Een deel is verrassend leesbaar, ook als u niet kunt programmeren!
+
+Maak een reservekopie van CALMIRA.INI en START.INI samen met uw gegevens, zodat u bij beschadigde INI-bestanden niet alles opnieuw hoeft in te stellen.
+
+Voeg de tekst "www." toe aan URLPrefixes in de sectie [Internet]. Dan kunt u een webadres zonder http:// in Programma Uitvoeren typen.
+
+Dubbelklik op een instelling op de pagina Geavanceerd van Systeem Eigenschappen om die te bewerken.
+
+Met MaxHistorySize in de sectie [Calmira] beperkt u het aantal items in geschiedenislijsten.
+
+Uw Windows 3.1-menu's lijken meer op Windows 95 als u de achtergrond grijs, de markering blauw en de gemarkeerde tekst wit maakt.
+
+U wijzigt het raster van Pictogrammen uitlijnen met DeskGridX en DeskGridY in de sectie [Desktop].
+
+U wijzigt het lettertype van pictogramvensters, de Explorer-boom en het Computer-venster met FontName, FontSize en FontStyle in de sectie [Display].
+
+Calmira kan zijn INI-bestanden in de Windows-map laden en opslaan. Maak een sectie [Calmira] in Win.ini en voeg de regel LoadFromWindir=1 toe.
+
+Hoe de kleine pictogrammen van de lijstweergave worden getekend, wijzigt u met IconStretchMode in de sectie [Display]. De vooraf ingestelde waarde geeft meestal het beste resultaat.
+
+U kunt bestandstypen voor het venster Eigenschappen toevoegen in de sectie [File Types]. Calmira gebruikt die beschrijvingen voor bestanden zonder geschikte registervermelding.
+
+U past het automatische formaat van pictogramvensters aan in de sectie [Layouts]: hoeveel rijen en kolommen bij elk aantal pictogrammen. Zie het Help-onderwerp Diverse instellingen.
+
+U wijzigt het lettertype van de taakbalk met FontName in de sectie [Taskbar].
+
+Met MinAppHeight in de sectie [Taskbar] bepaalt u de positie van geminimaliseerde pictogrammen boven de taakbalk. Gebruik dit als titels achter de balk verdwijnen.
+
+Met HintDelay in de sectie [Taskbar] stelt u in hoe lang het duurt voordat tips boven taakknoppen verschijnen.
+
+Het formaat van tijd en datum op de taakbalk wijzigt u met 24HourFormat, 12HourFormat en FullDateTime in de sectie [Taskbar]. Zie het Help-onderwerp Diverse instellingen.
+
+Dubbelklik op de klok van de taakbalk om datum en tijd in te stellen.
+
+Met ClockAdjust in de sectie [Taskbar] gebruikt u een ander programma om datum en tijd in te stellen.
+
+U kunt geluiden aan gebeurtenissen in Calmira koppelen met WAV-bestanden in de sectie [Sounds]. Zie het Help-onderwerp Diverse instellingen. Deze geluiden gelden alleen voor vensters van Calmira.
+
+U wijzigt het lettertype van het Startmenu met FontName en FontSize in de sectie [Start menu].
+
+U wijzigt lettertype en titel van de Startknop met FontName, FontSize, FontStyle en Caption in de sectie [Start button].
+
+U kunt de Startknop verbergen door hem van het scherm te schuiven. Zet Left in de sectie [Start button] op een geschikt negatief getal.
+
+De naam van het verborgen bestand met bestandsbeschrijvingen wijzigt u met DescriptionFile in de sectie [File System].
+
+Met DescriptionWidth in de sectie [File System] stelt u de breedte van beschrijvingen in de lijstweergave in.
+
+Met ColumnPadding in de sectie [File System] stelt u de ruimte tussen de kolommen van de lijstweergave in.
+
+Met ListKBDecimals in de sectie [File System] kiest u het aantal decimalen voor bestandsgrootten in kilobytes. Dit geldt alleen voor de lijstweergave van pictogramvensters.
+
+U kunt kiezen welke secties op het tabblad Geavanceerd van Systeem Eigenschappen staan. Bewerk de sectie [Advanced] volgens het Help-onderwerp Diverse instellingen.
+
+De sectie [History Lists] bevat de lijsten uit Systeem Eigenschappen. U kunt andere secties toevoegen, bijv. [Window Positions], zodat u ze met de prullenbakknop leeg kunt maken.
+
+In veel dialoogvensters kunt u op keuzerondjes en lijsten dubbelklikken in plaats van op OK te klikken.
+
+De vrije schijfruimte ziet u door rechts op het stationspictogram in het Computer-venster te klikken en Eigenschappen te kiezen, of door rechts op het linkerlabel van de statusbalk te klikken.
+
+In een geopende map gaat u met Backspace één niveau omhoog.
+
+Klik overal met de rechtermuisknop om een menu met de beschikbare opdrachten te zien.
+
+; Afsluiten
+
+Gebruik af en toe Windows opnieuw starten in het venster Afsluiten. Dat herstelt systeembronnen, maakt geheugen vrij, ruimt problemen van fouten op en voorkomt crashes. Het is sneller dan afsluiten en WIN starten.
+
+In het venster Afsluiten kunt u op een keuzerondje dubbelklikken in plaats van het te kiezen en op OK te klikken.
+
+Dubbelklik op het pictogram in het venster Afsluiten om de Windows-shell snel te wisselen tussen Programmabeheer en Calmira.
+
+; Help
+
+Het grootste deel van de Help van Calmira ziet u het best in een venster van ongeveer 500 pixels breed.
+
+Om de hele Help in één keer af te drukken, kunt u het RTF-bronbestand uit het bronarchief halen en in een geschikte tekstverwerker afdrukken.
+
+Om de hele lijst met tips te bekijken, opent u LANG\NL.TIP in een tekstverwerker of programma dat regels automatisch afbreekt.
+
+In de meeste vensters krijgt u met F1 Help bij het onderwerp.
+
+Met de knoppen << en >> bladert u alle Help-onderwerpen op volgorde door.
+
+De nieuwste versies van Calmira vindt u op de homepage http://www.calmira.net.
+
+U kunt LANG\NL.TIP bewerken om uw eigen berichten te tonen.
+
+; Toetsenbord
+
+U kunt elk venster oproepen en elk programma starten met één toetsdruk... zie de Help over het toewijzen van sneltoetsen.
+
+U kunt het Startmenu met een sneltoets openen; het menu heeft de vaste titel "Start". Zie de Help over sneltoetsen.
+
+; "Leuke en inspirerende tips"
+
+T-shirts met programmeergrappen zijn zelden een modieus succes.
+
+Duik nooit in water vol haaien.
+
+Het is nooit te laat om met de Macintosh te leren werken.
+
+Zoekt u een stabiel besturingssysteem, kijk dan eens op http://www.linux.org.
+
+; Bestandssysteem
+
+U schakelt lange bestandsnamen van Windows 95 in of uit met de optie "Ondersteuning voor lange bestandsnamen" op het tabblad Geavanceerd van Bestandssysteem eigenschappen.
+
+Met de lijst Bevestiging in Bestandssysteem eigenschappen stelt u de vragen van Calmira bij kopiëren en verplaatsen nauwkeurig in, als Calmira te veel vraagt.
+
+Leest Calmira een map voor een pictogramvenster of de Explorer-boom, dan breekt u dat af met Esc.
+
+Schakel de kleine pictogrammen voor Kleine pictogrammen en Lijst uit, dan tekent Calmira veel sneller.
+
+Slepen gaat makkelijker als u in Bestandssysteem eigenschappen het neerzetten op programma's in pictogramvensters uitschakelt. Objecten boven een programma gaan dan naar het venster.
+
+In Bestandssysteem eigenschappen kunt u een schijfprogramma opgeven waarmee u schijven formatteert of controleert als u op het pictogram in Stationseigenschappen klikt.
+
+Calmira voert de meeste bestandsbewerkingen op de achtergrond uit, zodat u via de taakbalk naar een ander programma kunt gaan terwijl bestanden worden gekopieerd of verplaatst.
+
+In Bestandssysteem eigenschappen stelt u in of de extensies van drie letters worden getoond of verborgen.
+
+U koppelt een bestand aan een programma door het te selecteren en Eigenschappen in het snelmenu te kiezen. Op het tabblad Koppeling kiest u een bestaande registervermelding of een ander programma.
+
+; Bestandseigenschappen
+
+In het venster Eigenschappen koppelt u een bestand aan een programma. De koppeling werkt meteen bij het openen, maar de pictogrammen worden pas bijgewerkt als u Calmira opnieuw start.
+
+Welk programma een document opent als u erop dubbelklikt, ziet u door het pictogram te selecteren, Eigenschappen in het snelmenu te kiezen en het tabblad Koppeling te openen.
+
+In het venster Eigenschappen kopieert u tekst uit de labels naar het klembord. Klik op een label, sleep de markering erover en druk Ctrl+C.
+
+; Explorer-boom
+
+U navigeert sneller door de Explorer-boom als u het automatisch bijwerken van het bestandspaneel uitschakelt. Klik rechts op de boom en vink "Bestandsvenster tonen" uit.
+
+Een pictogramvenster los van de Explorer-boom opent u met een klik rechts op een map in de boom en Openen in nieuw venster in het snelmenu.
+
+Als mappen worden toegevoegd, verwijderd of verplaatst, vernieuwt u de Explorer-boom met F5 of met Vernieuwen in het snelmenu.
+
+Het aantal kolommen in het bestandsvenster van de Explorer-boom stelt u in met FilePaneCols in de sectie [Desktop].
+
+In Bureaublad Eigenschappen kiest u of het bestandsvenster samen met de Explorer-boom sluit of open blijft.
+
+U wijzigt de afbeeldingen van de Explorer-boom met een bestand Explrico.bmp. Zie het Help-onderwerp over eigen bitmaps.
+
+Met een klik op '+' of '-' klapt u een map in de Explorer-boom uit of in zonder het bestandspaneel bij te werken.
+
+Met Ctrl+Pijl omhoog en Ctrl+Pijl omlaag springt u in de Explorer-boom naar de vorige of volgende map op hetzelfde niveau en slaat u uitgeklapte takken over.
+
+Met Ctrl+W stopt u het bijwerken van het bestandspaneel en beweegt u door de boom zonder de huidige bestandsweergave te verliezen.
+
+Een los zwevend venster opent u vanuit de Explorer-boom met Openen in nieuw venster in het snelmenu of met Ctrl+Enter.
+
+Met Ctrl+Pijl links springt u in de Explorer-boom naar de bovenliggende map.

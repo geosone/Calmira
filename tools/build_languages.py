@@ -40,6 +40,9 @@ BASES = {
 }
 # Texts no historical translation covers, translated for this project.
 TRANSLATED = ROOT / 'locales/translated'
+# Tips of the Day per catalogue: the historical translations where they still
+# say what src/tips.txt says, completed and translated for this project.
+TIPS = ROOT / 'locales/tips'
 NAMES = {'en': 'English', 'de': 'Deutsch', 'fr': 'Francais', 'nl': 'Nederlands',
          'pl': 'Polski', 'it': 'Italiano', 'es': 'Espa\u00f1ol'}
 CODEPAGES = {'pl': 1250}
@@ -306,6 +309,38 @@ def build(output):
         report[code] = {'entries': translated, 'stale': stale.get(code, 0), 'omitted': omitted}
     (output / 'coverage.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({code: info['entries'] for code, info in report.items()}))
+    build_tips(output)
+
+
+def tip_sections(text):
+    """The (title, tips) sections of a tips file, without its count line."""
+    sections = []
+    for line in text.replace('\r', '').split('\n'):
+        if line.startswith(';'):
+            sections.append((line[1:].strip(), []))
+        elif line.strip():
+            sections[-1][1].append(line.strip())
+    return sections
+
+
+def build_tips(output):
+    """Write LANG\\<code>.TIP in the TIPS.TXT format: the tip count, then one
+    tip per line; Calmira reads at most 255 characters of a line."""
+    english = tip_sections((ROOT / 'src/tips.txt').read_text(encoding='cp1252').split('\n', 1)[1])
+    for source in sorted(TIPS.glob('*.txt')):
+        code = source.stem
+        encoding = f'cp{CODEPAGES.get(code, 1252)}'
+        sections = tip_sections(source.read_text(encoding='utf-8'))
+        if [len(tips) for _, tips in sections] != [len(tips) for _, tips in english]:
+            raise SystemExit(f'{source}: the sections do not follow src/tips.txt')
+        lines = [str(sum(len(tips) for _, tips in sections)), '']
+        for title, tips in sections:
+            lines += [f'; {title}', '']
+            for tip in tips:
+                if len(tip.encode(encoding)) > 255:
+                    raise SystemExit(f'{source}: a tip is longer than 255 characters: {tip[:40]}')
+                lines += [tip, '']
+        (output / f'{code}.TIP').write_bytes('\r\n'.join(lines).encode(encoding))
 
 
 if __name__ == '__main__':

@@ -67,14 +67,14 @@ mcopy -s -i "$partition" ::/CALMIRA "$work/installed/"
 installed="$work/installed/CALMIRA"
 for file in CALMIRA.EXE CALMIRA.HLP COUNTTIP.EXE CTASKMAN.EXE DIREXIST.EXE DOSRUN.EXE \
     EXPLORER.EXE SCRNSAVE.EXE SHOWDESK.EXE WNDHOOKS.DLL LFNPROBE.EXE START.INI TIPS.TXT \
-    LANG/de.LNG LANG/en.LNG TRAY/EXPLORER.ALS \
+    LANG/de.LNG LANG/en.LNG LANG/de.TIP LANG/pl.TIP TRAY/EXPLORER.ALS \
     DOSLFN/DOSLFN.COM LICENSE.TXT LICENSES/CTL3D.TXT INSTALL.EXE INSTALL.INI; do
     # FAT keeps short names in upper case
     cmp "$package/$file" "$installed/$(printf '%s' "$file" | tr '[:lower:]' '[:upper:]')" ||
         fail "$file differs from the package"
 done
 # Notepad shows a text file with LF line ends as one line with black boxes.
-for file in LICENSE.TXT README.TXT TIPS.TXT LICENSES/CTL3D.TXT LICENSES/GPL3.TXT \
+for file in LICENSE.TXT README.TXT TIPS.TXT LANG/DE.TIP LICENSES/CTL3D.TXT LICENSES/GPL3.TXT \
     LICENSES/7ZIP.TXT LICENSES/LGPL21.TXT LICENSES/DOS32A.TXT; do
     python3 - "$installed/$file" <<'PY' || fail "$file does not end its lines with CR LF"
 import sys

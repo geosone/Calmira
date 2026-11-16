@@ -153,6 +153,12 @@ begin
   { As shipped: the menu of a shortcut only on the right button. }
   WritePrivateProfileString(StrPCopy(S, 'Preferences'), StrPCopy(K, 'LeftClickShortMenu'),
     StrPCopy(V, '0'), StrPCopy(F, 'C:\CALMIRA.INI'));
+  { The German tips setup installs as LANG\DE.TIP, here with one short tip;
+    TIPS.TXT beside CALMIRA.EXE holds the long English ones. }
+  Target := _lcreat('C:\LANG\DE.TIP', 0);
+  StrPCopy(S, '1'#13#10#13#10'; Test'#13#10#13#10'Tipp.'#13#10);
+  _lwrite(Target, @S, StrLen(S));
+  _lclose(Target);
 end;
 
 { The Tip of the Day draws "Welcome to" in Times New Roman at (16, 8) and the
@@ -177,6 +183,22 @@ begin
   ReleaseDC(Tip, DC);
 end;
 
+{ The black pixels of the tip text: TipLabel lies at (80, 92) in the dialog,
+  233 by 85 pixels, on a dithered yellow. "Tipp." inks a few dozen of them, an
+  English tip of the day hundreds. }
+function TipInk(Tip: HWND): Integer;
+var DC: HDC; P: TPoint; X, Y: Integer;
+begin
+  Result := 0;
+  P.X := 0; P.Y := 0;
+  ClientToScreen(Tip, P);
+  DC := GetDC(0);
+  for Y := 92 to 92 + 84 do
+    for X := 80 to 80 + 232 do
+      if GetPixel(DC, P.X + X, P.Y + Y) = 0 then Inc(Result);
+  ReleaseDC(0, DC);
+end;
+
 { The popup menu Windows shows, if any. }
 function MenuShown: Boolean;
 var Menu: HWND;
@@ -188,6 +210,7 @@ end;
 var
   Instance: THandle;
   Welcome, Tip, Computer, Explorer: HWND;
+  Ink: Integer;
   R: TRect;
 begin
   LogLine('Computer window');
@@ -202,6 +225,10 @@ begin
   begin
     Pump(2000);
     Check(TitleClear(Tip), 'the Calmira title stands beside the German welcome');
+    Ink := TipInk(Tip);
+    LogLine('tip ink ' + IntToStr(Ink));
+    Check((Ink > 0) and (Ink < 150),
+      'the Tip of the Day shows the German tip from LANG\DE.TIP');
     PostMessage(Tip, WM_CLOSE, 0, 0);
   end;
   Pump(2000);

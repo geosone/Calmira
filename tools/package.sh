@@ -33,6 +33,12 @@ lang/nl.LNG
 lang/it.LNG
 lang/es.LNG
 lang/pl.LNG
+lang/de.TIP
+lang/fr.TIP
+lang/nl.TIP
+lang/it.TIP
+lang/es.TIP
+lang/pl.TIP
 win16/clfnhook/OLFNHOOK.DLL
 win16/clfnhook/OLFNLOAD.EXE
 win16/archive/OLFNVIEW.EXE
@@ -63,7 +69,7 @@ fi
 rm -rf "${stage:?}"
 
 mkdir -p "$stage/SYSTEM" "$stage/TRAY" "$stage/DOSLFN/NLS" "$stage/LANG"
-cp "$build/lang/"*.LNG "$stage/LANG/"
+cp "$build/lang/"*.LNG "$build/lang/"*.TIP "$stage/LANG/"
 cp "$gdi/build/INSTALL.EXE" "$stage/"
 # The release number comes from the makefile.
 sed "s/^Version=@VERSION@\$/Version=${VERSION:?}/" "$root/install/install.ini" > "$stage/INSTALL.INI"

@@ -3626,3 +3626,21 @@ Calmira Reloaded anzeigen" like the German original, and the Polish text is
 shorter. `win16-langui-runtime-test` measures each catalogue's check box
 text in MS Sans Serif, and `win16-computer-window-runtime-test` checks the
 gap between the German welcome and the title on the screen.
+
+## Tips of the Day in Every Catalogue
+
+The German, French, Italian and Spanish releases shipped their own
+`TIPS.TXT`, kept unchanged with their sources in
+`vendor/upstream/calmira-tips`; the Dutch one was English and no complete
+Polish archive is left. Calmira Reloaded read only the English `TIPS.TXT`.
+`locales/tips/<code>.txt` now holds every tip of `src/tips.txt` for each
+catalogue: the historical translation wherever it still says what the
+English tip says, the rest translated for this project, and Dutch and
+Polish in full. Spanish and Italian tips longer than the 255 characters
+Calmira reads of a line, cut off in the originals, are shortened, and the
+Italian tips broken over two lines are joined. `tools/build_languages.py`
+writes them as `LANG\<code>.TIP` in the catalogue's code page with CR LF,
+and `TTipDialog.NextTipClick` reads that file for the selected catalogue,
+falling back to `TIPS.TXT`. `win16-computer-window-runtime-test` gives the
+German catalogue a one-tip `DE.TIP` and counts the ink of the tip text;
+`package-runtime-test` checks that setup installs the files.

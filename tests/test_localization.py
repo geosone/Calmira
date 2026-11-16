@@ -267,6 +267,44 @@ class LocalizationTests(unittest.TestCase):
         probe = (ROOT / 'tests/pascal/test_win16_computer_window.pas').read_text()
         self.assertIn("'the Calmira title stands beside the German welcome'", probe)
 
+    def test_every_catalogue_brings_its_tips_of_the_day(self):
+        # The German, French, Italian and Spanish releases had their own
+        # TIPS.TXT, but Calmira read only the English one. Each catalogue now
+        # brings every tip of src/tips.txt as LANG\<code>.TIP.
+        tips = (ROOT / 'src/tips.pas').read_bytes().decode('latin-1')
+        self.assertIn("Translated := ApplicationPath + 'LANG\\' + SelectedLanguage + '.TIP';", tips)
+        english = LANGUAGES.tip_sections(
+            (ROOT / 'src/tips.txt').read_text(encoding='cp1252').split('\n', 1)[1])
+        english_tips = {tip for _, section in english for tip in section}
+        descriptor = (ROOT / 'install/install.ini').read_text()
+        package = (ROOT / 'tools/package.sh').read_text()
+        self.assertIn('cp "$build/lang/"*.LNG "$build/lang/"*.TIP "$stage/LANG/"', package)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            LANGUAGES.build_tips(output)
+            for code in ('de', 'fr', 'nl', 'it', 'es', 'pl'):
+                with self.subTest(language=code):
+                    self.assertIn(f'LANG\\{code}.TIP', descriptor)
+                    self.assertIn(f'lang/{code}.TIP', package)
+                    encoding = f'cp{LANGUAGES.CODEPAGES.get(code, 1252)}'
+                    data = (output / f'{code}.TIP').read_bytes()
+                    self.assertTrue(data.startswith(f'{sum(len(t) for _, t in english)}\r\n'.encode()))
+                    self.assertEqual(data.count(b'\n'), data.count(b'\r\n'))
+                    sections = LANGUAGES.tip_sections(data.decode(encoding).split('\n', 1)[1])
+                    self.assertEqual([len(t) for _, t in sections], [len(t) for _, t in english])
+                    shown = [tip for _, section in sections for tip in section]
+                    self.assertTrue(all(len(tip.encode(encoding)) <= 255 for tip in shown))
+                    self.assertFalse(english_tips & set(shown))
+            # Where a historical translation still says what the English tip
+            # says, it is kept as its translator wrote it.
+            for code, original in (('de', 'DE'), ('fr', 'FR'), ('it', 'IT'), ('es', 'ES')):
+                kept = LANGUAGES.tip_sections(
+                    (ROOT / f'vendor/upstream/calmira-tips/{original}.TXT').read_text(encoding='cp1252').split('\n', 1)[1])
+                text = (output / f'{code}.TIP').read_text(encoding='cp1252')
+                self.assertGreater(sum(tip in text for _, section in kept for tip in section), 100)
+        probe = (ROOT / 'tests/pascal/test_win16_computer_window.pas').read_text()
+        self.assertIn("'the Tip of the Day shows the German tip from LANG\\DE.TIP'", probe)
+
     def test_default_desktop_shortcuts_show_their_name_in_the_catalogue_language(self):
         # The desktop shortcut "MS-DOS Prompt" stayed English in German.
         def source(path):

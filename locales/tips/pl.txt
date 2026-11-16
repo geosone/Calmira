@@ -1,0 +1,579 @@
+; Aliasy
+
+Alias do obiektu tworzysz, zaznaczając go, przeciągając do innego okna, folderu lub skrótu i puszczając przycisk myszy z wciśniętym klawiszem Shift.
+
+Wyświetlane aliasy zajmują sporo pamięci. Jeśli często używasz folderów z wieloma aliasami, zamykaj ich okna, gdy skończysz pracę.
+
+Aliasy możesz zamienić na pozycje menu Start, przeciągając je do okna Właściwości menu Start. Do menu trafiają informacje z aliasu, a nie dane samego pliku aliasu.
+
+W widoku dużych ikon aliasy zawsze mają własny podpis. Jeśli nadasz plikowi aliasu opis, przełącz się na widok listy, aby go zobaczyć (kolumna opisu musi być widoczna).
+
+Nie można utworzyć "aliasu aliasu". Przy takiej próbie alias zostanie skopiowany.
+
+Jeśli przeciągniesz alias na pulpit, nowy skrót wskaże ten sam obiekt co alias, a nie sam alias.
+
+Pływające grupy programów uzyskasz, tworząc foldery z aliasami do programów. Potem przeciągnij te foldery na pulpit, aby utworzyć skróty.
+
+Podczas przeglądania sieci możesz szybko utworzyć alias do bieżącej strony. Otwórz okno folderu i wybierz Utwórz alias z jego menu podręcznego. Calmira sama wpisze adres URL i podpis.
+
+Alias utworzysz w każdym oknie folderu poleceniem Utwórz alias z menu podręcznego okna.
+
+; Skróty
+
+Skrót możesz utworzyć bez szukania obiektu źródłowego: kliknij pulpit prawym przyciskiem myszy i wybierz jeden z nowych rodzajów skrótów z podmenu.
+
+Nie umieszczaj zbyt wielu skrótów na pulpicie: każdy to zminimalizowane okno, które zużywa zasoby.
+
+Nowy folder na pulpicie utworzysz z menu pulpitu, wybierając nowy skrót do folderu. Wpisz podpis i nazwę nowego folderu, kliknij OK, a Calmira zaproponuje utworzenie folderu.
+
+Skróty nie będą się "ześlizgiwać" przy otwieraniu, jeśli we Właściwościach pulpitu włączysz opcję przesuwania tylko za podpis. Menu podręczne skrótu otworzysz wtedy, klikając raz podpis.
+
+Skróty działają szybciej, jeśli we Właściwościach pulpitu włączysz opcję aktywowania jednym kliknięciem.
+
+Możesz zmienić typ aliasu lub skrótu. Otwórz okno właściwości i klikaj drugą etykietę od góry, aby przełączać możliwe wartości.
+
+Skrót internetowy do oglądanej strony utworzysz szybko: kliknij pulpit prawym przyciskiem i wybierz Internet z menu nowego skrótu. Calmira sama wpisze adres URL i podpis.
+
+; Opisy 4DOS
+
+Opisy plików 4DOS obsługuje wiele programów poza samym 4DOS. Aby zachować zgodność, zaznacz we Właściwościach systemu plików pole aktualizowania opisów razem z sesjami 4DOS.
+
+Jeśli inne programy też używają opisów 4DOS, odśwież okna folderów, gdy opisy mogły się zmienić. Zapobiegnie to niezgodnościom przy następnym zapisie opisów przez Calmirę.
+
+Aby nadawać dłuższe opisy, wyłącz pokazywanie opisów jako podpisów i przełącz się na widok listy, gdzie opis widać obok nazwy pliku.
+
+Możesz wybrać plik, w którym zapisywane są opisy. Domyślnie jest to descript.ion; zmienisz go wpisem DescriptionFile w sekcji [File system] pliku INI.
+
+Zapisując ważne pliki o niejasnych nazwach DOS, poświęć chwilę na sensowny opis. Później zaoszczędzi to sporo szukania!
+
+Grupę plików opiszesz szybko, zaznaczając je wszystkie przed wybraniem polecenia Opisz. Enter zatwierdza każdy opis, Esc kończy operację z zachowaniem zatwierdzonych opisów.
+
+; Kosz
+
+Obiekty z kosza przywrócisz, przeciągając je do okna folderu, skrótu lub aliasu.
+
+Kosz przydaje się przy porządkach na dysku: możesz przejrzeć pliki przed ostatecznym usunięciem. Pamiętaj tylko, aby kosz był ustawiony na przechowywanie plików!
+
+Kosz możesz opróżnić bez otwierania jego okna. Gdy jest widoczny jako ikona, kliknij go prawym przyciskiem i wybierz Opróżnij kosz z menu podręcznego.
+
+Kosz działa szybciej, jeśli przechowuje pliki na dysku lokalnym. Szczegóły znajdziesz w temacie pomocy o koszu.
+
+Kosz wczytuje się dłużej, gdy zawiera dużo plików, bo musi sprawdzić ich istnienie i rozmiary.
+
+Kosz możesz całkowicie ukryć, dodając wpis Visible=0 do sekcji [Bin] pliku Calmira.ini.
+
+Możesz obejrzeć zawartość folderu w koszu. W sekcji [Trash] pliku Calmira.ini sprawdź, dokąd go przeniesiono, a potem otwórz go poleceniem Otwórz folder z menu pulpitu.
+
+Jeśli kosz używa kilku miejsc, możesz ukryć te foldery i ustawić je jako tylko do odczytu, by nie zostały przypadkiem usunięte. Najlepiej trzymaj je w rzadko używanej części drzewa katalogów.
+
+; Pulpit
+
+Nieaktywną Calmirę wywołasz na wierzch, przytrzymując lewy przycisk myszy na pulpicie i klikając prawym. Odsłania to skróty i okna folderów.
+
+Gdy Calmira jest aktywna, okno Komputer otworzysz, przytrzymując lewy przycisk myszy na pulpicie i klikając prawym. Jeśli Calmira nie jest aktywna, powtórz to.
+
+We Właściwościach pulpitu wybierzesz, gdzie pojawiają się nowe okna folderów. Kaskada trzyma je pod ręką, losowe ułożenie lepiej wypełnia pulpit, a zapis położenia trzyma foldery w stałych miejscach.
+
+Jeśli zapisujesz położenie okien, czyść od czasu do czasu sekcję [Window Positions]. Usuń wiersze z nieistniejącymi katalogami, a Calmira będzie miała mniej do przeszukania.
+
+Okno zamkniesz jednym kliknięciem, jeśli we Właściwościach pulpitu włączysz zamykanie prawym kliknięciem przycisku min/max. Zastępuje to przycisk zamykania z Windows 95.
+
+Jeśli chcesz przejść do Calmiry, a jedno z jej okien dialogowych jest aktywne, ale zasłonięte, przytrzymaj lewy przycisk i kliknij pulpit prawym. Nie musisz wtedy odsuwać innych okien.
+
+Jeśli skróty zostały przypadkiem przestawione przez "Rozmieść ikony" Menedżera zadań, możesz je przywrócić. Zamknij wszystkie okna folderów, otwórz okno O programie i kliknij logo Calmiry.
+
+Kliknięcie pulpitu prawym przyciskiem otwiera menu, z którego otworzysz nowe okna bez sięgania do menu Start.
+
+Nowy folder utworzysz szybko, klikając pulpit prawym przyciskiem i wybierając Otwórz folder. Jeśli wpiszesz nieistniejący katalog, Calmira zaproponuje jego utworzenie przed otwarciem w nowym oknie.
+
+Polecenie Otwórz folder z menu pulpitu przyjmuje symbole wieloznaczne jako filtr nowego okna. Na przykład c:\Windows\*.exe pokaże tylko programy.
+
+W poleceniu Otwórz folder nie zawsze trzeba podawać literę dysku. Jeśli pominiesz dysk, dwukropek i ukośnik, Calmira przyjmie, że folder jest na dysku z instalacją Windows.
+
+Katalog główny dysku otworzysz, wybierając Otwórz folder z menu pulpitu i wpisując literę dysku z dwukropkiem.
+
+Jeśli kolory ekranu się zniekształcą, gdy programy zmieniają paletę (często z psychodeliczną tapetą), kliknij pulpit prawym przyciskiem i wybierz Odśwież ekran. Każde okno narysuje się na nowo.
+
+Ikony zminimalizowanych programów uporządkujesz bez przesuwania skrótów, wybierając Rozmieść ikony z menu podręcznego pulpitu zamiast Menedżera zadań.
+
+Wszystkie ikony na pulpicie wyrównasz poleceniem Wyrównaj ikony z menu podręcznego pulpitu.
+
+Wszystkie otwarte okna zminimalizujesz naraz: kliknij pulpit prawym przyciskiem i wybierz minimalizowanie programów z podmenu Rozmieść.
+
+Wszystkie okna i skróty Calmiry ukryjesz poleceniem Wyczyść pulpit z menu podręcznego pulpitu. Calmira stanie się jedną ikoną; kliknij ją dwukrotnie, aby przywrócić pulpit.
+
+Wiele otwartych okien folderów uporządkujesz kaskadowo poleceniem z menu podręcznego pulpitu, aby wszystkie były widoczne.
+
+; Menu Start
+
+Menu Start działa nieco szybciej, jeśli we Właściwościach menu Start wyłączysz kolorowy pasek wyróżnienia.
+
+Calmira ma odpowiednik grupy "Autostart" Menedżera programów. Utwórz gdziekolwiek podmenu menu Start z podpisem "Startup". Umieszczone w nim programy uruchomią się przy starcie Calmiry.
+
+Wygląd ikon menu Start może zależeć od domyślnej palety sterownika ekranu. Menu może więc wyglądać inaczej, gdy przebudujesz je w innym trybie graficznym.
+
+Jeśli ręcznie zmieniasz lub zastępujesz START.INI, usuń też plik BMPCACHE.BMP, gdy używasz ikon w menu. Calmira przebuduje wtedy menu przy starcie, aby wszystkie ikony były poprawne.
+
+Szybciej poruszasz się po menu Start, gdy podmenu stoją na górze menu nadrzędnego.
+
+Własny obrazek na banerze menu Start ustawisz, umieszczając plik Banner.bmp w katalogu Calmiry. Szczegóły w temacie pomocy o własnych bitmapach.
+
+Okno Właściwości menu Start możesz powiększyć, aby mieć więcej miejsca na drzewo menu. Przesuń kursor na krawędź okna, aż zmieni kształt, i przeciągnij.
+
+Aby szybko edytować pozycję we Właściwościach menu Start, kliknij dwukrotnie pozycję bez podmenu; otworzy się okno edycji.
+
+Jako ikon menu Start możesz używać bitmap 16 x 16 (.BMP), które nie są zniekształcane. Podczas edycji pozycji podaj pełną ścieżkę bitmapy w polu ikony.
+
+Linie oddzielające dodasz do menu Start pozycją, której podpis zaczyna się od łącznika [-]. Każda linia musi mieć inny podpis, więc użyj -1, -2 itd.
+
+Pozycje Menedżera programów dodasz w dowolnym miejscu menu Start małym przyciskiem grupy programów we Właściwościach menu Start.
+
+Importowane grupy Menedżera programów trafiają na poziom, na którym stoi pasek wyróżnienia.
+
+Podczas edycji menu Start pozycję skopiujesz, przeciągając ją i wciskając Ctrl przed puszczeniem przycisku myszy. Nadaj kopii inny podpis, jeśli jest w tym samym menu.
+
+Podczas edycji menu Start pozycję przeniesiesz do wnętrza innej, przeciągając ją i wciskając Alt przed puszczeniem przycisku myszy.
+
+Przy imporcie pozycji Menedżera programów istniejące pozycje o tych samych podpisach są zastępowane. Tak zaktualizujesz menu Start zgodnie z zawartością Menedżera programów.
+
+W menu Start możesz umieszczać dokumenty, foldery i łącza internetowe. Jeśli w polu wiersza polecenia wpiszesz adres URL, Calmira otworzy go w przeglądarce.
+
+Części menu Start możesz podzielić na równe kolumny. Dodaj na początku podpisu menu nadrzędnego gwiazdkę i cyfrę od 2 do 9. Na przykład *3 tworzy trzy równe części.
+
+Domyślne małe ikony menu Start dla podmenu, folderów i poleceń możesz wymienić. Szczegóły w temacie pomocy o własnych bitmapach.
+
+Aby przypisać skrót klawiszowy do menu Start, użyj podpisu "Start". Po jego wciśnięciu pojawi się pasek zadań (jeśli jest ukryty) i otworzy się menu.
+
+Skrót klawiszowy możesz przypisać też do części menu Start. Użyj podpisu wybranego podmenu, a pojawi się ono przy kursorze po wciśnięciu skrótu.
+
+We właściwościach pozycji menu Start możesz używać zmiennych środowiskowych.
+
+Podpis, folder roboczy i tryb okna pozycji menu Start zmienisz bez pełnej przebudowy. Calmira zmienia tylko plik START.INI i wczytuje menu bez odświeżania pamięci ikon.
+
+We Właściwościach menu Start klawisze Ctrl+Strzałka w górę i Ctrl+Strzałka w dół przenoszą do poprzedniej lub następnej pozycji tego samego poziomu, omijając rozwinięte menu.
+
+Ctrl+Strzałka w lewo we Właściwościach menu Start przenosi do menu nadrzędnego bieżącej pozycji.
+
+Na klawiaturze Windows 95 menu Start otworzysz klawiszem Windows. Klawisz ten włączysz we Właściwościach menu Start.
+
+; Okno Uruchom
+
+Stronę WWW otworzysz szybko, wpisując jej adres URL w oknie Uruchom.
+
+Pliki możesz zmieniać nazwy w MS-DOS z użyciem symboli wieloznacznych. W oknie folderu wybierz Uruchom z menu okna, wpisz polecenie rename, zaznacz polecenie DOS i kliknij Uruchom. Odśwież potem okno!
+
+W oknie Uruchom nie musisz wpisywać ścieżki programów i dokumentów leżących na ścieżce MS-DOS. Na przykład, aby edytować plik inicjalizacyjny Windows, wpisz po prostu "WIN.INI".
+
+W oknie Uruchom możesz też otwierać foldery i korzystać z listy ostatnio otwieranych folderów.
+
+; Okno Znajdź
+
+Pliki z okna Znajdź pliki możesz przeciągać do okien folderów, skrótów lub aliasów, aby je skopiować lub przenieść. Nie działa to z opisami plików.
+
+Pliki z okna Znajdź pliki możesz przeciągać do innych programów, np. Notatnika.
+
+Okno Znajdź pliki możesz powiększyć, przeciągając jedną z jego krawędzi, aby zobaczyć więcej plików.
+
+Plik lub folder pokazany w oknie Znajdź pliki otworzysz dwukrotnym kliknięciem.
+
+Okno Otwórz w wywołasz z okna Znajdź pliki przez menu podręczne lub klawiszami Ctrl+Enter.
+
+Kopiując dane plików z okna Znajdź pliki do schowka, możesz poszerzyć kolumnę Położenie nagłówkiem nad listą.
+
+Możesz przejść wprost do znalezionego pliku lub folderu. Zaznacz go i wybierz otwarcie folderu nadrzędnego z menu podręcznego. Otworzy się okno folderu z wyróżnionym obiektem.
+
+Dysk przeszukiwany przez okno Znajdź zmienisz, wpisując samą literę w polu początku wyszukiwania. Resztę ścieżki Calmira doda sama.
+
+Okno Znajdź pliki szuka dużo szybciej, jeśli podasz tylko jeden wzorzec i wyczyścisz listę przed każdym szukaniem, bo nie musi wtedy sprawdzać duplikatów.
+
+Okno Znajdź otworzysz z Eksploratora, zaznaczając folder i wybierając Znajdź... z menu podręcznego (lub Ctrl+F). Zaznaczony folder pojawi się w polu początku wyszukiwania.
+
+; Optymalizacja
+
+Klawiszami [/], [*], [+] i [-] zamkniesz zbędne okna folderów. Szybko porządkuje to pulpit i oszczędza pamięć.
+
+Gdy brakuje zasobów User, spróbuj zmniejszyć menu Start.
+
+Gdy brakuje zasobów System, spróbuj usunąć część skrótów lub użyć zamiast nich aliasów.
+
+Jeśli Calmira długo się uruchamia, sprawdź, czy w koszu nie ma zbyt wielu plików, które musi przejrzeć.
+
+Calmira szybciej czyta plik INI, gdy sekcja [Window Positions] ma rozsądny rozmiar. Przy zapisywaniu położenia okien każdy otwarty folder dodaje wiersz, więc czyść ją co jakiś czas.
+
+; Okno Komputer
+
+Zawartość okna Komputer odświeżysz klawiszem F5 lub poleceniem Odśwież z menu podręcznego. Wykrywa to wszystkie dostępne dyski, co przydaje się po zalogowaniu do sieci.
+
+Pliki i foldery przeciągnięte na ikonę Komputer zostaną dodane do menu Start. Nowe pozycje pojawią się w drzewie przy następnym otwarciu Właściwości menu Start.
+
+Ikony programów w oknie Komputer dostosujesz w sekcji [Programs].
+
+Jeśli nie używasz menu pulpitu, część jego poleceń znajdziesz w menu podręcznym zminimalizowanego okna Komputer.
+
+Menu podręczne zminimalizowanego okna Komputer (np. aby otworzyć pomoc) wywołasz prawym kliknięciem ikony. We Właściwościach systemu wybierzesz, czy pojawi się to menu, czy menu Start.
+
+Okna właściwości Calmiry otworzysz z menu, które pojawia się po kliknięciu prawym przyciskiem między ikonami w oknie Komputer.
+
+Własną wersję okna Komputer zrobisz z folderu z aliasami. Pozwala to przeciągać obiekty na ikony dysków.
+
+; Skrypty
+
+Skrypty wykonują wiele poleceń i uruchamiają wiele programów jednym kliknięciem. Utwórz skrypt z poleceniem Start i przypisz go do skrótu, aliasu lub pozycji menu Start.
+
+Skrypty możesz uruchamiać z sesji MS-DOS w Windows. Pozwala to uruchamiać programy Windows z wiersza poleceń i sterować Calmirą, np. otwierać okna folderów. Szczegóły w pomocy.
+
+Jeśli często używasz plików wsadowych w oknie MS-DOS, mogą one tworzyć skrypty sterujące Calmirą i uruchamiające programy Windows. Więcej o pisaniu skryptów w pomocy.
+
+Plik wsadowy Start uruchamia program lub otwiera dokument z okna MS-DOS. Nie musisz otwierać okna folderu dla pliku, który już widzisz w DOS.
+
+Plik wsadowy Folder otwiera okno folderu z okna MS-DOS. Nie musisz wpisywać długiej ścieżki, jeśli już jesteś w tym katalogu.
+
+Plik wsadowy Open otwiera pliki, programy Windows i foldery z okna MS-DOS.
+
+Plik wsadowy Explore otwiera drzewo Eksploratora z okna MS-DOS, od razu w katalogu, w którym jesteś.
+
+W oknie MS-DOS dołączony plik Start.bat uruchomi inny program MS-DOS w nowym oknie.
+
+Możesz zrobić własny panel sterowania Calmiry. Napisz skrypty otwierające poszczególne okna właściwości, utwórz do nich aliasy, a ich folder stanie się panelem sterowania.
+
+Aliasy mogą otwierać okna dialogowe i wykonywać specjalne polecenia jak pozycje menu Start. Utwórz alias do skryptu z poleceniem Macro. Szczegóły w temacie pomocy o skryptach.
+
+Program Windows uruchomisz z okna wiersza poleceń plikami wsadowymi Open i Start.
+
+; Zmienne środowiskowe
+
+Zmienna %currentfolder% uruchamia program z bieżąco wyświetlanym folderem jako folderem roboczym.
+
+Zmienna %droppedfiles% określa, gdzie w wierszu poleceń trafią nazwy plików upuszczonych na skrót lub alias.
+
+Zmienna %filename% określa miejsce nazwy pliku przy uruchamianiu programów z okna Otwórz w lub narzędzi z Właściwości systemu plików.
+
+Zmienna %calmira% oznacza katalog Calmiry.
+
+Zmienna %comspec% oznacza bieżącą powłokę MS-DOS. Przydaje się, gdy często zmieniasz powłokę.
+
+Zmienna %windir% oznacza katalog Windows.
+
+Zmienna %currentdrive% oznacza literę dysku aktywnego okna folderu. Przydaje się dla programów dyskowych; jest też dostępna we Właściwościach dysku po kliknięciu ikony dysku.
+
+Własne zmienne środowiskowe zdefiniujesz w sekcji [Environment] Calmiry. Unikniesz bezwzględnych ścieżek w skrótach, aliasach i menu Start; zmienią się same po zmianie zmiennej.
+
+Zmiennych środowiskowych możesz używać jak prostych makr w oknie Uruchom i poleceniu Otwórz folder. Długi tekst (polecenie lub nazwę folderu) zastąpisz krótszym między znakami %.
+
+; Okna folderów
+
+Backspace otwiera folder nadrzędny okna folderu.
+
+Pliki zaznaczysz lub odznaczysz wzorcem, wciskając Ctrl+S w oknie folderu lub klikając prawym przyciskiem prawą etykietę paska stanu.
+
+Właściwości dysku otworzysz z okna folderu prawym kliknięciem lewej etykiety paska stanu. Zobaczysz tam wolne miejsce na dysku.
+
+Typ pliku skojarzysz z programem, zaznaczając jeden plik i otwierając jego okno właściwości.
+
+Ctrl+C kopiuje do schowka dane zaznaczonych plików. W widoku dużych i małych ikon jest to lista podpisów, w widoku listy wykaz katalogu jak w MS-DOS.
+
+Własny wykaz katalogu uzyskasz w widoku listy, wybierając kolumny w oknie Ustaw filtr. Potem zaznacz pliki i wciśnij Ctrl+C, aby skopiować dane do schowka.
+
+Ctrl+E otwiera z okna folderu drzewo Eksploratora z zaznaczonym katalogiem tego okna.
+
+Ctrl+F otwiera z okna folderu okno Znajdź pliki z katalogiem okna jako początkiem wyszukiwania.
+
+Plik wydrukujesz, zaznaczając go i wciskając Ctrl+P. Musi być skojarzony z programem, który umie go drukować, np. Notatnik drukuje pliki tekstowe.
+
+Plik wydrukujesz też, upuszczając go na okno lub ikonę Menedżera wydruku. Musi być skojarzony z programem, który umie go drukować.
+
+W oknie folderu dowolny folder otworzysz, wciskając Ctrl+O i wpisując jego ścieżkę.
+
+Ctrl+U uruchamia program Undelete podany we Właściwościach systemu plików.
+
+Ctrl+F5 układa okna folderów kaskadowo.
+
+Shift+F5 porządkuje ikony na pulpicie, gdy aktywne jest okno folderu.
+
+F12 minimalizuje Calmirę i czyści pulpit, gdy aktywne jest okno folderu.
+
+Zawartość okna folderu odświeżysz klawiszem F5 lub kliknięciem lewej etykiety paska stanu.
+
+Gwiazdka [*] na klawiaturze numerycznej zamyka wszystkie okna folderów poza aktywnym. Przydaje się po szukaniu konkretnego pliku.
+
+Plus [+] na klawiaturze numerycznej zamyka wszystkie okna nadrzędne okna folderu. Przydaje się po zejściu w dół jedną gałęzią drzewa.
+
+Ukośnik [/] na klawiaturze numerycznej lub głównej zamyka wszystkie okna folderów.
+
+Przecinek [,] zaznacza wszystkie pliki w oknie, a kropka [.] usuwa zaznaczenie.
+
+Znak zapytania [?] ustawia filtr okna i wybór pokazywanych danych.
+
+Shift+I, Shift+M i Shift+L przełączają widok na duże ikony, małe ikony i listę.
+
+Przytrzymaj Alt podczas dwukrotnego kliknięcia folderu, aby otworzyć go w tym samym lub nowym oknie, odwrotnie niż ustawiono we Właściwościach pulpitu.
+
+Shift+T, Shift+N, Shift+S i Shift+D sortują według typu, nazwy, rozmiaru i daty.
+
+Ukośnik odwrotny [\] otwiera w każdym oknie folderu katalog główny bieżącego dysku.
+
+Aby przejść do następnego pliku na daną literę, po prostu wciśnij tę literę.
+
+Katalog główny dowolnego dysku otworzysz, wciskając Ctrl i Shift razem z literą dysku.
+
+Gdy pasek stanu okna folderu pokazuje tylko jedną etykietę, funkcje myszy drugiej uzyskasz, przytrzymując Shift przed kliknięciem.
+
+Możesz ustawić liczbę wierszy i kolumn przy automatycznym dopasowaniu rozmiaru okien folderów. Pomoc opisuje sekcję [Layouts] pliku INI.
+
+Ustawienie przeglądania folderów w tym samym oknie odwrócisz chwilowo, trzymając Alt przy otwieraniu folderu. Jeśli ustawienie jest wyłączone, Alt je włącza.
+
+Ile miejsca zajmuje struktura katalogów, sprawdzisz, zaznaczając grupę folderów i otwierając okno właściwości.
+
+Kliknięcie prawej etykiety paska stanu zaznacza wszystkie pliki. Jeśli coś jest już zaznaczone, zaznaczenie zostanie usunięte.
+
+Podczas przeciągania prawy przycisk myszy przełącza między kopiowaniem a przenoszeniem. Tryb początkowy zmienisz, wciskając Alt przed przeciąganiem. Opcje są we Właściwościach systemu plików.
+
+Jeśli chcesz upuścić pliki na folder lub program przewinięty poza widok, przeciągnij kursor nad przyciski paska przewijania, aby przewinąć widok.
+
+Gdy pulpit zasłania wiele okien folderów, kliknij prawym przyciskiem pasek tytułu. Menu pokaże wszystkie otwarte foldery, więc szybko przejdziesz do każdego z nich.
+
+Opcja we Właściwościach pulpitu pozwala przeglądać foldery w tym samym oknie, aby nie otwierać zbyt wielu okien. W górę drzewa wrócisz Backspace lub prawym kliknięciem pola zamykania.
+
+Drzewo Eksploratora dla folderu otworzysz, przytrzymując Shift podczas dwukrotnego kliknięcia folderu.
+
+Tryby przeglądania w wielu oknach lub jednym możesz odwrócić: przytrzymaj Alt przy dwukrotnym kliknięciu folderu. Otworzy się odwrotnie niż ustawiono we Właściwościach pulpitu.
+
+Gdy kursor zatrzyma się nad plikiem lub folderem, podpowiedź pokaże więcej informacji, np. prawdziwą nazwę pliku wyświetlanego z opisem albo opis, gdy nie jest pokazany.
+
+Plik szybko obejrzysz, klikając go prawym przyciskiem z wciśniętym Shift. To samo co Podgląd z menu podręcznego pliku.
+
+Okno Otwórz w wywołasz szybko, klikając plik prawym przyciskiem z wciśniętym Ctrl.
+
+W oknie Otwórz w możesz dwukrotnie kliknąć pozycję zamiast przycisku OK.
+
+Okno właściwości otworzysz, klikając plik lub folder prawym przyciskiem z wciśniętym Alt.
+
+Zaznaczenie w oknie folderu odwrócisz, klikając prawą etykietę paska stanu z wciśniętym Ctrl. Przydaje się to do zaznaczenia wszystkich plików poza kilkoma.
+
+Lassem zaznaczysz sąsiednie bloki plików i folderów. Jeśli zaczniesz lasso od zaznaczonego obiektu, dotychczasowe zaznaczenie zostanie zachowane.
+
+Ikony plików możesz przeciągać z Calmiry do innych programów tak jak z Menedżera plików.
+
+Kliknięcie pustego miejsca w oknie folderu usuwa zaznaczenie wszystkich obiektów.
+
+Ctrl+Strzałka w górę i Ctrl+Strzałka w dół przewijają zawartość okna folderu bez zmiany zaznaczenia.
+
+Aby objąć grupę plików ramką, kliknij obok rogu grupy i przeciągnij prostokąt.
+
+Ikonę pliku możesz upuścić na ikonę programu, aby otworzyć plik tym programem. Funkcję tę włączysz we Właściwościach systemu plików.
+
+; Klawiatura
+
+Klawisz Alt Gr użyjesz w skrócie klawiszowym, podając Ctrl+Alt. W Calmirze przytrzymanie Alt Gr działa jak wciśnięcie Ctrl i Alt razem.
+
+Klawiaturę Windows 95 zasymulujesz, przypisując Ctrl+Alt+Spacja do menu Start (podpis "Start"). Menu Start otworzy się po wciśnięciu spacji z przytrzymanym Alt Gr.
+
+Przypisując skróty klawiszowe, możesz używać nazw klawiszy specjalnych, np. Enter, Backspace, Delete itd.
+
+Ctrl+Tab przełącza między wszystkimi oknami Calmiry.
+
+; Pasek zadań
+
+Pasek zadań pozwala zakończyć każdy "zbuntowany" program. Kliknij prawym przyciskiem przycisk Start, wybierz Przerwij, a kursor zmieni kształt. Potem kliknij przycisk programu na pasku zadań.
+
+Polecenie Wyświetl informacje o oknie z menu przycisku Start sprawia, że podpowiedzi przycisków zadań pokazują nazwę modułu i klasę okna. Pomoże to wykluczyć wybrane okna z paska.
+
+Pliki z Calmiry i innych programów możesz upuszczać na przyciski paska zadań. Działa to jak upuszczanie plików na zminimalizowane ikony programów w Menedżerze plików.
+
+Jeśli nowe zadanie nie pojawia się od razu na pasku zadań, kliknij inne okno i wróć do nowego programu; pasek zadań zostanie powiadomiony.
+
+Dla okien folderów i drzewa Eksploratora możesz ustawić na pasku zadań własne bitmapy. Szczegóły w temacie pomocy o własnych bitmapach.
+
+Pasek zadań może pokazywać na przyciskach nazwy dokumentów przed nazwami programów. To czytelniejsze, gdy przyciski są za wąskie na cały tytuł.
+
+Podpowiedzi paska zadań zawsze pokazują pełną ścieżkę okien folderów, nawet gdy przyciski mają tylko 8-literowe nazwy katalogów.
+
+Pasek zadań pokazuje wybraną ikonę programów uruchomionych ze skrótów, aliasów i menu Start. Działa to nawet dla programów Windows, bo pasek dostaje ikony wprost od Calmiry.
+
+Pasek zadań może pokazać inną ikonę dla każdej kopii programu. Jeśli dwa skróty otwierają pliki Notatnikiem, każdy przycisk pokaże edytowany dokument.
+
+; Wygląd
+
+Calmira została zaprojektowana dla zwykłej czcionki MS Sans Serif 8 punktów i zwykle najlepiej wygląda, gdy sterownik ekranu używa małych czcionek.
+
+Pliki ikon pokażą własną ikonę, gdy dodasz "ICO" do rozszerzeń przeszukiwanych we Właściwościach systemu plików. Ikony zajmują jednak pamięć, więc nie używaj tego dla setek ikon.
+
+Nie zostawiaj plików *.ICO w katalogu Calmiry, chyba że służą dokumentom lub wbudowanym obiektom. Inaczej tylko zaśmiecają listy zasobów Calmiry.
+
+Prawie wszystkie wbudowane ikony Calmiry możesz zastąpić własnymi. Zobacz temat pomocy o własnych ikonach.
+
+Plikom dokumentów możesz przypisać własne ikony, które zastąpią ikony z rejestru.
+
+Wiele wbudowanych bitmap Calmiry możesz zastąpić własnymi obrazkami dla paska zadań, menu Start i Eksploratora. Zobacz temat pomocy o własnych bitmapach.
+
+Dyskom nadasz opisowe nazwy wpisami w sekcji [Drives]. Na przykład standardową Floppy (A:) zastąpisz nazwą Dyskietka 3,5".
+
+Oknom folderów nadasz opisowe tytuły wpisami w sekcji [Window Captions]. Przydaje się to, gdy foldery z aliasami programów służą za grupy programów.
+
+; Różne
+
+Tapetę pulpitu zmienisz w oknie Właściwości pulpitu. Aby je otworzyć, kliknij pulpit prawym przyciskiem myszy i wybierz "Właściwości".
+
+Długie nazwy plików Windows 95 włączysz lub wyłączysz opcją obsługi długich nazw na karcie Zaawansowane okna Właściwości systemu plików.
+
+Gdy w oknie dialogowym widzisz pole na nazwę pliku lub folderu, kliknij je dwukrotnie, aby otworzyć okno przeglądania.
+
+Pliki z innych programów (np. Menedżera plików) możesz przeciągać do okien folderów, skrótów i aliasów. Calmira zapyta, czy je skopiować, czy przenieść. Nie działa to z opisami plików.
+
+Wykazy katalogów skopiowane do schowka oglądaj w widoku Tekst OEM, aby kolumny były wyrównane.
+
+Ciekawe może być przejrzenie źródeł Calmiry. Otwórz pliki *.PAS w edytorze tekstu. Część jest zaskakująco czytelna, nawet jeśli nie umiesz programować!
+
+Rób kopie zapasowe plików CALMIRA.INI i START.INI razem z danymi, aby po uszkodzeniu plików INI nie urządzać pulpitu i ustawień od nowa.
+
+Dodaj tekst "www." do wpisu URLPrefixes w sekcji [Internet]. Adres strony wpiszesz wtedy w oknie Uruchom bez przedrostka http://.
+
+Ustawienie na stronie Zaawansowane okna Właściwości systemu edytujesz, klikając je dwukrotnie.
+
+Liczbę pozycji list historii ograniczysz wpisem MaxHistorySize w sekcji [Calmira].
+
+Menu Windows 3.1 będą bardziej przypominać Windows 95, gdy ustawisz szare tło, niebieskie wyróżnienie i biały wyróżniony tekst.
+
+Gęstość siatki polecenia Wyrównaj ikony zmienisz wpisami DeskGridX i DeskGridY w sekcji [Desktop].
+
+Czcionkę okien folderów, drzewa Eksploratora i okna Komputer zmienisz wpisami FontName, FontSize i FontStyle w sekcji [Display].
+
+Calmira może czytać i zapisywać swoje pliki INI w katalogu Windows. Utwórz sekcję [Calmira] w pliku Win.ini i dodaj wpis LoadFromWindir=1.
+
+Sposób rysowania małych ikon w widoku listy zmienisz wpisem IconStretchMode w sekcji [Display]. Wartość domyślna zwykle daje jednak najlepsze wyniki.
+
+Typy plików dla okna Właściwości dodasz w sekcji [File Types]. Calmira używa tych opisów dla plików bez odpowiedniego wpisu w rejestrze.
+
+Automatyczny rozmiar okien folderów dopasujesz w sekcji [Layouts], która określa liczbę wierszy i kolumn dla każdej liczby ikon. Zobacz temat pomocy o różnych ustawieniach.
+
+Czcionkę paska zadań zmienisz wpisem FontName w sekcji [Taskbar].
+
+Położenie zminimalizowanych ikon nad paskiem zadań zmienisz wpisem MinAppHeight w sekcji [Taskbar]. Użyj tego, jeśli podpisy ikon chowają się za paskiem.
+
+Opóźnienie podpowiedzi nad przyciskami paska zadań ustawisz wpisem HintDelay w sekcji [Taskbar].
+
+Format czasu i daty na pasku zadań zmienisz wpisami 24HourFormat, 12HourFormat i FullDateTime w sekcji [Taskbar]. Zobacz temat pomocy o różnych ustawieniach.
+
+Dwukrotne kliknięcie zegara na pasku zadań pozwala ustawić datę i czas.
+
+Wpisem ClockAdjust w sekcji [Taskbar] wybierzesz inny program do ustawiania daty i czasu.
+
+Zdarzeniom Calmiry przypiszesz dźwięki, podając pliki WAV w sekcji [Sounds]. Zobacz temat pomocy o różnych ustawieniach. Dźwięki dotyczą tylko okien Calmiry.
+
+Czcionkę menu Start zmienisz wpisami FontName i FontSize w sekcji [Start menu].
+
+Czcionkę i podpis przycisku Start zmienisz wpisami FontName, FontSize, FontStyle i Caption w sekcji [Start button].
+
+Przycisk Start ukryjesz, przesuwając go poza ekran. Ustaw wartość Left w sekcji [Start button] na odpowiednią liczbę ujemną.
+
+Nazwę ukrytego pliku z opisami plików zmienisz wpisem DescriptionFile w sekcji [File System].
+
+Szerokość opisów w widoku listy ustawisz wpisem DescriptionWidth w sekcji [File System].
+
+Odstęp między kolumnami widoku listy ustawisz wpisem ColumnPadding w sekcji [File System].
+
+Liczbę miejsc po przecinku dla rozmiarów plików w kilobajtach wybierzesz wpisem ListKBDecimals w sekcji [File System]. Dotyczy to tylko widoku listy okien folderów.
+
+Sekcje widoczne na karcie Zaawansowane okna Właściwości systemu zmienisz w sekcji [Advanced] według tematu pomocy o różnych ustawieniach.
+
+Sekcja [History Lists] zawiera listy z okna Właściwości systemu. Możesz dodać inne sekcje, np. [Window Positions], aby czyścić je przyciskiem kosza.
+
+W wielu oknach dialogowych możesz dwukrotnie kliknąć przycisk opcji lub listę zamiast przycisku OK.
+
+Wolne miejsce na dysku zobaczysz, klikając prawym przyciskiem ikonę dysku w oknie Komputer i wybierając Właściwości, albo prawym kliknięciem lewej etykiety paska stanu okna folderu.
+
+W otwartym folderze Backspace otwiera folder o poziom wyżej.
+
+Kliknij prawym przyciskiem myszy w dowolnym miejscu, aby zobaczyć menu dostępnych poleceń.
+
+; Zamykanie systemu
+
+Używaj czasem polecenia ponownego uruchomienia Windows w oknie Zamknij system. Przywraca to zasoby, zwalnia pamięć, usuwa skutki błędów i chroni przed awarią. To szybsze niż wyjście i ponowne WIN.
+
+W oknie Zamknij system możesz dwukrotnie kliknąć przycisk opcji zamiast go wybierać i klikać OK.
+
+Dwukrotne kliknięcie ikony w oknie Zamknij system szybko przełącza powłokę Windows między Menedżerem programów a Calmirą.
+
+; Pomoc
+
+Większość pomocy Calmiry najlepiej oglądać w oknie o szerokości około 500 pikseli.
+
+Aby wydrukować całą pomoc naraz, wyjmij plik źródłowy RTF z archiwum źródeł i wydrukuj go w zgodnym edytorze tekstu.
+
+Całą listę porad zobaczysz, otwierając plik LANG\PL.TIP w edytorze z zawijaniem wierszy.
+
+W większości okien pomoc do bieżącego tematu wywołasz klawiszem F1.
+
+Przyciskami << i >> przejrzysz kolejno wszystkie tematy pomocy.
+
+Najnowsze wersje Calmiry znajdziesz na stronie http://www.calmira.net.
+
+Możesz edytować plik LANG\PL.TIP, aby wyświetlać własne porady.
+
+; Klawiatura
+
+Każde okno wywołasz i każdy program uruchomisz jednym klawiszem... w pomocy znajdziesz opis przypisywania skrótów klawiszowych.
+
+Menu Start możesz otwierać skrótem klawiszowym; ma ono stały podpis "Start". Więcej o skrótach klawiszowych w pomocy.
+
+; "Porady zabawne i inspirujące"
+
+Koszulki z programistycznymi hasłami rzadko są modnym wyborem.
+
+Nigdy nie skacz do wody pełnej rekinów.
+
+Nigdy nie jest za późno, aby nauczyć się obsługi Macintosha.
+
+Szukasz stabilnego systemu operacyjnego? Zajrzyj na http://www.linux.org.
+
+; System plików
+
+Długie nazwy plików Windows 95 włączysz lub wyłączysz opcją obsługi długich nazw na karcie Zaawansowane okna Właściwości systemu plików.
+
+Lista potwierdzeń we Właściwościach systemu plików pozwala dokładnie ustawić pytania Calmiry przy kopiowaniu i przenoszeniu, jeśli pyta za często.
+
+Gdy Calmira czyta katalog dla okna folderu lub drzewa Eksploratora, przerwiesz to klawiszem Esc.
+
+Wyłącz małe ikony w widoku małych ikon i listy, a Calmira będzie rysować znacznie szybciej.
+
+Przeciąganie będzie łatwiejsze, gdy we Właściwościach systemu plików wyłączysz upuszczanie na programy w oknach folderów. Obiekty upuszczone nad programem trafią wtedy do okna.
+
+We Właściwościach systemu plików możesz wskazać program dyskowy, który sformatuje lub sprawdzi dysk po kliknięciu ikony we Właściwościach dysku.
+
+Calmira wykonuje większość operacji na plikach w tle, więc podczas kopiowania lub przenoszenia możesz przejść paskiem zadań do innego programu.
+
+We Właściwościach systemu plików ustawisz, czy trzyliterowe rozszerzenia plików są pokazywane, czy ukryte.
+
+Plik skojarzysz z programem, zaznaczając go i wybierając Właściwości z menu podręcznego. Na karcie skojarzenia wybierzesz istniejący wpis rejestru lub inny program.
+
+; Właściwości pliku
+
+W oknie Właściwości skojarzysz plik z programem. Skojarzenie działa od razu przy otwieraniu plików, ale ikony zmienią się dopiero po ponownym uruchomieniu Calmiry.
+
+Jakim programem otworzy się dokument po dwukrotnym kliknięciu, sprawdzisz, zaznaczając ikonę, wybierając Właściwości z menu podręcznego i kartę skojarzenia.
+
+W oknie Właściwości możesz kopiować tekst etykiet do schowka. Kliknij etykietę, przeciągnij wyróżnienie i wciśnij Ctrl+C.
+
+; Drzewo Eksploratora
+
+Po drzewie Eksploratora poruszasz się szybciej, gdy wyłączysz samoczynne odświeżanie panelu plików. Kliknij drzewo prawym przyciskiem i odznacz pokazywanie okna plików.
+
+Okno folderu niezależne od drzewa Eksploratora otworzysz, klikając folder w drzewie prawym przyciskiem i wybierając otwarcie w nowym oknie.
+
+Po dodaniu, usunięciu lub przeniesieniu folderów odśwież drzewo Eksploratora klawiszem F5 lub poleceniem Odśwież z menu podręcznego.
+
+Liczbę kolumn w oknie plików drzewa Eksploratora ustawisz wpisem FilePaneCols w sekcji [Desktop].
+
+We Właściwościach pulpitu wybierzesz, czy okno plików zamyka się razem z drzewem Eksploratora, czy zostaje otwarte.
+
+Grafiki drzewa Eksploratora zmienisz plikiem Explrico.bmp. Szczegóły w temacie pomocy o własnych bitmapach.
+
+Kliknięcie '+' lub '-' rozwija lub zwija folder w drzewie Eksploratora bez odświeżania panelu plików.
+
+Ctrl+Strzałka w górę i Ctrl+Strzałka w dół przenoszą w drzewie Eksploratora do poprzedniego lub następnego folderu tego samego poziomu, omijając rozwinięte gałęzie.
+
+Ctrl+W zatrzymuje odświeżanie panelu plików, więc możesz poruszać się po drzewie bez utraty bieżącego widoku plików.
+
+Niezależne pływające okno otworzysz z drzewa Eksploratora poleceniem otwarcia w nowym oknie z menu podręcznego lub klawiszami Ctrl+Enter.
+
+Ctrl+Strzałka w lewo przenosi w drzewie Eksploratora do folderu nadrzędnego.

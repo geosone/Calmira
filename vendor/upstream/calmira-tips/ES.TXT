@@ -1,0 +1,619 @@
+270
+
+; Alias
+
+Puede crear alias a objetos al destacarlos, los arrastra a otra ventana, carpeta o acceso directo, y entonces soltar el botón del mouse botón mientras sujeta la tecla mayúscula.
+
+Alias consumen una cantidad alta de memoria cuando se despliegan, por eso si frecuentemente usa carpetas que contienen muchos alias, acuerdece de cerrar las ventanas después de que ha cumplido con ellos.
+
+Puede convertir alias en objetos del Menú de Inicio simplemente arrastrando y soltando los alias en el diálogo de Propiedades del Menú de Inicio.  La información contenida en el alias se agrega al Menú de Inicio, en lugar de la información acerca del archivo alias en si mismo.
+
+En vista de Iconos Grandes, se despliegan los alias usando siempre su propio título.  Si le da una descripción del archivo a un archivo alias, necesita cambiar a Visión de Lista para ver la descripción.   (asegurece que la columna de descripción de archivos se encuentre visible).
+
+No puede crear un "alias de un alias." Si intenta hacerlo, se realiza una copia del alias.
+
+Si arrastra un alias hacia el escritorio, el acceso directo resultante apunta al mismo objeto del alias, en lugar de al alias.
+
+Puede hacer el efecto de grupos de programa flotantes al crear carpetas conteniendo alias a sus programas.  Entonces, arrastre estas carpetas hacia el escritorio para hacer accesos directos.
+
+Cuando navega por la red, puede crear rápidamente un alias a la página actual de internet.  Abra una ventana icónica y escoja Crear Alias del menú del desplegable de la ventana.  Calmira entonces llena el URL y título por usted.
+
+Puede crear un alias en cualquier ventana icónica al escoger Crea Alias comando del menú desplegable de la ventana.
+
+
+; Accesos directos
+
+Puede crear un acceso directo sin tener que hallar el objeto fuente primero, al hacer una pulsación derecha del botón en el escritorio y escoge uno de los tipos del acceso directo nuevos del submenú.
+
+No debe poner demasiado accesos directos en el escritorio, porque cada uno es una pequeña ventana y usará algunos recursos.
+
+Puede crear un carpeta nueva en el escritorio al abrir el menú del Escritorio y escoger hacer un acceso directo nuevo a carpeta.  Tipo en un título y el nombre de una carpeta nueva, entonces presione OK, y Calmira ofrecerá crear la carpeta por usted.
+
+Puede detener el "resbalamiento" de accesos directos cuando abre ellos al configurar la opción "Sólo movimiento cuando se arrastra título" en el diálogo las Propiedades del Escritorio.  Para abrir el menú desplegable del acceso directo, pulse el botón una vez en el título.
+
+Puede hacer accesos directos más rápido de usar al seleccionar la opción "pulsar el botón una vez para activar" del diálogo de Propiedades del Escritorio.
+
+Puede cambiar el tipo de alias o acceso directo.  Abra el diálogo de Propiedades y pulse el botón en la segunda etiqueta abajo, para ver los valores posibles.
+
+Puede crear rápidamente un acceso directo al internet de la página que ve.  de una pulsación derecha del botón del mouse del mouse en el escritorio y escoger Internet del menú Nuevo Acceso directo.  Calmira entonces llena el URL y título por usted.
+
+
+; Descripciones 4DOS
+
+Descripciones de archivos 4DOS son apoyadas por muchos otros programas además del mismo 4DOS.  Para ayudarlo a mantener la integridad cuando usa tales utilidades, fije la casilla para mantener las descripciones actualizadas con las sesiones 4DOS (en el diálogo de Propiedades del Sistema de Archivo).
+
+Si usa otras utilidades que también hacen uso de las descripciones de archivo 4DOS, es mejor refrescar las ventanas icónicas cuando piense que algunas descripciones hayan cambiado.  Ésto previene de inconsistencias cuando Calmira guarde próximamente guarda cualquier descripción.
+
+Para darles descripciones más largas a sus archivos, puede escoger no desplegar descripciones como títulos, i cambiar a modo de Visión de Lista para ver las descripciones al lado de cada nombre de archivo.
+
+Puede escoger un nombre de archivo para guardar sus descripciones de archivo en este.  El nombre por defecto es descript.ion, y puede cambiarlo al asignarle a un nombre de archivo a la enterda DescriptionFile en la sección [File system] del archivo INI.
+
+Cuando guarde o cree archivos, puede demorarse unos cuantos segundos dandole una descripción del archivo significativa a archivos importantes con nombres MS-DOS poco claros.  ¡Este le ahorrará mucho hora de navegación e inspección más adelante!
+
+Puede describir rápidamente un grupo de archivos al seleccionarlos todo antes de invocar el comando Describe.  Presione enter para aceptar cada descripción, y Esc para acabar la operaciónpero guarde las descripciones aceptadas.
+
+
+; Papelera
+
+Puede restaurar objetos de la Papelera al arrastrarlos a una ventana icónica, acceso directo, o alias.
+
+Puede hacer uso de la Papelera cuando haga una limpieza general de su disco duro--le dará una oportunidad de mirar los archivos antes de finalmente eliminarlos.  ¡Acuerdese de configurar la Papelera dejar sola a la basura!
+
+Puede vaciar la Papelera sin abrir su ventana.  Cuando se muestra como un icono, pulse el botón en éste una vez y escoja Vacíar del menú del mensaje desplegable.
+
+Puede acelerar la Papelera al configurar que guarde basura en una unidad de discos local.  Vea éste tópico del archivo de ayuda de la Papelera por más detalles.
+
+La Papelera toma más hora para cargar si contiene una gran cantidad de basura.  Ésto es porque necesita confirmar el existencia y tamaño de los archivos.
+
+Puede esconder la Papelera completamente al agregar Visible=0 a la sección [BIN] de Calmira.ini.
+
+Puede examinar los contenidos de una carpeta en la Papelera.  Busque en el la sección [Trash] de Calmira.ini para ver donde se ha movido la carpeta, entonces abra una ventana icónica usando el comando de escritorio Abrir carpeta.
+
+Si usa múltiples direcciónes de almacenamiento para la Papelera, puede esconder las carpetas y hacerlos de sólo-lectura para prevenir que sean accidentalmente borrados.  Está también una buena idea guardarlos en una parte del directorio raramente accedído del árbol.
+
+; Escritorio
+
+Puede traer Calmira al frente cuando no esté activa al apretar el botón izquierdo del ratón en el escritorio, y entonces con una pulsación derecha del botón.  Ésto es útil para destapar accesos directos y ventanas icónicas.
+
+Cuando Calmira está activa, puede abrir la ventana de la Computadora (Mi PC) al apretar el botón izquierdo del ratón en el escritorio, y entonces una pulsación derecha del botón.  Repita la operaciónsi Calmira no está activa.
+
+El diálogo de Propiedades del Escritorio permite que escoja donde poner las ventanas icónicas nuevas.  Al mostrarse en forma de cascada estas se mantienen a la lado; Al azar dan más cobertura al escritorio; guardar las posiciones mantendrá las carpetas en lugares convenientes.
+
+Si escoge guardar la posición de las ventanas icónicas, entonces es una buena idea limpiar la sección [Window Positions] de vez en cuando.  Anule las líneas con directorios que yá no existen, y Calmira tendrá menos entradas que investigar.
+
+Puede cerrar rápidamente una ventana usando un solo pulso de botón al seleccionar la opción "una pulsación derecha en botón de min/max para cerrar" en el diálogo de Propiedades del Escritorio.  Éste es un substituto para el nuevo botón de cerrar en Windows 95.
+
+Cuando quiere cambiar a Calmira, y una de las cajas de diálogo de Calmira está activa pero oculta, presione el botón izquierdo mientras hace una pulsación derecha del botón de mouse en el escritorio.  Ésto le elimina de tener que mover otras ventanas para llegar al diálogo.
+
+Si accidentalmente le re-arregla su accesos directos use "Organizar Iconos" de administrador de Tareas U otra utilidad, puede restaurarlos rápidamente a su posición previa.  Cierre todas las ventanas icónicas, abra el la caja Acerca de.., y pulse el botón en el logotipo de Calmira.
+
+Puede pulse el botón derecho del ratón en el escritorio para mostrar un menú de mensaje desplegable que permite abrir ventanas nuevas sin tener que bajar hasta el Menú de Inicio.
+
+Puede crear rápidamente un carpeta nueva al hacer una pulsación derecha del botón en el escritorio y escoger Abrir carpeta.  Si tipo un nombre de directorio que no existe, Calmira ofrecerá crear uno nuevo por usted antes de abrirlo en una ventana nueva.
+
+La comando Abrir Carpeta del menú del escritorio puede aceptar el uso de ********.*** para usarse como el filtro para ventanas nuevas.  Por ejemplo puede teclear c:\Windows\*].exe y ver sólo programas.
+
+No siempre necesita teclear la letra de la unidad para el comando del escritorio Abrir Carpeta.  Si omite la unidad, los dos puntos : y el backslash \ , Calmira asume que la carpeta que quiere está en la misma unidad de instalación del Windows. 
+
+Puede abrir el directorio raíz de un unidad al escoger Abrir Carpeta del menú del Escritorio y enterando una letra de la unidad seguida por dos puntos :].
+
+Si los colores de la pantalla se distorcionan cuando un programa Windows cambia sus paletas de color (a menudo se muestra un papel de colgadura (wallpaper) psiquedélico), todo que tiene que hacer es pulse el botón derecho en el escritorio y escoge Repintar pantalla, que fuerza a cada ventana a redibujarse.
+
+Puede alinear los iconos minimizados de programa sin mover su accesos directos. Escoja el comando Alinear Iconos del menú del mensaje desplegable del escritorio, en lugar de usa el Administrador de Tareas.
+
+Puede alinear todos los iconos en el escritorio al escoger Alinear Iconos del menú del mensaje desplegable del escritorio.
+
+Puede minimizar todas las ventanas abiertas al instante; sólo pulse el boton derecho del ratón botón en el escritorio, y escoja Minimizar Programas del sub-menú comandor.
+
+Puede esconder todas las ventanas y accesos directos pertenecientes a Calmira.  Escoja la comando Limpiar el Escritorio del menú del mensaje desplegable del escritorio.  Calmira aparecerá como un icono, y puede hacer doble pulso en el botón para restaurar el escritorio.
+
+Para comandor un número grande de ventanas icónicas abiertas, puede usar el comando comandor Búsquedas en Cascada del menú del mensaje desplegable del escritorio para hacerlas visibles.
+
+
+
+; Menú de Inicio
+
+Para usar el Menú de Inicio con el teclado, necesita seleccionar la opción "enfocar selección" en el diálogo de las Propiedades del Menú de Inicio.
+
+Se puede hacer el Menú de Inicio un poco más rápido si inhabilita el destacado coloreado de la barra de selección en el diálogo de las Propiedades del Menú de Inicio.
+
+Calmira tiene un equivalente del grupo "Startup" (inicio) del Administrador de Programas.  Cree un sub-menú del Menú de Inicio (en cualquier parte de éste), y dele un título "Startup." Los programas que pone allí se ejecutarán cuando Calmira se cargue.
+
+La apariencia de los iconos en el Menú de Inicio dependería de la paleta estándar de su driver de video.  Éste causaría que el menú se paresca diferente cuando lo reconstruye mientras usa un nuevo modo de video.
+
+Cuando usted manualmente edite o reemplaze START.INI, debe borrar también el archivo BMPCACHE.BMP si usa iconos del menú.  Ésto hace que Calmira reconstruya el menú cuando se cargue, asegurando que todos los iconos son ejecutarctos.
+
+Puede navegar por su Menú de Inicio más rápidamente si pone sub-menúes cerca a la parte superior de sus menúes padre.
+
+Puede usar un bitmap (dibujo) propio para el estandarte (bandera) del Menú de Inicio al poner un archivo Banner.bmp en el directorio de Calmira.  Vea el tópico bitmaps de la ayuda para más detalles.
+
+Puede estirar el diálogo de las Propiedades del Menú de Inicio para hacer más espacio para editar el menú del árbol.  Moviendo el cursor al borde de la Caja del diálogo hasta que cambie de forma para permitirle redimensionar la ventana.
+
+Para editar rápidamente un ítem del menú en el diálogo de las Propiedades del Menú de Inicio, puede hacer doble click en un nodo de la hoja para abrir la ventana del editor.
+
+Puede pulsar el botón una vez en un nodo del árbol del Menú de Inicio para extenderlo o contraerlo.
+
+Puede usar archivos de bitmaps 16 x 16 (.BMP) para iconos en el Menú de Inicio, que no son distorcionados cuando se dibujan.  Cuando edite el ítem del menú, especifique la ruta completa del archivo del bitmap en la casilla Icono De.
+
+Puede agregar un separador de línea en el Menú de Inicio, al crear un ítem con un guión [-] como el primer carácter de título.  Cada separador debe tener un título diferente, así puede usar -1, -2, etc.
+
+Puede agregar sus objetos del Administrador de Programas en cualquiera parte del Menú de Inicio de Calmira al presionar el pequeño botón del grupo de programas en el diálogo de Propiedades del Menú de Inicio.
+
+Cuando importa objetos del Administrador de Programas en el Menú de Inicio, se ponen los grupos en el nivel en que la barra subrrayada está.
+
+Cuando edite el Menú de Inicio, puede copiar un ítem al arrastrarlo y sujetndo Ctrl antes de soltar el botón del ratón.  Acuerdese de darle un título único al ítem nuevo si está en el mismo menú que el original.
+
+Cuando edite el Menú de Inicio, puede mover un ítem dentro de otro al arrastrarlo y sujetndo la tecla Alt antes de soltar el ratón.
+
+Cuando importa objetos del Administrador de Programas en el Menú de Inicio, ítems existentes con los mismos títulos se reemplazan objetos con los nuevos objetos.  Use esta característica para actualizar el Menú de Inicio para reflejar los contenidos de Administrador de Programas.
+
+Puede poner documentos, carpetas y direcciones de Internet en el Menú de Inicio.  Si tipo un URL en la casilla de la línea de Comando, Calmira activará su navegador de internet para abrir la dirección.
+
+Puede cortar partes del Menú de Inicio en columnas de igual tamaño.  Revise el título del menú padre y agrega un asterisco al frente, seguido por un número entre 2 y 9. Por ejemplo *3 creará tres secciones iguales.
+
+Puede cambiar los iconos pequeños por defecto usados por el Menú de Inicio para sub-menúes, carpetas y comandos. Vea el tópico de la ayuda bitmaps personalizados para más detalles.
+
+Para asignar una hot-key (combinacion-de-teclas) (tecla rapida) al Menú de Inicio, use el título de "Start" Cuando presione la combinación hot-key (combinacion-de-teclas), La Barra de tareas surge (si está oculta), y abre el menú.
+
+Puede asignar un hot-key (combinacion-de-teclas) a sólo parte del Menú de Inicio.  Use el título del sub-menú que quiere hacer surgir, y aparecerá en la posición del cursor cuando presione la combinación hot-key (combinacion-de-teclas).
+
+Puede incluir variables de entorno para las propiedades de un ítem del Menú de Inicio.
+
+Puede editar el título, carpeta de la operacióny modo de muestra de objetos del Menú de Inicio sin requerir una reconstrucción completa.  Calmira sólo modificara el archivo START.INI y carga el menú sin refrescar el cache de iconos.
+
+Puede saltar al ítem próximo o previo del menú del mismo nivel en el diálogo de las Propiedades del Menú de Inicio al presionar Ctrl+Arriba y Ctrl+Abajo. Ésto permite obiar rápidamente menúes expandidos.
+
+Puede apretar Ctrl+Izquierdo en el diálogo de las Propiedades del Menú de Inicio para saltar al menú padre del ítem actual del menú.
+
+
+; Diálogo Ejecutar
+
+Puede abrir rápidamente una página de internet al copiar su URL en el diálogo Ejecutar Programa.
+
+Puede estirar el diálogo Ejecutar Programa para ver comandos más largos.  Movimiento el cursor a la frontera del diálogo hasta que cambie de forma, entonces arrastrelo.
+
+Puede usar MS-DOS para renombrar archivos usando [wildcards] ********.*** .  De una ventana icónica escoja el comando Ejecutar del menú de la ventana.  Escriba en el comando renombrar, active la casilla comando DOS, entonces presione Ejecutar.  ¡Acuerdese de refrescar la ventana!
+
+Puede mover el diálogo Ejecutar Programa al arrastrar su superficie gris.
+
+No necesita teclear la ruta en el diálogo de la Ejecutar para programas y documentos que están en su ruta MS-DOS.  Por ejemplo para editar su archivo del inicialisación de Windows, sólo escriba "WIN.INI."
+
+Puede abrir carpetas del diálogo de Ejecutar, y hacer uso de su lista historica para guardar carpetas accedidas recientemente.
+
+
+; Diálogo Buscar
+
+Puede arrastrar archivos del diálogo Buscar Archivos a ventanas icónicas o accesos directos/alias para copiarlas o moverlas.  Note que esta característica no trabaja con descripciones de archivo.
+
+Puede arrastrar archivos del diálogo Buscar Archivos a otros programas como Notepad.
+
+Puede estirar el diálogo Buscar Archivos para mostrar más archivos al arrastrar una de su fronteras.
+
+Puede mover el diálogo Buscar Archivos al arrastrar su barra de estado.
+
+Puede abrir un archivo o carpeta mostrado en el diálogo Buscar Archivos al hacer doble pulso en él.
+
+Puede acceder al diálogo Abrir Con desde el diálogo Buscar Archivo al usar el menú del mensaje desplegable o presionar Ctrl+enter.
+
+Cuando copia detalles del archivo del diálogo Buscar Archivos al portapapeles, puede hacerle más espacio para la columna de ubicación al ajustar el título sobre la caja de lista.
+
+Puede ir directamente a un archivo o carpeta desplegada en la caja de lista del diálogo de Buscar.  Seleccione el ítem, y escoja Abrir Padre del menú del mensaje desplegable.  Se abre una ventana icónica, y se destaca el ítem de interés para usted.
+
+Puede cambiar la unidad que el diálogo Buscar investiga al simplemente copiar una sola letra en la caja de chequeo Empezar desde.  Calmira agrega el resto de la ruta por usted.
+
+El diálogo Buscar Archivos puede investigar mucho más rápido si usted sólo especifica uno [wildcard] *.* y limpia la lista antes de cada búsqueda.  Ésto es porque no tiene que verificar enterdas dobles si solo hay una búsqueda.
+
+; Optimisar
+
+Puede hacer uso de las claves [/],[*],[+] y [-] para cerrar ventanas icónicas no deseadas.  Esto rápidamente reduce el descomando en el escritorio y ahorra memoria.
+
+Si tiene recursos de Usuario bajos, puede probar a disminuir el tamaño de su Menú de Inicio.
+
+Si tiene recursos de Sistema bajos, puede probar a quitando unos accesos directos o usar alias en su lugar.
+
+Si Calmira toma un hora largo en cargarse, asegurese que no hay demasiada basura en la Papelera, ya que Calmira necesita examinarla.
+
+Calmira puede acceder a su archivo INI más rápido si guarda la sección [Window Positions] en un tamaño razonable. Si la posición de la ventana icónica se guarda, se agrega una línea por cada carpeta que se abre, así que limpiela de vez en cuando.
+
+
+
+
+; Ventana Computer (Mi PC)
+
+Puede refrescarsen los contenidos de la ventana de la computadora al presionar F5 o escojer Refrescar del menú del mensaje desplegable.  Éste descubre todos las unidades disponibles y es útil si ha entrado a una red.
+
+Puede arrastrar archivos y carpetas hacia el icono de la Computadora para agregarlos al Menú de Inicio.  Los objetos nuevos aparecerán en el árbol la próxima vez que abra el diálogo de las Propiedades del Menú de Inicio. Arrastre carpetas y archivos a las unidades que se muestran aquí para copiarlos.
+
+Puede personalizar los iconos de los programa en la ventana de la Computadora al editar la sección [Programs].
+
+Si no usa el menú del Escritorio, se pueden acceder algunos de los comandos del menú del mensaje desplegable de la ventana de la Computadora mientras esté minimizada.
+
+Acceder al menú del mensaje desplegable de la ventana de la Computadora mientras está minimizada (ej. abrir el archivo de ayuda), puede pulsar el botón derecho del ratón en el icono de la Computadora.  El diálogo de las Propiedades del Sistema determina si el menú del mensaje desplegable del Computadora o se muestra el Menú de Inicio.
+
+Puede abrir uno de los diálogos de propiedades de Calmira al usar el menú del mensaje desplegable que aparece cuando endereza pulse el botón entre los iconos de la ventana de la Computadora.
+
+Puede crear su versión propia de la ventana de la Computadora al usar una carpeta y alias.  Ésto puede permitirle tambien arrastrar y soltar objetos entre los iconos de las unidades.
+
+
+; Scrips
+
+Puede usar scrips para llevar a cabo comandos múltiples y ejecutar programas múltiples con uno pulso del botón del ratón.  Cree un script que use el comando Start y asígneselo a un acceso directo, alias o ítem del Menú de Inicio.
+
+Puede ejecutar scrips de una sesión MS-DOS en Windows.  Ésto permite que ejecute un programa de Windows desde la línea de Comando, y controlar características de Calmira como la apertura de ventanas icónicas y activar accesos directos.  Mire en el archivo de ayuda para más detalles.
+
+Si a menudo usa arcivos por lotes en ventanas MS-DOS, puede hacerlos generar fácilmente scrips para controlar a Calmira y ejecutar programas de Windows por usted.  Mire en el archivo de ayuda por más detalles acerca de escribir scripts.
+
+El archivo por lotes Start le permite que ejecute un programa o abrir un documento desde una ventana MS-DOS.  Ésto le permite no tener que abrir una ventana icónica para ejecutar un archivo que ya puede ver desde DOS.
+
+El archivo por lotes Folder le permite que abra una ventana icónica desde una ventana MS-DOS.  Ésto le permite no tener que copiar una ruta larga del directorio para abrir una ventana icónica si está ya en ese directorio.
+
+El archivo por lotes Open le permite que abra archivos, programas de Windows y carpetas de una ventana MS-DOS.
+
+El archivo por lotes Explore le permite que abra el árbol del Explorer de una ventana MS-DOS.  Ésto le permite no tener que copiar moviendose por el árbol si ya está allí.
+
+Cuando ejecute una caja MS-DOS, puede lanzar otro programa MS-DOS en una ventana nueva usando el archivo Start.bat.
+
+Puede crear una bandeja personalizada del panel de control para Calmira.  Escriba un juego de archivos script para abrir cada hoja de propiedad.  Entonces cree un alias dirigido a estos scrips, y su carpeta ahora es un panel de control.
+
+Puede hacer la apertura de cajas de diálogo un alias y ejecutar comandos especiales en la misma manera como objetos del Menú de Inicio.  Cree un alias que apunte a un archivo script que usa un comando macro.  Vea el tópico de la ayuda para usar scrips para más detalles.
+
+Puede comenzar un programa basado-en-Windows desde una ventana de comandos, usando los archivos por lotes Abrir y Start.
+
+; Entorno
+
+Puede usar la variable de entorno %currentfolder% para lanzar un programa usando la carpeta actual mostrada como el directorio de trabajo.
+
+Puede usar la variable de entorno %droppedfiles% para controlar la colocación de los nombres de archivo en el línea de Comandos, cuando suelte objetos en un acceso directo o alias.
+
+Puede usar la variable de entorno %filename% para controlar la colocación del nombre de archivo cuando ejecute programa desde el diálogo Abrir Con, o las utilidades en el diálogo de las Propiedades del Sistema de Archivo.
+
+Puede usar la variable de entorno %calmira% para referirse al directorio principal de Calmira.
+
+Puede usar la variable de entorno %comspec% para referirse al Shell actual MS-DOS.  Ésto es útil si a menudo cambia entre programas Shell diferentes.
+
+Puede usar la variable de entorno %windir% para referirse al directorio de Windows.
+
+Puede usar la variable de entorno %currentdrive% para referirse a la letra de la unidad de la ventana icónica activa.  Ésto es útil para ejecutar programas relacionados-con-discos, y está también disponible desde el diálogo de Propiedades del Disco cuando pulse el botón en el icono de la unidad.
+
+Puede definir sus variables de entorno propias en la sección de Calmira [Environment].  Ésto permite que evite de usar rutas absolutas en su accesos directos, alias y objetos del Menú de Inicio, por que se actualizan automáticamente cuando modifica el Entorno.
+
+Puede usar variables de entorno como macroinstrucciones simples, que trabajan en el diálogo Ejecutar Programa y el comando Abrir carpeta.  Ésto permite que sustituya un largo de texto (tal como un comando o nombre de carpeta) por un más corto rodeado por simbolos %].
+
+
+; Ventanas Icónicas
+
+Cuando navegue, puede abrir la carpeta padre al hacer de una pulsación derecha del botón del mouse en la caja de cierre de una ventana icónica (izquierda-arriba).  Un menú surge, exhibiendole una lista de todos los directorios pasados, así puede acceder rápidamente a cualquier nivel del árbol del directorio.
+
+Puede apretar Backspace (borrar a izq) para abrir la carpeta padre de una ventana icónica.
+
+Para seleccionar o deseleccionar archivos usando wildcards *******.***, puede apretar Ctrl+S en una ventana icónica, o una pulsación derecha del botón en la parte derecha de la etiqueta en la barra de estado.
+
+Usted puede abrir el diálogo de las Propiedades de Disco de una ventana icónica al hacer de una pulsación derecha del botón del mouse en la parte izquierda de la etiqueta en la barra de estado.  Ésto le muestra el espacio disponible en la unidad actual.
+
+Para maximizar una ventana icónica, puede hacer doble pulso del botón del mouse en un área gris de la barra de estado.
+
+Puede asociar un tipo de archivo con un programa al seleccionar un solo archivo, y abrir su diálogo de Propiedades.
+
+Puede copiar detalles de los archivos seleccionados de una ventana icónica al portapapeles al presionar Ctrl+C. En la vista con Iconos Grandes e Iconos Pequeños, ésto copia una lista de títulos.  En Visión de Lista produce una lista del directorio similar a MS-DOS.
+
+Puede obtener una lista del directorio personalizada al cambiar a Visión de Lista y al escoger las columnas que serán mostradas, usando el diálogo Colocar Filtro.  Entonces seleccione los archivos deseados, y presione Ctrl+C para copiar los detalles al portapapeles.
+
+Puede abrir el árbol del Explorer de una ventana icónica al presionar Ctrl+E. Se selecciona el directorio de la ventana icónica para usted.
+
+Puede abrir el diálogo Buscar Archivos desde una ventana icónica al presionar Ctrl+F. Se usa el directorio de la ventana icónica como ruta de inicio.
+
+Puede imprimir un archivo al seleccionarlo y presionar Ctrl+P. El archivo necesita estar asociado con un programa que sea capaz de imprimir ese tipo de archivo, ej. Notepad puede imprimir archivos de texto.
+
+Puede imprimir un archivo al dejarlo caer en la ventana del Administrador de Impresión o su icono o en el archivo printer.exe suministrado.  El archivo necesita estar asociado con un programa que sea capaz de imprimir ese tipo de archivo, el. Notepad puede imprimir archivos de texto.
+
+Puede abrir cualquier carpeta mientras usa una ventana icónica, al presionar Ctrl+O y escribiendo la ruta de la carpeta.
+
+Puede ejecutar el programa Undelete, especificando en el diálogo de las Propiedades del Sistema de Archivo, al presionar Ctrl+U.
+
+Puede mostrar en cascada las ventanas icónicas al presionar Ctrl+F5.
+
+Puede ordenar los iconos en el escritorio al presionar Shift+F5 mientras usa una ventana icónica.
+
+Puede minimizar Calmira limpiando el escritorio al presionar F12 mientras usa una ventana icónica.
+
+Para refrescar los contenidos de una ventana icónica, puede presione F5, o pulse el botón en al lado izquierdo de la etiqueta en la barra de estado.
+
+Puede cerrar todas las ventanas icónicas excepto la activa al presionar Asterisco [*] en el teclado numérico.  Ésto es útil para cerrar ventanas no deseadas después de que ha investigado en éstas por un archivo en particular.
+
+Puede cerrar todas las ventanas anteriores de una ventana icónica al presionar Más [+] en el teclado numérico.  Ésto es útil para cerrar ventanas no deseadas después de que ha viajado por una rama del árbol investigado en ésta un archivo en particular.
+
+Puede cerrar todas las ventanas icónicas al presionar la tecla slash o división [/], en el teclado numérico o en el teclado principal.
+
+Puede seleccionar y deseleccionar todos los archivos en una ventana al presionar Coma [,] y Punto [.] respectivamente.
+
+Puede colocar el filtro de archivo para una ventana icónica, y escoger los detalles a mostrar presionando el signo de interrogación [?].
+
+Para cambiar la vista a Iconos Grandes, Iconos Pequeños y Lista, puede apretar Shift+I, Shift+M y Shift+L respectivamente.
+
+Puede apretar la tecla Alt mientras hace doble pulso en el botón en un carpeta para abrir la carpeta en la misma o en una ventana nueva.  Ésto es lo contrario de "la poción mostrar carpetas en la misma ventana" del diálogo de Propiedades del Escritorio.
+
+Para cambiar el orden de Tipo, Nombre, Tamaño y Fecha, puede apretar Shift+T, Shift+N, Shift+S y Shift+D respectivamente.
+
+Puede abrir el directorio raíz de la unidad actual desde cualquier ventana icónica presionando Backslash [\].
+
+Para saltar al siguiente nombre de archivo empesando con una cierta letra, puede presionar solo esa tecla de la letra.
+
+Para abrir el directorio de raíz de cualquiera unidad, puede apretar Ctrl y Shift junto con la letra de la unidad.
+
+Cuando una ventana icónica exibe una sola etiqueta en la barra de estado, puede acceder a las otras funciones del ratón apretando la tecla mayúscula antes de pulsar el botón en él.
+
+Puede ajustar el número de filas y columnas usadas para el redimensionar automático de ventanas icónicas.  Mire en el archivo de ayuda por más detalles de cómo editar la sección [Layouts] del archivo INI.
+
+Puede obiar temporalmente la característica "navegar carpetas en la misma ventana" al apretar ALT cuando abre un carpeta.  Si la opción no está activada, apretar ALT la activará.
+
+Puede enterarse de cuanto espacio se usa en una estructura de directorio al seleccionar un grupo de carpetas y abrir el diálogo de Propiedades.
+
+Puede mover una ventana icónica al arrastrarla por su barra de estado.
+
+Para Seleccionar y deseleccionar todos los archivos, puede pulsar el botón al lado derecho de la etiqueta en la barra de estado.  Si hay objetos actualmente seleccionados, ésto limpia la selección.  De otra manera, se seleccionará todo.
+
+Durante una operación de arrastrar y copiar, puede pulsar el botón derecho del ratón para intercambiar entre la operación de Copia y Mover.  Puede cambiar también el modo inicial de arrastre al presionar Alt antes de arrastrar.  Vea el diálogo de las Propiedades del Sistema de Archivo para más opciones.
+
+Cuando quiere soltar archivos en una carpeta o programa, pero el icono del objeto está tapado, puede arrastrar el cursor sobre los botones de la barra de desplazamiento para despejar y mover la vista como se requiere.
+
+Cuando hay muchas ventanas icónicas cubriendo el escritorio, puede saltar rápidamente a cualquiera de ellas al hacer una pulsación derecha del botón en la barra de título.  Éste abre un menú de mensaje desplegable que le muestra todas las carpetas actualmente abiertas.
+
+Puede navegar por las carpetas usando la misma ventana al configurar la opción en el diálogo de Propiedades del Escritorio.  Ésto previene que demasiadas ventanas se abran.  Use Backspace o una pulsación derecha del botón en la caja de cerrado (superior-izq) para moverse atras en el árbol.
+
+Puede abrir el árbol del Explorer en cualquier carpeta apretando la tecla Shift mientras hace doble pulso en la carpeta.
+
+Puede invertir los modos de navegaciónr a ventanas múltiples o una sola ventana.  Sujete Alt mientras hace doble pulso en un carpeta.  Se abre la carpeta de la manera opuesta a la especificada en el diálogo de Propiedades del Escritorio.
+
+Si deja el cursor sobre un archivo o icono de carpeta, una mensaje desplegable le dará información extra.  Por ejemplo puede decirle el nombre real de un archivo que se muestra usando su descripción, o recíprocamente, la descripción cuando no se muestra.
+
+Puede inspeccionar rápidamente un archivo al apretar la tecla mayúscula (Shift) mientras da una pulsación derecha del botón del mouse en él.  Ésto es equivalente a escoger Inspeccionar del menú del mensaje desplegable del archivo.
+
+Puede traer rápidamente el diálogo Abrir Con al apretar la tecla Ctrl mientras da una pulsación derecha del botón del mouse en un archivo.
+
+Puede hacer doble pulso del botón del mouse en un ítem en el diálogo Abrir Con en lugar de presionar el botón Aceptar.
+
+Puede abrir el diálogo de las Propiedades al apretar la tecla Alt mientras de una pulsación derecha del botón del mouse en un archivo o carpeta.
+
+Para invertir la selección actual en una ventana icónica, puede apretar Ctrl cuando pulse el botón en la etiqueta al lado derecho de la barra de estado.  Ésto es muy útil para seleccionar todos los archivos salvo unos de ellos.
+
+Puede seleccionar bloques adyacentes de archivos y carpetas usando la herramienta de lazo.  Después de hacer una selección, empiese arrastrando el lazo de un ítem seleccionado, y su selección antigua se mantendrá.
+
+Puede arrastrar iconos de archivo de Calmira en otros programas, de la misma manera como se usa en el Administrador de Archivos.
+
+Puede deseleccionar todos los objetos en una ventana icónica al pulsar el botón en una área vacía.
+
+Puede apretar Ctrl+Up o Ctrl+Down para subir o bajar la vista de los contenidos de las ventanas icónicas sin cambiar la selección actual.
+
+Para dibujar una caja de selección cerca del borde de un grupo de archivos, pulse el botón cerca de una esquina del grupo, y entonces arrastre el rectángulo para formar la caja de selección.
+
+Puede arrastrar el icono de un archivo en el icono de un programa para abrir el archivo usando este programa.  Active esta característica en el diálogo de Propiedades del Sistema de Archivo.  
+
+; Teclado
+
+Puede usar la tecla Alt Gr para una combinación hot-key (combinacion-de-teclas) al especificar Ctrl+Alt. En Calmira, la tecla Alt Gr es equivalente a CTRL y ALT juntos.
+
+Puede simular un teclado Windows 95 en un teclado normal al asignarle al hot-key (combinacion-de-teclas) Ctrl+Alt+Espacio al Menú de Inicio (el título es "Start"). Ésto hace surgir el Menú de Inicio cuando presione la barra espaciadora junto con Alt Gr.
+
+Cuando se asigna un hot-key (combinacion-de-teclas), puede usar los nombres de claves especiales tales como Enter, Backspace, Delete etc.
+
+Puede apretar Ctrl+Tab para dar un ciclo por todas las ventanas de Calmira.
+
+
+
+
+
+; Barra de tareas
+
+Puede terminar cualquier programa "pícaro" usando la Barra de tareas.  De una pulsación derecha del botón del mouse en el botón de Inicio, escoja Terminar, y el cursor cambia de forma.  Entonces pulse el botón izquierdo en cualquier botón de la Barra de tareas para eliminar el programa relacionado.
+
+El comando Espiar (Spy) en el menú del mensaje desplegable del botón de Inicio causa que los mensajes desplegables muestren el nombre del módulo de la tarea y el nombre de clase Windows. Use éstas ayudar para excluir ventanas particulares de la barra.
+
+Puede arrastrar y soltar archivos de Calmira y otros programas hacia los botones de Barra de tareas.  El efecto es el mismo que el del Administrador de Archivos al soltar los archivos en los iconos pequeños de la tarea.
+
+Si una tarea nueva no aparece inmediatamente en la Barra de tareas, puede pulsar el botón en otra ventana, y regresarce de nuevo al programa nuevo, que debe notificar a la Barra de tareas.
+
+Puede asignar sus bitmaps propios en la Barra de tareas para mostrar las ventanas icónicas y el árbol del Explorer. Vea el tópico de la ayuda bitmaps personalizados para más detalles.
+
+Puede hacer que la Barra de tareas despliegue los nombres del documento antes que los nombres del programa en los botones de la barra.  Esto a veces provee más información si los botones no son lo suficientemente anchos para desplegar el título completo.
+
+El los mensajes desplegables de Barra de tareas siempre se muestra la ruta completa de las ventanas icónicas mejor cuando los botones muestran los nombres de 8 caracteres del directorio.
+
+La Barra de tareas puede desplegar su icono escogido para programas lanzados desde accesos directos, alias u objetos del Menú de Inicio.  Este trabaja mejor para programa de Windows, porque la Barra de tareas obtiene los iconos directamente de Calmira.
+
+La Barra de tareas puede desplegar iconos diferentes para cada programa en ejecucuón.  Por ejemplo si activa dos accesos directos que abren archivos usando el Notepad, cada botón puede reflejar el documento editado.
+
+
+; Despliegue
+
+Se diseñó a Calmira con, y usualmente se ve mejor con la fuente 8 puntos MS Sans Serif, con el driver de video Small Fonts Super VGA.
+
+Puede mostrar icono de archivos individuales usando los iconos que contienen al agregar "ICO" a la lista de extensiones de búsqueda en el diálogo de Propiedades del Sistema de Archivo.  Pero recuerde que los iconos toman memoria, así que evite usar esta característica para cientos de iconos.
+
+No debe dejar archivos *.ICO en el directorio principal de Calmira a menos que piensan mostrar documentos o en objetos propios de Calmira.  De otra manera, simplemente descompenzarán las listas de recursos de Calmira.
+
+Puede reemplazar casi todos los iconos propios de Calmira con su selección propia.  Vea el tópico de la ayuda iconos personalizands.
+
+Puede asignar sus iconos propios para usarse por los archivos de documento, que obian los iconos especificados en el registro.
+
+Puede reemplazar muchos de los iconos propios de Calmira con sus gráficos propios para la Barra de tareas, Menú de Inicio y Explorador.  Vea el tópico de ayuda bitmaps personalizados.
+
+Puede escoger nombres descriptivos para su unidad de discos al agregar enterdas a la sección [Drives].  Por ejemplo podría reemplazar el Floppy(A:) con Disco de 3½".
+
+Puede escoger nombres descriptivos para títulos de una ventana icónica al agregar enterdas a la sección [Windows Captios].  Ésto es útil si usa carpetas como grupos del programa para guardar alias de sus aplicaciones.
+
+
+; Misceláneos
+
+Cuando vea y edite cajas en un diálogo que requiere un archivo o nombre de carpeta, puede hacer doble pulso del botón del mouse en la caja de edición para abrir un diálogo de navegación.
+
+Puede arrastrar archivos de otros programas (ej. Administrador de Archivos) en ventanas icónicas, accesos directos o alias.  Calmira le preguntará si copiará o moverá los archivos.  Nota que esta característica no trabaja con descripciones de archivo.
+
+Para ver listas de directorio copiadas al portapapeles, debe usar ver Texto OEM para alinear las columnas.
+
+Puede hallar interesante ojear los archivos fuente de Calmira.  Descomprimalos, y navegue por los archivos *].PAS con un editor de texto.  ¡Algunos de éstos son notablemente legíbles, aun cuando no sepa programar!
+
+Debe hacer un respaldo de CALMIRA.INI y START.INI junto con sus archivos de datos, para que no pierda hora en areglar su escritorio y las opciones si el archivo INI se daña.
+
+Puede agregar "www." a la opción URLPrefixes en la sección [Internet].  Ésto le permite teclear un página o dirección de internet en el diálogo Ejecutar Programa sin requerir el prefijo http://].
+
+Puede hacer doble pulso del botón del mouse en una opción en la página Avanzado del diálogo de las Propiedades del Sistema para editar el ítem.
+
+Puede limitar el número de enterdas guardadas en la lista historica configure la opción MaxHistorySize en la sección [Calmira.
+
+Puede hacer que sus menúes Windows 3.1x se parescan a Windows 95 al configurar el fondo a gris, la barra de elemento seleccionado a azul y el texto subrrayado a blanco.
+
+Puede cambiar la distribución de la malla usada por el comando "Alinear Iconos" del escritorio, al configurar DeskGridX y DeskGridY en la sección Escritorio.
+
+Puede cambiar la fuente que Calmira usa para ventanas icónicas, el árbol del Explorer y la ventana de la Computadora.  Revise las entradas FontName, FontSize y FontStyle en la sección [Display].
+
+Puede hacer que Calmira cargue y guarde sus archivos INI en el directorio de Windows.  Cree una sección [Calmira] en su archivo Win.ini y agregue la línea LoadFromWindir=1].
+
+Puede cambiar la shell de Windows rápidamente al usar el diálogo de Ejecutar para abrir System.ini, editando la línea Shell= y seleccionando Reiniciar Windows del diálogo de Apagar el sistema.
+
+Puede cambiar la manera en que se dibujan los iconos miniatura de la Visión de Lista al modificar la opción IconStretchMode en la sección [Display].  El valor prefijado usualmente da mejores resultados, aunque.
+
+Puede agregar definiciones del tipo de archivo para el diálogo de Propiedades de Archivo por editar la sección [File Types].  Calmira usa estas descripciones para archivos que no tienen una enterda de registro satisfactoria.
+
+Puede ajustar el redimensionamiento automático de las ventanas icónicas al editar la sección [Layouts], para determinar cuántas filas y columnas se usan para cada rango de iconos.  Vea el tópico de la ayuda en Configuraciónes Misceláneas para más detalles.
+
+Puede cambiar la fuente usada por la Barra de tareas al editar la propiedad FontName en la sección [Taskbar].
+
+Puede controlar la posición de los iconos minimizados sobre la Barra de tareas al ajustar la configuración MinAppHeight en la sección [Taskbar].  Use ésto si se esconden detrás de la barra los títulos del icono.
+
+Puede ver tamaños de archivo y carpeta en bites al abrir el diálogo de las Propiedades del Archivo y dejando el cursor encima para que lea el tamaño.  Una mensaje desplegable aparecerá y muestra el tamaño exacto en bites.
+
+Puede ajustar el retraso antes de la aparición del mensajes desplegable de botones de la Barra de tareas al configurar la línea HintDelay en la sección [Taskbar].
+
+Puede cambiar el formato de fecha y hora de la Barra de tareas y desplegar la fecha usando el reloj 24HourFormat, 12HourFormat y FullDateTime Configuraciónes en la sección [Taskbar].  Vea el tópico de las Configuraciónes Misceláneas para más detalles.
+
+Puede hacer doble pulso del botón del mouse en el el reloj de la Barra de tareas para ajustar la fecha y hora.
+
+Puede cambiar la configuración ClockAdjust en [Taskbar] para usar una utilidad diferente para configurar la fecha y hora.
+
+Puede asignarles sonidos a ciertos eventos en Calmira al especificar un archivo WAV en la sección [Sounds].  Vea el tópico de las Configuraciónes Misceláneas para más detalles.  Éstos eventos sólo afecta las ventanas manejadas por Calmira.
+
+Puede cambiar la fuente usada por el Menú de Inicio al editar las Configuraciónes FontName y FontSize en la sección [Start menu].
+
+Puede cambiar la fuente y título de el botón de Inicio al editar las Configuraciónes FontName, FontSize, FontStyle y del título en la sección [Start button].
+
+Puede esconder el botón de Inicio al moverlo bajo la pantalla.  Coloque el valor Izquierdo en la sección [Start button] a un número lógico negativo.
+
+Puede cambiar el nombre del archivo oculto que guarda las descripciones de archivo al asignarle a un nombre de archivo al Configuraciónes DescriptionFile en la sección [File system].
+
+Puede ajustar el ancho usado por las descripciones en la visión de lista al configurar la opción DescriptionWidth en la sección [File system].
+
+Puede ajustar el espacio entre columnas en la visión de lista por cambiar la configuración ColumnPadding en la sección [File system].
+
+Puede escoger el número de lugares decimales a desplegar para tamaños del archivo dentro de rango de Kilobyte.  Asignele a un valor a la configuración ListKBDecimals en la sección [File system].  Esta opción sólo afecta la visión de lista en ventanas icónicas.
+
+Puede cambiar las secciones que aparecen en la página Avanzada del diálogo de las Propiedades del Sistema.  Revise la sección [Advanced] siguiendo las instrucciones en el tópico de las Configuraciónes Misceláneas.
+
+El [History List] contiene los objetos que aparecen en el diálogo de las Propiedades del Sistema.  Puede agregar otros nombres de la sección para dejar que se borrados al presionar el botón borrar en el diálogo, por ejemplo, la sección [Window Positions].
+
+Puede hacer doble pulso del botón del mouse en el botón relacion en muchas cajas del diálogo en lugar de presionar el botón Aceptar.
+
+Para ver cuanto espacio del disco está libre, use su ratón botón derecho pulsar el botón en el icono por el hace enterr la Computadora, y entonces escoge Propiedades.  Puede mostrar también que espacio libre al hacer de una pulsación derecha del botón del mouse en la barra de estado izquierda etiqueta de una ventana icónica.
+
+Cuando abre un carpeta, puede apretar Backspace para abrir un carpeta de un nivel más alto.
+
+Puede pulsar el botón de su ratón botón derecho en cualquier parte para ver un menú de comandos disponibles.
+
+
+; Apagar el sistema
+
+Debe usar Reiniciar Windows del diálogo Apagar el sistema de vez en cuando.  Ésto restaura recursos, libera memoria, generalmente limpia muchos problemas dejados por bugs, y previene a Windows caerse.  Es más rápido que salir y ejecutar WIN.
+
+Puede hacer doble pulso del botón del mouse en uno de los botón de selección en el diálogo de Apagar el sistema en lugar de seleccionar lo y presionar Aceptar.
+
+
+
+; Ayuda
+
+La mayoría del archivo de ayuda de Calmira se ve bien en una ventana de aproximadamente 500 pixels de ancho.
+
+Si quiere imprimir el archivo de ayuda de una sola pasada, puede extraer el archivo fuente RTF (texto rico formato) del SOURCE.ZIP/HELP.ZIP e imprimirlo en un procesador de palabras compatible.
+
+Para ver la lista completa de entradas en "Consejos del Día" , puede abrir el archivo TIPS.TXT en un procesador de palabras u otra utilidad que lea archivos de texto.
+
+Puede obtener ayuda contextual sensible de la mayoría de ventanas al presionar F1.
+
+Puede navegar por todos los tópicos del archivo de ayuda usando los botones << y >>.
+
+Puede hallar la última información de Calmira en la página de internet www.calmira.org/.
+
+Puede editar el arcivo TIPS.TXT para mostrar sus propios mensajes.
+
+
+
+; Teclado
+
+Puede traer al frente cualquier ventana y ejecutar cualquiera programa al presionar una tecla.. mire en el archivo de ayuda para más detalles en hot-key (combinación-de-teclas).
+
+Puede hacer que se despliegue el Menú de Inicio al presionarionar una combinación hot-key (combinacion-de-teclas)--el menú tiene un título pre-definido "Start" Mire en el archivo de ayuda por más detalles de hot-key (combinacion-de-teclas).
+
+;  "diversión y consejos inspiradores"
+
+Camisetas relacionadas con programación raramente hacen algo positivo.
+
+No debe arrojarse de cabeza nunca en aguas infestadas de tiburónes.
+
+Nunca es demasiado tarde para aprende a usar un Macintosh.
+
+
+
+; Sistema de archivo
+
+La lista de la caja de Confirmación en el diálogo de las Propiedades del Sistema de Archivo le permite a usted ajustar las sugerencias de Calmira cuando copia o mueve archivos.  Así puede hacer algunos ajustes si ve que Calmira hace muchas preguntas.
+
+Cuando Calmira lee un directorio para una ventana icónica o el árbol del Explorer, puede detener la operación al presionar la tecla Escape.
+
+Puede desactivar los iconos miniatura para los modos de Icono Pequeño y de la Visión de Lista para hacer que Calmira redibuje los gráficos mucho más rápidamente.
+
+Para hacer el arrastrar y soltar más fácil, puede desactivar la opción de permitir que se dejan caer en programas de las ventanas icónicas (diálogo de las Propiedades del Sistema de Archivo). Esto causará que los objetos dejados caer sobre los programas seran en cambio dirigidos a la ventana.
+
+Puede asignarle a una utilidad de disco del diálogo de las Propiedades del Sistema de Archivo, para permitirle formatear discos o chequear pulse el botón en el icono en el diálogo de las Propiedades de Disco.
+
+Calmira ejecuta la mayoría de operaciones de archivo en segundo plano así puede usar la Barra de tareas para cambiar a otro programa mientras se copian o mueven sus archivos.
+
+Puede poner opciones para mostrar u ocultar las extensiones del nombre de archivo del tres-letras, desde el diálogo de las Propiedades del Sistema de Archivo.
+
+Puede asociar un archivo con un programa al seleccionar el archivo y escoge Propiedades de su menú desplegable.  La página tabulada de Asociación permite que se una a una enterda existe del registro u otro programa.
+
+
+
+; Propiedades de archivo
+
+Puede usar el diálogo de las Propiedades del Archivo para asociar un archivo con un programa.  La asociación toma efecto inmediatamente para lanza visores, pero los iconos se actualizan sólo cuando reinicia Calmira.
+
+Puede enterarse de que programa se usará para abrir un documento cuando haga doble pulse del botón del mouse en él.  Seleccione el icono, escoja Propiedades del menú desplegable, entonces seleccione la página tabulada de Asociación.
+
+En el diálogo de las Propiedades de Archivo puede copiar texto de las etiquetas al portapapeles.  Pulse el botón en una etiqueta, arrastre el pintero para escoger, entonces presione Ctrl+C.
+
+
+
+
+; Árbol del Explorer
+
+Puede acelerar la navegación por el árbol del Explorer al desactivar la actualización automática del panel de archivos.  De una pulsación derecha del botón del mouse en el árbol y deseccióne el ítem del menú "Mostrar ventana de archivo".
+
+Puede abrir una ventana icónica independiente del árbol del Explorer al hacer de una pulsación derecha del botón del mouse en una carpeta en el árbol y escoger Abrir en Nueva Ventana del menú del mensaje desplegable.
+
+Cuando son agregadas carpetas, borradas o movidas, se necesitaría refrescarse el árbol del Explorer al presionar F5 o escoger Refrescar del menú del mensaje desplegable.
+
+Puede controlar el número de columnas mostradas en la ventana del archivo del árbol del Explorador al configurar FilePaneCols en la sección [Desktop].
+
+Puede escoger cerrar o mantener abierta la ventana de archivo del árbol del Explorador junto con la ventana del árbol.  Mire en el diálogo de Propiedades del Escritorio.
+
+Puede cambiar los gráficos usados en el árbol del Explorer al crear un archivo llamado Explrico.bmp. Vea el tópico del archivo de ayuda bitmaps personalizandos por más detalles.
+
+Puede extender o contraer un nodo de carpeta en el árbol del Explorer sin actualizar los contenidos del panel de archivo.  De una pulsación derecha del botón del mouse en una carpeta y escoja un comando del menú del mensaje desplegable.
+
+Puede saltar a la carpeta próxima o previa del mismo nivel en el árbol del Explorer al presionar Ctrl+Arriba y Ctrl+Abajo. Ésto permite rápidamente obiar el tener que extender las ramas.
+
+Puede detener la actualización del panel de archivo del árbol del Explorer al presionar Ctrl+W y entonces moverse alrrededor del árbol sin perder el despliegue actual del archivo.
+
+Puede abrir una ventana flotante independiente del árbol del Explorer al escoger Abrir Nueva Ventana del menú desplegable, o al presionar Ctrl+enter.
+
+Puede apretar Ctrl+Izquierdo en el árbol del Explorer para saltar al nodo padre de la carpeta actual.
+
+Puede borrar un carpeta del árbol del Explorer al seleccionarlo y presionar Borrar.  Actualmente, ésto no manda a la papelera automáticamente los archiva, así que presione Ctrl+Izquierdo y borrar de una ventana icónica si desea que algo se mande a la Papelera.

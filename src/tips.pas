@@ -66,7 +66,7 @@ implementation
 
 {$IFNDEF FPC}{$R *.dfm}{$ENDIF}
 
-uses FileMan, Settings, Strings, Files, MiscUtil;
+uses FileMan, Settings, Strings, Files, MiscUtil, language_catalog;
 
 function TTipDialog.GetTip(const filename: string): string;
 var
@@ -112,9 +112,17 @@ begin
   NextTip.Click;
 end;
 
+{ A catalogue may bring its tips as LANG\<code>.TIP; English and a
+  catalogue without them keep TIPS.TXT. }
 procedure TTipDialog.NextTipClick(Sender: TObject);
+var
+  Translated: string;
 begin
-  TipLabel.Caption := GetTip(ApplicationPath + 'tips.txt');
+  Translated := ApplicationPath + 'LANG\' + SelectedLanguage + '.TIP';
+  if (SelectedLanguage <> 'en') and FileExists(Translated) then
+    TipLabel.Caption := GetTip(Translated)
+  else
+    TipLabel.Caption := GetTip(ApplicationPath + 'tips.txt');
 end;
 
 procedure TTipDialog.CloseBtnClick(Sender: TObject);

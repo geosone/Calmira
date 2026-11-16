@@ -1,0 +1,442 @@
+197
+
+; Aliases 8
+
+Um eine Verknüpfung zu einem gezogenen Objekt herzustellen, muss man beim Loslassen der Maustaste die Umschalttaste gedrückt halten.
+
+Verknüpfungen (Aliase) belegen Speicherplatz, wenn sie angezeigt werden. Wenn man häufig Verzeichnisse benutzt, die eine Vielzahl an Verknüpfungen enthalten, sollte man sie nach Gebrauch beizeiten schließen.
+
+Aliase (*.als) können ins Startmenü eingetragen werden, indem man sie einfach aus einem Symbolfenster in den "Startmenü-Eigenschaften"-Dialog zieht. Alle Informationen aus der *.als-Datei werden so übernommen.
+
+Bei der Anzeige großer Symbole erhalten Aliase immer ihren vollständigen Namen. Wenn 4DOS-Beschreibungen verwendet werden, so werden diese nur in der Listenansicht gezeigt. (Sofern die Spalte für Beschreibungen aktiviert ist)
+
+Es ist unmöglich, eine Verknüpfung zu einer Verknüpfung herzustellen. Bei einem solchen Versuch würde der Alias einfach kopiert. 
+
+Wird eine Verknüpfung aufs Desktop gezogen, so weist das angelegte Desktop-Symbol auf dasselbe Ziel wie der Alias.
+
+Zur Erzeugung freier Programmgruppen kann man Aliase zu den gewünschten Programmen in besonderen Verzeichnissen zusammenfassen und diese dann aus dem übergeordneten Verzeichnis einfach aufs Desktop ziehen.
+
+Aliase können in jedem Verzeichnis angelegt werden, indem man einfach aus dem Kontextmenü des Symbolfensters "Neue Verknüpfung" wählt.
+
+; Shortcuts 6
+
+Um ein Desktop-Symbol für ein Objekt anzulegen, von dem du nicht genau weißt, wo es liegt, drückst du einfach die rechte Maustaste und wählst aus dem Kontextmenü des Desktops "Neue Verknüpfung" und aus dem dort angehängten Untermenü den Typ des Objekts.
+
+Wenn sehr viele Verknüpfungen auf dem Desktop liegen, belastet das die Systemressourcen.
+
+Über das Kontextmenü des Desktops kann mit "Neue Verknüpfung / Verzeichnis" ein neues Verzeichnis erstellt werden, wenn in den Dialog "Verknüpfungs-Eigenschaften" ein bisher nicht existierendes Verzeichnis eingetragen wird.
+
+Wenn in den Desktop-Einstellungen die Option "Verknüpfungen nur an der Titelzeile ziehen" aktiviert ist, können sie nicht mehr so leicht ungewollt "verrutschen".
+
+Der Typ einer bestehenden Verknüpfung kann im "Verknüpfungs-Eigenschaften"-Dialog durch Klick auf die Beschreibung des zweiten Editierfeldes geändert werden. 
+
+Um eine Verknüpfung zu einer gerade aktiven Internet-Seite zu erstellen, einfach über das Kontextmenü des Desktops "Neue Verknüpfung / Internet" wählen.
+
+; 4DOS descriptions 3
+
+4DOS-Dateibeschreibungen werden von vielen Programmen unterstützt. Um sie während laufender 4DOS-Sitzungen aktuell zu halten, sollte die entsprechende Checkbox in den Détails der Dateisystem-Eigenschaften aktiviert werden.
+
+Wenn du 4DOS-Beschreibungen benutzt, solltest du Calmiras Symbolfenster von Zeit zu Zeit aktualisieren, falls andere Programme möglicherweise selbst diese Beschreibungen ändern können.
+
+Die 4DOS-Beschreibungen werden standardmäßig in der Datei "DESCRIPT.ION" verwahrt. Dieser Name kann aber frei gewählt werden, trage ihn falls gewünscht in den Abschnitt [File system] der CALMIRA.INI ein.
+
+; Bin 6
+
+Um gelöschte Objekte aus dem Papierkorb wieder herzustellen, kann man sie einfach auf Symbolfenster, Desktop-Symbole oder Aliase ziehen.
+
+Beim "Frühjahrsputz" auf der Festplatte kann der Papierkorb sehr nützlich sein... denke daran, ihn vorher so zu konfigurieren, dass der Abfall in dem dafür vorgesehenen Verzeichnis landet.
+
+Um den Papierkorb zu leeren, muss man ihn nicht öffnen. Einfach einen Rechtsklick auf sein Symbol ausführen und dann "Leeren" wählen.
+
+Wenn der Papierkorb voll ist, kann er den Ladevorgang verzögern. Das ist normal, denn er überprüft die gelöschten Objekte. 
+
+Der Inhalt des Papierkorbs lässt sich untersuchen, ohne Objekte wiederherzustellen. Sieh im Abschnitt [Trash] der CALMIRA.INI nach, wohin der Inhalt verschoben wurde und öffne ein Symbolfenster für das Verzeichnis  
+
+Das/Die Verzeichnis(se), in dem/denen der Papierkorbinhalt liegt, können ohne Weiteres mit Schreibschutz versehen und versteckt werden, damit es/sie nicht versehentlich falsch behandelt wird/werden. 
+
+; Desktop 18
+
+Der Dialog "Öffnen mit" lässt sich per Strg+Enter aus Symbolfenstern öffnen.
+
+Wenn Calmiras Desktop-Symbole und Symbolfenster von anderen Programmen verdeckt werden, kann man sie nach vorn holen, indem man auf eine sichtbare Fläche des Desktops bei gedrückter linker Maustaste einmal rechts klickt.
+
+Der Ort, an dem neue Symbolfenster aufs Desktop kommen, lässt sich festlegen. Die Einstellung "Am selben Platz wie vorher" lässt die CALMIRA.INI kräftig wachsen, weil dann dort alle Fenstereinstellungen gespeichert werden.
+
+Wenn in den Desktop-Einstellungen das Speichern der Fensterpositionen ("Am selben Platz wie bisher") aktiviert ist, sollte man den Abschnitt [Window Positions] der CALMIRA.INI von Zeit zu Zeit auf entbehrliche Einträge überprüfen.
+
+Symbolfenster können mit einem einzigen Klick geschlossen werden, wenn "Schließen beim Rechtsklick auf Min/MaxKnopf" in den Desktop-Einstellungen aktiviert ist.
+
+Wenn eine Calmira-Dialogbox aktiv, aber hinter anderen Fenstern versteckt ist, kann das Umschalten zwischen den Anwendungen erschwert werden. Klicke bei gedrückter linker Maustaste einmal rechts auf den sichtbaren Bereich des Desktops. 
+
+Wenn ein anderes Programm unbeabsichtigt die Desktop-Symbole neu geordnet hat, dann kann man die erwünschte Ordnung wieder herstellen. Schließe alle Symbolfenster und klicke auf das Bild in der "About-Box" (Rechtsklick auf Computer, Hilfe / Über...)
+
+Um ein Symbolfenster zu öffnen, muss man sich nicht durch den Explorer hangeln, sondern kann mit einem Rechtsklick aufs Desktop "Verzeichnis öffnen" aus dem Kontextmenü wählen.
+
+Wählt man nach einem Rechtsklick aufs Desktop "Verzeichnis öffnen" aus dem Kontextmenü und gibt den Namen eines nicht existierenden Verzeichnisses an, so kann es gleich erzeugt werden!
+
+Wählt man nach einem Rechtsklick aufs Desktop "Verzeichnis öffnen" aus dem Kontextmenü, so kann man auch eine Dateimaske angeben, z.B. "%calmira%\*.exe" um nur die Programmdateien des Calmira-Verzeichnisses aufzulisten.
+
+Wählt man nach einem Rechtsklick aufs Desktop "Verzeichnis öffnen" aus dem Kontextmenü und lässt die Laufwerksangabe weg, so sucht Calmira das angegebene Verzeichnis auf dem Laufwerk, auf dem sich das Windows-Verzeichnis befindet.
+
+Um das Stammverzeichnis eines Laufwerks zu öffnen, wählt man mit einem Rechtsklick aufs Desktop "Verzeichnis öffnen" aus dem Kontextmenü und gibt den Laufwerksbuchstaben und einen Doppelpunkt ein.
+
+Wenn auf dem Bildschirm irgend etwas nicht so aussieht wie es sollte, dann genügt es, aus dem Kontextmenü des Desktops "Bildschirm auffrischen" zu wählen. Alle Fenster werden dann neu gezeichnet.
+
+Der Eintrag "Symbole anordnen" aus dem Kontextmenü des Desktops wirkt nur auf verkleinerte Programme, die nicht in der Taskleiste liegen; er beeinflusst nicht die Lage der Desktop-Symbole.
+
+Wenn die Desktop-Symbole "verrutscht" sind, bringt man sie mit dem Eintrag "Symbole aufreihen" aus dem Kontextmenü des Desktops wieder "auf Vordermann".
+
+Wenn die Übersicht verloren gegangen ist... kann man mit einem Rechtsklick auf einen freien Bereich des Desktops das Kontextmenü öffnen und dort "Anordnen / Alle Fenster verkleinern" wählen.
+
+Alle Calmira-Objekte auf dem Bildschirm lassen sich zu einem einzigen Symbol zusammen fassen, wenn man aus dem Kontextmenü des Desktops "Desktop aufräumen" wählt. Mit einem Doppelklick auf das Calmira-Symbol wird alles wieder hergestellt.
+
+Auf dem Bildschirm verstreute und vielleicht verdeckte Symbolfenster lassen sich mit dem Eintrag "Anordnen / Symbolfenster stapeln" aus dem Kontextmenü des Desktops übersichtlich sortieren. Das geht auch über das Systemmenü des Computer-Fensters.
+
+; Start Menu 21
+
+Damit das Startmenü auf die Tastatur reagiert, muss in "System-Einstellungen / Erweitert / Start Menu" der Eintrag "StartKeyGrab=1" vorhanden sein.
+
+Calmira hat ein Äquivalent zur "Autostart"-Gruppe des Programm-Managers. Füge dem Startmenü einen Eintrag "Autostart" hinzu. Dort aufgeführte Programme werden beim Start von Calmira automatisch ausgeführt. 
+
+Die Darstellung der Symbole des Startmenüs hängt mit der eingestellten Farbtiefe zusammen. Wenn Calmira mit einer anderen Bildschirmeinstellung gestartet wird, kann das zu Farbabweichungen führen.
+
+Wenn die Datei START.INI manuell geändert oder durch eine andere Fassung ersetzt wird, empfiehlt es sich, auch die Datei BMPCACHE.BMP zu löschen, um Calmira zum Neuerstellen der Symbole des Startmenüs zu veranlassen.
+
+Man kann (wenn die erste Ebene des Startmenüs mit großen Symbolen gezeigt wird) durch Ersetzen der Datei BANNER.BMP ein eigenes Logo einbinden. Näheres steht in der Hilfe.
+
+Der Dialog "Startmenü-Eigenschaften" ist in der Größe veränderbar. Bewege die Maus in die Nähe des rechten oder unteren Randes des Dialogfensters.
+
+Einträge des Startmenüs können im Dialog "Startmenü-Eigenschaften" mit einem Doppelklick zur Bearbeitung aufgerufen werden.
+
+Statt der aus Icondateien erstellten Symbole des Startmenüs kann man auch Bitmaps (16 x 16 Punkte, 16 Farben) verwenden, wenn man in das Feld "Symbol aus:" den Namen einer gültigen Bitmap-Datei einträgt.
+
+Im Startmenü lassen sich beliebig viele Separatoren (Trennlinien) anlegen. Jeder Eintrag, der mit einem Bindestrich beginnt, wird als Separator angezeigt. Alle Separatoren sollten verschiedene Namen haben, also -1, -2.... -a, -b.... -Z...
+
+Beim Einrichten von Calmira lassen sich die Gruppen des Programm-Managers bequem importieren. Hierfür enthält der "Startmenü-Eigenschaften"-Dialog sowohl einen Knopf als auch einen Eintrag im Kontextmenü.
+
+Beim Importieren von Programm-Manager-Gruppen in das Startmenü werden sie bei dem gerade aktivierten Menüeintrag eingefügt.
+
+Beim Bearbeiten von Einträgen des Startmenüs können diese auch mit der Maus verschoben oder kopiert (bei gedrückter "Strg"-Taste) werden. Sofern sich Original und Kopie in derselben Ebene befinden, müssen sie aber verschiedene Namen bekommen.
+
+Beim Bearbeiten des Startmenüs können Einträge auch in eine andere Ebene verschoben werden, wenn man beim Loslassen der Maustaste die "Alt"-Taste gedrückt hält.
+
+Beim Importieren von Programm-Manager-Gruppen in das Startmenü werden bereits vorhandene Einträge mit gleichen Namen ersetzt.
+
+Das Startmenü kann nicht nur Programme enthalten, sondern auch Laufwerke, Verzeichnisse, Dokumente und Internet-Adressen. Außerdem lassen sich die internen Befehle von Calmira ins Startmenü einbauen.
+
+Untereinträge des Startmenüs können in mehreren Spalten angezeigt werden, wenn der Haupteintrag mit einem Stern und der Zahl der Spalten (2 bis 9) beginnt. Die Zahl der Untereinträge sollte ein ganzzahliges Vielfaches der gewünschten Spaltenzahl sein.
+
+Um das Startmenü per Tastatur öffnen zu können, muss in "System-Einstellungen / Erweitert / Keyboard" z.B. "Start=Strg+Umsch+S" vorhanden sein. Dann öffnet sich das Startmenü beim Antippen der Taste "S", wenn man Strg- und Umschalt-Taste gedrückt hält.
+
+Jeder beliebige Eintrag des Startmenüs kann eine Tastenkombination bekommen, die in "System-Einstellungen / Erweitert / Keyboard" eingetragen wird. Der Befehl oder Programmname muss genauso geschrieben sein wie in der START.INI, ggf mit "&".
+
+In den Einträgen des Startmenüs können auch Umgebungsvariable benutzt werden (z.B.: %calmira%\START.INI).
+
+Wenn man mit den Pfeiltasten durch den Baum in den Startmenü-Einstellungen geht, kann man durch Drücken der Strg-Taste erreichen, dass man nur in derselben Ebene "wandert". Aufgeklappte Untermenüs kann man so überspringen.
+
+Beim Bewegen im Baum der Startmenü-Einstellungen gelangt man mit "Strg+Pfeil links" in die nächsthöhere Menüebene.
+
+; Run dialog 4
+
+Auch zum schnellen Öffnen einer Internet-Seite kann der "Ausführen"-Dialog benutzt werden.
+
+Man kann mehrere Dateien eines Verzeichnisses per MS-DOS-Befehl umbenennen. In den "Ausführen"-Dialog (Kontextmenü:Ausführen) gibt man z.B "rename *.dat *.bak" ein und kreuzt "DOS-Befehl" an. Nicht vergessen, das Fenster anschließend zu aktualisieren! 
+
+Im Dialog "Ausführen" muss der Pfad nicht angegeben werden, wenn sich die gewünschte Datei im DOS- oder Windows-Pfad befindet. Z.B. einfach "WIN.INI" eintippen, das genügt schon.
+
+Der "Ausführen"-Dialog ist auch zum Öffnen von Verzeichnissen und Laufwerken geeignet. Man kann so auch von der gespeicherten Liste der zuletzt geöffneten Verzeichnisse Gebrauch machen.
+
+; Find dialog 8
+
+Dateien aus dem "Datei suchen"-Dialog können auf Symbolfenster, Verknüpfungen oder Programme gezogen werden, um sie zu verschieben, zu kopieren oder zu öffnen.
+
+Der "Datei suchen"-Dialog kann in der Größe verändert werden.
+
+Der "Datei suchen"-Dialog kann nicht nur an seiner Titelleiste, sondern auch an der rechten Seite der Statuszeile verschoben werden.
+
+Objekte im "Datei suchen"-Dialog können durch Doppelklick geöffnet oder ausgeführt werden. 
+
+Beim Kopieren von Dateidetails aus dem "Datei suchen"-Dialog kann es nützlich sein, den Bereich für den Pfad durch Ziehen der Überschriften der Listbox vorher zu vergrößern.
+
+Bei einem Rechtsklick auf ein Objekt in der Listbox des "Datei suchen"-Dialoges kann mit "Verzeichnis öffnen" sofort ein Symbolfenster erzeugt werden, welches das Verzeichnis zeigt, in dem sich das gefundene Objekt befindet. 
+
+Im "Datei suchen"-Dialog muss zur Suche vom Stammverzeichnis an nur der Laufwerksbuchstabe eingetippt werden. ":\" werden von Calmira selbst zum Suchbegriff hinzugefügt.
+
+Der "Datei suchen"-Dialog ist wesentlich schneller in der Ausführung, wenn nur eine Dateimaske angegeben und die Listbox beim Beginn der Suche geleert wird.
+
+; Optimising 5
+
+Mit den Tasten "/", "*", "+" und "-" lassen sich entbehrliche Symbolfenster rasch schließen. Das hält den Bildschirm sauber und spart Ressourcen...
+
+Falls die User-Ressourcen knapp sind, kann es helfen das Startmenü zu verkleinern.
+
+Falls die System-Ressourcen knapp sind, kann es helfen die Zahl der Desktop-Symbole zu verringern.
+
+Wenn der Startvorgang ungewöhnlich lange dauert, sollte geprüft werden ob es nicht besser ist, den Papierkorb zu leeren oder seine Kapazität zu verkleinern.
+
+Wenn der Startvorgang ungewöhnlich lange dauert, sollte geprüft werden ob vielleicht zu viele Positionen entbehrlich gewordener Symbolfenster in der CALMIRA.INI gespeichert sind.
+
+; Computer window 6
+
+Das Computer-Fenster sollte nach dem Einloggen ins Netzwerk oder nach dem Abmelden mit F5 oder dem entsprechenden Eintrag seines Systemmenüs aufgefrischt werden.
+
+Dateien und Verzeichnisse können auf das Computer-Symbol gezogen werden, um sie dem Startmenü hinzuzufügen. Beim nächsten Öffnen des Dialoges "Startmenü-Eigenschaften" stehen sie zur Verfügung.
+
+Die Symbole für Objekte im Computer-Fenster können durch Bearbeitung des Abschnitts [Programs] der CALMIRA.INI verändert werden.
+
+Wenn das Kontextmenü des Desktops nicht benutzt wird, können viele seiner Kommandos durch Rechtsklick auf das Computer-Symbol erreicht werden.
+
+Zu den verschiedenen Einstellungs-Dialogen gelangt man immer, wenn man im geöffneten Computer-Fenster einen Rechtsklick auf den Raum zwischen den Symbolen ausführt.
+
+Man kann sich auch ein eigenes Computer-Fenster bauen, indem man ein Verzeichnis mit Aliasen benutzt. Das ermöglicht es, in diesem Fenster Objekte auf die Laufwerke zu ziehen.
+
+; Scripts 9
+
+Windows-Scripts erlauben es, vielfältige Aktionen mit einem einzigen Mausklick auszuführen. Näheres in der Hilfe.
+
+Calmira kann auch Windows-Programme aus DOS-Fenstern heraus starten. Näheres in der Hilfe.
+
+Die START.BAT-Datei ermöglicht es, aus einem MS-DOS-Fenster ein Windows-Programm zu starten oder ein Dokument zu öffnen. 
+
+Die FOLDER.BAT-Datei ermöglicht es, aus einem MS-DOS-Fenster ein Calmira-Symbolfenster zu öffnen.
+
+Die OPEN.BAT-Datei ermöglicht es, aus einem DOS-Fenster heraus Windows-Programme zu starten, Symbolfenster zu erzeugen und Dokumente zu öffnen.
+
+Mit der EXPLORE.BAT-Datei kann der Explorer-Baum aus einem MS-DOS-Fenster heraus den Explorer-Baum zu öffnen.
+
+Mit der Datei START.BAT kann auch aus einem DOS-Fenster heraus eine weitere DOS-Sitzung gestartet werden.
+
+Wenn man einige geeignete Scripts schreibt, welche die verschiedenen Einstellungsdialoge von Calmira aufrufen, kann man diese zusammen in ein Verzeichnis packen und für dieses ein Desktop-Symbol anlegen. Das ergibt dann eine "Systemsteuerung".
+
+Mithilfe von Scriptdateien können Aliase dieselben Aufgaben übernehmen wie Einträge des Startmenüs.
+
+; Environment 8
+
+Mit der Umgebungsvariable %currentfolder% kann ein Programm so gestartet werden, dass es das aktuelle Verzeichnis als Arbeitsverzeichnis benutzt.
+
+Die Umgebungsvariable %droppedfiles% steuert die Übergabe der Dateinamen an die Kommandozeile, wenn Objekte auf ein Programm oder einen Alias gezogen werden.
+
+Die Umgebungsvariable %calmira% steht stellvertretend für das Calmira-Verzeichnis und enthält Laufwerksangabe und Pfad.
+
+Die Umgebungsvariable %comspec% weist auf das aktuelle MS-DOS-Fenster.
+
+Die Umgebungsvariable %windir% enthält Laufwerks- und Pfadangabe für das Windows-Verzeichnis.
+
+Die  Umgebungsvariable %currentdrive% enthält den Laufwerksbuchstaben des aktuellen Laufwerks.
+
+Wenn man eigene Umgebungsvariable im Abschnitt [Environment] der CALMIRA.INI definiert, kann man sich den Umgang mit absoluten Pfadangaben ersparen und braucht bei eventuellen Änderungen keine Verknüpfungen aktualisieren usw.
+
+Umgebungsvariable können als Platzhalter in verschiedenen Dialogen dienen, z.B. beim Erzeugen eines Symbolfensters für ein bestimmtes Verzeichnis.
+
+; Icon windows 43
+
+Beim Durchsuchen von Verzeichnissen gelangt man schnell zu einer der übergeordneten Ebenen, wenn man mit der rechten Maustaste auf das Systemmenü eines Symbolfensters klickt.
+
+Um in das übergeordnete Verzeichnis zu gelangen, kann man im aktiven Symbolfenster einfach die "Backspace"-Taste drücken.
+
+Um in einem Symbolfenster Dateien gruppenweise (per Dateimaske) zu wählen, kann man Strg+S drücken oder einen Rechtsklick auf den rechten Teil der Statusleiste des Symbolfensters ausführen.
+
+Der Dialog "Laufwerkseigenschaften", der z.B. Auskunft über den verfügbaren Festplattenplatz gibt, öffnet sich bei einem Rechtsklick auf den linken Teil der Statusleiste des Symbolfensters. 
+
+Symbolfenster lassen sich durch Doppelklick auf ihre Titelzeile, aber auch auf die rechte untere Ecke der Statusleiste maximieren.
+
+Um einen Dateityp mit einer Anwendung zu verknüpfen, kann man eine dieser Dateien in einem Symbolfenster markieren und Alt+Enter drücken.
+
+Der Explorer-Baum kann an ein geöffnetes Symbolfenster angedockt werden, wenn man Strg+E drückt, egal ob er gerade mit einem anderen Fenster verbunden oder gar nicht sichtbar ist.
+
+Der Dialog "Dateien suchen" kann aus einem geöffneten Symbolfenster mit Strg+F aufgerufen werden.
+
+Um gelöschte Dateien im aktuellen Symbolfenster wieder herzustellen, kann mit Strg+U das "Undelete"-Programm aufgerufen werden, sofern dies in "Dateisystem-Eigenschaften / Zubehör" so eingetragen ist.
+
+Um mehrere auf dem Bildschirm verstreute Symbolfenster überlappend anzuordnen, kann man Strg+F5 drücken.
+
+Um die Symbole auf dem Desktop anzuordnen, kann man Umsch+F5 drücken, während ein Symbolfenster aktiv ist.
+
+Um alle Symbolfenster zu verstecken und das Desktop aufzuräumen, kann man F12 drücken, während ein Symbolfenster aktiv ist.
+
+Um den Inhalt eines Symbolfensters aufzufrischen, drückt man F5 oder klickt mir der linken Maustaste auf den linken Teil seiner Statusleiste.
+
+Um alle Symbolfenster bis auf das aktive zu schließen, kann man die Multiplikationstaste oder den Stern * (Umsch+Plus) drücken.
+
+Mit der Plustaste schließt man alle Symbolfenster, die dem aktiven übergeordnet sind.
+
+Mit der Minustaste schließt man alle Symbolfenster, die dem aktiven untergeordnet sind.
+
+Mit der Schrägstrich-Taste (Umsch+7) schließt man sämtliche offenen Symbolfenster.
+
+Um sämtliche Dateien in einem Symbolfenster zu markieren oder wieder abzuwählen, drückt man die Komma-Taste oder klickt mit der linken Maustaste auf den rechten Teil der Statusleiste.
+
+Um den Dialog "Filter setzen" für ein aktives Symbolfenster aufzurufen, kann man einfach die Fragezeichen-Taste (Umsch+ß) drücken.
+
+Um die Darstellung in einem Symbolfenster zwischen großen/kleinen Symbolen und der Listenansicht zu wechseln, drückt man Umsch+I, Umsch+M oder Umsch+L.
+
+Wenn der Inhalt eines über- oder untergeordneten Verzeichnisses im selben Symbolfenster gezeigt werden soll, drückt man beim Klick auf das gewünschte Verzeichnis die Alt-Taste. Entspricht dies der Standardeinstellung, bewirkt die Alt-Taste das Gegenteil.
+
+Um die Sortierfolge zwischen Typ, Name, Größe und Datum zu wechseln, drückt man Umsch+T, Umsch+N, Umsch+S bzw. Umsch+D. 
+
+Um den Inhalt des Stammverzeichnisses des aktuellen Laufwerks in einem Symbolfenster anzuzeigen, drückt man die "Backslash"-Taste (AltGr+ß).
+
+Um in einem Symbolfenster zu einer Datei mit einem bestimmten Anfangsbuchstaben zu gelangen, drückt man einfach die entsprechende Buchstabentaste.
+
+Um aus einem aktiven Symbolfenster das Stammverzeichnis eines beliebigen Laufwerks zu erreichen, drückt man Strg+Umsch+<LW-Buchst.>... falls nicht der Buchstabe bereits für eine Tastenkombination zum Programmaufruf reserviert ist...
+
+Wenn die Statusleiste eines Symbolfensters nur einteilig gezeigt wird, kann man die verdeckte Funktion erreichen, wenn man beim Mausklick die Umschalttaste gedrückt hält.
+
+Wenn der Inhalt eines über- oder untergeordneten Verzeichnisses in einem neuen Symbolfenster gezeigt werden soll, drückt man beim Klick auf das Zielverzeichnis die Alt-Taste. Entspricht dies der Standardeinstellung, bewirkt die Alt-Taste das Gegenteil.
+
+Um festzustellen, wieviel Speicherplatz von ganzen Verzeichnissen auf der Festplatte beansprucht wird, markiert man die gewünschten Verzeichnisse in einem Symbolfenster und ruft mit Alt+Enter die "Auswahl-Eigenschaften" auf.
+
+Man kann Symbolfenster nicht nur an der Titelleiste bewegen, sondern auch an der rechten unteren Ecke der Statusleiste.
+
+Beim Ziehen von Dateien kann man während des Vorgangs durch Drücken der rechten Maustaste zwischen Kopieren und Verschieben umschalten. Hält man beim Herunterdrücken der linken Maustaste die Alt-Taste gedrückt, so hat das denselben Effekt.
+
+Wenn beim Ziehen von Dateien auf Programme oder Verzeichnisse das Ziel außerhalb des Sichtbereichs des Symbolfensters liegt, so kann man den Cursor während des Ziehens über die Bildlaufknöpfe führen, um das Ziel in den Sichtbereich zu rollen.
+
+Wenn viele Symbolfenster geöffnet sind und sich ungünstig überdecken, so kann man mit einem Rechtsklick auf eine ihrer Titelzeilen ein Menü aller geöffneten Verzeichnisse erzeugen und so rasch das gewünschte auswählen.
+
+Ein Verzeichnis kann mitsamt dem Explorerbaum in einem neuen Symbolfenster geöffnet werden, wenn man die Umschalttaste während des Doppelklicks auf den Verzeichnisnamen gedrückt hält.
+
+Wenn der Inhalt eines über- oder untergeordneten Verzeichnisses in einem neuen Symbolfenster gezeigt werden soll, drückt man beim Klick auf das Zielverzeichnis die Alt-Taste. Entspricht dies der Standardeinstellung, bewirkt die Alt-Taste das Gegenteil.
+
+Um eine beliebige Datei mit dem voreingestellten Standard-Betrachter zu öffnen, hält man die Umschalttaste gedrückt, während man einen Rechtsklick auf den Dateinamen ausführt.
+
+Der Dialog "Öffnen mit" kann für die im Symbolfenster markierte Datei durch die Tastenkombination Strg+Enter geöffnet werden.
+
+Das gewünschte Programm kann im Dialog "Öffnen mit" auch mit einem Doppelklick gestartet werden, anstatt die OK-Knopf zu drücken.
+
+Der Dialog "Datei-Eigenschaften" öffnet sich für die im Symbolfenster markierte Datei durch die Tastenkombination Alt+Enter.
+
+Zusammenhängende Blöcke von Dateien und Verzeichnissen können in einem Symbolfenster mit dem "Lasso" markiert werden, indem man den Cursor bei gedrückter linker Maustaste über die Dateien zieht. Man muss allerdings in einem freien Bereich beginnen.
+
+Man kann Dateien aus Symbofenstern auch auf die Fenster der meisten anderen Programme ziehen, um z.B. einen Text mit dem bevorzugten Textprogramm zu bearbeiten oder eine Datei zu einem ZIP-Archiv hinzuzufügen usw... 
+
+Die Markierung beliebiger Objekte in einem Symbolfenster kann durch einen Klick in einen freien Bereich des Fensters aufgehoben werden.
+
+Mit "Strg+Pfeil auf" oder "Strg+Pfeil ab" können die Inhalte von Symbolfenstern gerollt werden, ohne die bereits vorgenommene Markierung aufzuheben.
+
+Um eine Datei mit einem bestimmten Programm zu bearbeiten, kann man das Symbol der Datei auf das Symbol des Programms ziehen. Dieses Feature lässt sich über die Dateisystem-Einstellungen abschalten.
+
+; Keyboard 4
+
+Wenn eine Tastenkombination mit Strg+Alt definiert ist, kann statt Strg+Alt auch AltGr gedrückt werden, das hat denselben Effekt.
+
+Um die Windows-Taste auf einer einfachen Tastatur zu simulieren, kann man die Tastenkombination "Strg+Alt+Space" für "Start" reservieren. Dann erscheint das Startmenü beim Druck auf AltGr+Leertaste. 
+
+Bei der Definition von Tastenkombinationen können bestimmte Tasten mit ihren Namen angesprochen werden, z.B. Enter, Space, Backspace, Delete....
+
+Mit Strg+Tab kann man zwischen den Calmira-Fenstern hin- und herschalten wie mit Alt+Tab durch die Windows-Tasks.
+
+; Taskbar 6
+
+Man kann die Taskleiste einfach mit der Maus vom unteren Bildschirmrand abreißen, sie springt dann an den oberen Rand des Bildschirms. Außerdem kann man sie durch Ziehen an ihrem Rand in der Höhe vergrößern oder wieder verkleinern.
+
+Um ein "hängen gebliebenes" Programm abzuschießen, benutzt man "Programm entfernen" aus dem Kontextmenü der Taskleiste. Mit dem dann erscheinenden Cursor klickt man links auf den Symbolknopf des Programms. Ein Rechtsklick bricht die Aktion ab.
+
+Man kann Dateien auch auf die Symbolknöpfe von Programmen in der Taskleiste ziehen, das hat denselben Effekt wie das Ziehen auf ihre Fenster.
+
+Wenn ein neu gestartetes Programm nicht sofort in der Taskleiste erscheint, kann man durch Umschalten zu einem anderen Programm (und wieder zurück) die Taskleiste aktulisieren.
+
+Das Format (und natürlich der Inhalt) der PopUps an den Symbolknöpfen der Taskleiste kann per Kontextmenü des Startknopfs über die "Taskleiste-Einstellungen" oder "erweiterte Beschreibungen" verändert werden.
+
+Die PopUps der Symbolknöpfe auf der Taskleiste zeigen immer den kompletten Pfad an, auch wenn die Knöpfe selbst nur den Verzeichnisnamen tragen.
+
+; Display 6
+
+Um die Inhalte von "*.ICO"-Dateien gleich beim Öffnen eines Symbolfensters überprüfen zu können, muss man dem Eintrag "Symbole suchen..." in den "Dateisystem-Eigenschaften" nur die Angabe "ICO" hinzufügen.
+
+Man sollte "*.ICO"-Dateien nicht im Calmira-Verzeichnis speichern, denn das würde nur Calmiras interne Ressourcen-Liste belasten. Besser ist es, hierfür ein eigenes Unterverzeichnis zu erstellen.
+
+Fast alle der in Calmira eingebauten Symbole kann man durch selbstdefinierte ersetzen, wenn man das möchte. Näheres steht in der Hilfe.
+
+Die in Calmira eingebauten Bitmap-Bilder lassen sich durch eigene ersetzen. Hierfür gibt es ein eigenes Hilfekapitel.
+
+Man kann den Laufwerken ausdruckskräftige Namen geben, wenn man diese in den Abschnitt [Drives] der CALMIRA.INI einträgt. Statt des Standardeintrags 'Floppy (A:)' kann man also auch '3½" Disk' wählen. (Siehe auch "System-Einstellungen/Erweitert")
+
+Man kann häufig benutzten Symbolfenstern aussagekräftige Namen geben, wenn man sie in den Abschnitt [Window Captions] der CALMIRA.INI einträgt. (Siehe auch "System-Einstellungen/Erweitert")
+
+; Miscellaneous 20
+
+Wenn in ein Editierfeld ein Datei- oder Verzeichnisname einzutragen ist, dann kann man meistens per Doppelklick in dieses Editierfeld einen Suchdialog aufrufen.
+
+Man kann Dateien aus anderen Programmen (Datei-Manager, WinZip...) auf Calmiras Symbolfenster ziehen. Es erscheint ein Dialog zur Auswahl der gewünschten Operation (Verschieben, Kopieren).
+
+Man sollte die CALMIRA.INI und START.INI regelmäßig sichern, damit man die bevorzugten Einstellungen rasch wieder herstellen kann, falls einmal etwas durcheinander gegangen ist...
+
+Um die Einträge der CALMIRA.INI zu bearbeiten, kann man die Seite "Erweitert" des "System-Einstellungen"-Dialoges benutzen. Um einen Abschnitt zu öffnen oder zu schließen, macht man einen Doppelklick auf die Zeile mit dem Buchsymbol.
+
+Umd die Zahl der Einträge in "History Listen" zu begrenzen, kann man den Eintrag "MaxHistorySize" im Abschnitt [Calmira] der CALMIRA.INI verwenden. (Siehe auch "System-Einstellungen/Erweitert")
+
+Um das virtuelle Bildschirmraster zu ändern, an dem die Desktop-Symbole ausgerichtet werden, bearbeitet man die Werte "DeskGridX" und "DeskGridY" im Abschnitt [Desktop] der CALMIRA.INI. (Siehe auch "System-Einstellungen/Erweitert")
+
+Um die Schrift in Symbolfenstern, im Explorer-Baum und im Computer-Fenster zu verändern, muss man die  Einträge "FontName", "FontSize" und "FontStyle" im Abschnitt [Display] der CALMIRA.INI bearbeiten. (Siehe auch "System-Einstellungen/Erweitert")
+
+Calmira kann seine INI-Dateien auch im Windows-Verzeichis speichern, wenn das gewünscht ist. Richte einen Abschnitt [Calmira] in der WIN.INI ein und Füge den Eintrag "LoadFromWindir=1" hinzu.
+
+Die automatische Formatierung der Symbolfenster für die Anzeige großer Symbole kann im Abschnitt [Layouts] der CALMIRA.INI festgelegt werden. (Siehe auch "System-Einstellungen/Erweitert"... und schau mal in die Hilfe...)
+
+Die Schrift, die auf der Taskleiste verwendet wird, ist von der Eintragung unter "FontName" im Abschnitt [Taskbar] der CALMIRA.INI abhängig. (Siehe auch "System-Einstellungen/Erweitert")
+
+Bezeichnung und Größe des Startknopfes sind von den Eintragungen unter "Width" und "Caption" im Abschnitt [Start Button] der CALMIRA.INI abhängig. (Siehe auch "System-Einstellungen/Erweitert")
+
+Um die Position zum Symbol verkleinerter Fenster über der Taskleiste zu beeinflussen, kann man die Eintragung bei "MinAppHeight" im Abschnitt [Taskbar] der CALMIRA.INI ändern. (Siehe auch "System-Einstellungen/Erweitert")
+
+Die Wartezeit, bis PopUp-Hinweise (über den verschiedenen Objekten) erscheinen, ist von der Eintragung "HintDelay" im Abschnitt [Taskbar] der CALMIRA.INI abhängig. (Siehe auch "System-Einstellungen/Erweitert")
+
+Ein Doppelklick auf die Uhr im rechten Feld der Taskleiste ruft die Systemsteuerung auf.
+
+Man kann Systemereignissen Klänge zuordnen, indem man im Abschnitt [Sounds] der CALMIRA.INI die gewünschten WAV-Dateien angibt. Diese Klänge sind nur den Calmira-Fenstern zugeordnet, andere Windows-Ereignisse beziehen sich auf die Systemsteuerung.
+
+Die Schriftart des Startmenüs hängt von den Einträgen bei "FontName" und "FontSize" im Abschnitt [Start menu] der CALMIRA.INI ab. (Siehe auch "System-Einstellungen/Erweitert")
+
+Die Schriftart des Startknopfs hängt von den Einträgen bei "FontName", "FontStyle" und "FontSize" im Abschnitt [Start button] der CALMIRA.INI ab. (Siehe auch "System-Einstellungen/Erweitert")
+
+Die Größe des Startknopfs hängt von dem Eintrag "Width" im Abschnitt [Start button] der CALMIRA.INI ab. (Siehe auch "System-Einstellungen/Erweitert")
+
+Wenn der Eintrag bei "Left" im Abschnitt [Start button] der CALMIRA.INI einen entsprechenden negativen Wert hat, verschwindet der Startknopf von der Taskleiste!
+
+In vielen Dialogen hat ein Doppelklick auf einen Radiobutton oder den gewünschten Eintrag in einer Listbox denselben Effekt wie die Auswahl dieses Objekts und die anschließende Bestätigung mit dem OK-Knopf.
+
+; Shutdown 3
+
+Wenn man auf das Computersymbol des Beendigungsdialogs doppelt klickt, startet Windows beim nächsten Mal mit dem Programm-Manager als Shell. Oder es startet gar nicht, weil man den Programm-Manager unvorsichtigerweise gelöscht hat...
+
+Falls im Laufe der Sitzung die Systemressourcen knapp werden sollten, kann man Windows zum unmittelbaren Neustart bringen, wenn man im Beendigungs-Dialog "Windows neu starten" wählt. 
+
+Im Beendigungsdialog von Calmira hat ein Doppelklick auf den gewünschten Radiobutton denselben Effekt wie die Auswahl dieses Buttons und die anschließende Bestätigung mit dem OK-Knopf.
+
+; Help 4
+
+Um die gesamte Liste dieser Tips durchzusehen oder zu drucken, öffnet man die Datei TIPS.TXT mit einem Texteditor, der den Zeilenumbruch beherrscht (für Notepad ist sie zu groß).
+
+In den meisten Calmira-Fenstern kann man das jeweils passende Hilfekapitel mit der F1-Taste aufrufen.
+
+Die neuesten Informationen zur englischen Originalversion von Calmira gibt es unter http://www.tribbles.demon.co.uk/calmira/.
+
+Anwenderunterstützung zur deutschen Calmira-Version 3.021 gibt es per e-mail bei "rs-edwin@erlba.de".
+
+; Keyboard 1
+
+Man kann für jedes beliebige Programm eine Tastenkombination bestimmen, um es zu starten. Näheres hierzu steht in der Hilfe.
+
+; File System 4
+
+Man kann die Anzeige der miniaturisierten Symbole in der Listenansicht und für Symbolfenster mit kleinen Symbolen ausschalten, um das Einlesen der Verzeichnisse auf langsamen Rechnern zu beschleunigen.
+
+Man kann z.B. ein Tool zur Festplattenpflege (Defragmentierung) bestimmen, welches beim Klick auf das Laufwerkssymbol im Dialog "Laufwerks-Eigenschaften" gestartet wird.
+
+Da Calmiras Operationen weitgehend im Hintergrund laufen, kann man auch schon während des Kopierens mehrerer Dateien zu anderen Anwendungen umschalten.
+
+Um eine Datei immer mit der zutreffenden Anwendung zu öffnen, kann man sie über den "Datei-Eigenschaften"-Dialog mit dieser Anwendung verknüpfen.
+
+; File Properties 2
+
+Wenn eine Dateiendung über den "Datei-Eigenschaften"-Dialog mit einem neuen Programm verknüpft wird, so wird dies für die Anwendung sofort wirksam. Die Anzeige des richtigen Symbols in Symbolfenstern erfolgt aber erst nach dem nächsten Calmira-Start.
+
+Der Inhalt der allgemeinen Dateiangaben im "Datei-Eigenschaften"-Dialog lässt sich mit der Maus markieren und dann mit der Tastenkombination Strg+C in die Zwischenablage kopieren.
+
+; Explorer tree 2
+
+Wenn im Kontextmenü des Explorerbaums der Eintrag "Inhalt zeigen"  nicht aktiviert ist, geht das Durchsuchen des Baums schneller. Der Inhalt wird dann jeweils über den Kontextmenü-Eintrag "Verzeichnis öffnen" aufgefrischt.
+
+Nach dem Löschen, Hinzufügen oder Verschieben von Verzeichnissen muss der Explorerbaum aufgefrischt werden. Dies geschieht mit der Taste F5 oder dem entsprechenden Eintrag des Kontextmenüs.
+

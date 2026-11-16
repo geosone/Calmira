@@ -1,0 +1,579 @@
+; Alias
+
+Pour créer un alias d'un objet, sélectionnez-le et déplacez-le vers une autre fenêtre, un répertoire ou un raccourci, puis relâchez le bouton de la souris en maintenant la touche "Shift" enfoncée.
+
+L'affichage des alias est très gourmand en mémoire, n'oubliez donc pas, si vous utilisez souvent des dossiers contenant de nombreux alias, d'en fermer les fenêtres quand vous avez terminé avec elles.
+
+Pour convertir un alias en élément du menu démarrer, déposez-le simplement sur le dialogue "propriétés du menu démarrer". L'information contenue dans l'alias sera ajoutée au menu démarrer, et non l'information sur l'alias lui-même.
+
+Dans la vue grandes icônes, les alias sont affichés avec leur propre libellé. Si vous ajoutez une description à un fichier d'alias, vous devrez basculer en vue liste pour voir la description. (Assurez-vous que la colonne description est visible).
+
+Vous ne pouvez pas créer un "alias d'un alias". Si vous essayez de le faire, l'alias sera simplement copié.
+
+Si vous déposez un alias sur le bureau, le raccourci ainsi créé pointera vers le même objet que l'alias, et non vers l'alias lui-même.
+
+Vous pouvez créer une sorte de groupe de programmes flottant. Créez un répertoire contenant des alias de vos programmes, puis faites glisser ce répertoire sur le bureau pour créer un raccourci.
+
+Quand vous surfez sur le web, vous pouvez créer rapidement un alias vers la page web en cours. Ouvrez une fenêtre d'icônes et choisissez Créer un alias dans le menu contextuel. Calmira remplira l'URL et le libellé pour vous.
+
+Vous pouvez créer un alias dans une fenêtre d'icônes en choisissant la commande Créer un alias du menu contextuel.
+
+; Raccourcis
+
+Vous pouvez créer un raccourci sans avoir à trouver l'objet source auparavant, en cliquant avec le bouton droit sur le bureau et choisissant l'un des types de nouveau raccourci dans le menu contextuel.
+
+N'installez pas trop de raccourcis sur le bureau, car chacun d'eux est une fenêtre en icône qui utilise des ressources.
+
+Vous pouvez créer un nouveau dossier sur le bureau en ouvrant le menu contextuel du bureau (clic droit) et choisissant Nouveau raccourci. Entrez un titre et le nom d'un nouveau dossier, puis cliquez sur OK et Calmira le créera pour vous.
+
+Empêchez les raccourcis de "glisser" quand vous les ouvrez. Cochez l'option "Déplacer les raccourcis par le libellé seulement" dans le dialogue Propriétés du bureau. Un clic sur le libellé ouvre le menu contextuel.
+
+Pour rendre les raccourcis encore plus rapides à utiliser, cochez l'option "Activer les raccourcis d'un seul clic" dans le dialogue Propriétés du bureau.
+
+Vous pouvez changer le type d'un raccourci ou d'un alias. Ouvrez le dialogue Propriétés, puis cliquez sur le second libellé pour faire défiler la liste des types possibles.
+
+Créez rapidement un raccourci vers la page web que vous êtes en train de parcourir. Effectuez un clic droit sur le bureau et choisissez Internet dans le menu Nouveau raccourci. Calmira remplira l'URL et le libellé pour vous.
+
+; Descriptions 4DOS
+
+Les descriptions de fichier 4DOS sont supportés par beaucoup d'autres programmes que 4DOS lui-même. Si vous utilisez de tels programmes, cochez l'option de mise à jour dans l'onglet Détails de la boîte de dialogue Propriétés des fichiers.
+
+Si d'autres programmes utilisent les descriptions 4DOS, rafraîchissez la fenêtre d'icônes quand vous pensez que les descriptions ont changé pour éviter les incohérences quand Calmira sauvegardera à nouveau les descriptions.
+
+Pour utiliser des descriptions plus longues, n'affichez pas les descriptions en libellé, mais passez à la vue Liste pour afficher les descriptions à coté du nom de fichier.
+
+Vous pouvez choisir le nom du fichier contenant vos descriptions. Le nom par défaut est descript.ion, mais vous pouvez le changer en affectant un nom de fichier au paramètre DescriptionFile dans la section [File system]du fichier INI.
+
+Quand vous enregistrez ou créez un fichier, passez quelques secondes à donner une description significative aux fichiers importants ayant des noms DOS peu parlants. Ceci vous économisera par la suite beaucoup de temps !
+
+Vous pouvez décrire rapidement un groupe de fichiers en les sélectionnant tous avant d'invoquer la commande Décrire. Tapez Entrée pour valider chaque description, et Esc pour terminer l'opération en conservant les descriptions validées.
+
+; Corbeille
+
+Vous pouvez récupérer des objets dans la corbeille en les glissant vers une fenêtre d'icônes, un raccourci ou un alias.
+
+Vous pouvez utiliser la corbeille lors du nettoyage de printemps de votre disque -- vous pourrez revoir les fichiers avant de finalement les supprimer. N'oubliez pas de configurer la corbeille sans vidage automatique !
+
+Vous pouvez vider la corbeille sans ouvrir sa fenêtre. Quand elle est en icône, faites un clic droit dessus et sélectionnez Vider la corbeille dans le menu contextuel.
+
+Vous pouvez accélérer la corbeille en la configurant pour stocker ses données sur le disque local. Voir la rubrique sur la corbeille dans le fichier d'aide pour plus de détails.
+
+La corbeille met plus longtemps à se charger si elle contient une grande quantité de fichiers. C'est parce qu'elle doit confirmer l'existence et la taille des fichiers.
+
+Vous pouvez cacher la corbeille en ajoutant Visible=0 à la section [Bin] de Calmira.ini.
+
+Vous pouvez examiner le contenu d'un dossier dans la corbeille. Regardez dans la section [Trash] de Calmira.ini pour voir où le dossier a été déplacé, puis ouvrez une fenêtre d'icônes en utilisant la commande Ouvrir un répertoire du bureau.
+
+Si vous utilisez plusieurs répertoires de stockage pour la corbeille, déclarez-les cachés et en lecture seule pour éviter qu'ils ne soient accidentellement détruits. Mettez les aussi à un endroit rarement accédé de l'arborescence.
+
+; Bureau
+
+Pour mettre Calmira au premier plan lorsqu'il n'est pas actif, gardez le bouton gauche de la souris enfoncé sur le bureau, puis cliquez à droite. C'est pratique pour faire réapparaitre  les raccourcis et les fenêtres d'icônes.
+
+Quand Calmira est actif, gardez le bouton gauche de la souris enfoncé sur le bureau, puis cliquez à droite pour ouvrir la fenêtre Poste de travail. Répétez l'opération si Calmira n'est pas actif.
+
+Dans les Propriétés du bureau, choisissez l'emplacement des nouvelles fenêtres d'icônes: en cascade pour les avoir 'sous la main'; au hasard sur le bureau pour utiliser l'espace; au  dernier endroit mémorisé pour s'organiser.
+
+Si vous décidez d'enregistrer la position des fenêtres d'icônes, nettoyez la section [Window Positions] de temps à autre. Supprimez les lignes des répertoires qui n'existent plus, Calmira aura moins de lignes à parcourir.
+
+Vous pouvez fermer une fenêtre d'un seul clic en cochant l'option 'Clic-droit sur Réduire/Agrandir pour fermer une fenêtre' dans Propriétés du bureau. C'est un substitut pour le nouveau bouton Fermer de Windows 95.
+
+Quand vous voulez revenir à Calmira, et qu'un de ses dialogues est actif mais caché, gardez le bouton gauche enfoncé en effectuent clic droit sur le bureau. Ceci vous évitera d'avoir à déplacer/réduire les autres fenêtres.
+
+Si vous ré-arrangez accidentellement vos raccourcis avec "Ranger les icônes" dans le Gestionnaire de tâches ou un autre utilitaire, vous pouvez rapidement les rétablir. Fermez toutes les fenêtres, ouvrez le dialogue A propos, et cliquez sur le logo.
+
+Le menu contextuel du bureau (clic-droit) vous permet d'ouvrir une nouvelle fenêtre sans avoir à atteindre le menu Démarrer.
+
+Créez rapidement un nouveau dossier en choisissant 'Ouvrir un répertoire' dans le menu contextuel du bureau. Si vous entrez un nom de dossier inexistant, Calmira vous proposera de le créer avant de l'ouvrir.
+
+La commande "Ouvrir un répertoire" du menu contextuel du bureau accepte des filtres pour la nouvelle fenêtre. Par exemple, entrez c:\windows\*.exe pour voir seulement les programmes.
+
+Vous n'êtes pas obligé d'entrer la lettre d'unité pour la commande 'Ouvrir un répertoire' du bureau. Si vous l'omettez, Calmira présuppose que le dossier voulu est sur la même unité que votre installation de Windows.
+
+Pour ouvrir le répertoire racine d'un disque, sélectionnez l'option 'Ouvrir un répertoire' dans le menu du bureau et entrez la lettre de l'unité suivie des deux points ('a:' ou 'c:' par exemple).
+
+Si les couleurs de l'écran deviennent bizarres quand les programmes Windows manipulent la palette de couleurs (donnant souvent un papier peint psychédélique), effectuez un clic droit sur le bureau et sélectionnez 'Rafraîchir l'écran'.
+
+Pour ranger les icônes des programmes réduits sans déplacer vos raccourcis, sélectionnez la commande Ranger les icônes du menu contextuel du bureau, plutôt que d'utiliser la Liste des tâches.
+
+Alignez les icônes sur le bureau en sélectionnant 'Aligner les icônes' dans le menu contextuel du bureau.
+
+Vous pouvez minimiser toutes les fenêtres ouvertes en une seule fois ; utilisez simplement le bouton droit de votre souris pour ouvrir le menu bureau, et sélectionnez 'Réduire les programmes' dans le sous-menu 'Arranger'.
+
+Vous pouvez cacher toutes les fenêtres et raccourcis appartenant à Calmira. Sélectionnez l'option 'Débarrasser le bureau' du menu contextuel du bureau. Calmira apparaitra comme une seule icône sur laquelle un double-clic restaurera le bureau.
+
+Pour arranger un grand nombre de fenêtres d'icônes ouvertes, utilisez la commande 'Superposer les fenêtres d'icônes' dans le menu contextuel du bureau pour les voir toutes.
+
+; Menu démarrer
+
+Le menu démarrer peut être légèrement plus rapide si vous désactivez l'option 'Surligner la commande sélectionnée' dans les Propriétés du menu Démarrer.
+
+Calmira possède l'équivalent du groupe démarrage du gestionnaire de programmes. Créez un sous-menu n'importe où dans le menu Démarrer, et appelez-le "Démarrage". Les programmes placés là seront lancés au démarrage de Calmira.
+
+L'apparence des icônes dans le menu démarrer peut dépendre de la palette par défaut de votre driver vidéo. Ceci peut donner un aspect différent au menu quand vous le reconstruisez en utilisant un nouveau mode vidéo.
+
+Chaque fois que vous éditez ou remplacez START.INI, supprimez aussi le fichier BMPCACHE.BMP si vous utilisez des icônes de menu. Cela oblige Calmira à reconstruire le menu au démarrage et garantit que toutes les icônes seront correctes.
+
+Vous naviguerez plus facilement dans votre menu Démarrer si vous placez les sous-menus près du haut de leur parent.
+
+Vous pouvez utiliser votre propre bitmap pour la bannière du menu démarrer en placant un fichier Banner.bmp dans le répertoire de Calmira. Voir la rubrique d'aide sur la personnalisation des bitmaps pour plus de détails.
+
+Vous pouvez agrandir la fenêtre Propriétés du Menu Démarrer afin d'avoir plus de place pour éditer l'arborescence du menu. Placez le pointeur sur un bord de la fenêtre et redimensionnez-la lorsqu'il change de forme.
+
+Pour modifier rapidement un élément du menu dans le dialogue Propriétés du menu Démarrer, double-cliquez sur un item terminal pour ouvrir la fenêtre d'édition.
+
+Vous pouvez utiliser des fichiers bitmap (.BMP) de 16x16 pour les icônes du menu démarrer, qui seront affichées sans déformation. Quand vous modifiez l'élément du menu, spécifiez le chemin d'accès complet au fichier bitmap dans le champ 'Icône'.
+
+Pour ajouter des lignes de séparation dans le menu Démarrer, créez un item avec un tiret [-] comme premier caractère du libellé. Comme chaque séparateur doit avoir un libellé différent, utilisez -1,-2, etc...
+
+Vous pouvez ajouter vos groupes du Gestionnaire de programme à l'endroit que vous voulez dans le menu Démarrer. Cliquez simplement sur le petit bouton 'Importer les groupes...' dans les propriétés du menu Démarrer.
+
+Quand vous importez des groupes du Gestionnaire de programmes dans le menu Démarrer, ils sont placés au niveau de l'élément sélectionné.
+
+Quand vous éditez le menu Démarrer, vous pouvez copier un item en gardant la touche Ctrl enfoncé pendant que vous le déplacez avec la souris. N'oubliez pas de lui donner un libellé différent s'il se trouve dans le même menu que l'original.
+
+Quand vous éditez le menu Démarrer, vous pouvez déplacer un item à l'intérieur d'un autre en maintenant la touche Alt enfoncée avant de relâcher le bouton de la souris.
+
+Quand vous importez des groupes du gestionnaire de programmes, les items existants avec le même libellé sont remplacés. Utilisez cette fonctionnalité pour mettre à jour le menu Démarrer afin qu'il reflète le contenu du gestionnaire de programmes.
+
+Vous pouvez placer des documents, des dossiers et des liens Internet dans le menu Démarrer. Si vous entrez une URL dans le champ commande, Calmira lancera votre navigateur web pour ouvrir la page.
+
+Vous pouvez scinder des parties du menu Démarrer en colonnes de tailles égales. Modifiez le libellé du menu parent et ajouter un astérisque au début, suivi d'un chiffre entre 2 et 9. Par exemple *3 créera trois sections égales.
+
+Vous pouvez changer les mini-icônes par défaut utilisées par le menu Démarrer pour les sous-menus, dossiers et commandes. Voir la rubrique personnalisation des bitmaps pour plus de détails.
+
+Pour assigner un raccourci-clavier au menu Démarrer, utilisez le libellé "Start". Quand vous appuierez sur la combinaison de touches, la Barre des tâches apparaitra et le menu s'ouvrira.
+
+Vous pouvez affecter un raccourci clavier à une partie seulement du menu Démarrer. Utilisez le libellé du sous-menu à ouvrir, et il apparaîtra à la position du pointeur quand vous presserez la combinaison de touches.
+
+Vous pouvez inclure des variables d'environnement pour les propriétés d'un élément du menu Démarrer. Par exemple, %windir%\notepad.exe lance le programme notepad du répertoire windows.
+
+Vous pouvez modifier le libellé, le répertoire de travail et le mode d'affichage d'un élément du menu Démarrer sans être obligé de le reconstruire. Calmira modifie simplement le fichier START.INI et charge le menu sans rafraîchir le cache d'icônes.
+
+Utilisez Ctrl-Haut et Ctrl-Bas pour passer directement d'un item de menu à un autre du même niveau dans les propriétés du menu Démarrer. Pratique pour sauter par dessus un menu développé.
+
+Utilisez Ctrl-Gauche dans les Propriétés du menu Démarrer pour remonter d'un niveau dans l'arborescence.
+
+Si vous avez un clavier Windows 95, la touche Démarrer peut ouvrir le menu Démarrer. Vous pouvez activer cette touche dans les Propriétés du menu Démarrer.
+
+; Dialogue Exécuter
+
+Pour ouvrir rapidement une page web, tapez son URL dans le dialogue Exécuter.
+
+Utilisez DOS pour renommer des fichiers en utilisant des jokers (*,?). Sélectionnez la commande 'Exécuter' du menu d'une fenêtre d'icônes, entrez la commande, cochez la case 'Commande DOS', puis exécutez. Pensez à rafraîchir la fenêtre!
+
+Vous n'avez pas besoin d'entrer le chemin dans le dialogue 'Exécuter' pour les programmes et documents s'ils sont dans le PATH. Par exemple, pour modifier le fichier d'initialisation de windows, tapez simplement "WIN.INI".
+
+Vous pouvez ouvrir des dossiers depuis le dialogue Exécuter, et utiliser son historique pour garder la trace des dossiers récement accédés.
+
+; Dialogue Rechercher
+
+Faites glisser les fichiers de la boîte de dialogue Rechercher vers une fenêtre d'icônes ou un raccourci/alias pour les copier ou les déplacer. Cette fonction ne s'applique pas aux descriptions de fichiers.
+
+Vous pouvez faire glisser les fichiers de la boîte de dialogue Rechercher vers un autre programme, tel le Bloc-Notes.
+
+Vous pouvez agrandir la boîte de dialogue Rechercher pour voir davantage de fichiers en tirant l'une de ses bordures.
+
+Vous pouvez ouvrir un fichier ou dossier de la boîte de dialogue Rechercher par un double clic.
+
+Pour accéder au dialogue Ouvrir avec à partir de la boîte de dialogue Rechercher utilisez le menu contextuel ou appuyez sur Ctrl+Entrée.
+
+Pour la copie des caractéristiques d'un fichier vers le Presse-papiers à partir de la boîte de dialogue Rechercher , vous pouvez élargir la colonne Emplacement en ajustant son en-tête.
+
+Pour atteindre directement un fichier ou dossier listé dans la boîte de dialogue Rechercher, sélectionnez le et choisissez Ouvrir une fenêtre d'icônes dans le menu contextuel. Une nouvelle fenêtre sera ouverte, avec l'élément voulu sélectionné.
+
+Pour changer le disque exploré par le dialogue Rechercher, tapez une seule lettre dans la case A partir de. Calmira ajoutera le reste du chemin pour vous.
+
+La recherche du dialogue Rechercher Fichiers sera bien plus rapide si vous ne spécifiez qu'un seul joker et videz la liste avant la recherche. En effet, s'il n'y a qu'une recherche, il n'a pas à vérifier les doublons.
+
+Vous pouvez ouvrir le dialogue Rechercher depuis l'Explorateur en sélectionnant un dossier puis Rechercher... dans le menu contextuel (ou Ctrl+F). Le dossier sélectionné apparaît dans le champ Rechercher dans.
+
+; Optimisation
+
+Utilisez les touches [/], [*], [+] and [-] pour fermer les fenêtres inutiles. Ceci réduit rapidement le fouillis sur le bureau et économise la mémoire.
+
+Si vos ressources utilisateur deviennent trop faibles, essayez de diminuer la taille de votre menu Démarrer.
+
+Si vos ressources utilisateur deviennent trop faibles, essayez de supprimer quelques raccourcis ou d'utiliser des alias à la place.
+
+Si Calmira met longtemps à démarrer, vérifiez qu'il n'y a pas trop de rebuts dans la Corbeille, qu'il est obligé de parcourir.
+
+Calmira accédera son fichier INI plus rapidement si la section [Window Positions] reste limitée à une taille raisonnable. Une ligne est utilisée pour chaque répertoire ouvert. Faites le ménage de temps en temps.
+
+; Fenêtre Poste de travail
+
+Pour actualiser le contenu de la fenêtre Poste de travail, appuyez sur F5 ou choisissez Rafraîchir dans le menu popup. Ceci détecte tous les disques accessibles. Utile si vous êtes connecté à un réseau.
+
+Pour ajouter un fichier ou un dossier au menu Démarrer, faites le glisser sur l'icône Poste de travail. Les nouveaux éléments apparaîtront dans l'arborescence la prochaine fois que vous ouvrirez la boîte de dialogue Propriétés du Menu Démarrer.
+
+Vous pouvez personnaliser les programmes présents dans la fenêtre Poste de travail en éditant la section [Programs].
+
+Si vous n'utilisez pas le menu Bureau, vous pouvez accéder certaines commandes à partir du menu contextuel de la fenêtre Poste de travail lorsqu'elle est réduite.
+
+Lorsque la fenêtre Poste de travail est réduite, un clic droit sur son icône permet l'accès à son menu contextuel (pour lancer l'aide par exemple). Propriétés Système permet de choisir le menu Démarrer ou le menu contextuel Poste de travail.
+
+Vous pouvez accéder aux boîtes de dialogue Propriétés système par un clic droit entre les icônes de la fenêtre Poste de travail.
+
+Vous pouvez créer votre version personnelle de la fenêtre Poste de travail en utilisant un répertoire et des alias. Ceci vous permettra de glisser-déposer des objets sur les icônes de disques.
+
+; Scripts
+
+Les scripts permettent l'exécution de plusieurs commandes ou programmes d'un seul clic. Créez un script utilisant la commande Start et affectez-le à un raccourci, un alias ou un élément du menu Démarrer.
+
+Les scripts peuvent être lancés dans une session DOS sous Windows. Ceci permet de lancer des programmes Windows en ligne de commande ou de contrôler des fonctions de Calmira (ouverture de fenêtre ou activation de raccourci). Consultez l'aide.
+
+Si vous utilisez souvent des fichiers batch dans une fenêtre DOS, vous pouvez facilement leur faire générer des scripts pour contrôler Calmira et lancer des programmes. Voir l'aide pour plus de détails sur l'écriture de scripts.
+
+Le fichier batch Start permet d'exécuter un programme ou d'ouvrir un document depuis une fenêtre MS-DOS. Ceci vous épargne l'ouverture d'une fenêtre d'icônes pour exécuter un fichier que vous identifiez déjà comme DOS.
+
+Le fichier batch Folder permet l'ouverture d'une fenêtre d'icônes à partir d'une fenêtre MS-DOS. Ceci vous épargne la frappe d'un long chemin de dossier si vous y êtes déjà.
+
+Le fichier batch Open permet l'ouverture de fichiers, de programmes windows ou de dossiers à partir d'une fenêtre MS-DOS.
+
+Le fichier batch Explore permet l'ouverture de l'Explorateur à partir d'une fenêtre MS-DOS. Ceci vous épargne la frappe d'une longue descente de l'arborescence si vous y êtes déjà.
+
+Lorsque vous êtes dans une fenêtre DOS, vous pouvez lancer un autre programme DOS dans une nouvelle fenêtre à l'aide du Start.bat fourni.
+
+Pour créer un panneau de configuration personnalisé, écrivez un jeu de fichiers script pour ouvrir chaque fiche de propriétés, puis créez des alias pour ces scripts et leur répertoire deviendra votre panneau de configuration.
+
+Pour créer un alias qui ouvre un dialogue et exécute des commandes particulières comme les éléments du menu Démarrer, faites le pointer sur un script qui utilise la commande Macro. Voir la rubrique d'aide sur l'utilisation des scripts.
+
+Pour démarrer un programme Windows à partir de la ligne de commande en fenêtre, utilisez les fichiers batch Open et Start.
+
+; Environnement
+
+La variable d'environnement %currentfolder% permet de lancer un programme en utilisant le répertoire actuel comme répertoire de travail.
+
+La variable d'environnement %droppedfiles% permet le contrôle du nom de fichier sur la ligne de commande lorsqu'on dépose un objet sur un raccourci ou un alias.
+
+La variable d'environnement %filename% permet le contrôle du nom de fichier pour l'exécution de programmes depuis le dialogue Ouvrir Avec ou d'utilitaires dans le dialogue Propriétés du Système de Fichiers.
+
+La variable d'environnement %calmira% permet de référencer le répertoire de Calmira.
+
+La variable d'environnement %comspec% permet de référencer le "shell" MS-DOS courant. Utile si vous commutez souvent entre différents "shells".
+
+La variable d'environnement %windir% permet de référencer le répertoire de Windows.
+
+La variable %currentdrive% permet de référencer le disque de la fenêtre d'icônes active. Utile pour exécuter des programmes liés au disque. Disponible aussi depuis le dialogue Propriétés disques en cliquant sur l'icône du lecteur.
+
+En définissant vos propres variables d'environnement dans la section [Environment], vous pourrez éviter de référencer les chemins absolus dans vos raccourcis ou alias, qui seront mis à jour automatiquement par modification de l'environnement.
+
+Dans le dialogue Exécuter ou la commande Ouvrir un Dossier, vous pouvez remplacer une longue chaîne de caractères (commande ou nom de répertoire) par une plus courte, encadrée de caractères %, en utilisant une variable d'environnement.
+
+; Fenêtre d'icônes
+
+Appuyez sur Retour arrière pour ouvrir le répertoire parent d'une fenêtre d'icônes.
+
+Pour sélectionner ou désélectionner des fichiers en utilisant des jokers, appuyez sur Ctrl+S dans une fenêtre d'icônes ou faites un clic droit sur la zône de droite dans la barre d'état.
+
+Vous pouvez ouvrir le dialogue Propriétés des disques à partir d'une fenêtre d'icônes, par un clic droit sur la zône de gauche dans la barre d'état. Ceci affiche l'espace restant sur le disque courant.
+
+Pour associer un type de fichier avec un programme, sélectionnez un seul fichier et ouvrez sa boîte de dialogue Propriétés.
+
+Pour copier vers le Presse-papiers les caractéristiques des fichiers sélectionnés, tapez Ctrl+C. En mode Grandes ou Petites icônes une liste de titres est copiée. En mode Liste c'est un listage de répertoire similaire à celui du DOS.
+
+Pour un listage personnalisé de répertoire, passez en mode Liste et sélectionnez les colonnes à afficher (dialogue Filtre), sélectionnez les fichiers voulus, appuyez sur Ctrl+C. Les caractéristiques sont copiées vers le Presse-papiers.
+
+Pour ouvrir l'arborescence de l'Explorateur depuis une fenêtre d'icônes, appuyez sur Ctrl+E. Le répertoire de la fenêtre d'icônes y est présélectionné.
+
+Pour ouvrir le dialogue Rechercher fichiers depuis une fenêtre d'icônes, appuyez sur Ctrl+F. Le répertoire de la fenêtre d'icônes est utilisé comme chemin initial.
+
+Pour imprimer un fichier, sélectionnez-le et appuyez sur Ctrl+P. Le fichier doit être associé à un programme qui en permet l'impression, par exemple le Bloc-notes pour les fichiers texte.
+
+Un fichier peut être imprimé en le faisant glisser sur l'icône ou la fenêtre du gestionnaire d'impression.  Le fichier doit être associé à un programme qui en permet l'impression, par exemple le Bloc-notes pour les fichiers texte.
+
+Pour ouvrir n'importe quel dossier pendant l'utilisation d'une fenêtre d'icônes, appuyez sur CTRL+O et tapez son chemin.
+
+Pour exécuter le programme Undelete spécifié dans le dialogue Propriétés du Système de Fichiers, appuyez sur CTRL+U.
+
+Pour disposer les fenêtres d'icônes en cascade, appuyez sur CTRL+F5.
+
+Vous pouvez ranger les icônes sur le bureau en appuyant sur Shift+F5 pendant l'utilisation d'une fenêtre d'icônes.
+
+Vous pouvez réduire Calmira pour libérer le bureau en appuyant sur F12 pendant l'utilisation d'une fenêtre d'icônes.
+
+Pour rafraîchir le contenu d'une fenêtre d'icônes, appuyez sur F5 ou cliquez sur la zône gauche dans la barre d'état.
+
+Pour fermer toutes les fenêtres d'icônes sauf la fenêtre active, appuyez sur la touche [*] (astérisque) du pavé numérique. Utile pour fermer les fenêtres indésirables après la recherche d'un fichier particulier.
+
+Pour fermer toutes les fenêtres hiérarchiques d'une fenêtre d'icônes, appuyez sur la touche [+] du pavé numérique. Utile pour fermer les fenêtres indésirables après l'exploration d'une branche d'arborescence pour trouver un fichier particulier.
+
+Pour fermer toutes les fenêtres d'icônes, appuyez sur la touche [/] soit du pavé numérique soit du clavier principal.
+
+Pour sélectionner ou désélectionner tous les fichiers dans une fenêtre d'icônes, appuyez sur la touche [,] (virgule) ou [.] (point) respectivement.
+
+Pour définir le filtre à appliquer pour une fenêtre d'icônes et choisir les caractéristiques à afficher, appuyez sur la touche [?] (point d'interrogation).
+
+Pour passer en mode Grandes icônes, Petites icônes, Liste, appuyez sur Shift+I, Shift+M, Shift+L respectivement.
+
+Un double clic sur un dossier avec la touche Alt appuyée provoque son ouverture dans la même fenêtre ou une nouvelle selon la valeur de l'option "Parcourir les répertoires dans la même fenêtre" du dialogue Propriétés du Bureau.
+
+Pour passer en tri par Type, Nom, Taille, Date appuyez sur Shift+T, Shift+N, Shift+S and Shift+D respectivement.
+
+Pour ouvrir le répertoire racine du lecteur courant depuis n'importe quelle fenêtre d'icônes, appuyez sur [\] (backslash).
+
+Pour atteindre le fichier suivant dont le nom commence par une lettre donnée, appuyez simplement sur la touche de cette lettre.
+
+Pour ouvrir le répertoire racine d'un lecteur, appuyez sur Ctrl et Shift en même temps que la touche de la lettre de ce lecteur.
+
+Si une fenêtre d'icônes n'affiche qu'une zône dans la barre d'état, vous pouvez accéder aux fonctions de la souris affectées à l'autre zône en maintenant la touche Shift appuyée pendant le clic sur cette zône.
+
+Le nombre de lignes et de colonnes utilisées pour le redimensionnement automatique des fenêtres d'icônes peut être réglé. Consultez l'aide pour voir comment éditer la section [Layouts] du fichier INI.
+
+Pour outrepasser momentanément l'option "Parcourir les répertoires dans la même fenêtre" maintenez Alt appuyée pendant l'ouverture du répertoire. Si l'option est inactive, maintenir Alt l'active.
+
+Pour connaître la place qu'il utilise dans une structure de répertoires, sélectionnez un groupe de répertoires et ouvrez la boîte de dialogue Propriétés.
+
+Pour sélectionner ou désélectionner tous les fichiers, cliquez sur la zône de droite dans la barre d'état. Si des éléments sont sélectionnés la sélection est libérée, sinon tout est sélectionné.
+
+Pendant une opération de glisser-déposer, un clic droit permet de basculer entre Copier et Déplacer. Le mode initial est inversé en enfonçant Alt avant l'opération. Voir le dialogue Propriétés du Système de Fichiers pour les options.
+
+Pour "glisser-déposer" des fichiers sur un dossier ou un programme, si l'icône cible a défilé hors de vue, utilisez les boutons des barres de défilement pour la remettre en position correcte.
+
+Si un tas de fenêtres d'icônes recouvre le bureau, vous pouvez atteindre n'importe laquelle d'entre elles rapidement en effectuant un clic droit sur la barre de titre. Un menu apparaît présentant tous les dossiers actuellement ouverts.
+
+Une option dans le dialogue Propriétés du Bureau permet de parcourir les répertoires en utilisant la même fenêtre. Ceci évite l'ouverture de trop nombreuses fenêtres. Retour arrière ou un clic droit sur la case de fermeture remonte l'arborescence.
+
+Pour ouvrir l'Explorateur sur un répertoire, double-cliquez sur ce répertoire en maintenant la touche Shift appuyée.
+
+Pour inverser le mode (même fenêtre ou fenêtres multiples) utilisé pour parcourir l'arborescence des répertoires par rapport à celui choisi dans le dialogue Propriétés du Bureau, appuyez sur la touche Alt pendant le double clic sur le répertoire.
+
+Si vous laissez le curseur sur une icône de fichier ou dossier, une bulle vous fournira des informations supplémentaires, par exemple le nom réel d'un fichier désigné par sa description, ou la description quand elle n'est pas affichée.
+
+Vous pouvez rapidement inspecter un fichier en effectuant un clic droit dessus, avec la touche Shift appuyée. Ceci est équivalent au choix Inspecter du menu popup du fichier.
+
+Pour accéder rapidement au dialogue Ouvrir avec, maintenez la touche Ctrl appuyée pendant le clic droit sur le fichier.
+
+Vous pouvez double cliquer sur un élément de la boîte de dialogue Ouvrir avec au lieu d'appuyer sur le bouton OK.
+
+Pour ouvrir le dialogue Propriétés, effectuez un clic droit sur le fichier ou le dossier en maintenant la touche Alt appuyée.
+
+Pour inverser la sélection dans une fenêtre d'icônes, cliquez sur la zône de droite dans la barre d'état en maintenant la touche Ctrl appuyée. Utile pour sélectionner tous les fichiers sauf quelques uns.
+
+Utilisez l'outil lasso pour sélectionner des blocs de fichiers et répertoires contigus. Après une sélection tirez sur le lasso depuis l'élément sélectionné.
+
+Vous pouvez faire glisser des icônes depuis Calmira vers d'autres programmes, de la même façon qu'avec le Gestionnaire de Fichiers.
+
+Pour tout désélectionner dans une fenêtre d'icônes, cliquez sur un emplacement vide.
+
+Pour faire défiler le contenu d'une fenêtre d'icônes sans modifier la sélection, utilisez Ctrl+Up et Ctrl+Down.
+
+Pour entourer un groupe de fichiers d'un cadre de sélection, cliquez près d'un coin du groupe et étirez le rectangle pour former le cadre.
+
+Vous pouvez faire glisser l'icône d'un fichier sur l'icône d'un programme pour ouvrir le fichier avec le programme. Sélectionner cette option dans la boîte de dialogue Propriétés du système de fichiers.
+
+; Clavier
+
+Vous pouvez utiliser la touche Alt Gr dans un raccourci clavier en spécifiant Ctrl+Alt. Pour Calmira l'appui sur Alt Gr est équivalent à l'appui sur Ctrl et Alt en même temps.
+
+Pour simuler un clavier Windows 95 sur un clavier normal affectez le raccourci clavier Ctrl+Alt+Espace au menu Démarrer (l'intitulé "Démarrer"). Ceci fait surgir le menu Démarrer quand vous appuyez sur Espace en maintenant la touche Alt Gr appuyée.
+
+Dans la définition des raccourcis clavier vous pouvez utiliser les touches spéciales comme Entrée, Retour arrière, etc...
+
+Vous pouvez utiliser Ctrl+Tab pour parcourir cycliquement toutes les fenêtres de Calmira.
+
+; Barre des tâches
+
+La Barre de tâches permet de mettre fin à tout programme "voyou". Après un clic droit sur le bouton Démarrer, choisissez Terminer tâche dans le menu. Cliquez alors sur l'un des boutons de la Barre de tâches pour tuer le programme correspondant.
+
+La commande Montrer infos fenêtres du menu contextuel du bouton Démarrer fait apparaître dans les bulles des boutons de tâches le nom de module et la classe de fenêtre, pour vous aider à exclure certaines fenêtres de la barre.
+
+Vous pouvez Glisser-déposer des fichiers depuis Calmira ou d'autres programmes sur les boutons de la barre de tâches de la même façon que du Gestionnaire de Fichiers vers une tâche réduite en icône.
+
+Si une nouvelle tâche n'apparaît pas tout de suite dans la Barre de tâches, cliquez sur une autre fenêtre puis revenez à la nouvelle, ce qui devrait actualiser la Barre de tâches.
+
+Vous pouvez affecter vos propres bitmaps dans la barre de tâches pour représenter les fenêtres d'icônes et l'Explorateur. Reportez vous à la rubrique de l'aide sur la personnalisation des bitmaps pour les détails.
+
+Vous pouvez faire afficher à la Barre de tâches les noms de document avant les noms de programme. Parfois plus explicite si la taille des boutons est insuffisante pour afficher l'intitulé complet.
+
+Les bulles de la barre de tâches affichent toujours le chemin complet de la fenêtre d'icônes, même quand les boutons n'affichent que les noms de répertoire à 8 caractères.
+
+La Barre de tâches peut afficher votre icône pour les programmes lancés à partir de raccourcis, d'alias ou du menu Démarrer. Ceci fonctionne même pour les programmes Windows, la Barre de tâches obtenant ses icônes directement de Calmira.
+
+La Barre de tâches peut afficher des icônes différentes pour chaque instance d'un programme. Par exemple, pour deux raccourcis ouvrant des fichiers dans le Bloc-notes, chaque bouton peut refléter le document correspondant.
+
+; Affichage
+
+Calmira a été conçu, et a généralement une meilleure présentation avec la police ordinaire MS Sans Serif 8 points, avec un pilote vidéo réglé sur Petites polices.
+
+Pour que les fichiers d'icônes apparaissent avec l'icône qu'ils contiennent, ajoutez "ico" à la liste des extensions dans Propriétés du Système de fichiers. Evitez d'utiliser cette fonction pour des tas d'icônes à la fois, pensez à la mémoire.
+
+Ne laissez pas de fichiers *.ico dans le répertoire de Calmira sauf pour représenter des documents ou des objets internes. Sinon ils encombreront les listes de ressources de Calmira.
+
+Vous pouvez remplacer presque toutes les icônes de Calmira par les vôtres. Reportez vous à la rubrique de l'aide sur la personnalisation des icônes.
+
+Vous pouvez attribuer vos propres icônes aux fichiers de documents pour remplacer les icônes spécifiées dans la base de registres.
+
+Vous pouvez remplacer de nombreux bitmaps de Calmira par les vôtres pour la Barre de tâches, le menu Démarrer et l'Explorateur. Reportez vous à la rubrique de l'aide sur la personnalisation des bitmaps.
+
+Vous pouvez choisir des noms explicites pour les lecteurs de disque en ajoutant des lignes à la section [Drives]. Par exemple vous pouvez remplacer le classique (A:) par Disquette 3½".
+
+Vous pouvez choisir des noms explicites pour l'intitulé des fenêtres d'icônes en ajoutant des lignes à la section [Window Captions]. Utile si vous utilisez des dossiers comme groupes de programmes pour ranger des alias de vos applications.
+
+; Divers
+
+Vous pouvez changer le papier peint dans le dialogue Propriétés du bureau. Pour l'afficher, faites un clic droit n'importe où sur le bureau et choisissez Propriétés.
+
+Vous pouvez activer ou désactiver les noms de fichiers longs de Windows 95 avec l'option "Activer les noms de fichiers longs" de l'onglet Avancé du dialogue Propriétés du système de fichiers.
+
+Quand vous êtes en présence d'une case d'édition qui attend un nom de fichier ou de dossier, vous pouver ouvrir une fenêtre de navigation en double cliquant sur la case d'édition.
+
+Faites glisser des fichiers depuis d'autres programmes (Gestionnaire de Fichiers...) vers une fenêtre d'icônes, un raccourci ou un alias. Calmira vous demandera s'il s'agit de copie ou déplacement. Ne fonctionne pas avec les descriptions.
+
+Pour visualiser les listages de répertoires copiés vers le Presse-papiers, utilisez la vue Texte OEM  pour aligner les colonnes.
+
+Cela pourrait vous intéresser de consulter le source de Calmira. Décompressez l'archive et parcourez les fichiers *.pas avec un éditeur de texte. Quelques uns sont étonnamment lisibles, même pour un non programmeur !
+
+Sauvegardez CALMIRA.INI et START.INI avec vos fichiers de données, vous ne perdrez pas de temps à reconstituer votre bureau et rétablir vos options si les fichiers INI sont détériorés.
+
+Si vous ajoutez la chaîne "www." au paramètre URLPrefixes dans la section [Internet], vous pourrez taper une adresse de page web dans le dialogue Exécuter un Programme sans avoir besoin du préfixe http://.
+
+Un double clic sur un paramètre dans la page Avancés de la boîte de dialogue Propriétes du Système permet l'édition du paramètre.
+
+Vous pouvez limiter le nombre de lignes conservées dans les listes historique à l'aide du paramètre MaxHistorySize dans la section [Calmira].
+
+Pour donner à vos menus Windows 3.1 un aspect plus Windows 95, définissez un fond gris, une mise en valeur bleue et un texte sélectionné blanc.
+
+La finesse de la grille utilisée par la commande "Aligner les Icônes" est contrôlée par les paramètres DeskGridX et DeskGridY de la section [Desktop].
+
+La police utilisée par Calmira pour les fenêtres d'icônes, l'Explorateur et la fenêtre Poste de travail est déterminée par les paramètres FontName, FontSize et FontStyle dans la section [Display].
+
+Pour que Calmira lise et sauvegarde ses fichiers INI dans le répertoire Windows, créez une section [Calmira] dans votre fichier win.ini et ajoutez le paramètre LoadFromWindir=1.
+
+Vous pouvez changer le mode de dessin des icônes miniature du mode de visualisation Liste. Modifiez le paramètre IconStretchMode dans la section [Display]. Toutefois la valeur prédéfinie est celle qui donne généralement le meilleur résultat.
+
+Vous pouvez ajouter des définitions de types de fichiers pour le dialogue Propriétés des Fichiers en modifiant la section [File Types]. Calmira utilise ces descriptions pour les fichiers qui ne sont pas connus de la base de registres.
+
+Le dimensionnement automatique des fenêtres d'icônes peut être ajusté à la section [Layouts] pour définir le nombre de colonnes et de lignes par plage de nombre d'icônes. Voir la rubrique Paramètres Divers de l'aide pour plus d'informations.
+
+Vous pouvez changer la police utilisée par la Barre de tâches en modifiant le paramètre FontName dans la section [Taskbar].
+
+Vous pouvez contrôler la position des fenêtres réduites en icône au-dessus de la Barre de tâches grâce au paramètre MinAppHeight dans la section [Taskbar]. Utile si des libellés d'icônes sont masqués par la Barre.
+
+Pour ajuster le délai d'apparition des bulles sur les boutons de la Barre de Tâches, définissez le paramètre HintDelay dans la section Taskbar.
+
+Pour modifier le format d'affichage de date et heure dans la Barre de Tâches, utilisez les paramètres 24HourFormat, 12HourFormat and FullDateTime dans la section [Taskbar]. Voir la rubrique Paramètres Divers de l'aide pour plus d'informations.
+
+Vous pouvez régler la date et l'heure en double cliquant sur l'horloge de la Barre de Tâches.
+
+Modifiez le paramètre ClockAdjust dans la section [Taskbar] pour définir un utilitaire différent pour le réglage de la date et l'heure.
+
+Vous pouvez affecter des sons aux événements de Calmira en définissant des fichiers WAV à la section [Sounds]. Voir la rubrique Paramètres Divers de l'aide pour plus d'informations. Ces sons ne concernent que les fenêtres gérées par Calmira.
+
+Vous pouvez changer la police utilisée dans le menu Démarrer en modifiant les paramètres FontName et FontSize dans la section [Start menu].
+
+Vous pouvez changer la police et l'intitulé du bouton Démarrer en modifiant les paramètres FontName, FontSize, FontStyle et Caption dans la section [Start button].
+
+Vous pouvez cacher le bouton Démarrer en la déplaçant hors de l'écran. Définissez une valeur négative appropriée pour Left dans la section [Start button].
+
+Vous pouvez changer le nom du fichier caché contenant les descriptions de fichiers en affectant un nom de fichier au paramètre DescriptionFile dans la section [File System].
+
+Pour fixer la largeur allouée aux descriptions en visualisation Liste, utilisez le paramètre DescriptionWidth dans la section [File System].
+
+Pour fixer l'espacement entre les colonnes en visualisation Liste, utilisez le paramètre ColumnPadding dans la section [File System].
+
+Vous pouvez choisir le nombres de décimales pour l'affichage de la taille des fichiers en koctets. Valorisez le paramètre ListKBDecimals dans la section [File System]. Ce paramètre ne concerne que l'affichage Liste dans les fenêtres d'icônes.
+
+Vous pouvez changer les sections apparaissant dans la page Avancés du dialogue Propriétés du Système. Modifiez la section [Advanced] selon les instructions données dans la rubrique d'aide Réglages Divers.
+
+La section [History Lists] contient les éléments qui apparaissent dans le dialogue Propriétés du Système. Ajoutez d'autres noms de sections, par ex. [Window Positions], pour pouvoir les vider par action sur le bouton Corbeille dans ce dialogue.
+
+Dans de nombreuses boîtes de dialogue, vous pouvez double cliquer sur un bouton radio ou une boîte de liste au lieu d'appuyer sur OK.
+
+Pour connaître l'espace libre d'un disque, effectuez un clic droit sur l'icône du lecteur dans le Poste de Travail, puis sélectionnez Propriétés. Dans une fenêtre d'icônes effectuez un clic droit sur la zone de gauche de la barre d'état.
+
+Quand un dossier est ouvert, la touche Retour arrière permet d'ouvrir le dossier de niveau supérieur.
+
+Un clic droit n'importe où donne accès à un menu de commandes disponibles.
+
+; Fin de session
+
+Utilisée de temps en temps, la fonction Redémarrer Windows dans le dialogue Arrêter rétablit des ressources, libère de la mémoire, nettoie les problèmes causés par des bugs et évite le plantage de Windows. Plus rapide que quitter et exécuter Win.
+
+Vous pouvez double cliquer sur un des boutons radio du dialogue Arrêter au lieu de le sélectionner puis appuyer sur OK.
+
+Vous pouvez basculer rapidement le shell de Windows entre le Gestionnaire de programmes et Calmira en double-cliquant sur l'icône du dialogue Fin de session.
+
+; Aide
+
+La visualisation optimale de l'aide de Calmira est obtenue avec une fenêtre de largeur environ 500 pixels.
+
+Si vous voulez imprimer la totalité de l'aide, vous pouvez extraire le fichier source RTF contenu dans source.zip/help.zip et l'imprimer à partir d'un traitement de texte compatible.
+
+Pour visualiser la liste complètes des "Astuces du jour", ouvrez le fichier tips.txt dans un traitement de texte ou un utilitaire qui gère le retour à la ligne.
+
+Une aide contextuelle est disponible à partir de la plupart des fenêtres en appuyant sur F1.
+
+Vous pouvez parcourir la totalité des rubriques de l'aide en utilisant les boutons << et >>.
+
+Vous trouverez les dernières mises à jour de Calmira à la page http://www.calmira.net.
+
+Vous pouvez modifier le fichier TIPS.TXT pour afficher vos propres messages.
+
+; Clavier
+
+Vous pouvez activer n'importe quelle fenêtre ou lancer n'importe quel programme à l'appui d'une touche... Voyez le fichier d'aide pour les détails sur l'affectation de raccourcis clavier.
+
+Vous pouvez faire apparaître le menu Démarrer grâce à un raccourci clavier -- le menu possède un intitulé prédéfini "Démarrer". Voyez le fichier d'aide pour les détails sur les raccourcis clavier.
+
+; "Astuces amusantes et inspirées"
+
+Les T-shirts décorés à la programmation ne font pas très mode.
+
+Ne plongez jamais dans des eaux infestées de requins.
+
+Il n'est jamais trop tard pour apprendre à se servir du MacIntosh.
+
+Pour un système d'exploitation stable, visitez http://www.linux.org.
+
+; Gestionnaire de fichiers
+
+Vous pouvez activer ou désactiver les noms de fichiers longs de Windows 95 avec l'option "Activer les noms de fichiers longs" de l'onglet Avancé du dialogue Propriétés du système de fichiers.
+
+La zône de liste Confirmations dans le dialogue Propriétés du Système de Fichiers permet d'affiner les questions de Calmira lors de la copie ou le déplacement des fichiers. Utilisez-la si vous trouvez que Calmira pose trop de questions.
+
+Lorsque Calmira est en train de lire un répertoire pour une fenêtre d'icônes ou l'Explorateur, vous pouvez interrompre l'opération en appuyant sur la touche Echap.
+
+Vous pouvez supprimer les icônes miniatures dans les modes de visualisation Petites Icônes et Liste pour accélérer notablement l'affichage.
+
+Pour faciliter le glisser-déposer, désélectionnez l'option autorisant le dépôt de fichiers sur un programme dans les fenêtres d'icônes (dans Propriétés du Système de Fichiers). Les objets déposés sur un programme seront alors placés dans la fenêtre.
+
+Vous pouvez définir, dans le dialogue Propriétés du Système de Fichiers, l'utilitaire à utiliser pour formater et vérifier les disques lorsque vous cliquez sur l'icône dans le dialogue Propriétés des disques.
+
+Calmira réalise la plupart des opérations sur les fichiers en arrière plan. Vous pouvez donc utiliser la Barre de Tâches pour passer à un autre programme pendant la copie ou le déplacement de fichiers.
+
+Une option de la boîte de dialogue Propriétés du Système de Fichiers vous permet de choisir de cacher ou montrer l'extension à 3 lettres des noms de fichiers.
+
+Vous pouvez associer un fichier à un programme en sélectionnant le fichier et en choisissant Propriétés dans le menu contextuel. L'onglet Association permet d'établir le lien avec un programme présent dans la base de registres ou un nouveau.
+
+; Propriétés des fichiers
+
+Utilisez le dialogue Propriétés des Fichiers pour associer un fichier à un programme. L'association devient effective immédiatement pour le lancement des programmes, mais les icônes ne seront mises à jour qu'au prochain redémarrage de Calmira.
+
+Pour savoir quel programme sera utilisé pour ouvrir un document en double cliquant dessus, sélectionnez son icône, choisissez Propriétés dans le menu contextuel, puis ouvrez l'onglet Association.
+
+Dans le Dialogue Propriétés du Fichier, vous pouvez copier du texte depuis les étiquettes vers le Presse-papiers. Sélectionnez le texte dans l'étiquette et appuyez sur Ctrl+C.
+
+; Explorateur
+
+Vous accélérerez la navigation dans l'arborescence de l'Explorateur en désactivant la mise à jour automatique de la fenêtre de fichiers. Effectuez un clic droit sur l'arborescence et invalidez l'option Afficher la fenêtre de fichiers.
+
+Vous pouvez ouvrir une fenêtre d'icônes indépendante de l'Explorateur en cliquant avec le bouton droit sur un dossier dans l'arborescence et en choisissant Ouvrir dans une Nouvelle Fenêtre dans le menu contextuel.
+
+Lorsque des dossiers sont ajoutés, supprimés, déplacés, il peut être nécessaire d'actualiser l'arborescence de l'Explorateur. Utilisez F5 ou choisissez Rafraîchir dans le menu contextuel.
+
+Vous pouvez fixer le nombre de colonnes affichées dans la fenêtre des fichiers de l'Explorateur à l'aide du paramètre FilePaneCols dans la section [Desktop].
+
+Vous pouvez choisir de fermer la fenêtre de fichiers de l'Explorateur en même temps que l'arborescence ou de la laisser ouverte. Voyez le dialogue Propriétés du Bureau.
+
+Vous pouvez changer les dessins utilisés dans l'arborescence de l'Explorateur en créant un fichier Explrico.bmp. Voyez la rubrique de l'aide sur la personnalisation des bitmaps pour plus de détails.
+
+Vous pouvez développer ou réduire le noeud d'un dossier dans l'arborescence de l'Explorateur sans actualiser le contenu de la fenêtre de fichiers, en cliquant sur le symbole '+' ou '-'.
+
+Dans l'arborescence de l'Explorateur, vous pouvez rapidement passer au dossier précédent ou suivant de même niveau avec les touches Ctrl+Up et Ctrl+Down. Ceci permet de court-circuiter les branches développées.
+
+Vous pouvez arrêter la mise à jour par l'Explorateur de sa Fenêtre de fichiers en appuyant sur Ctrl+W et ensuite vous déplacer dans l'arborescence sans perdre l'affichage de fichiers en cours.
+
+Pour ouvrir une fenêtre indépendante depuis l'Explorateur, choisissez Ouvrir une nouvelle fenêtre dans le menu contextuel ou appuyez sur Ctrl+Entrée.
+
+Dans l'arborescence de l'Explorateur, appuyez sur Ctrl+Gauche pour passer au répertoire parent du dossier en cours.

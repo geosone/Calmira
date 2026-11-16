@@ -1,0 +1,579 @@
+; Alias
+
+Puoi creare degli alias agli oggetti selezionandoli, trascinandoli in un'altra finestra, cartella o collegamento, e poi rilasciando il tasto del mouse mentre tieni premuto il tasto Shift.
+
+Gli alias usano una certa quantità di memoria quando vengono visualizzati sullo schermo, quindi se usi spesso cartelle che ne contengono molti, ricorda di chiudere le finestre corrispondenti dopo che hai finito di usarle.
+
+Puoi convertire gli alias in elementi del Menù Avvio semplicemente trascinandoli nel box delle Proprietà del Menù Avvio.  Le informazioni contenute nell'alias verranno aggiunte al Menù Avvio.
+
+Quando visualizzi i files con "Icone grandi", gli alias vengono sempre mostrati col proprio nome.  Se dai una descrizione all'alias, devi visualizzarlo con "Elenco" per vederne la descrizione.  (Assicurati che la colonna della descrizione sia visibile).
+
+Non puoi creare un alias di un alias.  Se provi a farlo, copierai l'alias e non il file.
+
+Se trascini un alias sul Desktop, il collegamento che ottieni punterà allo stesso oggetto dell'alias e non all'alias.
+
+Puoi creare l'effetto dei gruppi di programmi creando cartelle che contengano degli alias ai tuoi programmi. Poi, trascina queste cartelle sul Desktop per creare dei collegamenti.
+
+Mentre stai navigando in rete, puoi creare velocemente un alias alla pagina web corrente.  Apri una finestra e seleziona Crea Alias dal Menù a scomparsa della finestra.  Calmira riempirà l'URL e darà un nome all'alias.
+
+E' possibile creare un alias in una finestra qualsiasi selezionando il comando Crea Alias dal Menù a scomparsa della finestra.
+
+; Collegamenti
+
+E' possibile creare un collegamento senza dover prima cercare l'oggetto desiderato, semplicemente cliccando col tasto destro del mouse sul Desktop e selezionando uno dei tipi  di nuovi collegamenti dal sotto-Menù.
+
+Non dovresti mettere troppi collegamenti sul Desktop, perché ognuno di essi è una finestra ridotta a icona e utilizza un po' di risorse.
+
+Puoi creare una nuova cartella sul Desktop aprendo il Menù a scomparsa e selezionando Nuovo Collegamento-Cartella.  Digita un nome per il collegamento e uno per la cartella, poi premi OK, e Calmira si offrirà di creare la cartella in vece tua.
+
+Per fare in modo che i collegamenti non "scivolino" mentre li usi, attiva l'opzione "Muovi solo quando viene spostato il nome" nel box Proprietà del Desktop.  Per aprire il Menù a scomparsa del collegamento, clicca una volta sul nome.
+
+Puoi rendere i collegamenti più veloci da usare attivando l'opzione "Clicca una volta per attivare" dal box Proprietà del Desktop.
+
+E' possibile cambiare il tipo di un alias o di un collegamento.  Apri il box Proprietà del File/Cartella e clicca sulla seconda riga, per scorrere attraverso i diversi valori possibili.
+
+Puoi creare velocemente una scorciatoia alla pagina web che stai visitando.  Clicca col tasto destro del mouse sul Desktop e seleziona Nuovo Collegamento-Internet dal Menù a scomparsa.  Calmira riempirà l'URL e darà un nome al collegamento.
+
+; Descrizioni 4DOS
+
+Le descrizioni dei files nella modalità 4DOS sono supportate da molti altri programmi.  Per mantenere la compatibilità con questi, usa le Proprietà del File System e imposta in modo che le descrizioni nelle sessioni di 4DOS vengano aggiornate.
+
+Se usi altre utilità che impiegano le descrizioni dei files nella modalità 4DOS, è meglio aggiornare le finestre quando pensi che alcune descrizioni possano essere cambiate.  Questo evita delle incongruenze quando poi Calmira salva altre descrizioni.
+
+Per dare delle descrizioni ai files, puoi decidere che queste non vengano visualizzate come nomi, e impostare la modalità "Elenco" per visualizzare le descrizioni al fianco dei nomi dei files.
+
+Puoi imporre che un unico file contenga le descrizioni dei tuoi files.  Il file predefinito è DESCRIPT.ION, ma puoi cambiarlo assegnando un altro file in CALMIRA.INI nella riga DescriptionFile alla sezione [File system].
+
+Quando salvi o crei dei files, puoi spendere qualche secondo in più e assegnare a quei files una descrizione più esauriente che il semplice nome MS-DOS.
+
+E' possibile descrivere velocemente un gruppo di files selezionandoli tutti prima di richiamare il comando Descrivi.  Premi Invio per confermare ogni descrizione, e Esc per terminare l'operazione, conservando comunque le descrizioni già accettate.
+
+; Cestino
+
+Puoi ripristinare gli oggetti dal Cestino trascinandoli su una finestra, un collegamento o un alias.
+
+E' possibile fare uso del Cestino quando stai ripulendo il tuo disco fisso -- questo ti da l'opportunità di rivedere i files prima di cancellarli definitivamente.  Ricorda di configurare il Cestino affinché conservi i files cestinati!
+
+E' possibile svuotare il Cestino senza aprire la sua finestra.  Quando è visualizzato come icona, cliccaci sopra col tasto destro del mouse e seleziona Svuota il Cestino dal Menù a scomparsa.
+
+Puoi velocizzare il Cestino configurandolo affinché conservi i files cestinati in una certa unità disco.  Cerca Cestino nelle topiche della Guida di Calmira per maggiori dettagli.
+
+Il Cestino impiega più tempo a caricare se contiene molti files.  Questo è perché ha bisogno di confermare l'esistenza e le dimensioni dei files.
+
+E' possibile nascondere completamente il Cestino impostando Visible=0 nella sezione [Bin] in CALMIRA.INI.
+
+Puoi esaminare il contenuto di una cartella nel Cestino.  Guarda nella sezione [Trash] in CALMIRA.INI per vedere dove la cartella è stata spostata, poi apri la finestra corrispondente usando il comando Apri Cartella nel Menù a scomparsa del Desktop.
+
+Puoi usare diverse cartelle che contengano i files cestinati, puoi nasconderle e renderle di sola lettura onde evitare che vengano cancellate accidentalmente.  Anche tenerle in una zona del disco che sia poco utilizzata può essere una buona idea.
+
+; Desktop
+
+Puoi portare Calmira in primo piano quando non è attivo tenendo premuto il tasto sinistro del mouse sul Desktop, e poi cliccando col tasto destro.  Questo è utile per far ricomparire i collegamenti e le finestre.
+
+Quando Calmira è attivo, puoi aprire la finestra Risorse del Computer tenendo premuto il tasto sinistro del mouse sul Desktop e cliccando col tasto destro.  Ripeti l'operazione se Calmira non è attivo.
+
+Il box Proprietà del Desktop ti permette di decidere dove sistemare le nuove finestre: "In cascata" le mette vicino alle precedenti, "Casualmente" copre più spazio sul Desktop, salvare la posizione le mantiene in posti prefissati.
+
+Se decidi di memorizzare la posizione delle finestre, allora è meglio ripulire la sezione [Window Positions] in CALMIRA.INI una volta ogni tanto.  Cancella le linee con le cartelle che non esistono più, così Calmira ne avrà di meno da cercare.
+
+Puoi chiudere velocemente una finestra con un solo click attivando l'opzione "Chiudi finestra con un clic del tasto destro del mouse su Min/Max" nelle Proprietà del Desktop.  Sostituisce il pulsante di chiusura di Windows 95.
+
+Quando vuoi passare a Calmira, e uno dei suoi box è attivo ma nascosto, tieni premuto il tasto sinistro del mouse mentre premi il tasto destro mentre punti sul Desktop.  Questo ti evita di dover spostare altre finestre per mostrare il box interessato.
+
+Se hai riordinato per sbaglio i collegamenti con "Disponi icone" di Task Manager o di un'altra utility, puoi ripristinare la loro posizione.  Chiudi tutte le finestre, apri il box Informazioni e clicca sul logo di Calmira.
+
+Puoi cliccare col tasto destro del mouse sul Desktop per far comparire un Menù a scomparsa che ti permette di aprire nuove finestre senza dover utilizzare il Menù Avvio. Es.: Esplora, Apri cartella oppure esegui programma.
+
+Puoi creare velocemente una nuova cartella cliccando col tasto destro del mouse sul Desktop e selezionando Apri Cartella.  Se digiti il nome di una cartella che non esiste, Calmira si offrirà di crearla prima di aprirla.
+
+Il comando Apri Cartella del Menù a scomparsa del Desktop accetta i caratteri jolly come filtro per le nuove finestre.  Per esempio, digitando c:\Windows\*.exe vedrai solo i programmi.
+
+Non è necessario inserire sempre la lettera dell'unità disco quando usi il comando Apri Cartella dal Menù a scomparsa del Desktop.  Se ometti unità, due punti e backslash, Calmira considera lo stesso drive in cui è installato Windows.
+
+E' possibile aprire la directory principale di una unità disco selezionando Apri Cartella dal Menù a scomparsa del Desktop, e inserendo la lettera dell'unità seguita dai due punti.
+
+Se i colori dello schermo diventano distorti quando i programmi di Windows cambiano gli schemi di colore (spesso compaiono colori psichedelici sul Desktop), devi cliccare col tasto destro del mouse sul Desktop e selezionare Aggiorna Schermo.
+
+Puoi disporre le icone dei programmi ridotti a icona senza spostare i collegamenti.  Seleziona Disponi icone dal Menù a scomparsa del Desktop invece di usare Task Manager.
+
+Puoi allineare tutte le icone sul Desktop selezionando Allinea Icone dal Menù a scomparsa del Desktop.
+
+Puoi ridurre tutte le finestre ad icone in una volta sola: clicca col tasto destro del mouse sul Desktop e seleziona Minimizza tutte le finestre dal sotto-Menù Disponi.
+
+Puoi nascondere tutte le finestre e i collegamenti di Calmira con il comando Libera icone dal Desktop del Menù a scomparsa del Desktop.  Calmira apparirà come un'icona; cliccaci sopra due volte per ripristinare il Desktop.
+
+Per disporre un gran numero di finestre di Explorer aperte, puoi usare il comando Disponi-Finestre di Explorer-Finestre in cascata dal Menù a scomparsa del Desktop per renderle tutte visibili.
+
+; Menù Avvio
+
+Il Menù Avvio può diventare un po' più veloce se disattivi la barra di selezione colorata nelle Proprietà del Menù Avvio.
+
+Calmira ha un suo equivalente del gruppo "Avvio" di Program Manager.  Crea un sotto-Menù del Menù Avvio (in una posizione qualunque), e dagli il nome "Startup".  I programmi che inserirai lì saranno eseguiti automaticamente ad ogni avvio di Calmira.
+
+L'aspetto delle icone del Menù Avvio può dipendere dalle impostazioni predefinite degli schemi di colore del tuo driver video.  Questo può far sì che il Menù cambi aspetto quando lo visualizzi in un'altra modalità grafica.
+
+Ogni volta che modifichi manualmente o cancelli il file START.INI, devi anche cancellare il file BMPCACHE.BMP se usi le icone nel Menù Avvio. Questo forza Calmira a ricreare il Menù quando si avvia, e ti assicura che le icone siano quelle corrette.
+
+Puoi muoverti più velocemente nel Menù Avvio se metti i sotto-Menù in cima al loro Menù superiore.
+
+E' possibile utilizzare una immagine Bitmap per personalizzare il Menù Avvio, inserendo un file di nome BANNER.BMP nella cartella dove si trova Calmira.  Cerca Personalizzazione delle Bitmaps nei contenuti della Guida di Calmira per maggiori dettagli.
+
+Puoi estendere il Menù Proprietà del Menù Avvio per avere più posto per apportare le modifiche.  Muovi il puntatore ai bordi del Menù finché compare a forma di freccetta, dopodiché potrai cambiarne le dimensioni nel modo consueto.
+
+Per modificare velocemente un oggetto nel Menù Proprietà del Menù Avvio, puoi cliccarci due volte per far comparire la finestra delle modifiche.
+
+Puoi usare immagini Bitmap 16 x 16 (.BMP) per le icone nel Menù Avvio, in modo che non appaiano distorte quando vengono visualizzate.  Quando usi le Proprietà del Menù Avvio, indica un file .BMP come icona dell'oggetto che ti interessa.
+
+Puoi aggiungere linee separatrici nel Menù Avvio, creando un oggetto che abbia il nome che cominci un meno [-].  Ogni linea deve avere un nome diverso, per esempio -1, -2, etc..
+
+Puoi aggiungere a qualunque parte del Menù Avvio oggetti da Program Manager cliccando sul pulsante con l'immagine di un piccolo gruppo di programmi nel Menù Proprietà del Menù Avvio.
+
+Quando importi gli oggetti da Program Manager al Menù Avvio, questi vengono inseriti nella sua posizione più bassa del livello selezionato in quel momento.
+
+Quando modifichi il Menù Avvio, puoi copiare un oggetto trascinandolo e tenendo premuto il tasto Control prima di rilasciare il tasto sinistro del mouse.  Ricordati di dare un nome diverso al nuovo oggetto se vuoi copiarlo all'interno dello stesso Menù.
+
+Quando modifichi il Menù Avvio puoi spostare un oggetto dentro un altro trascinandolo e tenendo premuto il tasto Alt prima di rilasciare il mouse.
+
+Quando importi gli oggetti da Program Manager al Menù Avvio, se ce ne sono di aventi lo stesso nome, questi saranno sostituiti con quelli nuovi.  Usa questa caratteristica per aggiornare il Menù Avvio se vuoi che rispecchi il contenuto di Program Manager.
+
+E' possibile inserire documenti, cartelle e collegamenti Internet nel Menù Avvio usando il suo Menù Proprietà.  Se digiti un URL nella casella relativa al comando, Calmira aprirà il tuo Web Browser per accedere a quella pagina web.
+
+Puoi spezzare parti del Menù Avvio in colonne delle stesse dimensioni.  In Proprietà del Menù Avvio, modifica il nome di una cartella aggiungendo un asterisco all'inizio, seguito da un numero tra 2 e 9.  Per esempio *3 dividerà il sotto-Menù in tre parti.
+
+Nel Menù Avvio puoi cambiare le icone piccole predefinite per i sotto-Menù, cartelle e comandi.  Cerca Personalizzazione delle Bitmaps nelle topiche della Guida di Calmira per maggiori dettagli.
+
+Per assegnare un tasto di scelta rapida al Menù Avvio, usa il nome "Start" quando modifichi la sezione [Keyboard] in CALMIRA.INI (vedi la Guida di Calmira al proposito). Quando premi quel tasto, appare la barra delle applicazioni che apre il Menù Avvio.
+
+Per assegnare un tasto di scelta rapida a una certa parte del Menù Avvio usa il nome di quel sotto-Menù quando modifichi la sezione [Keyboard] in CALMIRA.INI (vedi la Guida di Calmira al proposito).  Il sotto-Menù apparirà quando premerai quel tasto.
+
+Puoi includere variabili d'ambiente alle proprietà di un oggetto del Menù Avvio.
+
+Puoi modificare nome, cartella di lavoro e modalità di visualizzazione degli oggetti del Menù Avvio, senza che questo richieda la ricostruzione della cache delle icone.  In questo caso Calmira modificherà e ricaricherà il solo file START.INI.
+
+Quando usi le Proprietà del Menù Avvio puoi passare da un Menù ad un altro appartenente allo stesso livello premendo Control+Su o Control+Giù.  Questo ti fa evitare il dover espandere i vari nodi del Menù.
+
+Puoi premere Control+Sinistra nel Menù Proprietà del Menù Avvio per accedere al Menù precedente all'oggetto selezionato.
+
+Se hai una tastiera per Windows 95, puoi usare il tasto Windows per aprire il Menù Avvio.  Puoi attivare questo tasto nelle Proprietà del Menù Avvio.
+
+; Esegui
+
+Puoi aprire velocemente una pagina web digitando l'URL nella finestra Esegui, per esempio http://www.nomesito.it, se hai impostato il browser predefinito in Proprietà del Sistema.
+
+Puoi usare MS-DOS per rinominare i files usando le abbreviazioni.  Seleziona il comando Esegui dal Menù a scomparsa di una finestra; digita il comando "rename", conferma l'opzione "Comando DOS" e poi premi Esegui.  Ricordati di aggiornare la finestra!
+
+Non ti serve il nome del percorso completo nella finestra Esegui per i programmi e i documenti che sono nel path di MS-DOS.  Per esempio, per modificare il file di inizializzazione di Windows (WIN.INI), digita semplicemente WIN.INI.
+
+Puoi aprire cartelle dalla finestra Esegui e usare la sua lista delle cartelle aperte di recente.  Per cancellarla, apri Proprietà del Sistema, seleziona la lista e premi il pulsante del cestino.
+
+; Trova
+
+Puoi trascinare i files dal Menù Trova Files a finestre, scorciatoie o alias per copiarli o spostarli.  Nota che questa caratteristica non funziona con le descrizioni dei files.
+
+Puoi trascinare i files dal Menù Trova Files a programmi come il Blocco Note.
+
+Puoi estendere il Menù Trova Files per visualizzare più files.  Muovi il puntatore ai bordi del Menù finché compare a forma di freccetta, dopodiché potrai cambiarne le dimensioni nel modo consueto.
+
+Puoi aprire un file o una cartella mostrata nel Menù Trova Files cliccandoci sopra due volte col tasto sinistro del mouse.
+
+Puoi aprire il box "Apri Con" dal Menù Trova Files usando il Menù a scomparsa o premendo Control+Invio.
+
+Quando copi i dettagli dei files dal Menù Trova Files al Visualizzatore Appunti, puoi fare più spazio per la colonna Posizione allargando l'intestazione di quella colonna in cima alla lista.
+
+Puoi andare direttamente a un file mostrato nella lista del Menù Trova Files.  Seleziona il file, e poi Apri Cartella dal Menù a scomparsa.  Verrà aperta la finestra contenente quel file, che sarà selezionato automaticamente.
+
+Puoi cambiare l'unità disco in cui cercare col Menù Trova Files, semplicemente digitando la lettera di quell'unità nella riga Inizia Da.  Calmira aggiungerà il resto del percorso in vece tua.
+
+Il Menù Trova Files cerca molto più velocemente se indichi un solo carattere jolly e svuoti la lista prima di ogni ricerca, perché non deve controllare i doppioni.
+
+Puoi aprire il Menù Trova da Gestione Risorse selezionando una cartella e scegliendo Trova... dal Menù a scomparsa (o premendo Control+F).  La cartella selezionata apparirà nella riga Inizia Da.
+
+; Ottimizzazione
+
+Puoi fare uso dei tasti [/], [*], [+] e [-] per chiudere le finestre indesiderate.  Questo riduce facilmente la confusione sul Desktop e fa risparmiare memoria.
+
+Se il tuo sistema sta esaurendo le Risorse Utente, puoi provare a ridurre le dimensioni del Menù Avvio.
+
+Se il tuo sistema sta esaurendo le Risorse di Sistema, puoi provare a rimuovere alcuni collegamenti o usare degli Alias al loro posto.
+
+Se Calmira impiega troppo tempo ad avviarsi, controlla che non ci siano troppi files nel Cestino, che esegue la scansione all'avvio di Calmira.
+
+Calmira può accedere più velocemente al file CALMIRA.INI se riduci la sezione [Window Positions] a dimensioni ragionevoli.  Se hai impostato il salvataggio automatico della posizione delle finestre, viene aggiunta una linea per ogni cartella che apri!
+
+; Finestra Risorse del Computer
+
+Puoi aggiornare il contenuto della finestra Risorse del Computer premendo F5 o selezionando Aggiorna dal Menù a scomparsa.  Vengono rilevate tutte le unità disco: è comodo se ti sei appena collegato a una rete.
+
+Puoi trascinare file e cartelle sull'icona Risorse del Computer per aggiungerli al Menù Avvio.  Compariranno nella struttura la prossima volta che apri le Proprietà del Menù Avvio.
+
+Puoi personalizzare le icone dei programmi nella finestra Risorse del Computer modificando la sezione [Programs] in CALMIRA.INI.
+
+Se non usi il Menù a scomparsa del Desktop, puoi accedere ad alcuni dei suoi comandi dal Menù a scomparsa della finestra Risorse del Computer.
+
+Per aprire il Menù a scomparsa di Risorse del Computer ridotta a icona (ad es. per la Guida), clicca col tasto destro sulla sua icona.  Le Proprietà del Sistema decidono se appare questo Menù o il Menù Avvio.
+
+Puoi aprire uno dei Menù "Proprietà di..." di Calmira usando il Menù a scomparsa che appare se clicchi col tasto destro del mouse tra le icone nella finestra Risorse del Computer.
+
+Puoi creare una versione personalizzata della finestra Risorse del Computer usando una cartella e un alias.  Questo ti permette di trascinare oggetti sulle icone delle unità disco.
+
+; Script
+
+Puoi usare gli script per eseguire sequenze di comandi e programmi con un solo click del mouse.  Crea uno script che usi il comando Start ed assegnalo a un collegamento, alias od oggetto del Menù Avvio.
+
+Puoi eseguire gli script da una sessione MS-DOS di Windows.  Così puoi eseguire programmi per Windows dalla linea di comando, e controllare opzioni di Calmira come aprire finestre e attivare collegamenti.  Guarda nella Guida di Calmira per altri dettagli.
+
+Se usi spesso dei files "batch" (.BAT) nelle sessioni MS-DOS di Windows, puoi fargli generare facilmente degli script per controllare Calmira ed eseguire programmi  Windows al posto tuo.  Guarda nella Guida di Calmira per altri dettagli sugli script.
+
+Il file START.BAT ti permette di eseguire un programma o aprire un documento o una cartella da una sessione MS-DOS di Windows.  Questo ti evita di aprire una finestra per eseguire un file che potresti già aprire dal punto in cui ti trovi con MS-DOS.
+
+Il file FOLDER.BAT ti permette di aprire una finestra da una sessione MS-DOS di Windows.  Così non devi digitare un lungo percorso per aprire la cartella in cui ti trovi già.
+
+Il file OPEN.BAT ti permette di aprire files, programmi per Windows e cartelle da una sessione MS-DOS di Windows.
+
+Il file EXPLORE.BAT ti permette di aprire Gestione Risorse da una sessione MS-DOS di Windows, già posizionata sulla cartella in cui ti trovi.
+
+Quando stai usando una sessione MS-DOS di Windows, puoi eseguire una altro programma MS-DOS in una nuova finestra usando il file START.BAT.
+
+Puoi creare un'applicazione che gestisca un Pannello di Controllo personalizzato.  Scrivi un set di script che attivino ogni sua sezione.  Poi crea degli alias e associali a quegli script, e la loro cartella diventerà un nuovo Pannello di Controllo.
+
+Puoi far aprire dei Menù da degli alias ed esportare comandi speciali proprio come con gli oggetti del Menù Avvio.  Crea un alias e associalo ad uno script che usi il comando Macro.  Cerca Script nelle topiche della Guida di Calmira per maggiori dettagli.
+
+Puoi avviare un programma per Windows da una finestra del prompt dei comandi usando i files OPEN.BAT e START.BAT.
+
+; Ambiente
+
+Puoi utilizzare la variabile %currentfolder% per eseguire un programma usando la cartella visualizzata in quel momento come cartella di lavoro.
+
+Puoi utilizzare la variabile %droppedfiles% per controllare la disposizione dei nomi dei files nella linea di comando, quando trascini oggetti su un collegamento o un alias.
+
+Puoi utilizzare la variabile %filename% per controllare la disposizione dei nomi dei files quando esegui i programmi col Menù Apri Con, o le utility nel Menù Proprietà del File System.
+
+Puoi utilizzare la variabile %calmira% per riferirti alla cartella in cui risiede Calmira.
+
+Puoi utilizzare la variabile %comspec% per riferirti alla shell corrente di MS-DOS.  Questo è utile se cambi frequentemente shell.
+
+Puoi utilizzare la variabile %windir% per riferirti alla cartella in cui risiede Windows.
+
+Puoi utilizzare la variabile %currentdrive% per riferirti alla lettera dell'unità disco della finestra attiva.  Questo è utile per eseguire programmi legati a una certa unità disco, e si trova anche nel Menù Proprietà dell'Unità Disco.
+
+Puoi personalizzare le variabili nella sezione [Environment] in CALMIRA.INI.  Così puoi evitare di usare costanti assolute per i nomi di percorsi, scorciatoie, alias e oggetti del Menù Avvio.
+
+Puoi utilizzare le variabili come macro semplici, per farne uso col comando Esegui o Apri Cartella.  Questo ti permette di sostituire una lunga sequenza di comandi o il nome completo di un percorso con uno  breve preceduto e seguito dal segno %.
+
+; Finestre
+
+Puoi premere Backspace per aprire la cartella superiore di una finestra.
+
+Per selezionare o deselezionare dei files usando i caratteri jolly, premi Control+S in una finestra oppure clicca col tasto destro sulla parte destra della barra di stato.
+
+Puoi aprire il box Proprietà dell'Unità Disco da una finestra cliccando col tasto destro sulla parte sinistra della barra di stato.  Ti mostra lo spazio libero sull'unità corrente.
+
+Puoi associare un tipo di file a un programma selezionando un file di quel tipo, e selezionando Proprietà-Associazione dal suo Menù a scomparsa.
+
+Puoi copiare negli Appunti i dettagli dei files selezionati premendo Control+C.  Con Icone grandi e piccole viene copiata una lista di nomi; con Elenco una lista simile a quella di MS-DOS.
+
+Per ottenere un elenco personalizzato di una cartella, passa alla visualizzazione per Elenco e scegli le colonne nel box Filtro.  Poi seleziona i files e premi Control+C per copiare i dettagli negli Appunti.
+
+Puoi aprire Gestione Risorse da una finestra premendo Control+E.  La cartella della finestra verrà selezionata automaticamente.
+
+Puoi aprire il Menù Trova Files da una finestra premendo Control+F.  La cartella di quella finestra verrà usata come percorso di partenza per la ricerca.
+
+Puoi stampare un file selezionandolo e premendo Control+P.  Il file deve essere associato ad un programma che sia capace di eseguire la stampa di quel tipo di file, per esempio il Blocco Note può stampare i files di testo semplice.
+
+Puoi stampare un file trascinandolo sulla finestra o sull'icona di Print Manager.  Il file deve essere associato ad un programma che sia capace di eseguire la stampa di quel tipo di file, per esempio il Blocco Note può stampare i files di testo semplice.
+
+Puoi aprire qualunque cartella quando una finestra è attiva, premendo Control+O e digitando il percorso della cartella desiderata.
+
+Puoi eseguire il programma "Undelete" specificato nel Menù Proprietà del File System, premendo Control+U.
+
+Puoi disporre tutte le finestre "in cascata" premendo Control+F5.
+
+Puoi disporre le icone del Desktop premendo Shift+F5 mentre è attiva una finestra.
+
+Puoi ridurre Calmira a icona per liberare il Desktop premendo F12 mentre è attiva una finestra.
+
+Per aggiornare il contenuto di una finestra puoi premere F5 o cliccare sulla parte sinistra della barra di stato.
+
+Puoi chiudere tutte le finestre tranne quella attiva premendo l'asterisco [*] del tastierino numerico.  E' comodo dopo aver cercato a lungo un certo file.
+
+Puoi chiudere tutte le finestre superiori a quella attiva premendo il più [+] del tastierino numerico.  E' comodo dopo essere sceso lungo un ramo delle cartelle.
+
+Puoi chiudere tutte le finestre premendo la barra [/], sul tastierino numerico o sulla tastiera principale.
+
+Puoi selezionare o deselezionare tutti i files in una finestra premendo rispettivamente la virgola [,] o il punto [.] dopo averne selezionato uno.
+
+Puoi impostare il filtro di una finestra e scegliere i dettagli da mostrare premendo il punto interrogativo [?].
+
+Per visualizzare Icone grandi, Icone piccole o Elenco, premi rispettivamente Shift+I, Shift+M e Shift+L.
+
+Tenendo premuto Alt mentre clicchi due volte su una cartella, la apri nella stessa finestra o in una nuova, al contrario di quanto impostato nelle Proprietà del Desktop.
+
+Per ordinare per Tipo, Nome, Dimensione e Data, premi rispettivamente Shift+T, Shift+N, Shift+S e Shift+D.
+
+Puoi aprire la directory principale della unità disco corrente da qualunque finestra, premendo il backslash [\].
+
+Per passare al successivo file il cui nome cominci per una certa lettera, puoi semplicemente premere quella lettera.
+
+Per aprire la directory principale di qualunque unità disco, premi Control e Shift insieme alla lettera dell'unità.
+
+Quando la barra di stato di una finestra mostra una sola scritta, puoi usare le funzioni dell'altra tenendo premuto Shift mentre ci clicchi sopra.
+
+Puoi regolare il numero di righe e colonne usate per il ridimensionamento automatico delle finestre.  Cerca nella Guida come modificare la sezione [Layouts] in CALMIRA.INI.
+
+Puoi annullare temporaneamente l'opzione "Sfoglia le cartelle usando la stessa finestra" tenendo premuto il tasto Alt mentre apri una cartella.  Se però questa opzione non è attiva, premendo Alt succede il contrario.
+
+Puoi scoprire quanto spazio viene utilizzato da un gruppo di directory selezionando le cartelle corrispondenti e scegliendo Proprietà dal Menù a scomparsa.
+
+Per selezionare e deselezionare tutti i files in una finestra, clicca sulle scritte nella parte destra della barra di stato.  Se ci sono alcuni oggetti selezionati, verranno deselezionati; se non ce ne sono, verranno selezionati tutti.
+
+Durante un trascinamento puoi cliccare col tasto destro per passare da Copia a Sposta.  Puoi anche cambiare il modo iniziale premendo Alt prima di trascinare.  Vedi le opzioni nelle Proprietà del File System.
+
+Quando vuoi trascinare dei files in una cartella o su un programma, ma l'icona di destinazione è in una zona nascosta della finestra, puoi trascinare il puntatore sui pulsanti di scorrimento per cercarla.
+
+Quando ci sono molte finestre che ricoprono il Desktop, puoi passare da una di queste ad un'altra cliccando col tasto destro del mouse su una delle barre del titolo.  Comparirà un Menù a scomparsa con elencate tutte le finestre aperte in quel momento.
+
+Per esplorare le cartelle usando la stessa finestra, usa l'opzione nel Menù Proprietà del Desktop.  Così eviti di aprire troppe finestre per arrivare a quella che desideri.  Poi, usa il tasto BackSpace per scorrere le cartelle all'indietro.
+
+Puoi aprire Gestione Risorse su qualunque cartella tenendo premuto Shift mentre ci clicchi sopra due volte.
+
+Puoi invertire il modo di esplorare le cartelle, in più finestre o in una sola, tenendo premuto Alt mentre clicchi due volte su una cartella.
+
+Se lasci il puntatore sull'icona di un file o di una cartella, vi apparirà sopra un messaggio con ulteriori informazioni su quell'oggetto. (Vedi Proprietà del File System -Informazioni sui files)
+
+Puoi ispezionare velocemente un file tenendo premuto il tasto Shift mentre ci clicchi sopra col tasto destro del mouse.  Questo equivale al comando Ispeziona dal Menù a scomparsa del file.
+
+Puoi aprire velocemente il Box "Apri Con" tenendo premuto il tasto Control mentre clicchi su un file col tasto destro del mouse.
+
+Nel box "Apri Con" puoi cliccare due volte su un programma invece di premere il pulsante OK.
+
+Puoi aprire il box Proprietà di un file o di una cartella tenendo premuto il tasto Alt mentre clicchi sopra col tasto destro del mouse.
+
+Per invertire la selezione in una finestra, tieni premuto Control mentre clicchi sulla parte destra della barra di stato.  E' utile per selezionare tutti i files tranne pochi.
+
+Puoi selezionare blocchi di files e cartelle col lazo.  Se inizi a trascinare il lazo da un oggetto già selezionato, la selezione precedente viene mantenuta.
+
+Puoi trascinare icone di files da Calmira ad altri programmi, nello stesso modo in cui usi File Manager.
+
+Puoi deselezionare tutti gli oggetti in una finestra cliccando su un punto vuoto di quella finestra.
+
+Puoi premere Control+Su o Control+Giù per far scorrere il contenuto di una finestra senza cambiare la selezione.
+
+Per tracciare un rettangolo attorno a un gruppo di files, clicca vicino a un angolo del gruppo e trascina il rettangolo.
+
+Puoi trascinare l'icona di un file su quella di un programma per aprire il file con quel programma.  Puoi attivare questa opzione dal Menù Proprietà del File System.
+
+; Tastiera
+
+Puoi usare il tasto Alt Gr nei tasti di scelta rapida indicando Ctrl+Alt.  In Calmira, tenere premuto Alt Gr equivale a premere Control e Alt insieme.
+
+Puoi simulare una tastiera per Windows 95 assegnando Ctrl+Alt+Space al Menù Avvio (nome "Start").  Così il Menù Avvio appare premendo la barra spaziatrice mentre tieni premuto Alt Gr.
+
+Quando assegni i tasti di scelta rapida, puoi usare i tasti speciali chiamandoli coi loro nomi: Enter, Backspace, Delete etc..
+
+Puoi premere Control+Tab per passare da una finestra all'altra di Calmira.
+
+; Barra delle Applicazioni
+
+Puoi chiudere le applicazioni che non rispondono con la Barra delle Applicazioni.  Clicca col tasto destro sul pulsante Avvio, seleziona "Termina applicazione" e poi clicca sul pulsante dell'applicazione da chiudere.
+
+Il comando "Mostra informazioni sulle finestre" del Menù a scomparsa del pulsante Avvio mostra modulo e classe delle finestre sui pulsanti della Barra.  Usali per escludere certe finestre dalla Barra.
+
+Puoi trascinare dei files da Calmira e altri programmi sui pulsanti della Barra delle Applicazioni.  L'effetto è lo stesso di quando si usa File Manager per trascinare i files su applicazioni ridotte a icona.
+
+Se un nuovo programma non appare subito sulla Barra delle Applicazioni, clicca su un'altra finestra e poi torna al programma: la Barra verrà avvisata.
+
+Puoi assegnare delle immagini Bitmap personalizzate alla Barra delle Applicazioni affinché vengano utilizzate nel pulsante Avvio e in Gestione Risorse.  Cerca Personalizzazione delle Bitmaps nei contenuti della Guida di Calmira per maggiori dettagli.
+
+La Barra delle Applicazioni può mostrare sui pulsanti il nome del documento prima di quello del programma.  Quando i pulsanti sono stretti, così riconosci subito il documento.
+
+I suggerimenti della Barra delle Applicazioni mostrano sempre il percorso completo delle finestre, anche quando i pulsanti mostrano nomi di cartella di 8 lettere.
+
+La Barra delle Applicazioni può mostrare icone di tua scelta per programmi eseguiti da collegamenti, alias o dal Menù Avvio, anche se fossero programmi per Windows aventi la loro icona, in quanto la Barra riceve le icone direttamente da Calmira.
+
+La Barra delle Applicazioni può mostrare diverse icone per un medesimo programma. Per esempio, se usi dei collegamenti per aprire dei testi del Blocco Note, potresti assegnare icone diverse per identificare meglio ciascuno di essi.
+
+; Visualizzazione
+
+Calmira è stato progettato, e quindi viene visualizzato al meglio, con il carattere MS Sans Serif a 8 punti e con il driver video impostato su caratteri piccoli.
+
+Puoi mostrare i files .ICO con la loro icona aggiungendo "ICO" alle estensioni in cui cercare le icone, nelle Proprietà del File System.  Ma le icone occupano memoria: evita di usarlo per centinaia di icone.
+
+Non lasciare files .ICO nella cartella di Calmira, a meno che non servano per documenti o oggetti predefiniti.  Altrimenti riempiono soltanto le liste delle risorse di Calmira.
+
+Puoi sostituire quasi tutte le icone predefinite di Calmira con altre di tua scelta.  Cerca Personalizzazione delle Icone nei contenuti della Guida di Calmira per maggiori dettagli.
+
+Puoi assegnare icone personalizzate ai documenti, che sostituiscono quelle indicate nel registro.  Cerca Personalizzazione delle Icone nella Guida di Calmira per maggiori dettagli.
+
+Puoi personalizzare molte delle immagini Bitmap del Menù Avvio, della Barra delle Applicazioni e di Gestione Risorse.  Cerca Personalizzazione delle Bitmaps nelle topiche della Guida di Calmira per maggiori dettagli.
+
+Puoi assegnare delle descrizioni alle unità disco modificando la sezione [Drives] in CALMIRA.INI.  Per esempio, puoi rinominare il Floppy (A) come Floppy Disk da 3½".
+
+Puoi assegnare delle descrizioni ai nomi delle cartelle aggiungendo delle linee alla sezione [Window Captions] in CALMIRA.INI.  Questo è utile se usi alcune cartelle come gruppi di programmi per fargli contenere degli alias per le applicazioni.
+
+; Miscellanee
+
+Puoi cambiare lo sfondo del Desktop nel box Proprietà del Desktop.  Per aprirlo, clicca col tasto destro del mouse in un punto qualsiasi del Desktop e seleziona "Proprietà".
+
+Puoi attivare o disattivare i nomi lunghi di Windows 95 con l'opzione "Attiva i nomi di file lunghi" nella pagina Avanzate del box Proprietà del File System.
+
+Ogni volta che in un box c'è una casella che richiede un file o una cartella, puoi cliccarci due volte per aprire un box di selezione.
+
+Puoi trascinare files da altri programmi (ad es. File Manager) su finestre, collegamenti o alias.  Calmira ti chiederà se copiarli o spostarli.  Questa funzione non vale per le descrizioni dei files.
+
+Per vedere gli elenchi di cartelle copiati negli Appunti, usa la visualizzazione Testo OEM, così le colonne restano allineate.
+
+Potrebbe interessarti dare un'occhiata al codice sorgente di Calmira.  Apri i files *.PAS con un editor di testi: alcune parti sono sorprendentemente leggibili, anche se non sai programmare!
+
+Ti conviene fare una copia di backup di CALMIRA.INI e START.INI, così non dovrai perdere tempo a riorganizzare il tuo Desktop e le tue impostazioni se i files .INI venissero danneggiati.
+
+Puoi aggiungere la stringa "www." alla riga URLPrefixes nella sezione [Internet] in CALMIRA.INI.  Questo ti consente di digitare un indirizzo web nel Menù Esegui senza dover aggiungere il prefisso "http://".
+
+Puoi cliccare due volte col tasto sinistro del mouse su una riga della pagina Avanzate nel Menù Proprietà del Sistema per modificare l'oggetto corrispondente.
+
+Puoi limitare il numero di elementi nelle liste dei dati recenti variando il valore di MaxHistorySize nella sezione [Calmira] in CALMIRA.INI.
+
+Puoi rendere i Menù di Windows 3.1 più simili a Windows 95 impostando lo sfondo grigio, la selezione blu e il testo selezionato bianco.
+
+Puoi cambiare la griglia usata dal comando Allinea Icone impostando DeskGridX e DeskGridY nella sezione [Desktop] in CALMIRA.INI.
+
+Puoi cambiare il carattere usato per le finestre, Gestione Risorse e Risorse del Computer modificando FontName, FontSize e FontStyle nella sezione [Display] in CALMIRA.INI.
+
+Puoi fare in modo che Calmira carichi e salvi i sui files .INI nella cartella di Windows.  Crea una sezione [Calmira] nel file WIN.INI ed aggiungi lì la riga LoadFromWindir=1.
+
+Puoi cambiare il modo in cui vengono disegnate le icone piccole nella modalità Elenco, modificando la riga IconStretchMode nella sezione [Display] in CALMIRA.INI.  Il valore predefinito comunque di solito forisce i risultati migliori.
+
+Puoi aggiungere definizioni ai tipi di file per il Menù Proprietà del File modificando la sezione [File Types] in CALMIRA.INI.  Calmira usa queste descrizioni per quei files che non hanno una voce adatta nel file di registro.
+
+Puoi impostare le dimensioni automatiche delle finestre modificando la sezione [Layouts] in CALMIRA.INI, per determinare quante righe e colonne vanno destinate ad ogni tipo di icona.  Cerca Impostazioni Varie nelle topiche della Guida di Calmira per info.
+
+Puoi cambiare il carattere utilizzato nella Barra delle Applicazioni modificando FontName nella sezione [Taskbar] in CALMIRA.INI.
+
+Puoi controllare la posizione delle applicazioni ridotte a icona sulla Barra delle Applicazioni modificando MinAppHeight nella sezione [Taskbar] in CALMIRA.INI.  Usa questa se qualche nome delle applicazioni risulta nascosto dietro la Barra.
+
+Puoi regolare il ritardo dei suggerimenti sui pulsanti della Barra delle Applicazioni con la riga HintDelay nella sezione [Taskbar] in CALMIRA.INI.
+
+Puoi cambiare il formato di data e ora della Barra delle Applicazioni, modificando le impostazioni 24HourFormat, 12HourFormat e FullDateTime nella sezione [Taskbar] in CALMIRA.INI.  Cerca Impostazioni Varie nelle topiche della Guida di Calmira per info.
+
+Puoi cliccare due volte sull'orologio della Barra delle Applicazioni per impostare data e ora.
+
+Puoi modificare la linea ClockAdjust nella sezione [Taskbar] in CALMIRA.INI per utilizzare una utility diversa per l'impostazione di data e ora.
+
+Puoi assegnare dei suoni a certi eventi in Calmira specificando dei files .WAV nella sezione [Sounds] in CALMIRA.INI.  Cerca Impostazioni Varie nelle topiche della Guida di Calmira per dettagli. Questi eventi sonori riguardano solo le finestre di Calmira.
+
+Puoi cambiare il carattere del Menù Avvio modificando FontName e FontSize nella sezione [Start menu] in CALMIRA.INI.
+
+Puoi cambiare il carattere e il nome del pulsante Avvio modificando le linee FontName, FontSize, FontStyle e Caption nella sezione [Start button] in CALMIRA.INI.
+
+Puoi nascondere il pulsante Avvio spostandolo al di fuori dello schermo.  Imposta il valore Left nella sezione [Start button] in CALMIRA.INI a un adeguato numero negativo.
+
+Puoi cambiare il nome di quel file nascosto che viene utilizzato per memorizzare le descrizioni dei files, assegnando un nuovo nome di file nella sezione [File System] in CALMIRA.INI.
+
+Puoi cambiare la larghezza della colonna delle descrizioni nella visualizzazione per ELenco, modificando la riga DescriptionWidth nella sezione [File System] in CALMIRA.INI.
+
+Puoi modificare la spaziatura tra le colonne nella modalità Visualizza Dettagli modificando ColumnPadding nella sezione [File System] in CALMIRA.INI.
+
+Puoi scegliere il numero di cifre decimali per visualizzare le dimensioni dei files in KBytes.  Assegna un valore alla riga ListKBDecimals nella sezione [File System] in CALMIRA.INI.  Questa opzione riguarda solo la modalità di visualizzazione per Elenco.
+
+Puoi cambiare le sezioni che compaiono nella pagina Avanzate del Menù Proprietà del Sistema.  Modifica la sezione [Advanced] in CALMIRA.INI seguendo le istruzioni nel contenuto delle Impostazioni Varie nella Guida di Calmira.
+
+La sezione [History Lists] contiene gli oggetti che compaiono nel Menù Proprietà del Sistema.  Puoi aggiungere altri nomi di sezioni per permettergli l'eliminazione mediante il pulsante del cestino in quel Menù, per esempio la sezione [Window Positions].
+
+Puoi cliccare due volte sui pulsanti o box in molti Menù anziché premere il pulsante OK.
+
+Per vedere quanto spazio libero c'è sul disco, clicca col tasto destro del mouse sull'icona del drive in questione nella finestra Computer, e scegli Proprietà.  Puoi anche cliccare col tasto destro sul lato sinistro della barra di stato di una finestra.
+
+Quando viene aperta una cartella, puoi premere Backspace per aprire la cartella di un livello immediatamente superiore.
+
+Puoi cliccare col tasto destro del mouse in qualunque posizione per avere un Menù con i comandi disponibili in quella situazione.
+
+; Chiusura sessione
+
+Usa ogni tanto Riavvia Windows dal Menù di Chiusura Sessione.  Ripristina le risorse, libera la memoria, rimedia a molti problemi lasciati dai bug ed evita che Windows si blocchi.  E' più veloce che uscire e rilanciare WIN.
+
+Puoi cliccare due volte col tasto sinistro del mouse sulla casella di opzione  nel Menù di chiusura sessione anziché selezionare e poi premere OK.
+
+Puoi passare velocemente la shell di Windows da Program Manager a Calmira e viceversa cliccando due volte sull'icona nel Menù di Chiusura Sessione.
+
+; Guida in Linea
+
+La maggior parte dei files della Guida di Calmira sono stati progettati per essere visualizzati in una finestra larga circa 500 pixels.
+
+Se vuoi stampare l'intera guida di Calmira tutta in una volta, puoi estrarre il file sorgente in formato RTF e stamparlo con un editor di testi compatibile con quel formato, per esempio Word 6.
+
+Per vedere l'intera lista dei "Suggerimenti del Giorno", puoi aprire il file LANG\IT.TIP con un editor di testi che vada a capo automaticamente.
+
+Puoi aprire la guida in linea su certi argomenti da molte finestre premendo F1.
+
+Puoi far scorrere i contenuti della guida di Calmira usa i pulsanti << e >>.
+
+Puoi trovare gli ultimi aggiornamenti di Calmira alla pagina http://www.calmira.net.
+
+Puoi modificare il file LANG\IT.TIP per mostrare i tuoi messaggi.
+
+; Tastiera
+
+Puoi aprire qualsiasi finestra ed eseguire qualsiasi programma con un tasto... cerca nella Guida di Calmira come assegnare i tasti di scelta rapida.
+
+Puoi assegnare un tasto di scelta rapida al Menù Avvio -- infatti questo Menù ha il nome predefinito di "Start".  Cerca maggiori dettagli sui tasti di scelta rapida nella Guida di Calmira.
+
+; "Suggerimenti divertenti e ispiratori"
+
+Le magliette a tema informatico raramente sono un successo di moda.
+
+Non tuffarti mai in acque infestate dagli squali.
+
+Non è mai troppo tardi per imparare a usare il Macintosh.
+
+Per un sistema operativo stabile, visita http://www.linux.org.
+
+; File System
+
+Puoi attivare o disattivare i nomi lunghi di Windows 95 con l'opzione "Attiva i nomi di file lunghi" nella pagina Avanzate del box Proprietà del File System.
+
+La lista "Chiedi conferma prima di" nelle Proprietà del File System ti permette di regolare le domande che Calmira ti pone quando copi o sposti files, se ritieni che ne faccia troppe.
+
+Quando Calmira sta leggendo una directory in una finestra o in Gestione Risorse, puoi fermare la lettura premendo il tasto Esc.
+
+Puoi disabilitare la visualizzazione delle icone nelle modalità di visualizzazione per Elenco od Icone Piccole affinché Calmira disegni le finestre più velocemente.
+
+Per rendere più facile lo spostamento di files o cartelle, puoi disabilitare l'opzione (nel Menù Proprietà del File System) che permette ai files di essere trascinati su programmi. Così i files verranno spostati sulla finestra e non sul programma.
+
+Dal Menù Proprietà del File System puoi assegnare una utility del disco che formatti o controlli quel disco quando clicchi sulla sua icona nel Menù Proprietà del Disco.
+
+Calmira esegue la maggior parte delle operazioni in maniera trasparente in modo che tu possa utilizzare la Barra delle Applicazioni per passare ad un altro programma mentre i files vengono copiati o spostati.
+
+Il Menù Proprietà del File System serve anche per impostare se mostrare o nascondere le estensioni di tre lettere dei files.
+
+Si può associare un file ad un programma selezionando quel file e scegliendo Proprietà dal suo Menù a scomparsa. La pagina Associazioni ti permette di connetterti ad una riga esistente nel registro di Windows.
+
+; Proprietà dei Files
+
+Puoi usare il Menù Proprietà del File per associare un file ad un programma.  L'associazione prende effetto immediatamente, ma le icone verranno associate al successivo avvio di Calmira.
+
+Puoi scoprire quale programma aprirà un documento quando ci clicchi sopra due volte.  Seleziona l'icona, scegli Proprietà dal Menù a scomparsa e poi la pagina Associazioni.
+
+Nel box Proprietà del File puoi copiare negli Appunti il testo delle scritte.  Clicca su una scritta, trascina per selezionarla e premi Control+C.
+
+; Gestione Risorse
+
+Puoi velocizzare la navigazione in Gestione Risorse disattivando l'aggiornamento automatico della finestra dei files.  Clicca col tasto destro sulla struttura e togli il segno da "Mostra finestra dei files".
+
+Puoi aprire una finestra indipendente da Gestione Risorse cliccando col tasto destro del mouse su una icona di Gestione Risorse e selezionando Apri in Nuova Finestra dal Menù a scomparsa.
+
+Quando delle cartelle vengono aggiunte, eliminate o spostate, devi aggiornare la Gestione Risorse premendo F5 o selezionando Aggiorna dal Menù a scomparsa.
+
+Puoi decidere il numero di colonne da mostrare nelle finestre di Gestione Risorse variando il valore di FilePaneCols nella sezione [Desktop] in CALMIRA.INI.
+
+Puoi decidere di chiudere o tenere aperta la finestra associata a Gestione Risorse quando questo viene chiuso.  Cerca nel Menù Proprietà del Desktop al riguardo.
+
+Puoi cambiare la grafica usata in Gestione Risorse creando un file chiamato EXPLRICO.BMP.  Cerca Personalizzazione delle Bitmaps nei contenuti della Guida di Calmira per maggiori dettagli.
+
+Puoi espandere o ridurre un nodo in Gestione Risorse senza aggiornare il contenuto della finestra dei files, cliccando sul segno + o -.
+
+In Gestione Risorse puoi passare alla cartella precedente o successiva dello stesso livello premendo Control+Su e Control+Giù, saltando i rami espansi.
+
+Puoi fermare l'aggiornamento della finestra dei files di Gestione Risorse premendo Control+W, e muoverti nella struttura senza perdere i files visualizzati.
+
+Puoi aprire una finestra indipendente da Gestione Risorse scegliendo Apri in Nuova Finestra dal Menù a scomparsa, oppure premendo Control+Invio.
+
+In Gestione Risorse puoi premere Control+Sinistra per passare alla cartella superiore a quella corrente.
