@@ -99,6 +99,10 @@ procedure TTipDialog.FormCreate(Sender: TObject);
 begin
   with Title.Picture do
     ReplaceBitmapColors(Bitmap, Bitmap.Canvas.Pixels[0, Height - 1], Color);
+  { A translated welcome is often wider than "Welcome to": the title
+    follows it, as the German and French Calmira placed it. }
+  if Title.Left < Label1.Left + Label1.Width + 6 then
+    Title.Left := Label1.Left + Label1.Width + 6;
   cbShowDailyTips.Checked := ShowDailyTips;
   CloseBtn.Cancel := True;
 end;

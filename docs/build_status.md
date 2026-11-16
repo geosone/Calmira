@@ -3613,3 +3613,16 @@ Calmira Reborn, whose conversion to UTF-8 had replaced the 0xBD of
 odd characters in the Tip of the Day; it has the original byte again.
 `package-runtime-test` checks the line ends of the installed text files
 and the character of the tip.
+
+## Tip of the Day Fits Its Translated Texts
+
+The Tip of the Day draws "Welcome to" and the Calmira Reloaded title beside
+it at the English places. The German "Willkommen zu" ran into the title,
+and the German and Polish check box texts were cut off, as a Windows 3.1
+check box cannot wrap. `TTipDialog.FormCreate` now puts the title after the
+translated welcome, as the German and French Calmira 3.3 placed it; the
+German catalogue says "Willkommen bei" and "Einmal pro Tag beim Start von
+Calmira Reloaded anzeigen" like the German original, and the Polish text is
+shorter. `win16-langui-runtime-test` measures each catalogue's check box
+text in MS Sans Serif, and `win16-computer-window-runtime-test` checks the
+gap between the German welcome and the title on the screen.

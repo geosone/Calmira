@@ -120,7 +120,8 @@
       "TMessageForm.Ignore.Caption": "&Ignorieren",
       "TMessageForm.All.Caption": "&Alle",
       "TAboutBox.AboutBox.Caption": "Info",
-      "TTaskManager.TaskManager.Caption": "Task-Manager"
+      "TTaskManager.TaskManager.Caption": "Task-Manager",
+      "TTipDialog.Label1.Caption": "Willkommen bei"
     },
     "Help": {
       "Title": "Calmira Reloaded Hilfe",

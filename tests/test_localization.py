@@ -253,6 +253,20 @@ class LocalizationTests(unittest.TestCase):
         for name in ('French', 'Dutch', 'Italian', 'Spanish', 'Polish'):
             self.assertIn(f"'the {name} Start menu is translated'", probe)
 
+    def test_the_tip_of_the_day_fits_its_translated_texts(self):
+        # "Willkommen zu" ran into the Calmira title, and the German and
+        # Polish check box texts were cut off: Windows 3.1 cannot wrap them.
+        tips = (ROOT / 'src/tips.pas').read_bytes().decode('latin-1').replace('\r\n', '\n')
+        self.assertIn('  if Title.Left < Label1.Left + Label1.Width + 6 then\n'
+                      '    Title.Left := Label1.Left + Label1.Width + 6;\n', tips)
+        extra = json.loads((ROOT / 'locales/extra.json').read_text(encoding='utf-8'))
+        self.assertEqual(extra['de']['Forms']['TTipDialog.Label1.Caption'], 'Willkommen bei')
+        langui = (ROOT / 'tests/pascal/test_win16_langui.pas').read_text()
+        self.assertIn("'the Tip of the Day check box shows its whole text in ' + Codes[Code]", langui)
+        self.assertIn("Codes: array[0..6] of string[2] = ('en', 'de', 'fr', 'nl', 'it', 'es', 'pl');", langui)
+        probe = (ROOT / 'tests/pascal/test_win16_computer_window.pas').read_text()
+        self.assertIn("'the Calmira title stands beside the German welcome'", probe)
+
     def test_default_desktop_shortcuts_show_their_name_in_the_catalogue_language(self):
         # The desktop shortcut "MS-DOS Prompt" stayed English in German.
         def source(path):

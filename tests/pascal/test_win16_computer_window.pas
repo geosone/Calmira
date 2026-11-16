@@ -155,6 +155,28 @@ begin
     StrPCopy(V, '0'), StrPCopy(F, 'C:\CALMIRA.INI'));
 end;
 
+{ The Tip of the Day draws "Welcome to" in Times New Roman at (16, 8) and the
+  Calmira title after it on the dialog's colour: the columns just past the
+  translated welcome stay clear, or the title runs into it. }
+function TitleClear(Tip: HWND): Boolean;
+var DC: HDC; Font, Old: HFONT; Text: array[0..79] of Char; Face: array[0..31] of Char;
+  Width, X, Y: Integer; Back: TColorRef;
+begin
+  GetPrivateProfileString('Forms', 'TTipDialog.Label1.Caption', '', Text, SizeOf(Text), 'C:\LANG\DE.LNG');
+  DC := GetDC(Tip);
+  Font := CreateFont(-25, 0, 0, 0, FW_BOLD, 0, 0, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS,
+    CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, StrPCopy(Face, 'Times New Roman'));
+  Old := SelectObject(DC, Font);
+  Width := LoWord(GetTextExtent(DC, Text, StrLen(Text)));
+  SelectObject(DC, Old); DeleteObject(Font);
+  Back := GetPixel(DC, 4, 4);
+  Result := (StrLen(Text) > 0) and (Width > 122);
+  for X := 16 + Width + 1 to 16 + Width + 4 do
+    for Y := 8 to 36 do
+      if GetPixel(DC, X, Y) <> Back then Result := False;
+  ReleaseDC(Tip, DC);
+end;
+
 { The popup menu Windows shows, if any. }
 function MenuShown: Boolean;
 var Menu: HWND;
@@ -176,7 +198,12 @@ begin
   Welcome := WaitFor('Willkommen', 40);
   if Welcome <> 0 then PostMessage(Welcome, WM_CLOSE, 0, 0);
   Tip := WaitFor('Tipp des Tages', 15);
-  if Tip <> 0 then PostMessage(Tip, WM_CLOSE, 0, 0);
+  if Tip <> 0 then
+  begin
+    Pump(2000);
+    Check(TitleClear(Tip), 'the Calmira title stands beside the German welcome');
+    PostMessage(Tip, WM_CLOSE, 0, 0);
+  end;
   Pump(2000);
   Computer := Find('Arbeitsplatz');
   Check((Computer <> 0) and (Find('My Computer') = 0) and (Find('Computer') = 0),

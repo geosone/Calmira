@@ -11,6 +11,24 @@ var
   About: TAboutBox; FileSys: TFileSysPropDlg; Memory, Licence: TLabel; Filter: TEdit; Yes, Close: TBitBtn;
   Title, MemoryText, FilterHint: string; Buffer: array[0..255] of Char; Failed: Boolean;
 {$I win16_stack_guard.inc}
+
+const
+  Codes: array[0..6] of string[2] = ('en', 'de', 'fr', 'nl', 'it', 'es', 'pl');
+var
+  Code: Integer;
+
+{ The width of a text in a font, as Windows draws it on the screen. }
+function TextPixels(const Text, Face: string; Height, Weight: Integer): Integer;
+var DC: HDC; Font, Old: HFONT; Z: array[0..255] of Char; F: array[0..31] of Char;
+begin
+  DC := GetDC(0);
+  Font := CreateFont(Height, 0, 0, 0, Weight, 0, 0, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS,
+    CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, StrPCopy(F, Face));
+  Old := SelectObject(DC, Font);
+  StrPCopy(Z, Text);
+  TextPixels := LoWord(GetTextExtent(DC, Z, StrLen(Z)));
+  SelectObject(DC, Old); DeleteObject(Font); ReleaseDC(0, DC);
+end;
 procedure LogLine(const Text: string);
 var F: HFILE; Line: string;
 begin
@@ -102,6 +120,15 @@ begin
       (LanguageText('Menu', 'Notepad', '') = 'Bloc de notas'), 'the Spanish Start menu is translated');
     Check(ConfigureLanguage('C:\', 'pl') and (LanguageText('Menu', 'Control Panel', '') = 'Panel sterowania') and
       (LanguageText('Menu', 'Notepad', '') = 'Notatnik'), 'the Polish Start menu is translated');
+    { The Tip of the Day's check box is 309 pixels wide; Windows 3.1
+      cannot wrap it, so every catalogue's text must fit beside the box. }
+    for Code := 0 to 6 do
+    begin
+      Check(ConfigureLanguage('C:\', Codes[Code]), Codes[Code] + ' catalogue');
+      Check(TextPixels(LanguageText('Forms', 'TTipDialog.cbShowDailyTips.Caption', ''),
+        'MS Sans Serif', -11, FW_NORMAL) + 20 <= 309,
+        'the Tip of the Day check box shows its whole text in ' + Codes[Code]);
+    end;
     Check(StackGuardIntact, 'stack guard');
   except
     on E: Exception do Check(False, 'exception ' + E.Message);

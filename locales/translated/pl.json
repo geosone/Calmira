@@ -89,7 +89,7 @@
     "TSysRefEditDlg.TabPanel.Tabs.Strings.0": "Ogólne",
     "TSysRefEditDlg.TargetLabel.Caption": "Folder:",
     "TTipDialog.HomePage.Caption": "Strona &domowa",
-    "TTipDialog.cbShowDailyTips.Caption": "Pokazuj przy pierwszym uruchomieniu Calmira Reloaded każdego dnia",
+    "TTipDialog.cbShowDailyTips.Caption": "Pokazuj raz dziennie przy starcie Calmira Reloaded",
     "TfrmMyDocs.frmMyDocs.Caption": "Moje dokumenty",
     "TStandardButtons.OK.Caption": "OK",
     "TStandardButtons.Help.Caption": "Pomo&c",
