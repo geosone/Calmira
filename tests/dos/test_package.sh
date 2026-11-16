@@ -73,6 +73,22 @@ for file in CALMIRA.EXE CALMIRA.HLP COUNTTIP.EXE CTASKMAN.EXE DIREXIST.EXE DOSRU
     cmp "$package/$file" "$installed/$(printf '%s' "$file" | tr '[:lower:]' '[:upper:]')" ||
         fail "$file differs from the package"
 done
+# Notepad shows a text file with LF line ends as one line with black boxes.
+for file in LICENSE.TXT README.TXT TIPS.TXT LICENSES/CTL3D.TXT LICENSES/GPL3.TXT \
+    LICENSES/7ZIP.TXT LICENSES/LGPL21.TXT LICENSES/DOS32A.TXT; do
+    python3 - "$installed/$file" <<'PY' || fail "$file does not end its lines with CR LF"
+import sys
+text = open(sys.argv[1], 'rb').read()
+sys.exit(0 if text.count(b'\n') == text.count(b'\r\n') > 0 else 1)
+PY
+done
+# Windows reads TIPS.TXT in its own character set: the original 0xBD for
+# "3 1/2", not UTF-8 or the replacement character.
+python3 - "$installed/TIPS.TXT" <<'PY' || fail 'TIPS.TXT is not in the Windows character set'
+import sys
+text = open(sys.argv[1], 'rb').read()
+sys.exit(0 if b'3\xbd" Floppy' in text and b'\xef\xbf\xbd' not in text and b'\xc2' not in text else 1)
+PY
 # Windows does not search the shell's directory at startup, so the private
 # DLL goes to its system directory; the CTL3DV2.DLL Windows has stays.
 mcopy -o -i "$partition" ::/WINDOWS/SYSTEM/LFNFUNCS.DLL "$work/lfnfuncs-installed.dll"

@@ -113,6 +113,11 @@ for alias in "$root/src/tray/"*.als; do
     cp "$alias" "$stage/TRAY/$payload"
 done
 
+# Windows 3.1's Notepad shows LF line ends as one line with black boxes.
+for text in "$stage/LICENSE.TXT" "$stage/README.TXT" "$stage/ARCINFO.TXT" "$stage/LICENSES/"*.TXT; do
+    sed -i 's/\r*$/\r/' "$text"
+done
+
 # GDI's own check: every file, license and condition of INSTALL.INI is present.
 if [ -x "$gdi/build/gdicheck" ]; then
     "$gdi/build/gdicheck" "$stage/INSTALL.INI"

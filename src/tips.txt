@@ -422,7 +422,7 @@ You can assign your own  icons to use for document files, which overrides the ic
 
 You can replace many of Calmira's built-in bitmaps with your own graphics for the Taskbar, Start Menu and Explorer.  See the help topic on customising bitmaps.
 
-You can choose descriptive names for your disk drives by adding entries to the [Drives] section.  For example, you could replace the standard Floppy (A:) with 3ï¿½" Floppy.
+You can choose descriptive names for your disk drives by adding entries to the [Drives] section.  For example, you could replace the standard Floppy (A:) with 3½" Floppy.
 
 You can choose descriptive names for icon window captions by adding entries to the [Window Captions] section.  This is useful if you use folders as program groups to store aliases of your applications.
 

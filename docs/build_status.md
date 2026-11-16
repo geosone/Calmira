@@ -3602,3 +3602,14 @@ Kladblok, Blocco note, Bloc de notas, Notatnik) and keeps every accelerator
 of the Settings submenu distinct. "Startup" stays, as `RunStartup` finds
 the group by its shown caption. `win16-langui-runtime-test` loads each
 catalogue and reads two of its Start menu entries.
+
+## Text Files for Windows 3.1
+
+`LICENSE.TXT`, `README.TXT`, `ARCINFO.TXT` and the files in `LICENSES` had
+LF line ends, which the Windows 3.1 Notepad shows as one line with black
+boxes; `tools/package.sh` now gives them CR LF. `TIPS.TXT` came from
+Calmira Reborn, whose conversion to UTF-8 had replaced the 0xBD of
+"3½" Floppy" (Calmira 2.2) with the replacement character, shown as three
+odd characters in the Tip of the Day; it has the original byte again.
+`package-runtime-test` checks the line ends of the installed text files
+and the character of the tip.

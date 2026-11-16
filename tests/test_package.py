@@ -163,5 +163,20 @@ class PackageTests(unittest.TestCase):
                      'sys.exit(0 if longest > 150 else 1)'):
             self.assertIn(text, test)
 
+    def test_text_files_are_for_windows_3_1(self):
+        # LICENSE.TXT, README.TXT and the licences had LF line ends, which
+        # Notepad shows as one line; TIPS.TXT had Reborn's replacement
+        # character where Calmira 2.2 has 0xBD for "3 1/2".
+        package = (ROOT / 'tools/package.sh').read_text()
+        self.assertIn('for text in "$stage/LICENSE.TXT" "$stage/README.TXT" "$stage/ARCINFO.TXT" "$stage/LICENSES/"*.TXT; do', package)
+        self.assertIn("    sed -i 's/\\r*$/\\r/' \"$text\"", package)
+        tips = (ROOT / 'src/tips.txt').read_bytes()
+        self.assertIn(b'3\xbd" Floppy', tips)
+        self.assertNotIn(b'\xef\xbf\xbd', tips)
+        test = (ROOT / 'tests/dos/test_package.sh').read_text()
+        for text in ('fail "$file does not end its lines with CR LF"',
+                     "fail 'TIPS.TXT is not in the Windows character set'"):
+            self.assertIn(text, test)
+
 if __name__ == '__main__':
     unittest.main()
