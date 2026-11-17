@@ -2,6 +2,7 @@
 set -euo pipefail
 
 project_root=$(cd "$(dirname "$0")/../.." && pwd)
+build_dir=${BUILD_DIR:-$project_root/build}
 boot_image=${BOOTIMG:-$HOME/Iso/Dos/dos71de/Dos7.1_System_deutsch.IMG}
 work_dir=$(mktemp -d)
 trap 'rm -rf "$work_dir"' EXIT HUP INT TERM
@@ -11,9 +12,10 @@ chmod u+w "$work_dir/boot.img"
 printf 'org 100h\nmov dx,501h\nout dx,al\nint 20h\n' > "$work_dir/qexit.asm"
 nasm -f bin -o "$work_dir/QEXIT.COM" "$work_dir/qexit.asm"
 printf 'FILES=30\r\nBUFFERS=20\r\n' > "$work_dir/CONFIG.SYS"
-printf '@ECHO OFF\r\nA:\\LFNPROBE.EXE A: > AUX\r\nA:\\QEXIT.COM\r\n' > "$work_dir/AUTOEXEC.BAT"
+# /MSDOS7 tells MS-DOS 7 from a DOS that only reports 7.10 (FreeDOS)
+printf '@ECHO OFF\r\nA:\\LFNPROBE.EXE A: > AUX\r\nA:\\LFNPROBE.EXE /Q /MSDOS7\r\nIF ERRORLEVEL 1 GOTO NO\r\nECHO MSDOS7=yes > AUX\r\nGOTO END\r\n:NO\r\nECHO MSDOS7=no > AUX\r\n:END\r\nA:\\QEXIT.COM\r\n' > "$work_dir/AUTOEXEC.BAT"
 mcopy -o -i "$work_dir/boot.img" \
-	"$project_root/build/dos/lfn/LFNPROBE.EXE" "$work_dir/QEXIT.COM" ::/
+	"$build_dir/dos/lfn/LFNPROBE.EXE" "$work_dir/QEXIT.COM" ::/
 mcopy -o -i "$work_dir/boot.img" "$work_dir/AUTOEXEC.BAT" "$work_dir/CONFIG.SYS" ::/
 
 set +e
@@ -29,6 +31,8 @@ set -e
 tr -d '\r' < "$work_dir/serial.log"
 grep -q 'DOS=7.10 drive=A:' "$work_dir/serial.log"
 grep -q 'LFN=no' "$work_dir/serial.log"
+grep -q 'OEM=FF' "$work_dir/serial.log"
+grep -q 'MSDOS7=yes' "$work_dir/serial.log"
 if grep -q 'LFN=no filesystem=FAT32' "$work_dir/serial.log"; then
 	echo "FAT12 floppy was incorrectly detected as FAT32" >&2
 	exit 1

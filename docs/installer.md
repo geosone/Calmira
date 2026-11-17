@@ -9,10 +9,10 @@ builds and validates the compiled artifacts of one build tree and stages them
 with GDI's `INSTALL.EXE` under `$(BUILD_DIR)/package/`; GDI's `gdicheck` then
 checks the staged `INSTALL.INI`. A release uses the fixed compiler's tree
 (`BUILD_DIR=build/class-pointer/...`), so no stale file from another build is
-mixed in. It needs GDI 1.16.4 or newer: older versions ran out of near heap
+mixed in. It needs GDI 1.16.5 or newer: older versions ran out of near heap
 writing the 5.5 KB `CALMIRA.INI`, loading `WIN.INI` during uninstall and
 editing a SYSTEM.INI of a few KB, kept `Remove=` text unexpanded, and knew
-no `[Welcome.German]`.
+no `[Welcome.German]` and put seven language buttons in one row.
 
 GDI speaks German on a German system (`COUNTRY=049`, or `sLanguage=deu`
 under Windows) and English otherwise; its texts have no other language yet.
@@ -36,8 +36,11 @@ GDI copies no `DIR\*` wildcard, so every file is listed by name. It also offers 
 for Windows 3.1/3.11 on DOS 7.1 FAT32. GDI requires exactly two occurrences,
 keeps a numbered backup, recognizes an already patched file, and reverses the
 change during uninstall. It never relies on language-specific file offsets.
-`LFNPROBE.EXE` supplies the package-defined `LFN`, `FAT32`, and `DOS71`
-detections; FAT32 selects the patch by default, but the user retains control.
+`LFNPROBE.EXE` supplies the package-defined `LFN`, `FAT32`, `DOS71` and
+`MSDOS7` detections; FAT32 selects the patch by default and MS-DOS 7 the
+compact `DOSLFNMS.COM`, but the user retains control. `MSDOS7` asks DOS for
+its OEM number as well: FreeDOS also reports version 7.10, and only
+Microsoft's DOS (FFh) gets the compact driver.
 
 If WfW 3.11 networking is installed, the descriptor also detects `NDIS.386`
 and applies the fast-CPU startup fix automatically. A missing driver is skipped;

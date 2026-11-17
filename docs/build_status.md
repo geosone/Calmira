@@ -3713,3 +3713,18 @@ leaves `[Welcome]` and the language sections out of `INSTALL.INI` for
 with `COUNTRY=049`, so it runs through the German sections and the uninstall;
 with GDI 1.16.3 `gdicheck` already rejects the package for its unknown
 sections.
+
+## The Compact DOSLFN Chosen on MS-DOS 7
+
+Setup offered `DOSLFNMS.COM`, the compact DOSLFN made for MS-DOS 7, as an
+option that was always off. `LFNPROBE /MSDOS7` now tells MS-DOS 7 by its
+version and Microsoft's OEM number FFh (FreeDOS also reports 7.10, with
+FDh), and the option is `?MSDOS7`, preselected where it belongs; on other
+DOS versions the full `DOSLFN.COM` stays. `lfn-probe-test` boots MS-DOS 7.1
+and expects `OEM=FF` and `MSDOS7=yes`; the LFN tests now take `LFNPROBE.EXE`
+from `BUILD_DIR` instead of a stale `build/`. `package-runtime-test` on DOS
+6.22 still installs `DOSLFN.COM`.
+
+GDI 1.16.5 also wraps the buttons of a dialog into rows when they do not fit
+its window: the seven languages ran past the right edge of the language
+choice in DOS.

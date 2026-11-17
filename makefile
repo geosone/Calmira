@@ -167,13 +167,13 @@ lfn-probe: omf-toolchain
 		option stack=2k
 
 lfn-probe-test: lfn-probe
-	tests/dos/test_lfnprobe.sh
+	BUILD_DIR='$(abspath $(BUILD_DIR))' tests/dos/test_lfnprobe.sh
 
 doslfn:
 	sh tools/fetch_doslfn.sh '$(abspath $(BUILD_DIR))/dos/doslfn'
 
 doslfn-test: lfn-probe doslfn
-	tests/dos/test_doslfn.sh
+	BUILD_DIR='$(abspath $(BUILD_DIR))' tests/dos/test_doslfn.sh
 
 fpc-win16-toolchain: omf-toolchain
 	@if test -x '$(FPC_WIN16)' && test '$(FPC_REBUILD)' != '1'; then \

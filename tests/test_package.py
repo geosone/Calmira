@@ -125,6 +125,20 @@ class PackageTests(unittest.TestCase):
         script = (ROOT / 'tools/package.sh').read_text()
         self.assertIn('iconv -f UTF-8 -t CP850 > "$stage/INSTALL.INI"', script)
 
+    def test_setup_preselects_doslfnms_on_ms_dos_7_only(self):
+        # The compact driver was an off option the user had to know about.
+        # LFNPROBE /MSDOS7 asks for the OEM number too: FreeDOS reports 7.10.
+        descriptor = (ROOT / 'install/install.ini').read_text()
+        self.assertEqual(section(descriptor, 'Options')[2], 'Option=?MSDOS7|Use the compact DOSLFNMS on MS-DOS 7')
+        self.assertTrue(section(descriptor, 'Options.German')[2].startswith('Option=?MSDOS7|'))
+        self.assertIn('MSDOS7=LFNPROBE.EXE /Q /MSDOS7', section(descriptor, 'Detect'))
+        self.assertIn('2,3|DOSLFN\\DOSLFNMS.COM', descriptor)
+        probe = (ROOT / 'src/dos/lfn/lfnprobe.c').read_text()
+        self.assertIn('regs.x.ax = 0x3000;', probe)
+        self.assertIn("return major == 7 && oem == 0xFF ? 0 : 1;", probe)
+        test = (ROOT / 'tests/dos/test_lfnprobe.sh').read_text()
+        self.assertIn("grep -q 'MSDOS7=yes'", test)
+
     def test_setup_chooses_the_windows_95_colours_and_the_wallpaper(self):
         descriptor = (ROOT / 'install/install.ini').read_text(encoding='latin-1')
         options = [line for line in descriptor.splitlines() if line.startswith('Option=')]
@@ -178,7 +192,7 @@ class PackageTests(unittest.TestCase):
         test = (ROOT / 'tests/dos/test_package.sh').read_text()
         for text in ('Setting%d=a value an update program wrote', "fail 'the DOSLFN line stays in AUTOEXEC.BAT after uninstall'"):
             self.assertIn(text, test)
-        self.assertIn('GDI 1.16.4 or newer', (ROOT / 'docs/installer.md').read_text())
+        self.assertIn('GDI 1.16.5 or newer', (ROOT / 'docs/installer.md').read_text())
     def test_ctrl_esc_opens_the_calmira_task_manager(self):
         # Calmira's help: taskman.exe=CTASKMAN.EXE in [boot]; without it
         # Ctrl+Esc showed the Windows Task List under the Calmira shell.

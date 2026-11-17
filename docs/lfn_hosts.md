@@ -27,7 +27,9 @@ stages `DOSLFN.COM`, `DOSLFNMS.COM`, `LFNXLAT.386`, translations, and Unicode
 tables under `build/dos/doslfn/`. The GeosOne installer offers the full driver
 when no `71xx` provider is active. Its separate compact-driver option selects
 `DOSLFNMS.COM` for MS-DOS 7; do not select it merely because another DOS reports
-version 7.10 for compatibility.
+version 7.10 for compatibility. `LFNPROBE /MSDOS7` therefore requires version
+7 and Microsoft's OEM number FFh (INT 21h AX=3000h, BH), and setup preselects
+the option with it.
 
 `make doslfn-test` boots MS-DOS 7.1 twice in QEMU and verifies that both TSR
 variants change the probe result from `LFN=no` to `LFN=yes`. Set `BOOTIMG` when

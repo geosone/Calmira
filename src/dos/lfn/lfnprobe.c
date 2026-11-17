@@ -30,14 +30,17 @@ static int volume_info( const char *root, char *filesystem,
 	return 1;
 }
 
-static void dos_version( unsigned char *major, unsigned char *minor )
+/* the version DOS reports and its OEM number (AL=0: BH), FFh for
+ * Microsoft; FreeDOS (FDh) also reports 7.10 */
+static void dos_version( unsigned char *major, unsigned char *minor, unsigned char *oem )
 {
 	union REGS regs;
 	memset( &regs, 0, sizeof(regs) );
-	regs.h.ah = 0x30;
+	regs.x.ax = 0x3000;
 	intdos( &regs, &regs );
 	*major = regs.h.al;
 	*minor = regs.h.ah;
+	*oem = regs.h.bh;
 }
 
 /* DOS 7 extended DPB.  The maximum-cluster DWORD starts at offset 43 in
@@ -70,7 +73,7 @@ int main( int argc, char **argv )
 {
 	char root[4] = "C:\\", filesystem[16];
 	unsigned short flags = 0;
-	unsigned char major, minor;
+	unsigned char major, minor, oem;
 	int quiet = 0, mode = 0, available, fat32, i;
 
 	for ( i = 1; i < argc; i++ ) {
@@ -82,15 +85,17 @@ int main( int argc, char **argv )
 			mode = 2;
 		else if ( !stricmp( argv[i], "/DOS71" ) )
 			mode = 3;
+		else if ( !stricmp( argv[i], "/MSDOS7" ) )
+			mode = 4;
 		else if ( isalpha( (unsigned char)argv[i][0] ) && argv[i][1] == ':' )
 			root[0] = (char)toupper( (unsigned char)argv[i][0] );
 		else {
 			if ( !quiet )
-				puts( "Usage: LFNPROBE [/Q] [/LFN|/FAT32|/DOS71] [drive:]" );
+				puts( "Usage: LFNPROBE [/Q] [/LFN|/FAT32|/DOS71|/MSDOS7] [drive:]" );
 			return 2;
 		}
 	}
-	dos_version( &major, &minor );
+	dos_version( &major, &minor, &oem );
 	available = volume_info( root, filesystem, &flags );
 	fat32 = is_fat32( root[0] );
 	if ( !quiet ) {
@@ -100,7 +105,7 @@ int main( int argc, char **argv )
 			printf( " filesystem=%s", filesystem );
 		else if ( fat32 )
 			printf( " filesystem=FAT32" );
-		putchar( '\n' );
+		printf( " OEM=%02X\n", oem );
 	}
 	if ( mode == 1 )
 		return available && ( flags & 0x4000 ) ? 0 : 1;
@@ -108,5 +113,7 @@ int main( int argc, char **argv )
 		return fat32 ? 0 : 1;
 	if ( mode == 3 )
 		return major > 7 || ( major == 7 && minor >= 10 ) ? 0 : 1;
+	if ( mode == 4 )   /* MS-DOS 7.0 or 7.10: DOSLFNMS was made for it */
+		return major == 7 && oem == 0xFF ? 0 : 1;
 	return available && ( flags & 0x4000 ) ? 0 : 1;
 }

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 project_root=$(cd "$(dirname "$0")/../.." && pwd)
+build_dir=${BUILD_DIR:-$project_root/build}
 boot_image=${BOOTIMG:-$HOME/Iso/Dos/dos71de/Dos7.1_System_deutsch.IMG}
 work_dir=$(mktemp -d)
 trap 'rm -rf "$work_dir"' EXIT HUP INT TERM
@@ -28,9 +29,9 @@ run_driver_test()
 	printf '@ECHO OFF\r\nA:\\LFNPROBE.EXE A: > AUX\r\nA:\\%s.COM\r\nA:\\LFNPROBE.EXE A: > AUX\r\nA:\\QEXIT.COM\r\n' \
 		"$driver" > "$work_dir/AUTOEXEC.BAT"
 	mcopy -o -i "$image" \
-		"$project_root/build/dos/lfn/LFNPROBE.EXE" \
-		"$project_root/build/dos/doslfn/${driver,,}.com" \
-		"$project_root/build/dos/doslfn/cp850uni.tbl" \
+		"$build_dir/dos/lfn/LFNPROBE.EXE" \
+		"$build_dir/dos/doslfn/${driver,,}.com" \
+		"$build_dir/dos/doslfn/cp850uni.tbl" \
 		"$work_dir/QEXIT.COM" ::/
 	mcopy -o -i "$image" "$work_dir/AUTOEXEC.BAT" "$work_dir/CONFIG.SYS" ::/
 
