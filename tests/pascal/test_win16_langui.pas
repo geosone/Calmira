@@ -52,6 +52,11 @@ begin
     FilterHint := LanguageText('Forms', 'TFileSysPropDlg.FilterEdit.Hint', '');
     Check((Title = 'Info') and (MemoryText = 'Arbeitsspeicher:') and (FilterHint <> ''),
       'catalogue has the German title, label and hint');
+    { The historical German catalogue kept some texts in English. }
+    Check((LanguageText('Forms', 'TAboutBox.Label2.Caption', '') = 'MS-DOS-Version:') and
+      (LanguageText('Forms', 'TIconWindow.ViewToolbar.Caption', '') = '&Symbolleiste') and
+      (LanguageText('Forms', 'TBinPropDlg.HelpBtn.Caption', '') = 'Hilfe'),
+      'texts the historical catalogue left in English are translated');
     Check(FormText('TAboutBox', 'Label3', 'Caption', 'Memory:') = MemoryText,
       'a loader gets the translated label caption');
     Check(FormText('TFileSysPropDlg', 'FilterEdit', 'Hint', 'List') = FilterHint,

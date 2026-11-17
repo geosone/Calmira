@@ -294,8 +294,11 @@ def build(output):
             lines.append(f'[{section}]')
             baseline = catalogues['en'].get(section, {})
             for key, value in sorted(values.items()):
-                # A historical text that fails a check falls back to our translation.
-                for candidate in dict.fromkeys((value, fallback.get(section, {}).get(key))):
+                # A historical text that fails a check falls back to our translation;
+                # one the translators left in English gives way to it.
+                ours = fallback.get(section, {}).get(key)
+                order = (ours, value) if value == baseline.get(key) else (value, ours)
+                for candidate in dict.fromkeys(order):
                     if candidate is None:
                         continue
                     problem = check(code, key, candidate, baseline, codepage)

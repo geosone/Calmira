@@ -3520,6 +3520,16 @@ nothing, as in Delphi 1. `FormCreate` now makes OK the active control and
 the cancel button. `make win16-computer-window-runtime-test` finds the focus
 on OK in the welcome box at the first start and closes it with Esc.
 
+## Texts Left in English Give Way to Our Translations
+
+Some historical catalogues kept texts in English, such as "MS-DOS Version:"
+and "Help" in German or the tab titles in Dutch; the build preferred them to
+the translations in `locales/translated`, which were never used.
+`tools/build_languages.py` now takes our translation when the historical
+text equals the English one (103 texts, 11 of them German). `make
+win16-langui-runtime-test` reads the German About box labels, the Toolbar
+item and a Help button from the catalogue.
+
 ## DirectoryExists Closes Its Search
 
 `DirectoryExists` in `vcl/files.pas` was the one place where Calmira called

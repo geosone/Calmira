@@ -116,6 +116,34 @@ class LocalizationTests(unittest.TestCase):
             for code in ('fr', 'nl', 'pl', 'it', 'es'):
                 self.assertGreater(report[code]['entries'], 900)
 
+    def test_texts_left_in_english_give_way_to_project_translations(self):
+        # The historical catalogues kept some texts in English, such as the
+        # German About box's "MS-DOS Version:"; our translation was never used.
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            LANGUAGES.build(output)
+
+            def entries(code):
+                codepage = 'cp1250' if code == 'pl' else 'cp1252'
+                section, found = None, {}
+                for line in (output / f'{code}.LNG').read_bytes().decode(codepage).split('\r\n'):
+                    if line.startswith('['):
+                        section = line[1:-1]
+                    elif '=' in line:
+                        key, value = line.split('=', 1)
+                        found[section, key] = value
+                return found
+            english = entries('en')
+            for code in ('de', 'fr', 'nl', 'it', 'es', 'pl'):
+                ours = json.loads((ROOT / f'locales/translated/{code}.json').read_text(encoding='utf-8'))
+                built = entries(code)
+                left = [key for key, value in built.items()
+                        if value == english.get(key) and ours.get(key[0], {}).get(key[1]) not in (None, value)]
+                self.assertEqual(left, [], code)
+            self.assertEqual(entries('de')['Forms', 'TAboutBox.Label2.Caption'], 'MS-DOS-Version:')
+        probe = (ROOT / 'tests/pascal/test_win16_langui.pas').read_text()
+        self.assertIn("'texts the historical catalogue left in English are translated'", probe)
+
     def test_project_translations_match_english_keys_and_formats(self):
         english = LANGUAGES.directory_forms(ROOT / 'src')
         names = dict(re.findall(r'^\s*(S\w+)\s*=\s*(\d+)\s*;', (ROOT / 'src/locale.pas').read_text(), re.M))
