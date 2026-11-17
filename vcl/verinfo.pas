@@ -65,6 +65,11 @@ TVersion = class
     property FileSubType: string read GetFileSubType;
   end;
 
+{ The file version of the running KERNEL module. Windows 3.11 shows in it
+  even when USER.EXE comes from another release, such as the USER.EXE of
+  Windows ME that WIN3UPD offers. }
+function RunningKernelVersion: string;
+
 implementation
 
 uses WinProcs;
@@ -91,6 +96,19 @@ begin
        FHasData := True;
        VerQueryValue(Buffer, '\', Pointer(FixedInfo), len);
     end;
+  end;
+end;
+
+function RunningKernelVersion: string;
+var
+  Name: array[0..79] of Char;
+begin
+  GetModuleFileName(GetModuleHandle('KERNEL'), Name, SizeOf(Name));
+  with TVersion.Create(StrPas(Name)) do
+  try
+    Result := FileVersion;
+  finally
+    Free;
   end;
 end;
 

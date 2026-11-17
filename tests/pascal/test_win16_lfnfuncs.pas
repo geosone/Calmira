@@ -1,6 +1,6 @@
 program TestWin16LfnFuncs;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, SysUtils, Lfnutils, Files;
+uses WinTypes, WinProcs, SysUtils, Lfnutils, Files, VerInfo;
 var Failed: Boolean;
 procedure LogLine(const Text: string);
 var F: HFILE; S: string;
@@ -103,6 +103,15 @@ begin
   Check((Found = 100) and (Rest = 0), 'DirectoryExists ends its search, after a hundred calls on C: and C:\WINDOWS a search finds files');
   Check(Used = 0, 'DirectoryExists frees the memory of its search');
 end;
+{ The About box tells Windows 3.11 by the running kernel, as WIN3UPD may
+  install the USER.EXE of Windows ME, which says 3.10. }
+procedure CheckKernelVersion;
+var Version: string;
+begin
+  Version := RunningKernelVersion;
+  LogLine('running kernel version ' + Version);
+  Check(Version = '3.11', 'RunningKernelVersion reads 3.11 from the running KRNL386.EXE');
+end;
 procedure hmemcpy(Dest, Source: Pointer; Count: LongInt); far; pascal; external 'KERNEL' index 348;
 procedure CheckVolumeInfoKeepsCallerData;
 { LGetVolumeInfo loads DS from the caller's stack for INT 21h/71A0h. It must
@@ -139,6 +148,7 @@ begin
     CheckFiles;
     CheckSearchesAreClosed;
     CheckDirectoryExistsIsClosed;
+    CheckKernelVersion;
     CheckVolumeInfoKeepsCallerData;
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');

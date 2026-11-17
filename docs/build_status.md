@@ -3512,6 +3512,16 @@ calls `FindClose` for the short search as well. `make
 win16-lfnfuncs-doslfn-runtime-test` runs the LFNFUNCS.DLL test with DOSLFN
 and searches a folder a hundred times.
 
+## Windows 3.11 Told by the Kernel
+
+The About box told Windows 3.11 from 3.10 by the file version of USER.EXE.
+WIN3UPD's USERME package installs the German USER.EXE of Windows ME
+(3.10.0.103) for its thinner dialog font, so on an updated Windows 3.11 the
+box said "Windows 3.10" although KRNL386.EXE is 3.11.0.300. `VerInfo` now has
+`RunningKernelVersion`, the file version of the running KERNEL module, and
+the About box takes 3.11 from it as well. `make
+win16-lfnfuncs-doslfn-runtime-test` reads 3.11 from the test image's kernel.
+
 ## About Box Takes Enter and Esc
 
 The About box gave the focus to its first button, Read license, and its OK

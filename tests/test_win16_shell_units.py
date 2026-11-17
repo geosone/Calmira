@@ -103,6 +103,16 @@ class HugeModelTests(unittest.TestCase):
         probe = (ROOT / 'tests/pascal/test_win16_computer_window.pas').read_text()
         self.assertIn("'the About box opens with the focus on OK and Esc closes it'", probe)
 
+    def test_about_box_tells_windows_311_by_the_kernel(self):
+        # WIN3UPD's USERME package installs the USER.EXE of Windows ME, which
+        # says 3.10; Calmira looked only at USER.EXE and showed Windows 3.10.
+        verinfo = (ROOT / 'vcl/verinfo.pas').read_bytes().decode('latin-1')
+        self.assertIn("GetModuleFileName(GetModuleHandle('KERNEL'), Name, SizeOf(Name));", verinfo)
+        about = (ROOT / 'src/about.pas').read_bytes().decode('latin-1')
+        self.assertIn("(RunningKernelVersion = '3.11') then\r\n    WinMinor := 11;", about)
+        probe = (ROOT / 'tests/pascal/test_win16_lfnfuncs.pas').read_text()
+        self.assertIn("'RunningKernelVersion reads 3.11 from the running KRNL386.EXE'", probe)
+
     def test_directory_exists_closes_its_search(self):
         # DirectoryExists never called FindClose: each call kept FPC's search
         # record and, for a drive, a DOSLFN handle; folders vanished after

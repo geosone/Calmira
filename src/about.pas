@@ -120,6 +120,9 @@ begin
         WinMinor := 11;
       Free;
     end;
+  { A USER.EXE of another release leaves the version to the kernel. }
+  if (WinMajor = 3) and (WinMinor = 10) and (RunningKernelVersion = '3.11') then
+    WinMinor := 11;
   DosMinor := DosVer and $ff;
   DosMajor := (DosVer shr 8) and $ff;
   labWinVer.Caption := Format('Windows %d.%d',[Integer(WinMajor),Integer(WinMinor)]);
