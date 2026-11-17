@@ -3512,6 +3512,18 @@ calls `FindClose` for the short search as well. `make
 win16-lfnfuncs-doslfn-runtime-test` runs the LFNFUNCS.DLL test with DOSLFN
 and searches a folder a hundred times.
 
+## DirectoryExists Closes Its Search
+
+`DirectoryExists` in `vcl/files.pas` was the one place where Calmira called
+`FindFirst` without `FindClose`. Delphi 1 searched through the DTA; Free
+Pascal's `FindFirst` keeps its search record on the heap and, for a drive
+(`C:` becomes `C:\*.*`) with DOSLFN loaded, one of the driver's handles.
+After a hundred calls on `C:` and `C:\WINDOWS` 200 blocks stayed allocated
+and the next folder search failed. `DirectoryExists` now calls `FindClose`.
+`make win16-lfnfuncs-doslfn-runtime-test` counts the heap blocks through a
+wrapping memory manager and searches a folder after those calls; the test
+build takes `src/win16` for the VCL units `Files` uses.
+
 ## Windows 3.1 Captions by Default
 
 Calmira 4 draws a Windows 95 caption on its own windows (`TExtForm`), as

@@ -94,6 +94,17 @@ class HugeModelTests(unittest.TestCase):
                      "'a double click on a shortcut still opens it'"):
             self.assertIn(text, probe)
 
+    def test_directory_exists_closes_its_search(self):
+        # DirectoryExists never called FindClose: each call kept FPC's search
+        # record and, for a drive, a DOSLFN handle; folders vanished after
+        # some dozens of calls.
+        source = (ROOT / 'vcl/files.pas').read_bytes().decode('latin-1')
+        body = source.split('function DirectoryExists(Name: TLfnFilename): Boolean;\r\nvar', 1)[1].split('\r\nend;', 1)[0]
+        self.assertIn('  FindClose(SR);\r\n', body)
+        probe = (ROOT / 'tests/pascal/test_win16_lfnfuncs.pas').read_text()
+        self.assertIn("'DirectoryExists frees the memory of its search'", probe)
+        self.assertIn('a search finds files', probe)
+
     def test_points_reach_user_packed_in_a_long(self):
         # USER takes POINT by value as one dword; FPC passed the TPoint record
         # otherwise, so WindowFromPoint found nothing and Calmira's drop

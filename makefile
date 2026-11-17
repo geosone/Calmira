@@ -868,7 +868,7 @@ lfnfuncs: fpc-win16-gui-rtl
 win16-lfnfuncs: fpc-win16-gui-rtl
 	mkdir -p $(BUILD_DIR)/tests/win16-lfnfuncs/units
 	PATH='$(abspath $(OMF_BIN_DIR)):$(PATH)' $(FPC_WIN16) \
-		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fuvcl -Fu./$(FPC_WIN16_GUI_RTL) \
+		-Twin16 -Pi8086 -Mdelphi -Sh- $(WIN16_GUI_FLAGS) -CX -Fuvcl -Fu./$(FPC_WIN16_GUI_RTL) -Fusrc/win16 -Fusrc/portable \
 		-FU$(BUILD_DIR)/tests/win16-lfnfuncs/units -FE$(BUILD_DIR)/tests/win16-lfnfuncs \
 		-oGDITEST.EXE tests/pascal/test_win16_lfnfuncs.pas
 	python3 tools/check_win16_budget.py $(BUILD_DIR)/tests/win16-lfnfuncs/GDITEST.EXE

@@ -550,6 +550,12 @@ begin
     Name := Name + '\*.*';
   Result := FindFirst(Name, faDirectory, SR) = 0;
   Result := Result and (SR.Attr and faDirectory <> 0);
+{$IFDEF FPC}
+  { Delphi 1 searched through the DTA. Free Pascal's FindFirst holds memory
+    and, with a long filename driver, one of its handles until FindClose,
+    also when it finds nothing. }
+  FindClose(SR);
+{$ENDIF}
 end;
 
 procedure ForceDirectories(Dir: TLfnFilename);

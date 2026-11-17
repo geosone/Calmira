@@ -1,6 +1,6 @@
 program TestWin16LfnFuncs;
 {$mode delphi}{$H-}{$APPTYPE GUI}{$M 4096,2048}
-uses WinTypes, WinProcs, SysUtils, Lfnutils;
+uses WinTypes, WinProcs, SysUtils, Lfnutils, Files;
 var Failed: Boolean;
 procedure LogLine(const Text: string);
 var F: HFILE; S: string;
@@ -69,6 +69,40 @@ begin
   LogLine('searches with results: ' + IntToStr(I - Ord(Found = 0)));
   Check(Found > 0, 'LFindClose ends a search, a hundred searches find files');
 end;
+{ DirectoryExists (vcl/files.pas) asks FindFirst for the folder. Free
+  Pascal's FindFirst takes memory for the search, and for a drive (C:\*.*)
+  a DOSLFN handle, until FindClose: without it every call leaks both. }
+var Heap: TMemoryManager; Blocks: LongInt;
+function CountedGetMem(Size: PtrUInt): Pointer;
+begin Inc(Blocks); Result := Heap.GetMem(Size); end;
+function CountedFreeMem(P: Pointer): PtrUInt;
+begin Dec(Blocks); Result := Heap.FreeMem(P); end;
+function CountedFreeMemSize(P: Pointer; Size: PtrUInt): PtrUInt;
+begin Dec(Blocks); Result := Heap.FreeMemSize(P, Size); end;
+procedure CheckDirectoryExistsIsClosed;
+var I, Found, Rest: Integer; Used: LongInt; Counted: TMemoryManager; Rec: TLfnSearchRec;
+begin
+  SetLFN(False);
+  DirectoryExists('C:\WINDOWS');
+  GetMemoryManager(Heap);
+  Counted := Heap;
+  Counted.GetMem := CountedGetMem;
+  Counted.FreeMem := CountedFreeMem;
+  Counted.FreeMemSize := CountedFreeMemSize;
+  Blocks := 0;
+  SetMemoryManager(Counted);
+  Found := 0;
+  for I := 1 to 100 do
+    if DirectoryExists('C:\WINDOWS') then begin Inc(Found); DirectoryExists('C:'); end;
+  SetMemoryManager(Heap);
+  Used := Blocks;
+  Rest := LFindFirst('C:\WINDOWS\*.INI', faAnyFile, Rec);
+  LFindClose(Rec);
+  LogLine('DirectoryExists found C:\WINDOWS ' + IntToStr(Found) + ' times, blocks kept '
+    + IntToStr(Used) + ', next search ' + IntToStr(Rest));
+  Check((Found = 100) and (Rest = 0), 'DirectoryExists ends its search, after a hundred calls on C: and C:\WINDOWS a search finds files');
+  Check(Used = 0, 'DirectoryExists frees the memory of its search');
+end;
 procedure hmemcpy(Dest, Source: Pointer; Count: LongInt); far; pascal; external 'KERNEL' index 348;
 procedure CheckVolumeInfoKeepsCallerData;
 { LGetVolumeInfo loads DS from the caller's stack for INT 21h/71A0h. It must
@@ -104,6 +138,7 @@ begin
     CheckItems;
     CheckFiles;
     CheckSearchesAreClosed;
+    CheckDirectoryExistsIsClosed;
     CheckVolumeInfoKeepsCallerData;
   except on E: Exception do begin Failed := True; LogLine('FAIL exception ' + E.Message); end; end;
   if Failed then LogLine('RESULT FAIL') else LogLine('RESULT PASS');
