@@ -3693,3 +3693,23 @@ and `TTipDialog.NextTipClick` reads that file for the selected catalogue,
 falling back to `TIPS.TXT`. `win16-computer-window-runtime-test` gives the
 German catalogue a one-tip `DE.TIP` and counts the ink of the tip text;
 `package-runtime-test` checks that setup installs the files.
+
+## Setup Speaks German Throughout
+
+GDI showed its own texts in German on a German system, but Calmira's welcome
+text, its options, the license names and the final message in English. GDI
+1.16.4 takes `[Welcome.German]`, `[Options.German]` and `[Setup.German]`
+in place of the plain sections when its texts are German; `gdicheck` makes
+sure `[Options.German]` lists the same options with the same `on|`, `off|`
+or `?NAME|`. `install/install.ini` carries the German texts in UTF-8 and
+`tools/package.sh` stages them in code page 850. The options dialog shows 53
+characters of a label, which had cut off two English labels; they are
+shorter now, and the German ones keep to 50 characters.
+
+The first package run with the German sections stopped the uninstall with
+"not enough memory": the extra lines took GDI's short near heap. GDI 1.16.4
+leaves `[Welcome]` and the language sections out of `INSTALL.INI` for
+`INSTALL /U` and `/M`, which never show them. `package-runtime-test` installs
+with `COUNTRY=049`, so it runs through the German sections and the uninstall;
+with GDI 1.16.3 `gdicheck` already rejects the package for its unknown
+sections.

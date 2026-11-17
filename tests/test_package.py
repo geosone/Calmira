@@ -96,6 +96,35 @@ class PackageTests(unittest.TestCase):
         checker = (ROOT / 'tools/ne_has_icon.py').read_text()
         self.assertIn('if 14 not in resource_types(stream.read()):', checker)
 
+    def test_setup_speaks_german_in_welcome_options_and_end(self):
+        # GDI showed its own texts in German, but the welcome text, the
+        # options and the end of Calmira's package in English. GDI 1.16.4
+        # takes [Welcome.German], [Options.German] and [Setup.German].
+        descriptor = (ROOT / 'install/install.ini').read_text()
+        welcome = ' '.join(section(descriptor, 'Welcome.German'))
+        self.assertIn('Calmira Reloaded ist ein Desktop und Dateimanager', welcome)
+        self.assertIn('Done=Calmira Reloaded ist installiert.', section(descriptor, 'Setup.German')[-1])
+        english = section(descriptor, 'Options')
+        german = section(descriptor, 'Options.German')
+        self.assertEqual(len(german), len(english))
+        for line in english:
+            self.assertLessEqual(len(line.split('|', 1)[1]), 53)
+        for theirs, ours in zip(english, german):
+            with self.subTest(option=ours):
+                # the same option: only the label differs
+                self.assertEqual(theirs.split('|', 1)[0], ours.split('|', 1)[0])
+                self.assertNotEqual(theirs, ours)
+                # the options dialog shows 53 characters of a label
+                self.assertLessEqual(len(ours.split('|', 1)[1]), 50)
+        for line in section(descriptor, 'Setup.German'):
+            key, value = line.split('=', 1)
+            if key.startswith('License'):
+                self.assertEqual(value.split('|')[1], dict(
+                    l.split('=', 1) for l in section(descriptor, 'Setup'))[key].split('|')[1])
+        descriptor.encode('cp850')
+        script = (ROOT / 'tools/package.sh').read_text()
+        self.assertIn('iconv -f UTF-8 -t CP850 > "$stage/INSTALL.INI"', script)
+
     def test_setup_chooses_the_windows_95_colours_and_the_wallpaper(self):
         descriptor = (ROOT / 'install/install.ini').read_text(encoding='latin-1')
         options = [line for line in descriptor.splitlines() if line.startswith('Option=')]
@@ -149,7 +178,7 @@ class PackageTests(unittest.TestCase):
         test = (ROOT / 'tests/dos/test_package.sh').read_text()
         for text in ('Setting%d=a value an update program wrote', "fail 'the DOSLFN line stays in AUTOEXEC.BAT after uninstall'"):
             self.assertIn(text, test)
-        self.assertIn('GDI 1.16.3 or newer', (ROOT / 'docs/installer.md').read_text())
+        self.assertIn('GDI 1.16.4 or newer', (ROOT / 'docs/installer.md').read_text())
     def test_ctrl_esc_opens_the_calmira_task_manager(self):
         # Calmira's help: taskman.exe=CTASKMAN.EXE in [boot]; without it
         # Ctrl+Esc showed the Windows Task List under the Calmira shell.

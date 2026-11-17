@@ -71,8 +71,10 @@ rm -rf "${stage:?}"
 mkdir -p "$stage/SYSTEM" "$stage/TRAY" "$stage/DOSLFN/NLS" "$stage/LANG"
 cp "$build/lang/"*.LNG "$build/lang/"*.TIP "$stage/LANG/"
 cp "$gdi/build/INSTALL.EXE" "$stage/"
-# The release number comes from the makefile.
-sed "s/^Version=@VERSION@\$/Version=${VERSION:?}/" "$root/install/install.ini" > "$stage/INSTALL.INI"
+# The release number comes from the makefile; GDI reads INSTALL.INI in the
+# DOS code page.
+sed "s/^Version=@VERSION@\$/Version=${VERSION:?}/" "$root/install/install.ini" |
+    iconv -f UTF-8 -t CP850 > "$stage/INSTALL.INI"
 grep -q "^Version=${VERSION}\$" "$stage/INSTALL.INI" || { echo "INSTALL.INI lacks Version=" >&2; exit 1; }
 cp "$root/license" "$stage/LICENSE.TXT"
 cp "$root/readme.md" "$stage/README.TXT"

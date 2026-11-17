@@ -9,9 +9,18 @@ builds and validates the compiled artifacts of one build tree and stages them
 with GDI's `INSTALL.EXE` under `$(BUILD_DIR)/package/`; GDI's `gdicheck` then
 checks the staged `INSTALL.INI`. A release uses the fixed compiler's tree
 (`BUILD_DIR=build/class-pointer/...`), so no stale file from another build is
-mixed in. It needs GDI 1.16.3 or newer: older versions ran out of near heap
+mixed in. It needs GDI 1.16.4 or newer: older versions ran out of near heap
 writing the 5.5 KB `CALMIRA.INI`, loading `WIN.INI` during uninstall and
-editing a SYSTEM.INI of a few KB, and kept `Remove=` text unexpanded.
+editing a SYSTEM.INI of a few KB, kept `Remove=` text unexpanded, and knew
+no `[Welcome.German]`.
+
+GDI speaks German on a German system (`COUNTRY=049`, or `sLanguage=deu`
+under Windows) and English otherwise; its texts have no other language yet.
+The descriptor gives its own texts in German as well: `[Welcome.German]`,
+`[Options.German]` (the same options, other labels) and `[Setup.German]` with
+`Done=` and the license names. `install/install.ini` is UTF-8;
+`tools/package.sh` writes the staged `INSTALL.INI` in code page 850, the one
+GDI reads. The options dialog shows 53 characters of a label.
 
 `make package-runtime-test` installs the package silently on a copy of the
 DOS 6.22/Windows 3.11 image with `COUNTRY=049`, checks every file, the
