@@ -3512,6 +3512,14 @@ calls `FindClose` for the short search as well. `make
 win16-lfnfuncs-doslfn-runtime-test` runs the LFNFUNCS.DLL test with DOSLFN
 and searches a folder a hundred times.
 
+## About Box Takes Enter and Esc
+
+The About box gave the focus to its first button, Read license, and its OK
+button was only the default (`bkOK`): Enter opened the licence and Esc did
+nothing, as in Delphi 1. `FormCreate` now makes OK the active control and
+the cancel button. `make win16-computer-window-runtime-test` finds the focus
+on OK in the welcome box at the first start and closes it with Esc.
+
 ## DirectoryExists Closes Its Search
 
 `DirectoryExists` in `vcl/files.pas` was the one place where Calmira called

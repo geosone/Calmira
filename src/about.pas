@@ -137,6 +137,11 @@ begin
         Controls[i].Top := Controls[i].Top + Grow;
     ClientHeight := ClientHeight + Grow;
   end;
+  { As in Delphi 1, Read license, the first button, had the focus and OK
+    was only the default: Enter opened the licence and Esc did nothing.
+    OK now takes the focus and Esc. }
+  ActiveControl := OKButton;
+  OKButton.Cancel := True;
   if FirstRun then
   begin
     Caption := LocalLoadStr(SWelcome);

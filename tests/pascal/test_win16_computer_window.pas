@@ -209,7 +209,8 @@ end;
 
 var
   Instance: THandle;
-  Welcome, Tip, Computer, Explorer: HWND;
+  Welcome, Tip, Computer, Explorer, Focused: HWND;
+  FocusText: array[0..63] of Char;
   Ink: Integer;
   R: TRect;
 begin
@@ -219,7 +220,21 @@ begin
   Instance := WinExec('C:\CALMIRA.EXE', SW_SHOWNORMAL);
   Check(Instance >= 32, 'CALMIRA.EXE starts');
   Welcome := WaitFor('Willkommen', 40);
-  if Welcome <> 0 then PostMessage(Welcome, WM_CLOSE, 0, 0);
+  Check(Welcome <> 0, 'the About box welcomes the first start');
+  if Welcome <> 0 then
+  begin
+    { Enter and Esc close the About box: OK has the focus, not Read license. }
+    Pump(1000);
+    Focused := GetFocus;
+    GetWindowText(Focused, FocusText, SizeOf(FocusText));
+    LogLine('About box focus: ' + StrPas(FocusText));
+    PostMessage(Focused, WM_KEYDOWN, VK_ESCAPE, 0);
+    PostMessage(Focused, WM_KEYUP, VK_ESCAPE, 0);
+    Pump(1500);
+    Check((StrPas(FocusText) = 'OK') and not IsWindow(Welcome),
+      'the About box opens with the focus on OK and Esc closes it');
+    if IsWindow(Welcome) then PostMessage(Welcome, WM_CLOSE, 0, 0);
+  end;
   Tip := WaitFor('Tipp des Tages', 15);
   if Tip <> 0 then
   begin

@@ -94,6 +94,15 @@ class HugeModelTests(unittest.TestCase):
                      "'a double click on a shortcut still opens it'"):
             self.assertIn(text, probe)
 
+    def test_about_box_focuses_ok_and_closes_on_escape(self):
+        # Read license, the first button, had the focus: Enter opened the
+        # licence and Esc, with no Cancel button, did nothing.
+        source = (ROOT / 'src/about.pas').read_bytes().decode('latin-1')
+        create = source.split('procedure TAboutBox.FormCreate(Sender: TObject);', 1)[1].split('\r\nend;', 1)[0]
+        self.assertIn('  ActiveControl := OKButton;\r\n  OKButton.Cancel := True;\r\n', create)
+        probe = (ROOT / 'tests/pascal/test_win16_computer_window.pas').read_text()
+        self.assertIn("'the About box opens with the focus on OK and Esc closes it'", probe)
+
     def test_directory_exists_closes_its_search(self):
         # DirectoryExists never called FindClose: each call kept FPC's search
         # record and, for a drive, a DOSLFN handle; folders vanished after
