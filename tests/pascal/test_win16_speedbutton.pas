@@ -20,7 +20,7 @@ type
   end;
 var Root: TCustomControl; A, B, C: TProbe; Observer: TObserver; Failed: Boolean;
   Surface: TControlCanvas; DC: HDC; Pixel1, Pixel2, Pixel3: TColorRef;
-  Origin: TPoint; Start: LongInt; Msg: TMsg;
+  Origin: TPoint; Start: LongInt; Msg: TMsg; Before: Integer;
 function TProbe.State: TButtonState; begin Result := FState; end;
 procedure TProbe.Paint; begin inherited Paint; PaintedBrush := Canvas.Brush.Style; end;
 procedure TProbe.Click;
@@ -157,6 +157,15 @@ begin
     Mouse(WM_LBUTTONDOWN, MK_LBUTTON, 20, 20); A.Free; A := nil;
     Mouse(WM_MOUSEMOVE, MK_LBUTTON, 20, 20); Mouse(WM_LBUTTONUP, 0, 20, 20);
     Check(not Root.MouseCapture, 'freeing the captured button releases capture');
+    { As Delphi 1's CMDialogChar: the Task Manager's &New Task... is a speed
+      button, and Alt+N clicks it. }
+    B.Caption := '&New task'; Before := B.Clicks;
+    Check(Root.DispatchMnemonic('n') and (B.Clicks = Before + 1),
+      'Alt+N clicks the speed button &New task, as Delphi 1');
+    B.Enabled := False;
+    Check(not Root.DispatchMnemonic('n') and (B.Clicks = Before + 1),
+      'a disabled speed button ignores its accelerator');
+    B.Enabled := True; B.Caption := '';
     { TStyleSpeed draws its separator through a TControlCanvas on the parent. }
     Surface := TControlCanvas.Create;
     try

@@ -11,6 +11,15 @@ def source(name):
 
 
 class OriginalFrameTests(unittest.TestCase):
+    def test_speed_buttons_answer_their_accelerator(self):
+        # Delphi 1's TSpeedButton.CMDialogChar clicks it; ours ignored Alt+N
+        # on the Task Manager's &New Task... button.
+        speed = source('native_speedbutton.pas')
+        self.assertIn('function DialogChar(Key: Char; Root: TCustomControl): Boolean; override;', speed)
+        self.assertIn('Result := Enabled and CaptionMatches(FCaption, Key);', speed)
+        probe = (ROOT / 'tests/pascal/test_win16_speedbutton.pas').read_text()
+        self.assertIn("'Alt+N clicks the speed button &New task, as Delphi 1'", probe)
+
     def test_monochrome_glyphs_take_font_and_brush_colours(self):
         # Calmira's caption buttons are monochrome bitmaps drawn with Draw.
         canvas = source('gdi_canvas.pas')

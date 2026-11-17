@@ -3512,6 +3512,15 @@ calls `FindClose` for the short search as well. `make
 win16-lfnfuncs-doslfn-runtime-test` runs the LFNFUNCS.DLL test with DOSLFN
 and searches a folder a hundred times.
 
+## Speed Buttons Answer Their Accelerator
+
+Delphi 1's `TSpeedButton.CMDialogChar` clicks a speed button when its
+caption's accelerator is typed. Ours had no `DialogChar`, so Alt+N did not
+reach the Task Manager's "&New Task..." (a `TStyleSpeed`, which Tab does not
+reach in the original either). `native_speedbutton.pas` now clicks an
+enabled button whose caption matches. `make win16-speedbutton-runtime-test`
+clicks "&New task" with N and leaves it alone while disabled.
+
 ## Windows 3.11 Told by the Kernel
 
 The About box told Windows 3.11 from 3.10 by the file version of USER.EXE.

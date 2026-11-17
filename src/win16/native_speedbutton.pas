@@ -38,6 +38,7 @@ type
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    function DialogChar(Key: Char; Root: TCustomControl): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -61,7 +62,7 @@ type
     property OnMouseUp;
   end;
 implementation
-uses SysUtils, WinProcs, native_window;
+uses SysUtils, WinProcs, native_window, native_mnemonic;
 constructor TSpeedButton.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -200,6 +201,12 @@ begin
     Invalidate;
   end;
   if DoClick then Click;
+end;
+{ As Delphi 1's CMDialogChar: the accelerator of the caption clicks it. }
+function TSpeedButton.DialogChar(Key: Char; Root: TCustomControl): Boolean;
+begin
+  Result := Enabled and CaptionMatches(FCaption, Key);
+  if Result then Click;
 end;
 procedure Edge(Canvas: TCanvas; var R: TRect; TopColor, BottomColor: TColor);
 begin
