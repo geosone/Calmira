@@ -82,7 +82,7 @@ implementation
 
 uses {$IFDEF FPC}Win31, {$ENDIF}Desk, Resource, IconWin, ShellAPI, FileMan, MultiGrd, WasteBin, FileFind,
   Drives, Files, Strings, MiscUtil, CompSys, Graphics, Locale, ShutDown, Environs,
-  language_catalog;
+  language_catalog, LfnUtils;
 
 { The default name is stored in English and shown in the catalogue's
   language, as Windows XP names the folder in its own language. }
@@ -278,8 +278,20 @@ begin
 end;
 
 procedure TfrmMyDocs.LoadFromIni(ini: TIniFile; const section: string);
+var
+  FileSystem: string;
+  Flags: Word;
 begin
   Ref.LoadFromIni(ini, section);
+  { Windows 95 makes C:\My Documents; Calmira makes the folder its icon
+    opens, where the drive has long names (the RTL then makes it so) }
+  if LGetVolumeInfo(Copy(Ref.Target, 1, 3), FileSystem, Flags) and
+    (Flags and $4000 <> 0) and not HDirectoryExists(Ref.Target) then
+  try
+    LMkDir(Ref.Target);
+  except
+    on Exception do ;
+  end;
   if Ref.Kind <> rkFolder then
     begin
     {Ref.Kind := rkFolder;}

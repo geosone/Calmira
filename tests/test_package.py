@@ -48,6 +48,17 @@ class PackageTests(unittest.TestCase):
             self.assertNotIn(version, text)
             self.assertNotIn(' 5.0', text)
 
+    def test_my_documents_is_the_long_named_folder_of_windows_95(self):
+        ini = (ROOT / 'src/calmira.ini').read_bytes()
+        section = ini.split(b'[MyDocuments]', 1)[1].split(b'\r\n[', 1)[0]
+        self.assertIn(b'Target=C:\\My Documents', section)
+        source = (ROOT / 'src/mydocs.pas').read_bytes()
+        self.assertIn(b'LMkDir(Ref.Target);', source)
+        self.assertIn(b"MYDOCU~1 *<DIR>.*My Documents", (ROOT / 'tests/dos/test_package.sh').read_bytes())
+        # where the drive has long names, without Calmira's own long-name mode
+        self.assertIn(b'(Flags and $4000 <> 0) and not HDirectoryExists(Ref.Target) then', source)
+        self.assertIn(b'EnableLFN=0', ini)
+
     def test_descriptor_lists_files_without_archive_wildcards(self):
         descriptor = (ROOT / 'install/install.ini').read_text()
         self.assertNotIn('Archive=', descriptor)

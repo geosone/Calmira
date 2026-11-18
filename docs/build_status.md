@@ -3744,3 +3744,23 @@ Windows wraps a desktop icon's title only at a space, so the German
 "MS-DOS-Eingabeaufforderung" ran off the left edge of the screen in one
 line; it is "MS-DOS Eingabeaufforderung" now. `win16-langui-runtime-test`
 checks the new texts.
+
+## My Documents Where Windows 95 Keeps It
+
+The My Documents icon opened `C:\MYDOCU~1`, a folder nobody made: setup did
+not, and Calmira took the short name from its CALMIRA.INI. Windows 95 keeps
+the documents in `C:\My Documents`. CALMIRA.INI now names that folder, and
+Calmira makes it when it loads the icon and the drive has long names
+(`LGetVolumeInfo`, flag 4000h); the Free Pascal RTL then makes it under the
+long name, so Calmira's own long-name mode need not be on.
+
+That mode ("Enable Long Filename support" in the File System properties)
+stays off by default, as in Reborn. Turned on, the Desktop properties show
+no wallpaper in their monitor (`win16-desktop-wallpaper-runtime-test` fails
+with `EnableLFN=1`); the LFN routines of LFNFUNCS.DLL have not been tested
+on that path yet.
+
+- `make package-runtime-test` checks after the Windows run that `C:\` holds
+  `MYDOCU~1` with the long name `My Documents`; it failed on the old code.
+- `tests/test_package.py` guards the folder in CALMIRA.INI and the folder
+  made at start.
