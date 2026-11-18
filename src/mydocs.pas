@@ -277,20 +277,44 @@ begin
   Environment.Values['PERSONALFOLDER'] := Ref.Target;
 end;
 
+{ The short name Windows 95 gives a long one in an empty folder:
+  "Eigene Dateien" is EIGENE~1, "Documenti" DOCUME~1 }
+function ShortAlias(const Name: string): string;
+var
+  s: string;
+  i: Integer;
+begin
+  s := '';
+  for i := 1 to Length(Name) do
+    if Name[i] in ['A'..'Z', 'a'..'z', '0'..'9'] then s := s + UpCase(Name[i])
+    else if not (Name[i] in [' ', '.']) then s := s + '_';
+  if (Length(s) > 8) or (s <> UpperCase(Name)) then s := Copy(s, 1, 6) + '~1';
+  ShortAlias := s;
+end;
+
 procedure TfrmMyDocs.LoadFromIni(ini: TIniFile; const section: string);
 var
   FileSystem: string;
   Flags: Word;
+  Named: Boolean;
 begin
+  Named := ini.ReadString(section, 'Target', '') <> '';
   Ref.LoadFromIni(ini, section);
-  { Windows 95 makes C:\My Documents; Calmira makes the folder its icon
-    opens, where the drive has long names (the RTL then makes it so) }
-  if LGetVolumeInfo(Copy(Ref.Target, 1, 3), FileSystem, Flags) and
-    (Flags and $4000 <> 0) and not HDirectoryExists(Ref.Target) then
-  try
-    LMkDir(Ref.Target);
-  except
-    on Exception do ;
+  { Without a folder in CALMIRA.INI, the one Windows 95 and 98 make, in the
+    catalogue's language: C:\Eigene Dateien, or C:\EIGENE~1 where the drive
+    has no long names. Calmira makes it, the RTL under its long name. }
+  if not Named then
+  begin
+    if LGetVolumeInfo('C:\', FileSystem, Flags) and (Flags and $4000 <> 0) then
+      Ref.Target := 'C:\' + LocalCaption
+    else
+      Ref.Target := 'C:\' + ShortAlias(LocalCaption);
+    if not HDirectoryExists(Ref.Target) then
+    try
+      LMkDir(Ref.Target);
+    except
+      on Exception do ;
+    end;
   end;
   if Ref.Kind <> rkFolder then
     begin

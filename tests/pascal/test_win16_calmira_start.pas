@@ -30,6 +30,14 @@ begin
   Result := LongInt(WinProcs.GetTickCount);
 end;
 
+function FolderThere(const Path: string): Boolean;
+var
+  Rec: TSearchRec;
+begin
+  FolderThere := (FindFirst(Path, faDirectory, Rec) = 0) and (Rec.Attr and faDirectory <> 0);
+  FindClose(Rec);
+end;
+
 procedure Pump(Milliseconds: LongInt);
 var Msg: TMsg; Start: LongInt;
 begin
@@ -171,6 +179,9 @@ begin
       the old menu must not be used: its icons would sit one item off. }
     Check((CacheSize > 58), 'the Start menu image cache is rebuilt after the groups are synchronised');
     Check(Find('Error') = 0, 'no error box while starting');
+    { No DOSLFN here: My Documents is made under the short name Windows 95
+      gives "My Documents", so the same folder is found once long names come }
+    Check(FolderThere('C:\MYDOCU~1'), 'Calmira makes My Documents as C:\MYDOCU~1 without long names');
     Bar := Find('Taskbar');
     if Bar <> 0 then GetWindowRect(Bar, R);
     Check((Bar <> 0) and IsWindowVisible(Bar) and (GetWindowTask(Bar) = CalmiraTask) and

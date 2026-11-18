@@ -3749,10 +3749,19 @@ checks the new texts.
 
 The My Documents icon opened `C:\MYDOCU~1`, a folder nobody made: setup did
 not, and Calmira took the short name from its CALMIRA.INI. Windows 95 keeps
-the documents in `C:\My Documents`. CALMIRA.INI now names that folder, and
-Calmira makes it when it loads the icon and the drive has long names
-(`LGetVolumeInfo`, flag 4000h); the Free Pascal RTL then makes it under the
-long name, so Calmira's own long-name mode need not be on.
+the documents in `C:\My Documents`, and the localised Windows 98 names the
+folder in its language: `C:\Eigene Dateien`, `C:\Mes documents`,
+`C:\Mijn documenten`, `C:\Documenti`, `C:\Mis documentos`,
+`C:\Moje dokumenty`, the captions the catalogues already give the icon.
+
+CALMIRA.INI no longer names the folder. Without one, Calmira takes `C:\`
+and the icon's caption in the catalogue language where the drive has long
+names (`LGetVolumeInfo`, flag 4000h), and otherwise the short name Windows
+95 would give it (`EIGENE~1`, `MYDOCU~1`, `DOCUME~1`), so the same folder is
+found once DOSLFN is loaded. It makes the folder when it is missing; the
+Free Pascal RTL gives it the long name, so Calmira's own long-name mode can
+stay off. On exit Calmira writes the folder to CALMIRA.INI, so it keeps its
+name when the language changes later, as in Windows.
 
 That mode ("Enable Long Filename support" in the File System properties)
 stays off by default, as in Reborn. Turned on, the Desktop properties show
@@ -3760,7 +3769,9 @@ no wallpaper in their monitor (`win16-desktop-wallpaper-runtime-test` fails
 with `EnableLFN=1`); the LFN routines of LFNFUNCS.DLL have not been tested
 on that path yet.
 
-- `make package-runtime-test` checks after the Windows run that `C:\` holds
-  `MYDOCU~1` with the long name `My Documents`; it failed on the old code.
-- `tests/test_package.py` guards the folder in CALMIRA.INI and the folder
-  made at start.
+- `make package-runtime-test` (DOSLFN, German catalogue) checks after the
+  Windows run that `C:\` holds `EIGENE~1` with the long name `Eigene
+  Dateien`; it failed on the old code.
+- `make win16-calmira-start-runtime-test` (no DOSLFN, English) checks that
+  Calmira makes `C:\MYDOCU~1`; it failed on the old code.
+- `tests/test_package.py` guards the INI, the names and the tests.

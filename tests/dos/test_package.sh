@@ -198,11 +198,11 @@ mcopy -o -i "$partition" ::/CALSHUT.LOG "$work/shutdown.log" 2>/dev/null ||
     fail 'Shut Down did not return to DOS'
 grep -q '^PASS SHUTDOWN' "$work/shutdown.log" || fail 'Shut Down did not return to DOS'
 echo 'PASS Shut Down ends Windows and returns to DOS'
-# Windows 95 keeps the documents in C:\My Documents; Calmira makes the
-# folder its My Documents icon opens, under its long name, when it starts.
-mdir -i "$partition" ::/ 2>/dev/null | grep -q 'MYDOCU~1 *<DIR>.*My Documents' ||
-    fail 'Calmira did not make C:\My Documents for its My Documents icon'
-echo 'PASS Calmira made C:\My Documents with its long name'
+# German Windows 98 keeps the documents in C:\Eigene Dateien; Calmira makes
+# the folder its My Documents icon opens, under its long name, when it starts.
+mdir -i "$partition" ::/ 2>/dev/null | grep -q 'EIGENE~1 *<DIR>.*Eigene Dateien' ||
+    fail 'Calmira did not make C:\Eigene Dateien for its My Documents icon'
+echo 'PASS Calmira made C:\Eigene Dateien with its long name'
 
 printf '@ECHO OFF\r\nPATH C:\\;C:\\WINDOWS\r\nC:\\CALMIRA\\INSTALL.EXE /U\r\nIF ERRORLEVEL 1 GOTO FAILED\r\nECHO PASS UNINSTALL>C:\\CALUN.LOG\r\nGOTO END\r\n:FAILED\r\nECHO FAIL UNINSTALL>C:\\CALUN.LOG\r\n:END\r\n' > "$work/AUTOEXEC.BAT"
 mcopy -o -i "$partition" "$work/AUTOEXEC.BAT" ::/

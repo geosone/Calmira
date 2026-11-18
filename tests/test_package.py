@@ -48,16 +48,17 @@ class PackageTests(unittest.TestCase):
             self.assertNotIn(version, text)
             self.assertNotIn(' 5.0', text)
 
-    def test_my_documents_is_the_long_named_folder_of_windows_95(self):
+    def test_my_documents_is_the_folder_windows_9x_makes_in_its_language(self):
         ini = (ROOT / 'src/calmira.ini').read_bytes()
         section = ini.split(b'[MyDocuments]', 1)[1].split(b'\r\n[', 1)[0]
-        self.assertIn(b'Target=C:\\My Documents', section)
-        source = (ROOT / 'src/mydocs.pas').read_bytes()
-        self.assertIn(b'LMkDir(Ref.Target);', source)
-        self.assertIn(b"MYDOCU~1 *<DIR>.*My Documents", (ROOT / 'tests/dos/test_package.sh').read_bytes())
-        # where the drive has long names, without Calmira's own long-name mode
-        self.assertIn(b'(Flags and $4000 <> 0) and not HDirectoryExists(Ref.Target) then', source)
+        self.assertNotIn(b'Target=', section)
         self.assertIn(b'EnableLFN=0', ini)
+        source = (ROOT / 'src/mydocs.pas').read_bytes()
+        self.assertIn(b"Ref.Target := 'C:\\' + LocalCaption", source)
+        self.assertIn(b"Ref.Target := 'C:\\' + ShortAlias(LocalCaption);", source)
+        self.assertIn(b'LMkDir(Ref.Target);', source)
+        self.assertIn(b"EIGENE~1 *<DIR>.*Eigene Dateien", (ROOT / 'tests/dos/test_package.sh').read_bytes())
+        self.assertIn("FolderThere('C:\\MYDOCU~1')", (ROOT / 'tests/pascal/test_win16_calmira_start.pas').read_text())
 
     def test_descriptor_lists_files_without_archive_wildcards(self):
         descriptor = (ROOT / 'install/install.ini').read_text()
