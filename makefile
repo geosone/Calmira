@@ -1,6 +1,6 @@
 # The release number: the About box, the splash screen and the installer's
 # Version= take it from here. Test releases count from 5.0.90 towards 5.1.
-VERSION := 5.0.91
+VERSION := 5.0.92
 
 GDI ?= ../gdi
 FPC ?= fpc
