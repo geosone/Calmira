@@ -2298,13 +2298,11 @@ begin
   if SelChanged then
     if Narrow and (Grid.SelCount > 0) then
     begin
-      TotalLabel.Caption := Format(SelectionLabels[Grid.SelCount = 1],
-        [Grid.SelCount, FormatByte(Selsize, 2, 2)]);
+      TotalLabel.Caption := SelectionText(Grid.SelCount, FormatByte(Selsize, 2, 2));
       ShowingSelection := True;
     end
     else
-      SelLabel.Caption := Format(SelectionLabels[Grid.SelCount = 1],
-        [Grid.SelCount, FormatByte(Selsize, 2, 2)]);
+      SelLabel.Caption := SelectionText(Grid.SelCount, FormatByte(Selsize, 2, 2));
 end;
 
 procedure TIconWindow.TotalLabelClick(Sender: TObject);
@@ -2414,7 +2412,7 @@ begin
     folder[1] := Upcase(folder[1]); { 3.1 }
     Caption := folder;
   end;
-  if Owner is TExplorer then Caption := 'Exploring ' + Caption; { 3.1 }
+  if Owner is TExplorer then Caption := ExploringCaption(Caption); { 3.1 }
 end;
 
 procedure TIconWindow.SearchFileHandler(Sender: TObject; const s: string);

@@ -116,6 +116,28 @@ class LocalizationTests(unittest.TestCase):
             for code in ('fr', 'nl', 'pl', 'it', 'es'):
                 self.assertGreater(report[code]['entries'], 900)
 
+    def test_explorer_tells_selection_and_caption_in_every_catalogue(self):
+        # "Selected 3 items", "7 items found", "(No description)" and the
+        # caption "Exploring ..." were English constants of Calmira; German
+        # Calmira 3.3 translated them and left "Exploring" out.
+        keys = ('SelectedItems', 'SelectedOneItem', 'ItemsFound', 'FoundSelected',
+                'Exploring', 'NoDescription')
+        english = json.loads((ROOT / 'locales/extra.json').read_text())['en']['Desktop']
+        for code in ('de', 'fr', 'nl', 'it', 'es', 'pl'):
+            ours = json.loads((ROOT / f'locales/translated/{code}.json').read_text())['Desktop']
+            for key in keys:
+                with self.subTest(language=code, key=key):
+                    self.assertNotEqual(ours[key], english[key])
+                    self.assertEqual(LANGUAGES.placeholders(ours[key]), LANGUAGES.placeholders(english[key]))
+        self.assertEqual(json.loads((ROOT / 'locales/translated/de.json').read_text())['Desktop']['Exploring'], '%s')
+        sources = {name: (ROOT / 'src' / name).read_bytes().decode('latin-1')
+                   for name in ('iconwin.pas', 'wastebin.pas', 'filefind.pas', 'directry.pas', 'settings.pas')}
+        self.assertIn("Caption := ExploringCaption(Caption);", sources['iconwin.pas'])
+        self.assertNotIn("SelectionLabels[", sources['iconwin.pas'] + sources['wastebin.pas'])
+        self.assertIn("FoundText(Listbox.Items.Count)", sources['filefind.pas'])
+        self.assertIn("LanguageText('Desktop', 'NoDescription', SSNoDescription)", sources['directry.pas'])
+        self.assertIn("LanguageText('Desktop', 'Exploring', 'Exploring %s')", sources['settings.pas'])
+
     def test_texts_left_in_english_give_way_to_project_translations(self):
         # The historical catalogues kept some texts in English, such as the
         # German About box's "MS-DOS Version:"; our translation was never used.

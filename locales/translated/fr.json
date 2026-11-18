@@ -121,7 +121,13 @@
     "FixedDrive": "Disque dur (%s:)",
     "NetworkDrive": "Réseau (%s:)",
     "CDROMDrive": "CD-ROM (%s:)",
-    "RAMDrive": "Disque virtuel (%s:)"
+    "RAMDrive": "Disque virtuel (%s:)",
+    "SelectedItems": "%d objets sélectionnés  %s",
+    "SelectedOneItem": "%d objet sélectionné  %s",
+    "ItemsFound": "%d objets trouvés",
+    "FoundSelected": "%d sélectionnés",
+    "Exploring": "%s - Explorateur",
+    "NoDescription": "(Aucune description)"
   },
   "Memory": {
     "Free": "%s libres"

@@ -151,7 +151,13 @@
     "FixedDrive": "Dysk twardy (%s:)",
     "NetworkDrive": "Sieć (%s:)",
     "CDROMDrive": "CD-ROM (%s:)",
-    "RAMDrive": "RAM-dysk (%s:)"
+    "RAMDrive": "RAM-dysk (%s:)",
+    "SelectedItems": "Zaznaczono obiekty: %d  %s",
+    "SelectedOneItem": "Zaznaczono obiekty: %d  %s",
+    "ItemsFound": "Znaleziono obiekty: %d",
+    "FoundSelected": "Zaznaczono: %d",
+    "Exploring": "Eksplorowanie - %s",
+    "NoDescription": "(Brak opisu)"
   },
   "Memory": {
     "Free": "%s wolne"

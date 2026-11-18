@@ -658,7 +658,13 @@
     "FixedDrive": "Disco duro (%s:)",
     "NetworkDrive": "Red (%s:)",
     "CDROMDrive": "CD-ROM (%s:)",
-    "RAMDrive": "Disco RAM (%s:)"
+    "RAMDrive": "Disco RAM (%s:)",
+    "SelectedItems": "%d elementos seleccionados  %s",
+    "SelectedOneItem": "%d elemento seleccionado  %s",
+    "ItemsFound": "%d elementos encontrados",
+    "FoundSelected": "%d seleccionados",
+    "Exploring": "Explorando - %s",
+    "NoDescription": "(Sin descripción)"
   },
   "Memory": {
     "Free": "%s libres"

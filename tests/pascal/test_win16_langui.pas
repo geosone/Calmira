@@ -76,10 +76,20 @@ begin
     Check((Format(LanguageText('TaskManager', 'OneTask', '%d task'), [1]) = '1 Prozess') and
       (Format(LanguageText('TaskManager', 'Tasks', '%d tasks'), [3]) = '3 Prozesse'),
       'the Task Manager counts its tasks in the catalogue language');
-    Check((LanguageText('Menu', 'MS-DOS Prompt', '') = 'MS-DOS-Eingabeaufforderung') and
+    { With a space Windows wraps the desktop icon's title after MS-DOS. }
+    Check((LanguageText('Menu', 'MS-DOS Prompt', '') = 'MS-DOS Eingabeaufforderung') and
       (LanguageText('Menu', 'Auto start your', '') = 'Programme hier') and
       (LanguageText('Menu', 'programs here.', '') = 'automatisch starten.'),
       'the entries of the default Start menu are translated');
+    { Calmira had these in English; German Calmira 3.3 translated them and
+      left "Exploring" out of an Explorer's caption. }
+    Check((Format(LanguageText('Desktop', 'SelectedItems', ''), [3, '2 KB']) = '3 Elemente ausgew'#228'hlt  2 KB') and
+      (Format(LanguageText('Desktop', 'SelectedOneItem', ''), [1, '']) = '1 Element ausgew'#228'hlt  ') and
+      (Format(LanguageText('Desktop', 'ItemsFound', ''), [7]) = '7 Element(e) gefunden') and
+      (Format(LanguageText('Desktop', 'FoundSelected', ''), [2]) = '2 ausgew'#228'hlt') and
+      (Format(LanguageText('Desktop', 'Exploring', ''), ['Festplatte (C:)']) = 'Festplatte (C:)') and
+      (LanguageText('Desktop', 'NoDescription', '') = '(Keine Beschreibung)'),
+      'the Explorer tells its selection and caption in the catalogue language');
     About := TAboutBox.CreateNew(nil);
     try
       About.Name := 'AboutBox'; About.Caption := 'About'; About.SetBounds(40, 40, 200, 120);

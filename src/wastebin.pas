@@ -805,8 +805,7 @@ begin
     end;
   StatusLabel1.Caption := NumObjectsText(Listbox.Items.Count,
     FormatByte(TotalSize, 2, 2));
-  StatusLabel2.Caption := Format(SelectionLabels[Listbox.SelCount = 1],
-    [Listbox.SelCount, FormatByte(SelectedSize, 2, 2)]);
+  StatusLabel2.Caption := SelectionText(Listbox.SelCount, FormatByte(SelectedSize, 2, 2));
 end;
 
 procedure TBin.ListboxClick(Sender: TObject);

@@ -3728,3 +3728,19 @@ from `BUILD_DIR` instead of a stale `build/`. `package-runtime-test` on DOS
 GDI 1.16.5 also wraps the buttons of a dialog into rows when they do not fit
 its window: the seven languages ran past the right edge of the language
 choice in DOS.
+
+## The Explorer Speaks the Catalogue Language
+
+The forum screenshots showed an English Explorer in the German catalogue:
+"Exploring Festplatte (C:)", "Selected 1 item" and the hint "(No
+description)". Calmira had them as English constants in `EMBED.PAS` and
+`ICONWIN.PAS`; German Calmira 3.3 translated them and left "Exploring" out
+of the caption, French 3.3 wrote "C:\ - Explorateur". The texts now come
+from the catalogue (`Desktop` section) with the 3.3 wording for German and
+French and our own for the other languages, in the Explorer, the Recycle
+Bin and Find. "bytes" stays, as in German 3.3.
+
+Windows wraps a desktop icon's title only at a space, so the German
+"MS-DOS-Eingabeaufforderung" ran off the left edge of the screen in one
+line; it is "MS-DOS Eingabeaufforderung" now. `win16-langui-runtime-test`
+checks the new texts.

@@ -232,7 +232,13 @@
     "FixedDrive": "Vaste schijf (%s:)",
     "NetworkDrive": "Netwerk (%s:)",
     "CDROMDrive": "Cd-rom (%s:)",
-    "RAMDrive": "RAM-schijf (%s:)"
+    "RAMDrive": "RAM-schijf (%s:)",
+    "SelectedItems": "%d items geselecteerd  %s",
+    "SelectedOneItem": "%d item geselecteerd  %s",
+    "ItemsFound": "%d items gevonden",
+    "FoundSelected": "%d geselecteerd",
+    "Exploring": "Verkennen - %s",
+    "NoDescription": "(Geen beschrijving)"
   },
   "Memory": {
     "Free": "%s vrij"

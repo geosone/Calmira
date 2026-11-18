@@ -405,8 +405,8 @@ end;
 
 procedure TFindForm.UpdateStatusBar;
 begin
-  FoundLabel.Caption := Format(SSItemsFound, [Listbox.Items.Count]);
-  SelLabel.Caption := Format(SSFoundSelected, [Listbox.SelCount]);
+  FoundLabel.Caption := FoundText(Listbox.Items.Count);
+  SelLabel.Caption := FoundSelectedText(Listbox.SelCount);
   PaintStatusbar;
 end;
 

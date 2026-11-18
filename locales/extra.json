@@ -79,7 +79,13 @@
       "FixedDrive": "Fixed (%s:)",
       "NetworkDrive": "Network (%s:)",
       "CDROMDrive": "CD-ROM (%s:)",
-      "RAMDrive": "RAMdisk (%s:)"
+      "RAMDrive": "RAMdisk (%s:)",
+      "SelectedItems": "Selected %d items  %s",
+      "SelectedOneItem": "Selected %d item  %s",
+      "ItemsFound": "%d items found",
+      "FoundSelected": "%d selected",
+      "Exploring": "Exploring %s",
+      "NoDescription": "(No description)"
     },
     "Memory": {
       "Free": "%s free"
@@ -168,7 +174,7 @@
       "Network": "Netzwerk",
       "Auto start your": "Programme hier",
       "programs here.": "automatisch starten.",
-      "MS-DOS Prompt": "MS-DOS-Eingabeaufforderung",
+      "MS-DOS Prompt": "MS-DOS Eingabeaufforderung",
       "Calculator": "Rechner",
       "Cardfile": "Kartei",
       "Character Map": "Zeichentabelle",

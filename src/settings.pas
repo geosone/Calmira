@@ -280,6 +280,12 @@ procedure LoadSettings;
 procedure LoadSystemProp;
 { "7 objects" in the catalogue's language, then the size or other text. }
 function NumObjectsText(Count: LongInt; const Extra: string): string;
+{ "Selected 3 items", "7 items found", "2 selected" and an Explorer's
+  caption in the catalogue's language; Calmira had them in English. }
+function SelectionText(Count: LongInt; const Extra: string): string;
+function FoundText(Count: LongInt): string;
+function FoundSelectedText(Count: LongInt): string;
+function ExploringCaption(const Folder: string): string;
 { A desktop shortcut's name in the catalogue's language. }
 function ShortcutCaption(const Stored: string): string;
 procedure SaveSystemProp;
@@ -300,7 +306,7 @@ implementation
 
 uses Directry, Strings, MiscUtil, WinProcs, Resource, CalMsgs, Menus, Task,
   Start, FourDOS, Environs, Files, FileMan, IconDlg, IconWin, Internet,
-  PicBtn, Dialogs, language_catalog;
+  PicBtn, Dialogs, language_catalog, Embed;
 
 { CALMIRA.INI keeps the English default names of My Computer and the Recycle
   Bin; they are shown in the catalogue's language, as My Documents is. A
@@ -337,6 +343,33 @@ begin
   else
     NumObjectsText := Format(LanguageText('Desktop', 'Objects',
       '%d objects  %s'), [Count, Extra]);
+end;
+
+function SelectionText(Count: LongInt; const Extra: string): string;
+begin
+  if Count = 1 then
+    SelectionText := Format(LanguageText('Desktop', 'SelectedOneItem',
+      SSSelectedOneItem), [Count, Extra])
+  else
+    SelectionText := Format(LanguageText('Desktop', 'SelectedItems',
+      SSSelectedItems), [Count, Extra]);
+end;
+
+function FoundText(Count: LongInt): string;
+begin
+  FoundText := Format(LanguageText('Desktop', 'ItemsFound', SSItemsFound), [Count]);
+end;
+
+function FoundSelectedText(Count: LongInt): string;
+begin
+  FoundSelectedText := Format(LanguageText('Desktop', 'FoundSelected',
+    SSFoundSelected), [Count]);
+end;
+
+function ExploringCaption(const Folder: string): string;
+begin
+  ExploringCaption := Format(LanguageText('Desktop', 'Exploring', 'Exploring %s'),
+    [Folder]);
 end;
 
 procedure LoadSettings;

@@ -374,7 +374,7 @@ implementation
 
 uses ShellAPI, Forms, Controls, Progress, Resource, FileMan, WinProcs,
   Streamer, Desk, Files, IniFiles, Strings, MiscUtil, Alias, IconWin, Start,
-  Locale, Embed, CompSys;
+  Locale, Embed, CompSys, language_catalog;
 
 var
   ResizeBitmap: Graphics.TBitmap;
@@ -943,7 +943,8 @@ begin
   if UseDescriptions and HintDesc then
   begin
     Result := Description;
-    if Result = '' then Result := SSNoDescription
+    if Result = '' then
+      Result := LanguageText('Desktop', 'NoDescription', SSNoDescription)
     else if DescCaptions then Result := Filename;
   end;
   if HintType then
