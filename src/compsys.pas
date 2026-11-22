@@ -1077,10 +1077,11 @@ begin
   Result := False;
   with Message do
     case Msg of
-      { The Delphi 1.0 VCL neglects to handle the WM_ENDSESSION message,
-        giving Calmira no chance to clean up and save it's state.
-        Calling Halt seems crude, but it actually calls all ExitProcs. }
-      WM_ENDSESSION: if Bool(wParam) then Halt;
+      { Windows ends: save the desktop. Delphi 1 called Halt here for its
+        ExitProcs; they only free memory, and Halt from inside the window
+        procedure tears the application window down under its own dispatch
+        (a general protection fault whenever a program restarted Windows). }
+      WM_ENDSESSION: if Bool(wParam) then Desktop.Save;
       { Another Delphi 1.0 VCL bug: When a MainMenu is not on the main
         form, it will never recieve ALT accelerators.  True is returned
         to prevent WndProc from sending the key to the main form. }
